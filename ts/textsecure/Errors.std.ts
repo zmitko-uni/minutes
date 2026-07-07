@@ -47,6 +47,18 @@ class ReplayableError extends Error {
 }
 
 // oxlint-disable-next-line max-classes-per-file
+export class SessionNotAllowedToRequestCodeError extends ReplayableError {
+  constructor(message: string) {
+    super({ name: 'SessionNotAllowedToRequestCodeError', message });
+  }
+}
+
+export class SessionNotVerifiedError extends ReplayableError {
+  constructor(message: string) {
+    super({ name: 'SessionNotVerifiedError', message });
+  }
+}
+
 export class OutgoingIdentityKeyError extends ReplayableError {
   public readonly identifier: string;
 

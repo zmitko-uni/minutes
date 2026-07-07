@@ -159,6 +159,7 @@ export class LeftPaneSetGroupMetadataHelper extends LeftPaneHelper<LeftPaneSetGr
                   avatarValue={this.#groupAvatar}
                   deleteAvatarFromDisk={composeDeleteAvatarFromDisk}
                   i18n={i18n}
+                  isDisplayedAsPanel={false}
                   isGroup
                   onCancel={toggleComposeEditingAvatar}
                   onSave={newAvatar => {

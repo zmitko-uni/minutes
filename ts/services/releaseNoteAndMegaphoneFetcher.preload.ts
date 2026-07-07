@@ -610,7 +610,7 @@ export class ReleaseNoteAndMegaphoneFetcher {
       await this.#scheduleForNextRun();
       this.setTimeoutForNextRun();
 
-      window.SignalCI?.handleEvent('release_notes_fetcher_complete', {});
+      window.SignalCI?.handleEvent('release_notes_fetcher_complete', null);
     } catch (error) {
       const errorString =
         error instanceof HTTPError

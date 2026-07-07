@@ -339,6 +339,7 @@ export function ProfileEditor({
         conversationTitle={getFullNameText()}
         deleteAvatarFromDisk={deleteAvatarFromDisk}
         i18n={i18n}
+        isDisplayedAsPanel={false}
         onCancel={handleBack}
         onSave={handleAvatarChanged}
         userAvatarData={userAvatarData}

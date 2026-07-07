@@ -74,8 +74,7 @@ import { missingCaseError } from '../util/missingCaseError.std.ts';
 import { openLinkInWebBrowser } from '../util/openLinkInWebBrowser.dom.ts';
 import { usePreviousDeprecated } from '../hooks/usePrevious.std.ts';
 import { tw } from '../axo/tw.dom.tsx';
-
-const SUPPORT_URL = 'https://support.signal.org/hc/requests/new?desktop';
+import { CONTACT_SUPPORT_URL } from '../util/contactSupport.dom.tsx';
 
 export type PropsDataType = {
   i18n: LocalizerType;
@@ -1170,7 +1169,7 @@ function HelpFooter({
   const contactSupportLink = (parts: Array<string | JSX.Element>) => (
     <a
       className="DonationFormHelpFooter__ContactSupportLink"
-      href={SUPPORT_URL}
+      href={CONTACT_SUPPORT_URL}
       rel="noreferrer"
       target="_blank"
     >

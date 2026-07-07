@@ -245,7 +245,6 @@ const STD_PACKAGES = new Set([
   'google-libphonenumber',
   'heic-convert',
   'humanize-duration',
-  'intl-tel-input',
   'js-yaml',
   'linkify-it',
   'lodash',

@@ -8972,6 +8972,538 @@
     "messageformat": "Signal Desktop failed to update, but there is a new version available. Go to {downloadUrl} and install the new version manually, then either contact support or file a bug about this problem.",
     "description": "The body of the update dialog on install screen when update cannot be installed."
   },
+  "icu:StandaloneRegistration--signal-logo": {
+    "messageformat": "Signal Logo",
+    "description": "Alt text for the signal logo at the top left of the standalone registration screens"
+  },
+  "icu:StandaloneRegistration--back": {
+    "messageformat": "Back",
+    "description": "Button at the top of some registration pages to go back a step"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--header": {
+    "messageformat": "Phone number",
+    "description": "Header of the standalone registration screen where phone number is entered"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--description--line-1": {
+    "messageformat": "Enter your phone number to verify your account.",
+    "description": "Description (line 1) of the standalone registration screen where phone number is entered"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--description--line-2": {
+    "messageformat": "Carrier rates may apply.",
+    "description": "Description (line 2) of the standalone registration screen where phone number is entered"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--waiting": {
+    "messageformat": "Please try again in {duration}",
+    "description": "Wait time countdown shown on the standalone registration screen where phone number is entered"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--placeholder": {
+    "messageformat": "Phone number",
+    "description": "Placeholder in the text box of the standalone registration screen where phone number is entered"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--button": {
+    "messageformat": "Continue",
+    "description": "Button to go to the next step of the standalone registration process"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--Confirmation--description": {
+    "messageformat": "Is your phone number above correct?",
+    "description": "Description text of phone number confirmation dialog"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--Confirmation--cancel": {
+    "messageformat": "Edit number",
+    "description": "Cancel button of phone number confirmation dialog"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--Confirmation--confirm": {
+    "messageformat": "Yes",
+    "description": "Confirm button of phone number confirmation dialog"
+  },
+  "icu:StandaloneRegistration--Captcha--header": {
+    "messageformat": "Verify you’re a human to continue",
+    "description": "Header of the standalone registration captcha screen"
+  },
+  "icu:StandaloneRegistration--Captcha--description": {
+    "messageformat": "To help prevent spam on Signal, please complete verification. After verifying, you can continue with registration.",
+    "description": "Description of the standalone registration captcha screen"
+  },
+  "icu:StandaloneRegistration--Captcha--retry-button": {
+    "messageformat": "Retry verification",
+    "description": "Button to open browser again on the standalone registration captcha screen"
+  },
+  "icu:StandaloneRegistration--Captcha--button": {
+    "messageformat": "Verify in browser",
+    "description": "Button to start captcha on the standalone registration captcha screen"
+  },
+  "icu:StandaloneRegistration--Captcha--button--wait": {
+    "messageformat": "Verify in {duration}",
+    "description": "When needing to wait, the button to start captcha on the standalone registration captcha screen"
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--header": {
+    "messageformat": "Further verification required",
+    "description": "Header of popup shown when user needs to complete another captcha"
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--description": {
+    "messageformat": "Please complete another captcha to continue registration.",
+    "description": "Description of popup shown when user needs to complete another captcha"
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--cancel": {
+    "messageformat": "Cancel",
+    "description": "Cancel button on popup shown when user needs to complete another captcha"
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--retry": {
+    "messageformat": "Retry verification",
+    "description": "Try again button on popup shown when user needs to complete another captcha"
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--aria-title": {
+    "messageformat": "Try again later",
+    "description": "Screenreader-only title of popup shown when user must wait try the captcha again"
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--line-1": {
+    "messageformat": "Can’t complete verification right now.",
+    "description": "Description (line 1) of popup shown when user must wait try the captcha again"
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--line-2": {
+    "messageformat": "Try again in {duration}",
+    "description": "Description (line 2) of popup shown when user must wait try the captcha again"
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--button": {
+    "messageformat": "OK",
+    "description": "Button to close popup shown when user must wait try the captcha again"
+  },
+  "icu:StandaloneRegistration--Captcha--Error--header": {
+    "messageformat": "Verification error",
+    "description": "Header of of popup shown when captcha completion didn't work"
+  },
+  "icu:StandaloneRegistration--Captcha--Error--description": {
+    "messageformat": "Try verifying again to continue registration.",
+    "description": "Description of popup shown when captcha completion didn't work"
+  },
+  "icu:StandaloneRegistration--Captcha--Error--try-again": {
+    "messageformat": "Try again",
+    "description": "Try again button on popup shown when captcha completion didn't work"
+  },
+  "icu:StandaloneRegistration--Captcha--Error--cancel": {
+    "messageformat": "Cancel",
+    "description": "Cancel button on popup shown when captcha completion didn't work"
+  },
+  "icu:StandaloneRegistration--VerificationCode--header": {
+    "messageformat": "Verification code",
+    "description": "Header of standalone registration verification code screen"
+  },
+  "icu:StandaloneRegistration--VerificationCode--description": {
+    "messageformat": "Enter the code we sent to {phoneNumber}",
+    "description": "Description of standalone registration verification code screen"
+  },
+  "icu:StandaloneRegistration--VerificationCode--button": {
+    "messageformat": "Continue",
+    "description": "Button to continue forward on standalone registration verification code screen"
+  },
+  "icu:StandaloneRegistration--VerificationCode--send-sms": {
+    "messageformat": "Resend code",
+    "description": "Button to resend sms on standalone registration verification code screen"
+  },
+  "icu:StandaloneRegistration--VerificationCode--send-sms--duration": {
+    "messageformat": "Resend code in {duration}",
+    "description": "Disabled due to wait time button to resend sms on standalone registration verification code screen"
+  },
+  "icu:StandaloneRegistration--VerificationCode--call-me": {
+    "messageformat": "Call me",
+    "description": "Button to start phone call to deliver code on standalone registration verification code screen"
+  },
+  "icu:StandaloneRegistration--VerificationCode--call-me--duration": {
+    "messageformat": "Call me in {duration}",
+    "description": "Disabled due to wait time button to start phone call to deliver code on standalone registration verification code screen"
+  },
+  "icu:StandaloneRegistration--VerificationCode--wrong-number": {
+    "messageformat": "Wrong number?",
+    "description": "Helper text shown on when verification code hasn't been completed for a while"
+  },
+  "icu:StandaloneRegistration--VerificationCode--having-trouble": {
+    "messageformat": "Having trouble registering?",
+    "description": "Button shown when the verification code hasn't been completed for a while"
+  },
+  "icu:StandaloneRegistration--VerificationCode--IncorrectCode--aria-title": {
+    "messageformat": "Incorrect code",
+    "description": "Screenreader-only title for popup shown when the verification code provided was incorrect"
+  },
+  "icu:StandaloneRegistration--VerificationCode--IncorrectCode--description": {
+    "messageformat": "The code you entered is incorrect. Please review the 6 digit code and try again.",
+    "description": "Description for popup shown when the verification code provided was incorrect"
+  },
+  "icu:StandaloneRegistration--VerificationCode--IncorrectCode--button": {
+    "messageformat": "OK",
+    "description": "Button for popup shown when the verification code provided was incorrect"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--aria-title": {
+    "messageformat": "Invalid code",
+    "description": "Screenreader-only title for popup shown when the verification code has expired or is otherwise invalid"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--description": {
+    "messageformat": "The code you entered is not valid. Please resend the code and try again.",
+    "description": "Description for popup shown when the verification code has expired or is otherwise invalid"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--resend-button": {
+    "messageformat": "Resend code",
+    "description": "Resend button for popup shown when the verification code has expired or is otherwise invalid"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--edit-number-button": {
+    "messageformat": "Edit number",
+    "description": "Edit number button for popup shown when the verification code has expired or is otherwise invalid"
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--aria-title": {
+    "messageformat": "Unable to send SMS",
+    "description": "Screenreader-only title for popup shown when the code couldn't be sent by SMS"
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--description": {
+    "messageformat": "We couldn't send you a verification code via SMS. Try receiving your code via voice call instead.",
+    "description": "Description for popup shown when the code couldn't be sent by SMS"
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--confirm": {
+    "messageformat": "Voice call",
+    "description": "Confirm button for popup shown when the code couldn't be sent by SMS"
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--cancel": {
+    "messageformat": "Cancel",
+    "description": "Cancel button for popup shown when the code couldn't be sent by SMS"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MustWait--aria-title": {
+    "messageformat": "Try again later",
+    "description": "Screenreader-only title for popup shown user has tried too many incorrect codes"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MustWait--description": {
+    "messageformat": "You’ve made too many attempts to enter the code. Try again in {duration}.",
+    "description": "Description for popup shown user has tried too many incorrect codes"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MustWait--button": {
+    "messageformat": "OK",
+    "description": "Cancel button for popup shown user has tried too many incorrect codes"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--aria-title": {
+    "messageformat": "Too many attempts",
+    "description": "Screenreader-only title for popup shown when the user has submitted an incorrect code too many times"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--description": {
+    "messageformat": "You’ve made too many attempts to enter the code. Please resend the code and try again.",
+    "description": "Description for popup shown when the user has submitted an incorrect code too many times"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--resend-button": {
+    "messageformat": "Resend code",
+    "description": "Resend button for popup shown when the user has submitted an incorrect code too many times"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--edit-number-button": {
+    "messageformat": "Edit number",
+    "description": "Edit number button for popup shown when the user has submitted an incorrect code too many times"
+  },
+  "icu:StandaloneRegistration--VerificationCode--FailedToCall--aria-title": {
+    "messageformat": "Unable to call",
+    "description": "Screenreder-only title for popup shown when the user requested a voice call to get the code, and that didn't work"
+  },
+  "icu:StandaloneRegistration--VerificationCode--FailedToCall--description": {
+    "messageformat": "We couldn't call the phone number you entered. Make sure the phone number is correct and try again.",
+    "description": "Description for popup shown when the user requested a voice call to get the code, and that didn't work"
+  },
+  "icu:StandaloneRegistration--VerificationCode--FailedToCall--ok-button": {
+    "messageformat": "OK",
+    "description": "Button to dismiss popup shown when the user requested a voice call to get the code, and that didn't work"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodePermanent--aria-title": {
+    "messageformat": "Cannot send code",
+    "description": "Screenreader-only title for popup shown when the server told us we can't get the code to the user's number, permanently"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodePermanent--description": {
+    "messageformat": "A verification code cannot be sent to the phone number you’ve entered. Make sure the number you’ve entered is correct, or try a different number.",
+    "description": "Description for popup shown when the server told us we can't get the code to the user's number, permanently"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodePermanent--ok-button": {
+    "messageformat": "OK",
+    "description": "Button to dismiss popup shown when the server told us we can't get the code to the user's number, permanently"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--aria-title": {
+    "messageformat": "Try again later",
+    "description": "Screenreader-only title for popup shown when the server told us we can't get the code to the user's number, temporarily"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--description": {
+    "messageformat": "An error occurred and the verification code could not be sent. Try again in {duration}.",
+    "description": "Description for popup shown when the server told us we can't get the code to the user's number, temporarily"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--ok-button": {
+    "messageformat": "OK",
+    "description": "Button to dismiss popup shown when the server told us we can't get the code to the user's number, temporarily"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--header": {
+    "messageformat": "Set up your profile",
+    "description": "Header for profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--description": {
+    "messageformat": "Profiles are visible to people you message, contacts, and groups.",
+    "description": "Description line 1 for profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--learn-more": {
+    "messageformat": "Learn more",
+    "description": "Description line 2 for profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--add-photo": {
+    "messageformat": "Add photo",
+    "description": "Button allowing user to edit their profile avatar on profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--first-name": {
+    "messageformat": "First name (required)",
+    "description": "Button allowing user to edit their profile avatar on profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--last-name": {
+    "messageformat": "Last name (optional)",
+    "description": "Button allowing user to edit their profile avatar on profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--discoverability": {
+    "messageformat": "Who can find me by phone number",
+    "description": "Label for the phone number discoverability option on profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--discoverability--change-button": {
+    "messageformat": "Change",
+    "description": "Button to open phone number discoverability dialog on profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--discoverability--done-button": {
+    "messageformat": "Done",
+    "description": "Button to close phone number discoverability dialog on profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--continue": {
+    "messageformat": "Continue",
+    "description": "Button to finish the profile entry screen"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--AvatarModal--header": {
+    "messageformat": "Your avatar",
+    "description": "Heading on the popup dialog which allows the user to choose an avatar"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--header": {
+    "messageformat": "Enter your PIN",
+    "description": "Header on screen asking user to verify their PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--description": {
+    "messageformat": "Enter the PIN you created for your account. This is different from your SMS verification code. <needHelp>Need help?</needHelp>",
+    "description": "Description on screen asking user to verify their PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--placeholder": {
+    "messageformat": "Enter your PIN",
+    "description": "Description on screen asking user to verify their PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--incorrect-pin": {
+    "messageformat": "Incorrect PIN",
+    "description": "Error shown when entered PIN is incorrect"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--incorrect-pin--with-count": {
+    "messageformat": "Incorrect PIN. {triesRemaining, plural, one {# attempt remaining} other {# attempts remaining}}.",
+    "description": "Error shown when entered PIN is incorrect, and "
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--header": {
+    "messageformat": "Need help?",
+    "description": "Header for dialog shown when user clicks Need Help?"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--description--no-reglock": {
+    "messageformat": "Your PIN is a 4+ digit code you created that can be numeric or alphanumeric. If you can’t remember your PIN, you can create a new one. You can register and use your account but you’ll lose some saved settings like your profile information. <learnMore>Learn more</learnMore>.",
+    "description": "Description for dialog shown when user clicks Need Help? (no-reglock)"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--description--reglock": {
+    "messageformat": "Your PIN is a 4+ digit code you created that can be numeric or alphanumeric. If you can’t remember your PIN, you’ll have to wait 7 days to re-register your account. <learnMore>Learn more</learnMore>.",
+    "description": "Description for dialog shown when user clicks Need Help? (reglock)"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--skip-button--no-reglock": {
+    "messageformat": "Skip and create new PIN",
+    "description": "Button allowing user to skip pin verification on dialog shown when user clicks Need Help? (not shown if reglock is enabled)"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--contact-support-button": {
+    "messageformat": "Contact Support",
+    "description": "Button allowing user to contact support on dialog shown when user clicks Need Help?"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--cancel": {
+    "messageformat": "Cancel",
+    "description": "Button allowing user to close dialog shown when user clicks Need Help?"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--header": {
+    "messageformat": "Incorrect PIN",
+    "description": "Header for dialog shown when user has tried an incorrect PIN and is down to just a few remaining attempts"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--description--no-reglock": {
+    "messageformat": "You have {triesRemaining, plural, one {# attempt remaining} other {# attempts remaining}}. If you run out of attempts, you can create a new PIN. You can register and use your account but you’ll lose some saved settings like your profile information. <learnMore>Learn more</learnMore>.",
+    "description": "Description for dialog shown when user has tried an incorrect PIN and is down to just a few remaining attempts (no reglock)"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--description--reglock": {
+    "messageformat": "You have {triesRemaining, plural, one {# attempt remaining} other {# attempts remaining}}. If you run out of attempts, your account will be locked for 7 days. After 7 days of inactivity, you can re-register without your PIN. All content will be deleted. <learnMore>Learn more</learnMore>.",
+    "description": "Description for dialog shown when user has tried an incorrect PIN and is down to just a few remaining attempts (reglock)"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--button": {
+    "messageformat": "OK",
+    "description": "Button for dialog shown when user has tried an incorrect PIN and is down to just a few remaining attempts"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--header": {
+    "messageformat": "Incorrect PIN",
+    "description": "Header for dialog shown when user has tried an incorrect PIN there are no remaining tries left"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--description": {
+    "messageformat": "You’ve run out of PIN guesses, but you can still access your Signal account by creating a new PIN. For your privacy and security your account will be restored without any saved profile information or settings.",
+    "description": "Description for dialog shown when user has tried an incorrect PIN there are no remaining tries left"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--create-new-pin": {
+    "messageformat": "Create new PIN",
+    "description": "Button for dialog shown when user has tried an incorrect PIN there are no remaining tries left"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--learn-more": {
+    "messageformat": "Learn more about PINs",
+    "description": "Button for dialog shown when user has tried an incorrect PIN there are no remaining tries left"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--menu--skip-pin": {
+    "messageformat": "Skip PIN",
+    "description": "Menu item on Verify PIN screens, allowing skip of restoring data with PIN, instead starting over from scratch with a new PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--header": {
+    "messageformat": "Skip PIN entry?",
+    "description": "Header for dialog shown when user chooses to skip PIN entry on the Verify PIN screen"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--description": {
+    "messageformat": "If you can’t remember your PIN, you can create a new one. You can register and use your account but you’ll lose some saved settings like your profile information. Learn more.",
+    "description": "Description for dialog shown when user chooses to skip PIN entry on the Verify PIN screen"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--skip-button": {
+    "messageformat": "Skip and create new PIN",
+    "description": "Confirm button for dialog shown when user chooses to skip PIN entry on the Verify PIN screen"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--cancel-button": {
+    "messageformat": "Cancel",
+    "description": "Cancel button for dialog shown when user chooses to skip PIN entry on the Verify PIN screen"
+  },
+  "icu:StandaloneRegistration--CreatePIN--header": {
+    "messageformat": "Create your PIN",
+    "description": "Header on screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--description": {
+    "messageformat": "PINs can help you restore your account and keep your info encrypted with Signal. <learnMore>Learn More</learnMore>",
+    "description": "Description on screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--placeholder": {
+    "messageformat": "Create your PIN",
+    "description": "Placeholder in text box on screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--helper-text": {
+    "messageformat": "PIN must be at least 4 characters",
+    "description": "Helper text below text box on screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--continue": {
+    "messageformat": "Continue",
+    "description": "Button to finish on screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--open-menu": {
+    "messageformat": "Open menu",
+    "description": "Accessibility text for the triple-dot button on the screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--menu--more-about": {
+    "messageformat": "More about PINs",
+    "description": "Menu item to get more information on screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--menu--disable": {
+    "messageformat": "Disable PIN",
+    "description": "Menu item to get more information on screen asking user to create a new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--header": {
+    "messageformat": "Warning",
+    "description": "Header on dialog shown when user chooses to disable the PIN entirely"
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
+    "messageformat": "If you disable the PIN, you will lose all data when you re-register Signal unless you transfer it from another iOS device. You can not turn on Registration Lock while the PIN is disabled.",
+    "description": "Description on dialog shown when user chooses to disable the PIN entirely"
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
+    "messageformat": "Disable PIN",
+    "description": "Confirm button on dialog shown when user chooses to disable the PIN entirely"
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--cancel": {
+    "messageformat": "Cancel",
+    "description": "Cancel button on dialog shown when user chooses to disable the PIN entirely"
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--header": {
+    "messageformat": "About Signal PINs",
+    "description": "Header on dialog showing more information about PINs"
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--description": {
+    "messageformat": "PINs keep your information stored with Signal encrypted so only you can access it. Your profile, settings and contacts will restore when you reinstall.",
+    "description": "Header on dialog showing more information about PINs"
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--learn-more-button": {
+    "messageformat": "Learn more",
+    "description": "Button on dialog showing more information about PINs"
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--ok-button": {
+    "messageformat": "OK",
+    "description": "Button to dimiss dialog showing more information about PINs"
+  },
+  "icu:StandaloneRegistration--CreatePIN--confirming--header": {
+    "messageformat": "Confirm your PIN",
+    "description": "Header on screen asking user to confirm their new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--confirming--description": {
+    "messageformat": "Re-enter the PIN you just created.",
+    "description": "Description on screen asking user to confirm their new PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--confirming--placeholder": {
+    "messageformat": "Enter your PIN",
+    "description": "Placeholder in text box on screen asking user to confirm their new PIN"
+  },
+  "icu:StandaloneRegistration--AccountLocked--header": {
+    "messageformat": "Account locked",
+    "description": "Header on screen shown when account with reglock has had too many PIN tries"
+  },
+  "icu:StandaloneRegistration--AccountLocked--description": {
+    "messageformat": "Your account has been locked to protect your privacy and security. After 7 days of inactivity in your account you’ll be able to reregister this phone number without needing your PIN. All content will be deleted.",
+    "description": "Description on screen shown when account with reglock has had too many PIN tries"
+  },
+  "icu:StandaloneRegistration--AccountLocked--start-over-button": {
+    "messageformat": "Use a different number",
+    "description": "Button shown to start process over on screen shown when account with reglock has had too many PIN tries"
+  },
+  "icu:StandaloneRegistration--AccountLocked--help-button": {
+    "messageformat": "Learn about locked accounts",
+    "description": "Button shown to get more information on screen shown when account with reglock has had too many PIN tries"
+  },
+  "icu:StandaloneRegistration--UpdateRequired--header": {
+    "messageformat": "Update required",
+    "description": "Header for dialog shown during registration if Desktop discovers it is out of date"
+  },
+  "icu:StandaloneRegistration--UpdateRequired--description": {
+    "messageformat": "To continue with registration, please update to the latest version of Signal.",
+    "description": "Description for dialog shown during registration if Desktop discovers it is out of date"
+  },
+  "icu:StandaloneRegistration--UpdateRequired--update": {
+    "messageformat": "Update",
+    "description": "Confirm button for dialog shown during registration if Desktop discovers it is out of date"
+  },
+  "icu:StandaloneRegistration--UpdateRequired--cancel": {
+    "messageformat": "Cancel",
+    "description": "Cancel button for dialog shown during registration if Desktop discovers it is out of date"
+  },
+  "icu:StandaloneRegistration--ConnectionProblem--header": {
+    "messageformat": "Check your connection",
+    "description": "Header for dialog shown during registration if Desktop runs into a connectivity problem"
+  },
+  "icu:StandaloneRegistration--ConnectionProblem--description": {
+    "messageformat": "To continue, check your computer’s Internet connection and try again.",
+    "description": "Description for dialog shown during registration if Desktop runs into a connectivity problem"
+  },
+  "icu:StandaloneRegistration--ConnectionProblem--button": {
+    "messageformat": "OK",
+    "description": "Description for dialog shown during registration if Desktop runs into a connectivity problem"
+  },
+  "icu:StandaloneRegistration--UnexpectedError--header": {
+    "messageformat": "Can’t complete registration",
+    "description": "Header for dialog shown during registration if something unexpected goes wrong"
+  },
+  "icu:StandaloneRegistration--UnexpectedError--description": {
+    "messageformat": "An error occurred and registration cannot be completed. If this problem persists, please contact support.",
+    "description": "Description for dialog shown during registration if something unexpected goes wrong"
+  },
+  "icu:StandaloneRegistration--UnexpectedError--try-again-button": {
+    "messageformat": "Try again",
+    "description": "Button to restart process, on dialog shown during registration if something unexpected goes wrong"
+  },
+  "icu:StandaloneRegistration--UnexpectedError--contact-support-button": {
+    "messageformat": "Contact support",
+    "description": "Button to contact support, on dialog shown during registration if something unexpected goes wrong"
+  },
   "icu:NSIS__retry-dialog--first-line": {
     "messageformat": "Signal cannot be closed.",
     "description": "First line of the dialog displayed when Windows installer can't close application automatically and needs user intervention to complete the installation.",

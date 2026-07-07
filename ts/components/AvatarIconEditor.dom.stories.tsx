@@ -16,6 +16,7 @@ const { i18n } = window.SignalContext;
 const createProps = (overrideProps: Partial<PropsType> = {}): PropsType => ({
   avatarData: overrideProps.avatarData || createAvatarData({}),
   i18n,
+  isDisplayedAsPanel: false,
   onClose: action('onClose'),
 });
 

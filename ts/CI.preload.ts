@@ -4,8 +4,6 @@
 import { format } from 'node:util';
 import { ipcRenderer } from 'electron';
 
-import type { IPCResponse as ChallengeResponseType } from './challenge.dom.ts';
-import type { MessageAttributesType } from './model-types.d.ts';
 import { createLogger } from './logging/log.std.ts';
 import { explodePromise } from './util/explodePromise.std.ts';
 import { AccessType, ipcInvoke } from './sql/channels.preload.ts';
@@ -18,9 +16,16 @@ import { SECOND } from './util/durations/index.std.ts';
 import { isSignalRoute } from './util/signalRoutes.std.ts';
 import { strictAssert } from './util/assert.std.ts';
 import { MessageModel } from './models/messages.preload.ts';
-import type { SocketStatuses } from './textsecure/SocketManager.preload.ts';
 import { itemStorage } from './textsecure/Storage.preload.ts';
 import { BackupLevel } from './services/backups/types.std.ts';
+
+import type { IPCResponse as ChallengeResponseType } from './challenge.dom.ts';
+import type { MessageAttributesType } from './model-types.d.ts';
+import type { SocketStatuses } from './textsecure/SocketManager.preload.ts';
+import type {
+  RestoreResponseType,
+  StoreParameters,
+} from './textsecure/WebAPI.preload.ts';
 
 const log = createLogger('CI');
 
@@ -58,6 +63,11 @@ export type CIType = {
   setMediaPermissions: () => Promise<void>;
   maybeUpdateMaxAudioLevel: (level: number) => void;
   getAndResetMaxAudioLevel: () => number | undefined;
+  startStandaloneRegistration: () => void;
+  saveSVR2RestoreResponse: (response: RestoreResponseType) => void;
+  getSVR2RestoreResponse: () => RestoreResponseType | undefined;
+  saveSVR2StoredData: (parameters: StoreParameters) => void;
+  getSVR2StoredData: () => StoreParameters | undefined;
 };
 
 export type GetCIOptionsType = Readonly<{
@@ -271,6 +281,26 @@ export function getCI({
     return level;
   }
 
+  function startStandaloneRegistration() {
+    window.reduxActions.app.openStandalone();
+  }
+
+  let svr2RestoreResponse: RestoreResponseType | undefined;
+  function saveSVR2RestoreResponse(response: RestoreResponseType): void {
+    svr2RestoreResponse = response;
+  }
+  function getSVR2RestoreResponse(): RestoreResponseType | undefined {
+    return svr2RestoreResponse;
+  }
+
+  let svr2StoreParameters: StoreParameters | undefined;
+  function saveSVR2StoredData(parameters: StoreParameters): void {
+    svr2StoreParameters = parameters;
+  }
+  function getSVR2StoredData(): StoreParameters | undefined {
+    return svr2StoreParameters;
+  }
+
   return {
     deviceName,
     getConversationId,
@@ -295,5 +325,10 @@ export function getCI({
     setMediaPermissions,
     maybeUpdateMaxAudioLevel,
     getAndResetMaxAudioLevel,
+    startStandaloneRegistration,
+    saveSVR2RestoreResponse,
+    getSVR2RestoreResponse,
+    saveSVR2StoredData,
+    getSVR2StoredData,
   };
 }

@@ -238,7 +238,7 @@ import {
   getCallIdFromEra,
   updateLocalGroupCallHistoryTimestamp,
 } from './util/callDisposition.preload.ts';
-import { deriveStorageServiceKey, deriveMasterKey } from './Crypto.node.ts';
+import { deriveMasterKey } from './Crypto.node.ts';
 import { AttachmentDownloadManager } from './jobs/AttachmentDownloadManager.preload.ts';
 import { onCallLinkUpdateSync } from './util/onCallLinkUpdateSync.preload.ts';
 import { CallMode } from './types/CallDisposition.std.ts';
@@ -3626,33 +3626,8 @@ async function startApp(): Promise<void> {
       await itemStorage.put('backupMediaRootKey', mediaRootBackupKey);
     }
 
-    if (derivedMasterKey != null) {
-      const storageServiceKey = deriveStorageServiceKey(derivedMasterKey);
-      const storageServiceKeyBase64 = Bytes.toBase64(storageServiceKey);
-      if (itemStorage.get('storageKey') === storageServiceKeyBase64) {
-        log.info(
-          "onKeysSync: storage service key didn't change, " +
-            'fetching manifest anyway'
-        );
-      } else {
-        log.info(
-          'onKeysSync: updated storage service key, erasing state and fetching'
-        );
-        try {
-          await itemStorage.put('storageKey', storageServiceKeyBase64);
-          await StorageService.eraseAllStorageServiceState({
-            keepUnknownFields: true,
-          });
-        } catch (error) {
-          log.info(
-            'onKeysSync: Failed to erase storage service data, starting sync job anyway',
-            Errors.toLogFormat(error)
-          );
-        }
-      }
+    await StorageService.updateWithNewKey('onKeysSync');
 
-      StorageService.runStorageServiceSyncJob({ reason: 'onKeysSync' });
-    }
     ev.confirm();
   }
 

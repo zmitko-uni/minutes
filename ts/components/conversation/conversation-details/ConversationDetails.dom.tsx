@@ -69,6 +69,7 @@ import { ToastType } from '../../../types/Toast.dom.tsx';
 import type { ContactNameColorType } from '../../../types/Colors.std.ts';
 import { AxoConfirmDialog } from '../../../axo/AxoConfirmDialog.dom.tsx';
 import { canConversationOnlyBeMutedAlways } from '../../../conversations/canConversationOnlyBeMutedAlways.dom.ts';
+import { CONTACT_SUPPORT_URL } from '../../../util/contactSupport.dom.tsx';
 
 enum ModalState {
   AddingGroupMembers,
@@ -559,9 +560,7 @@ export function ConversationDetails({
               }
               label={i18n('icu:contactUs')}
               onClick={() => {
-                openLinkInWebBrowser(
-                  'https://support.signal.org/hc/requests/new?desktop'
-                );
+                openLinkInWebBrowser(CONTACT_SUPPORT_URL);
               }}
             />
             <PanelRow

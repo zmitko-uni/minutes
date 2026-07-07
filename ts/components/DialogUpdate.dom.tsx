@@ -13,23 +13,11 @@ import {
 import { I18n } from './I18n.dom.tsx';
 import { LeftPaneDialog } from './LeftPaneDialog.dom.tsx';
 import { formatFileSize } from '../util/formatFileSize.std.ts';
+import { ContactSupportLink } from '../util/contactSupport.dom.tsx';
 
 import type { LocalizerType } from '../types/Util.std.ts';
 import type { DismissOptions } from './LeftPaneDialog.dom.tsx';
 import type { WidthBreakpoint } from './_util.std.ts';
-
-function contactSupportLink(parts: ReactNode): JSX.Element {
-  return (
-    <a
-      key="signal-support"
-      href="https://support.signal.org/hc/requests/new?desktop"
-      rel="noreferrer"
-      target="_blank"
-    >
-      {parts}
-    </a>
-  );
-}
 
 export type PropsType = {
   containerWidthBreakpoint: WidthBreakpoint;
@@ -98,7 +86,7 @@ export function DialogUpdate({
                   {url}
                 </a>
               ),
-              contactSupportLink,
+              contactSupportLink: ContactSupportLink,
             }}
             i18n={i18n}
             id="icu:cannotUpdateDetail-v2"
@@ -131,7 +119,7 @@ export function DialogUpdate({
                   {url}
                 </a>
               ),
-              contactSupportLink,
+              contactSupportLink: ContactSupportLink,
             }}
             i18n={i18n}
             id="icu:cannotUpdateRequireManualDetail-v2"

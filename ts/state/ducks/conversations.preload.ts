@@ -245,7 +245,7 @@ import type {
   PinnedMessage,
   PinnedMessagePreloadData,
 } from '../../types/PinnedMessage.std.ts';
-import type { StateThunk } from '../types.std.ts';
+import type { ActionCreator, StateThunk } from '../types.std.ts';
 import { getPinnedMessagesLimit } from '../../util/pinnedMessages.dom.ts';
 import { getPinnedMessageExpiresAt } from '../../util/pinnedMessages.std.ts';
 import { pinnedMessagesCleanupService } from '../../services/expiring/pinnedMessagesCleanupService.preload.ts';
@@ -4630,10 +4630,6 @@ function addMembersToGroup(
     }
   };
 }
-
-// oxlint-disable-next-line typescript/no-explicit-any
-export type ActionCreator<T extends (...params: Array<any>) => any> =
-  ReadonlyDeep<(...params: Parameters<T>) => void>;
 
 export type UpdateGroupAttributesType = ReadonlyDeep<
   ActionCreator<typeof updateGroupAttributes>

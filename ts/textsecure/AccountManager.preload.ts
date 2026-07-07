@@ -8,6 +8,7 @@ import {
   AccountEntropyPool,
   BackupKey,
 } from '@signalapp/libsignal-client/dist/AccountKeys.js';
+import type { RegisterAccountResponse } from '@signalapp/libsignal-client/dist/net';
 
 import EventTarget from './EventTarget.std.ts';
 import {
@@ -23,6 +24,7 @@ import {
   createAccount,
   linkDevice,
   authenticate,
+  type LinkDeviceResultType,
 } from './WebAPI.preload.ts';
 import type {
   CompatPreKeyType,
@@ -91,6 +93,7 @@ import {
   isRelinkingToSameAccount as getIsRelinkingToSameAccount,
   isCleanStart as getIsCleanStart,
 } from '../util/isRelinkingToSameAccount.std.ts';
+import type { PhoneNumberDiscoverability } from '../util/phoneNumberDiscoverability.std.ts';
 
 const { isNumber, omit, orderBy } = lodash;
 
@@ -151,7 +154,6 @@ export enum AccountType {
 
 type CreateAccountSharedOptionsType = Readonly<{
   number: string;
-  verificationCode: string;
   aciKeyPair: KeyPairType;
   pniKeyPair: KeyPairType;
   profileKey: Uint8Array<ArrayBuffer>;
@@ -172,7 +174,10 @@ type CreatePrimaryDeviceOptionsType = Readonly<{
   readReceipts: true;
 
   accessKey: Uint8Array<ArrayBuffer>;
+
   sessionId: string;
+  registrationLockToken?: string;
+  phoneNumberDiscoverability: PhoneNumberDiscoverability;
 }> &
   CreateAccountSharedOptionsType;
 
@@ -189,6 +194,8 @@ export type CreateLinkedDeviceOptionsType = Readonly<{
   readReceipts: boolean;
 
   accessKey?: undefined;
+
+  verificationCode: string;
   sessionId?: undefined;
 }> &
   CreateAccountSharedOptionsType;
@@ -255,6 +262,16 @@ export type ConfirmNumberResultType = Readonly<{
   deviceName: string;
   backupFile: Uint8Array<ArrayBuffer> | undefined;
 }>;
+
+export type CreateAccountReturnType =
+  | {
+      type: AccountType.Primary;
+      response: RegisterAccountResponse;
+    }
+  | {
+      type: AccountType.Linked;
+      response: LinkDeviceResultType;
+    };
 
 /** @testexport */
 export default class AccountManager extends EventTarget {
@@ -398,12 +415,18 @@ export default class AccountManager extends EventTarget {
     await itemStorage.user.setDeviceNameEncrypted();
   }
 
-  async registerSingleDevice(
-    number: string,
-    verificationCode: string,
-    sessionId: string
-  ): Promise<void> {
-    await this.#queueTask(async () => {
+  async registerAsPrimaryDevice({
+    number,
+    sessionId,
+    registrationLockToken,
+    phoneNumberDiscoverability,
+  }: {
+    number: string;
+    sessionId: string;
+    registrationLockToken?: string;
+    phoneNumberDiscoverability: PhoneNumberDiscoverability;
+  }): Promise<RegisterAccountResponse> {
+    return this.#queueTask(async () => {
       const aciKeyPair = generateKeyPair();
       const pniKeyPair = generateKeyPair();
       const profileKey = getRandomBytes(PROFILE_KEY_LENGTH);
@@ -412,10 +435,9 @@ export default class AccountManager extends EventTarget {
       const accountEntropyPool = AccountEntropyPool.generate();
       const mediaRootBackupKey = BackupKey.generateRandom().serialize();
 
-      await this.#createAccount({
+      const result = await this.#createAccount({
         type: AccountType.Primary,
         number,
-        verificationCode,
         sessionId,
         aciKeyPair,
         pniKeyPair,
@@ -426,15 +448,33 @@ export default class AccountManager extends EventTarget {
         mediaRootBackupKey,
         accountEntropyPool,
         readReceipts: true,
+        registrationLockToken,
+        phoneNumberDiscoverability,
       });
+
+      if (result.type !== AccountType.Primary) {
+        throw new Error(
+          `registerAsPrimaryDevice: Unexpected result type of ${result.type}!`
+        );
+      }
+
+      return result.response;
     });
   }
 
-  async registerSecondDevice(
+  async registerAsLinkedDevice(
     options: CreateLinkedDeviceOptionsType
-  ): Promise<void> {
-    await this.#queueTask(async () => {
-      await this.#createAccount(options);
+  ): Promise<LinkDeviceResultType> {
+    return this.#queueTask(async () => {
+      const result = await this.#createAccount(options);
+
+      if (result.type !== AccountType.Linked) {
+        throw new Error(
+          `registerAsLinkedDevice: Unexpected result type of ${result.type}`
+        );
+      }
+
+      return result.response;
     });
   }
 
@@ -980,21 +1020,26 @@ export default class AccountManager extends EventTarget {
     }
   }
 
-  async #createAccount(options: CreateAccountOptionsType): Promise<void> {
+  async #createAccount(
+    options: CreateAccountOptionsType
+  ): Promise<CreateAccountReturnType> {
     this.dispatchEvent(new Event('startRegistration'));
     const registrationBaton = startRegistration();
+    let result: CreateAccountReturnType;
     try {
-      await this.#doCreateAccount(options);
+      result = await this.#doCreateAccount(options);
     } finally {
       finishRegistration(registrationBaton);
     }
     await this.#registrationDone();
+    return result;
   }
 
-  async #doCreateAccount(options: CreateAccountOptionsType): Promise<void> {
+  async #doCreateAccount(
+    options: CreateAccountOptionsType
+  ): Promise<CreateAccountReturnType> {
     const {
       number,
-      verificationCode,
       aciKeyPair,
       pniKeyPair,
       profileKey,
@@ -1018,19 +1063,14 @@ export default class AccountManager extends EventTarget {
     const previousNumber = itemStorage.user.getNumber();
     const previousAci = itemStorage.user.getAci();
     const previousPni = itemStorage.user.getPni();
-    const previousDeviceId = itemStorage.user.getDeviceId();
 
-    log.info(
-      `createAccount: Number is ${number}, password has length: ${
-        password ? password.length : 'none'
-      }`
-    );
+    log.info(`createAccount: Number is ${number}, type is ${options.type}`);
 
-    let isRelinkingToSameAccount: boolean;
+    let shouldDeleteConfigOnly: boolean;
     if (options.type === AccountType.Primary) {
-      isRelinkingToSameAccount = false;
+      shouldDeleteConfigOnly = true;
     } else if (options.type === AccountType.Linked) {
-      isRelinkingToSameAccount = getIsRelinkingToSameAccount({
+      shouldDeleteConfigOnly = getIsRelinkingToSameAccount({
         newAci: options.ourAci,
         newNumber: number,
         previousAci,
@@ -1047,14 +1087,14 @@ export default class AccountManager extends EventTarget {
       registrationEverDone: registrationEverDone(),
     });
 
-    if (isRelinkingToSameAccount) {
-      const weArePrimary = isNumber(previousDeviceId) && previousDeviceId === 1;
+    if (shouldDeleteConfigOnly) {
+      const willBePrimary = options.type === AccountType.Primary;
       log.info(
-        `createAccount: Erasing configuration (isPrimary=${weArePrimary})`
+        `createAccount: Erasing configuration (willBePrimary=${willBePrimary})`
       );
-      await signalProtocolStore.removeAllConfiguration(weArePrimary);
+      await signalProtocolStore.removeAllConfiguration(willBePrimary);
       log.info(
-        `createAccount: Successfully erased configuration (isPrimary=${weArePrimary})`
+        `createAccount: Successfully erased configuration (willBePrimary=${willBePrimary})`
       );
     } else {
       log.warn(
@@ -1114,10 +1154,11 @@ export default class AccountManager extends EventTarget {
       pniSignedPreKey: signedPreKeyToUploadSignedPreKey(pniSignedPreKey),
     };
 
+    let result: CreateAccountReturnType;
+
     if (options.type === AccountType.Primary) {
       const response = await createAccount({
         number,
-        code: verificationCode,
         newPassword: password,
         registrationId,
         pniRegistrationId,
@@ -1125,6 +1166,8 @@ export default class AccountManager extends EventTarget {
         sessionId: options.sessionId,
         aciPublicKey: aciKeyPair.publicKey,
         pniPublicKey: pniKeyPair.publicKey,
+        registrationLockToken: options.registrationLockToken,
+        phoneNumberDiscoverability: options.phoneNumberDiscoverability,
         ...keysToUpload,
       });
 
@@ -1137,6 +1180,11 @@ export default class AccountManager extends EventTarget {
         '#doCreateAccount'
       );
       deviceId = 1;
+
+      result = {
+        type: options.type,
+        response,
+      };
     } else if (options.type === AccountType.Linked) {
       const encryptedDeviceName = this.encryptDeviceName(
         options.deviceName,
@@ -1146,7 +1194,7 @@ export default class AccountManager extends EventTarget {
 
       const response = await linkDevice({
         number,
-        verificationCode,
+        verificationCode: options.verificationCode,
         encryptedDeviceName,
         newPassword: password,
         registrationId,
@@ -1170,6 +1218,11 @@ export default class AccountManager extends EventTarget {
         ourPni === options.ourPni,
         'Server response has unexpected PNI'
       );
+
+      result = {
+        type: options.type,
+        response,
+      };
     } else {
       throw missingCaseError(options);
     }
@@ -1346,6 +1399,8 @@ export default class AccountManager extends EventTarget {
       uploadKeys(ServiceIdKind.ACI),
       uploadKeys(ServiceIdKind.PNI),
     ]);
+
+    return result;
   }
 
   // Exposed only for testing

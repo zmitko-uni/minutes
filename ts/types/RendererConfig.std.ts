@@ -20,12 +20,17 @@ export type configOptionalStringType = z.infer<
   typeof configOptionalStringSchema
 >;
 
-export const directoryConfigSchema = z.object({
-  directoryUrl: configRequiredStringSchema,
-  directoryMRENCLAVE: configRequiredStringSchema,
+const svr2EnclaveSchema = z.object({
+  createdAt: z.iso.datetime(),
+  id: configRequiredStringSchema,
+});
+export const svr2ConfigSchema = z.object({
+  svr2Url: configRequiredStringSchema,
+  svr2MRENCLAVE: svr2EnclaveSchema,
 });
 
-export type DirectoryConfigType = z.infer<typeof directoryConfigSchema>;
+export type SVR2EnclaveType = z.infer<typeof svr2ConfigSchema>;
+export type SVR2ConfigType = z.infer<typeof svr2ConfigSchema>;
 
 export const rendererConfigSchema = z.object({
   appInstance: configOptionalStringSchema,
@@ -76,7 +81,8 @@ export const rendererConfigSchema = z.object({
   resourcesUrl: configRequiredStringSchema,
   userDataPath: configRequiredStringSchema,
   version: configRequiredStringSchema,
-  directoryConfig: directoryConfigSchema,
+
+  svr2Config: svr2ConfigSchema,
 
   // Only used by main window
   isMainWindowFullScreen: z.boolean(),

@@ -37,6 +37,8 @@ import {
   isRelinkingToSameAccount,
   isCleanStart,
 } from '../../util/isRelinkingToSameAccount.std.ts';
+import { cancelRegistration } from './standaloneInstaller.preload.ts';
+import type { CancelWorkflowActionType } from './standaloneInstaller.preload.ts';
 
 const log = createLogger('installer');
 
@@ -87,6 +89,7 @@ export type InstallerStateType = ReadonlyDeep<
 export type RetryBackupImportValue = ReadonlyDeep<'retry' | 'cancel'>;
 
 export const START_INSTALLER = 'installer/START_INSTALLER';
+const CANCEL_INSTALLER = 'installer/CANCEL_INSTALLER';
 const SET_PROVISIONING_URL = 'installer/SET_PROVISIONING_URL';
 const SET_QR_CODE_ERROR = 'installer/SET_QR_CODE_ERROR';
 const SET_ERROR = 'installer/SET_ERROR';
@@ -100,6 +103,10 @@ const SHOW_DATA_DELETION_CONFIRMATION =
 export type StartInstallerActionType = ReadonlyDeep<{
   type: typeof START_INSTALLER;
   payload: BatonType;
+}>;
+
+export type CancelInstallerActionType = ReadonlyDeep<{
+  type: typeof CANCEL_INSTALLER;
 }>;
 
 type SetProvisioningUrlActionType = ReadonlyDeep<{
@@ -148,6 +155,7 @@ type UpdateBackupImportProgressActionType = ReadonlyDeep<{
 
 export type InstallerActionType = ReadonlyDeep<
   | StartInstallerActionType
+  | CancelInstallerActionType
   | SetProvisioningUrlActionType
   | SetQRCodeErrorActionType
   | SetErrorActionType
@@ -161,6 +169,7 @@ export type InstallerActionType = ReadonlyDeep<
 export const actions = {
   startInstaller,
   finishInstall,
+  cancelInstall,
   updateBackupImportProgress,
   retryBackupImport,
   showBackupImport,
@@ -176,13 +185,14 @@ function startInstaller(): ThunkAction<
   void,
   RootStateType,
   unknown,
-  InstallerActionType
+  InstallerActionType | CancelWorkflowActionType
 > {
   return async (dispatch, getState) => {
     // WeakMap key
     const baton = {} as BatonType;
 
     window.IPC.addSetupMenuItems();
+    dispatch(cancelRegistration());
 
     dispatch({
       type: START_INSTALLER,
@@ -349,6 +359,30 @@ function continueInstallWithDataDeletion(): ThunkAction<
   };
 }
 
+export function cancelInstall(): ThunkAction<
+  void,
+  RootStateType,
+  unknown,
+  InstallerActionType
+> {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { installer } = state;
+
+    const logId = 'cancelInstall';
+    log.info(logId);
+
+    if (installer.step === InstallScreenStep.QrCodeNotScanned) {
+      const cancel = cancelByBaton.get(installer.baton);
+      cancel?.();
+    }
+
+    dispatch({
+      type: CANCEL_INSTALLER,
+    });
+  };
+}
+
 function finishInstall({
   isLinkAndSync,
   envelope: providedEnvelope,
@@ -392,7 +426,7 @@ function finishInstall({
     }
 
     try {
-      await accountManager.registerSecondDevice(
+      await accountManager.registerAsLinkedDevice(
         Provisioner.prepareLinkData({
           envelope,
           deviceName,
@@ -501,6 +535,10 @@ export function reducer(
       isConfirmingDataDeletion: false,
       baton: action.payload,
     };
+  }
+
+  if (action.type === CANCEL_INSTALLER) {
+    return getEmptyState();
   }
 
   if (action.type === SET_PROVISIONING_URL) {

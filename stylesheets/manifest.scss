@@ -14,9 +14,6 @@ $is-storybook: false !default;
 // Old style: modules
 @use 'modules';
 
-// Old style: installer
-@use 'options';
-
 // New style: components
 @use 'components/About.scss';
 @use 'components/AboutContactModal.scss';
@@ -163,6 +160,7 @@ $is-storybook: false !default;
 @use 'components/SignalConversationMuteToggle.scss';
 @use 'components/Slider.scss';
 @use 'components/StagedLinkPreview.scss';
+@use 'components/standaloneRegistration/StandaloneRegistration.scss';
 @use 'components/StickerManager.scss';
 @use 'components/Stories.scss';
 @use 'components/StoriesSettingsModal.scss';

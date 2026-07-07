@@ -271,7 +271,11 @@ export class Bootstrap {
     assert(totalContactCount <= MAX_CONTACTS);
   }
 
-  public async init(): Promise<void> {
+  public async init({
+    isStandalone,
+  }: {
+    isStandalone?: boolean;
+  } = {}): Promise<void> {
     debug('initializing');
 
     if (this.#options.server === undefined) {
@@ -315,13 +319,15 @@ export class Bootstrap {
       this.#options.unknownContactCount
     );
 
-    this.#privPhone = await this.server.createPrimaryDevice({
-      profileName: 'Myself',
-      contacts: this.contacts,
-      contactsWithoutProfileKey: this.contactsWithoutProfileKey,
-    });
-    if (this.#options.useLegacyStorageEncryption) {
-      this.#privPhone.storageRecordIkm = undefined;
+    if (!isStandalone) {
+      this.#privPhone = await this.server.createPrimaryDevice({
+        profileName: 'Myself',
+        contacts: this.contacts,
+        contactsWithoutProfileKey: this.contactsWithoutProfileKey,
+      });
+      if (this.#options.useLegacyStorageEncryption) {
+        this.#privPhone.storageRecordIkm = undefined;
+      }
     }
 
     this.#storagePath = await fs.mkdtemp(
@@ -398,6 +404,24 @@ export class Bootstrap {
       ]),
       new Promise(resolve => setTimeout(resolve, CLOSE_TIMEOUT).unref()),
     ]);
+  }
+
+  public async prepareForStandaloneRegistration({
+    extraConfig,
+  }: LinkOptionsType = {}): Promise<App> {
+    debug('preparing for standalone registration');
+
+    const app = await this.startApp(extraConfig);
+
+    debug('waiting until app is loaded');
+    await app.waitUntilReadyForUpdates();
+
+    const window = await app.getWindow();
+
+    debug('kicking off standalone registration');
+    await window.evaluate('window.SignalCI.startStandaloneRegistration();');
+
+    return app;
   }
 
   public async link({
