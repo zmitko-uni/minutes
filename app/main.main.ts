@@ -18,6 +18,7 @@ import {
   dialog,
   ipcMain as ipc,
   Menu,
+  nativeImage,
   nativeTheme,
   net,
   powerSaveBlocker,
@@ -74,6 +75,11 @@ import * as userConfig from './user_config.main.ts';
 //   data directory has been set.
 import * as attachments from './attachments.node.ts';
 import * as attachmentChannel from './attachment_channel.main.ts';
+import { initializeUuMinutesChannel } from './uuminutes_channel.main.ts';
+import {
+  getUuMinutesWindowIconPath,
+  isUuMinutesBrandingEnabled,
+} from './uuminutes_icon.main.ts';
 import * as bounce from '../ts/services/bounce.main.ts';
 import * as updater from '../ts/updater/index.main.ts';
 import { updateDefaultSession } from './updateDefaultSession.main.ts';
@@ -140,6 +146,10 @@ import { getAppRootDir } from '../ts/util/appRootDir.main.ts';
 import { trackHeapSize } from '../ts/util/oomNotifier.node.ts';
 import { sendDummyKeystroke } from './WindowsNotifications.main.ts';
 import { maybeMigrateSafeStorageBackend } from '../ts/util/linuxPasswordStoreMigration.main.ts';
+import {
+  RECORDINGS_DIR_NAME,
+  SUMMARIES_DIR_NAME,
+} from '../ts/uuminutes/constants.std.ts';
 
 const { chmod, realpath, writeFile } = fsExtra;
 const { get, pick, isNumber, isBoolean, some, debounce, noop } = lodash;
@@ -632,6 +642,15 @@ if (OS.isWindows()) {
   windowIcon = join(rootDir, 'build', 'icons', 'png', '512x512.png');
 }
 
+if (isUuMinutesBrandingEnabled(config)) {
+  windowIcon = getUuMinutesWindowIconPath(rootDir);
+}
+
+const windowIconImage = nativeImage.createFromPath(windowIcon);
+const resolvedWindowIcon = windowIconImage.isEmpty()
+  ? windowIcon
+  : windowIconImage;
+
 // The titlebar is hidden on:
 //   - Windows < 10 (7, 8)
 //   - macOS (but no custom titlebar is displayed, see
@@ -720,7 +739,7 @@ async function createWindow() {
         : join(rootDir, 'bundles', 'preload', 'wrapper.js'),
       spellcheck,
     },
-    icon: windowIcon,
+    icon: resolvedWindowIcon,
     ...pick(windowConfig, ['autoHideMenuBar', 'x', 'y']),
   };
 
@@ -1385,6 +1404,67 @@ async function openArtCreator() {
   }
 
   await showStickerCreatorWindow();
+}
+
+async function uuMinutesOpenRecordings(): Promise<void> {
+  const dir = join(app.getPath('userData'), RECORDINGS_DIR_NAME);
+  await fsExtra.mkdir(dir, { recursive: true });
+  await shell.openPath(dir);
+}
+
+async function uuMinutesOpenSummaries(): Promise<void> {
+  const dir = join(app.getPath('userData'), SUMMARIES_DIR_NAME);
+  await fsExtra.mkdir(dir, { recursive: true });
+  await shell.openPath(dir);
+}
+
+function uuMinutesSummarizeChat(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:summarize-current-chat');
+}
+
+function uuMinutesOpenSettings(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:open-settings');
+}
+
+function uuMinutesOpenLog(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:open-log');
+}
+
+function uuMinutesOpenCallSummaryExtension(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:open-call-summary-extension');
+}
+
+function uuMinutesOpenBookmarks(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:open-bookmarks');
+}
+
+function uuMinutesOpenReadme(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:open-readme');
+}
+
+function uuMinutesShowHome(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:show-home');
 }
 
 let debugLogWindow: BrowserWindow | undefined;
@@ -2102,6 +2182,14 @@ electronProtocol.registerSchemesAsPrivileged([
 // Some APIs can only be used after this event occurs.
 let ready = false;
 app.on('ready', async () => {
+  if (process.env.UUMINUTES_TEST_PIPELINE === '1') {
+    const { runTestPipelineFromMain } = await import(
+      './uuminutes_test_pipeline.main.ts'
+    );
+    await runTestPipelineFromMain();
+    return;
+  }
+
   dns.setFallback(await getDNSFallback());
   if (DISABLE_IPV6) {
     dns.setIPv6Enabled(false);
@@ -2312,7 +2400,7 @@ app.on('ready', async () => {
           contextIsolation: true,
           preload: join(rootDir, 'bundles', 'preload', 'loading.js'),
         },
-        icon: windowIcon,
+        icon: resolvedWindowIcon,
       });
 
       loadingWindow.once('ready-to-show', async () => {
@@ -2354,6 +2442,7 @@ app.on('ready', async () => {
     sql,
     configDir: userDataPath,
   });
+  initializeUuMinutesChannel();
   sqlChannels.initialize(sql);
   PowerChannel.initialize({
     send(event) {
@@ -2456,6 +2545,15 @@ function setupMenu(options?: Partial<CreateTemplateOptionsType>) {
     zoomIn,
     zoomOut,
     zoomReset,
+    uuMinutesSummarizeChat,
+    uuMinutesOpenSettings,
+    uuMinutesOpenLog,
+    uuMinutesOpenRecordings,
+    uuMinutesOpenSummaries,
+    uuMinutesOpenCallSummaryExtension,
+    uuMinutesOpenBookmarks,
+    uuMinutesOpenReadme,
+    uuMinutesShowHome,
 
     // overrides
     ...options,

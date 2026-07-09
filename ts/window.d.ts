@@ -209,6 +209,13 @@ declare global {
       copyTextTemporarily: (text: string, clearAfterMs: number) => void;
     };
 
+    uuMinutes?: Readonly<{
+      buildId: string;
+      openLog: () => void;
+      openReadme: () => void;
+      showHome: () => void;
+    }>;
+
     // Used only in preload to calculate load time
     preloadCompileStartTime: number;
     preloadStartTime: number;

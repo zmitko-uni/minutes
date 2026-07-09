@@ -33,6 +33,15 @@ export type MenuActionsType = Readonly<{
   zoomIn: () => unknown;
   zoomOut: () => unknown;
   zoomReset: () => unknown;
+  uuMinutesSummarizeChat: () => unknown;
+  uuMinutesOpenSettings: () => unknown;
+  uuMinutesOpenLog: () => unknown;
+  uuMinutesOpenRecordings: () => unknown;
+  uuMinutesOpenSummaries: () => unknown;
+  uuMinutesOpenCallSummaryExtension: () => unknown;
+  uuMinutesOpenBookmarks: () => unknown;
+  uuMinutesOpenReadme: () => unknown;
+  uuMinutesShowHome: () => unknown;
 }>;
 
 export type MenuActionType = keyof MenuActionsType;

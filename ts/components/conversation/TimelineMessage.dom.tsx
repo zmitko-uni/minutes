@@ -38,6 +38,9 @@ import type { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
 import { AxoContextMenu } from '../../axo/AxoContextMenu.dom.tsx';
 import { useDocumentKeyDown } from '../../hooks/useDocumentKeyDown.dom.ts';
 import type { Emoji } from '../../axo/emoji.std.ts';
+import { summarizeFromMessage } from '../../uuminutes/chatSummaryService.preload.ts';
+import { addMessageBookmark } from '../../uuminutes/bookmarksService.preload.ts';
+import { drop } from '../../util/drop.std.ts';
 
 const { useAxoContextMenuOutsideKeyboardTrigger } = AxoContextMenu;
 
@@ -370,6 +373,16 @@ export function TimelineMessage(props: Props): JSX.Element {
               args: { messageId: id },
             })
           }
+          onSummarizeFromHere={
+            canCopy && text
+              ? () => drop(summarizeFromMessage(conversationId, id))
+              : null
+          }
+          onBookmarkMessage={
+            window.uuMinutes != null
+              ? () => drop(addMessageBookmark({ conversationId, messageId: id }))
+              : null
+          }
           onDebugMessage={handleDebugMessage}
         >
           {children}
@@ -402,6 +415,8 @@ export function TimelineMessage(props: Props): JSX.Element {
       retryMessageSend,
       setMessageToEdit,
       shouldShowAdditional,
+      text,
+      timestamp,
       toggleDeleteMessagesModal,
       toggleForwardMessagesModal,
       toggleSelectMessage,

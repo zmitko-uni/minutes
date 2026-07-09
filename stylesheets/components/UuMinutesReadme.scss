@@ -1,0 +1,155 @@
+/* Copyright 2026 uuMinutes contributors */
+/* SPDX-License-Identifier: AGPL-3.0-only */
+
+@use '../mixins';
+@use '../variables';
+
+.UuMinutesReadmeModal__content {
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+  padding-inline-end: 4px;
+}
+
+.UuMinutesReadmeModal__error {
+  margin: 0;
+  color: variables.$color-accent-red;
+
+  @include mixins.font-body-2;
+}
+
+.UuMinutesMarkdown {
+  @include mixins.font-body-2;
+
+  @include mixins.light-theme {
+    color: variables.$color-gray-75;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-gray-15;
+  }
+}
+
+.UuMinutesMarkdown__h1,
+.UuMinutesMarkdown__h2,
+.UuMinutesMarkdown__h3 {
+  margin: 0 0 10px;
+
+  @include mixins.font-body-1-bold;
+}
+
+.UuMinutesMarkdown__h1 {
+  font-size: 20px;
+}
+
+.UuMinutesMarkdown__h2 {
+  margin-top: 18px;
+  font-size: 17px;
+}
+
+.UuMinutesMarkdown__h3 {
+  margin-top: 14px;
+  font-size: 15px;
+}
+
+.UuMinutesMarkdown__p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.UuMinutesMarkdown__ul,
+.UuMinutesMarkdown__ol {
+  margin: 0 0 12px;
+  padding-inline-start: 22px;
+  line-height: 1.5;
+}
+
+.UuMinutesMarkdown__quote {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-inline-start: 3px solid variables.$color-ultramarine;
+  border-radius: 4px;
+
+  @include mixins.light-theme {
+    background-color: variables.$color-gray-02;
+  }
+
+  @include mixins.dark-theme {
+    background-color: variables.$color-gray-85;
+  }
+}
+
+.UuMinutesMarkdown__hr {
+  margin: 16px 0;
+  border: none;
+  border-top: 1px solid variables.$color-gray-15;
+
+  @include mixins.dark-theme {
+    border-top-color: variables.$color-gray-65;
+  }
+}
+
+.UuMinutesMarkdown__tableWrap {
+  margin: 0 0 12px;
+  overflow-x: auto;
+}
+
+.UuMinutesMarkdown__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 8px 10px;
+    border: 1px solid variables.$color-gray-15;
+    text-align: start;
+    vertical-align: top;
+
+    @include mixins.dark-theme {
+      border-color: variables.$color-gray-65;
+    }
+  }
+
+  th {
+    @include mixins.font-body-2-medium;
+
+    @include mixins.light-theme {
+      background-color: variables.$color-gray-04;
+    }
+
+    @include mixins.dark-theme {
+      background-color: variables.$color-gray-80;
+    }
+  }
+}
+
+.UuMinutesMarkdown code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: variables.$monospace;
+  font-size: 0.92em;
+
+  @include mixins.light-theme {
+    background-color: variables.$color-gray-04;
+  }
+
+  @include mixins.dark-theme {
+    background-color: variables.$color-gray-80;
+  }
+}
+
+.UuMinutesMarkdown a {
+  text-decoration: none;
+
+  @include mixins.light-theme {
+    color: variables.$color-ultramarine;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-ultramarine-light;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

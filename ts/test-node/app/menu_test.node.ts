@@ -32,6 +32,15 @@ const stageLocalBackupForImport = stub();
 const zoomIn = stub();
 const zoomOut = stub();
 const zoomReset = stub();
+const uuMinutesSummarizeChat = stub();
+const uuMinutesOpenSettings = stub();
+const uuMinutesOpenLog = stub();
+const uuMinutesOpenRecordings = stub();
+const uuMinutesOpenSummaries = stub();
+const uuMinutesOpenCallSummaryExtension = stub();
+const uuMinutesOpenBookmarks = stub();
+const uuMinutesOpenReadme = stub();
+const uuMinutesShowHome = stub();
 
 const getExpectedEditMenu = (
   includeSpeech: boolean
@@ -243,6 +252,15 @@ describe('createTemplate', () => {
     zoomIn,
     zoomOut,
     zoomReset,
+    uuMinutesSummarizeChat,
+    uuMinutesOpenSettings,
+    uuMinutesOpenLog,
+    uuMinutesOpenRecordings,
+    uuMinutesOpenSummaries,
+    uuMinutesOpenCallSummaryExtension,
+    uuMinutesOpenBookmarks,
+    uuMinutesOpenReadme,
+    uuMinutesShowHome,
   };
 
   PLATFORMS.forEach(({ label, platform, expectedDefault }) => {

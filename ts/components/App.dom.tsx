@@ -12,6 +12,12 @@ import { ThemeType } from '../types/Util.std.ts';
 
 import type { ViewStoryActionCreatorType } from '../state/ducks/stories.preload.ts';
 import type { AppStateType } from '../state/ducks/app.preload.ts';
+import { UuMinutesSettingsHost } from '../uuminutes/components/UuMinutesSettingsModal.dom.tsx';
+import { UuMinutesCallSummaryExtensionHost } from '../uuminutes/components/UuMinutesCallSummaryExtensionModal.dom.tsx';
+import { UuMinutesSummaryToastHost } from '../uuminutes/components/UuMinutesSummaryToastHost.dom.tsx';
+import { UuMinutesLogHost } from '../uuminutes/components/UuMinutesLogModal.dom.tsx';
+import { UuMinutesBookmarksHost } from '../uuminutes/components/UuMinutesBookmarksModal.dom.tsx';
+import { UuMinutesReadmeHost } from '../uuminutes/components/UuMinutesReadmeModal.dom.tsx';
 
 type PropsType = {
   state: AppStateType;
@@ -114,6 +120,12 @@ export function App({
       {contents}
       {renderGlobalModalContainer()}
       {renderCallManager()}
+      <UuMinutesSettingsHost />
+      <UuMinutesCallSummaryExtensionHost />
+      <UuMinutesSummaryToastHost />
+      <UuMinutesLogHost />
+      <UuMinutesBookmarksHost />
+      <UuMinutesReadmeHost />
       {renderLightbox()}
       {hasSelectedStoryData &&
         renderStoryViewer(() => viewStory({ closeViewer: true }))}

@@ -31,6 +31,7 @@
     "node-addon-api": "8.5.0"
   },
   "scripts": {
+    "install": "node ./scripts/install.mjs",
     "format": "npm run format:js && npm run format:c",
     "format:js": "prettier --cache --write .",
     "format:c": "xcrun clang-format --style=chromium -Werror --verbose -i *.mm"

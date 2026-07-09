@@ -1,6 +1,8 @@
 // Copyright 2017 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import './uuminutes_runtime.main.ts';
+
 import { join, basename } from 'node:path';
 import { app } from 'electron';
 

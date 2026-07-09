@@ -4,6 +4,7 @@
 import { useRef, type ReactNode, type JSX } from 'react';
 import type { LocalizerType } from '../../types/I18N.std.ts';
 import { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
+import { UUMINUTES_MENU_ADD_BOOKMARK, UUMINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../uuminutes/menuLabels.std.ts';
 import { isInternalFeaturesEnabled } from '../../util/isInternalFeaturesEnabled.dom.ts';
 
 type MessageContextMenuProps = Readonly<{
@@ -26,6 +27,8 @@ type MessageContextMenuProps = Readonly<{
   onPinMessage: (() => void) | null;
   onUnpinMessage: (() => void) | null;
   onMoreInfo: (() => void) | null;
+  onSummarizeFromHere?: (() => void) | null;
+  onBookmarkMessage?: (() => void) | null;
   onSelect: (() => void) | null;
   children: ReactNode;
 }>;
@@ -43,6 +46,8 @@ export function MessageContextMenu({
   onReact,
   onEndPoll,
   onMoreInfo,
+  onSummarizeFromHere,
+  onBookmarkMessage,
   onCopy,
   onSelect,
   onRetryMessageSend,
@@ -145,6 +150,19 @@ export function MessageContextMenu({
         {onMoreInfo && (
           <AxoMenuBuilder.Item symbol="info" onSelect={onMoreInfo}>
             {i18n('icu:MessageContextMenu__info')}
+          </AxoMenuBuilder.Item>
+        )}
+        {onSummarizeFromHere && (
+          <AxoMenuBuilder.Item
+            symbol="note"
+            onSelect={onSummarizeFromHere}
+          >
+            {UUMINUTES_MENU_SUMMARIZE_FROM_HERE}
+          </AxoMenuBuilder.Item>
+        )}
+        {onBookmarkMessage && (
+          <AxoMenuBuilder.Item symbol="note" onSelect={onBookmarkMessage}>
+            {UUMINUTES_MENU_ADD_BOOKMARK}
           </AxoMenuBuilder.Item>
         )}
         {onDeleteMessage && (

@@ -1,0 +1,32 @@
+---
+description: Při nové funkcionalitě uuMinutes aktualizovat uživatelskou příručku prirucka.md
+alwaysApply: true
+---
+
+# Příručka uuMinutes — povinná kontrola
+
+Uživatelská příručka: `images/uuminutes/prirucka.md` (zobrazuje se v aplikaci v modalu Příručka uuMinutes).
+
+## Kdy aktualizovat
+
+Po **každé nové nebo změněné user-facing funkcionalitě** (menu, dialog, klávesová zkratka, AI poskytovatel, nová složka dat…) projdi příručku a doplň/chytři, co chybí.
+
+## Checklist před dokončením úkolu
+
+1. **Rychlý přehled** — tabulka funkcí a kde je najít
+2. **Sekce menu** — české názvy položek, pořadí, zkratky
+3. **Nastavení / AI** — poskytovatelé, klíče, modely, kam se ukládají
+4. **Cesty k datům** — `%APPDATA%\uuMinutes-uuminutes\…`
+5. **Řešení problémů** — typické chyby nové feature
+6. **Datum** — řádek *Poslední aktualizace příručky* na konci
+
+## Co nepatří do příručky
+
+- Technické detaily forku, merge upstream → `docs/FORK-MAINTENANCE.md`, `README-UUMINUTES.md`
+- Seznam patchovaných upstream souborů → `docs/UUMINUTES-PATCHES.md`
+
+## Styl
+
+- Česky, pro koncového uživatele
+- Konkrétní názvy menu a kláves (stejné jako v UI)
+- Bez anglických placeholderů, pokud UI už je česky

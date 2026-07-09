@@ -96,6 +96,7 @@ import {
   useCallReactionBursts,
 } from './CallReactionBurst.dom.tsx';
 import { isGroupOrAdhocActiveCall } from '../util/isGroupOrAdhocCall.std.ts';
+import { UuMinutesCallRecordingControls } from '../uuminutes/components/UuMinutesCallRecordingControls.dom.tsx';
 import { assertDev } from '../util/assert.std.ts';
 import { CallingPendingParticipants } from './CallingPendingParticipants.dom.tsx';
 import type { CallingImageDataCache } from './CallManager.dom.tsx';
@@ -1228,6 +1229,12 @@ export function CallScreen({
               onMouseLeave={onControlsMouseLeave}
               onClick={toggleAudio}
               tooltipDirection={TooltipPlacement.Top}
+            />
+            <UuMinutesCallRecordingControls
+              conversationId={conversation.id}
+              callMode={activeCall.callMode}
+              onMouseEnter={onControlsMouseEnter}
+              onMouseLeave={onControlsMouseLeave}
             />
             {raiseHandButtonType && (
               <CallingButton

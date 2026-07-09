@@ -19,6 +19,8 @@ const external = [
   '@indutny/simple-windows-notifications',
   '@indutny/mac-screen-share',
   '@napi-rs/canvas',
+  'whisper-cpp-node',
+  /^@whisper-cpp-node\/.*/,
   'electron',
   'fs-xattr',
   'fsevents',
@@ -200,6 +202,29 @@ export default defineConfig([
     },
     output: {
       file: 'bundles/workers/mp3Encoder.js',
+      exports: 'named',
+      generatedCode: {
+        symbols: false,
+      },
+      codeSplitting: false,
+    },
+    watch: {
+      clearScreen: false,
+    },
+  },
+
+  // uuMinutes call recording — stereo mix + higher bitrate
+  {
+    input: 'ts/uuminutes/uuMinutesMp3Encoder.std.ts',
+    transform: {
+      define: {
+        process: 'undefined',
+        require: 'undefined',
+        eval: 'undefined',
+      },
+    },
+    output: {
+      file: 'bundles/workers/uuMinutesMp3Encoder.js',
       exports: 'named',
       generatedCode: {
         symbols: false,

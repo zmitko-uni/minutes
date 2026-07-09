@@ -34,8 +34,19 @@ type BindingType = Readonly<{
 }>;
 
 let binding: BindingType | undefined;
-if (process.platform === 'win32') {
-  binding = loadBinding('windows-ucv');
+
+function getBinding(): BindingType | undefined {
+  if (process.platform !== 'win32') {
+    return undefined;
+  }
+  if (binding === undefined) {
+    try {
+      binding = loadBinding('windows-ucv');
+    } catch {
+      binding = undefined;
+    }
+  }
+  return binding;
 }
 
 /**
@@ -44,11 +55,12 @@ if (process.platform === 'win32') {
  * See: https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.ui.userconsentverifier.checkavailabilityasync?view=winrt-26100#windows-security-credentials-ui-userconsentverifier-checkavailabilityasync
  */
 export async function checkAvailability(): Promise<Availability> {
-  if (!binding) {
-    throw new Error('This library works only on Windows');
+  const activeBinding = getBinding();
+  if (!activeBinding) {
+    return 'unknown';
   }
   return new Promise((resolve, reject) => {
-    binding.checkAvailability((result) => {
+    activeBinding.checkAvailability((result) => {
       if (result === 'canceled') {
         return reject(new Error('Canceled'));
       }
@@ -72,11 +84,12 @@ export async function checkAvailability(): Promise<Availability> {
 export async function requestVerification(
   message: string,
 ): Promise<Verification> {
-  if (!binding) {
-    throw new Error('This library works only on Windows');
+  const activeBinding = getBinding();
+  if (!activeBinding) {
+    throw new Error('windows-ucv native module not available');
   }
   return new Promise((resolve, reject) => {
-    binding.requestVerification(message, (result) => {
+    activeBinding.requestVerification(message, (result) => {
       if (result === 'canceled') {
         return reject(new Error('Canceled'));
       }

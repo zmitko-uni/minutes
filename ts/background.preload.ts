@@ -1,6 +1,7 @@
 // Copyright 2020 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { ipcRenderer } from 'electron';
 import lodash from 'lodash';
 import { createRoot } from 'react-dom/client';
 import PQueue from 'p-queue';
@@ -208,6 +209,12 @@ import { createLogger } from './logging/log.std.ts';
 import { deleteAllLogs } from './util/deleteAllLogs.preload.ts';
 import { startInteractionMode } from './services/InteractionMode.dom.ts';
 import { calling } from './services/calling.preload.ts';
+import { initializeUuMinutes, summarizeSelectedConversation } from './uuminutes/index.preload.ts';
+import {
+  getUuMinutesConnectHasBuildExpired,
+  isUuMinutesBuildExpirationDisabled,
+  prepareUuMinutesBuildExpiration,
+} from './uuminutes/buildExpiration.preload.ts';
 import { ReactionSource } from './reactions/ReactionSource.std.ts';
 import { singleProtoJobQueue } from './jobs/singleProtoJobQueue.preload.ts';
 import { SeenStatus } from './MessageSeenStatus.std.ts';
@@ -567,19 +574,30 @@ async function startApp(): Promise<void> {
 
     window.Whisper.events.on('firstEnvelope', checkFirstEnvelope);
 
+    await prepareUuMinutesBuildExpiration(itemStorage);
+
     const buildExpirationService = new BuildExpirationService();
+    const hasBuildExpired = isUuMinutesBuildExpirationDisabled()
+      ? getUuMinutesConnectHasBuildExpired()
+      : buildExpirationService.hasBuildExpired();
+
+    if (hasBuildExpired) {
+      log.warn('connectWebAPI: build is marked expired');
+    }
 
     drop(
       connectWebAPI({
         ...itemStorage.user.getWebAPICredentials(),
-        hasBuildExpired: buildExpirationService.hasBuildExpired(),
+        hasBuildExpired,
         hasStoriesDisabled: itemStorage.get('hasStoriesDisabled', false),
       })
     );
 
-    buildExpirationService.on('expired', () => {
-      drop(onExpiration('build'));
-    });
+    if (!isUuMinutesBuildExpirationDisabled()) {
+      buildExpirationService.on('expired', () => {
+        drop(onExpiration('build'));
+      });
+    }
 
     window.Whisper.events.on('challengeResponse', response => {
       challengeHandler.onResponse(response);
@@ -1368,6 +1386,11 @@ async function startApp(): Promise<void> {
   });
 
   window.Whisper.events.on('httpResponse499', () => {
+    if (isUuMinutesBuildExpirationDisabled()) {
+      log.warn('uuMinutes: ignoring HTTP 499 remote build expiration');
+      return;
+    }
+
     if (remotelyExpired) {
       return;
     }
@@ -1590,6 +1613,9 @@ async function startApp(): Promise<void> {
 
     // Listen for changes to the `desktop.clientExpiration` remote flag
     onRemoteConfigChange(['desktop.clientExpiration'], () => {
+      if (isUuMinutesBuildExpirationDisabled()) {
+        return;
+      }
       if (!isRemoteConfigValueEnabled('desktop.clientExpiration')) {
         return;
       }
@@ -2144,6 +2170,12 @@ async function startApp(): Promise<void> {
     }
 
     drop(calling.prepareCallingAssets());
+
+    initializeUuMinutes();
+
+    ipcRenderer.on('uuminutes:summarize-current-chat', () => {
+      drop(summarizeSelectedConversation());
+    });
 
     drop(usernameIntegrity.start());
 

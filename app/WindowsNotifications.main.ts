@@ -1,7 +1,7 @@
 // Copyright 2017 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { ipcMain as ipc } from 'electron';
+import { ipcMain as ipc, Notification } from 'electron';
 import type { IpcMainInvokeEvent } from 'electron';
 
 import {
@@ -21,6 +21,7 @@ const log = createLogger('WindowsNotifications');
 
 if (OS.isWindows()) {
   const notifier = new Notifier(AUMID);
+  log.info('Windows Notifications initialized', { AUMID });
 
   const NOTIFICATION_ID = {
     group: 'group',
@@ -37,8 +38,16 @@ if (OS.isWindows()) {
         notifier.show(renderWindowsToast(data), NOTIFICATION_ID);
       } catch (error) {
         log.error(
-          `Windows Notifications: Failed to show notification: ${error.stack}`
+          `Windows Notifications: Failed to show notification: ${error instanceof Error ? error.stack : String(error)}`
         );
+
+        if (Notification.isSupported()) {
+          const fallback = new Notification({
+            title: data.heading,
+            body: data.body,
+          });
+          fallback.show();
+        }
       }
     }
   );

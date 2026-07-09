@@ -25,6 +25,7 @@ import { UserText } from '../UserText.dom.tsx';
 import { isConversationMuted } from '../../util/isConversationMuted.std.ts';
 import { isInternalFeaturesEnabled } from '../../util/isInternalFeaturesEnabled.dom.ts';
 import { canConversationOnlyBeMutedAlways } from '../../conversations/canConversationOnlyBeMutedAlways.dom.ts';
+import { UuMinutesContextMenuItems } from '../../uuminutes/components/UuMinutesConversationMenuItems.dom.tsx';
 
 export type ChatFolderToggleChat = (
   chatFolderId: ChatFolderId,
@@ -286,6 +287,7 @@ export const LeftPaneConversationListItemContextMenu: FC<LeftPaneConversationLis
                 </AxoContextMenu.Group>
               </>
             )}
+            <UuMinutesContextMenuItems conversationId={conversationId} />
           </AxoContextMenu.Content>
         </AxoContextMenu.Root>
         {showConfirmDeleteDialog && (

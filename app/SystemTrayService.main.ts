@@ -4,11 +4,11 @@
 import type { BrowserWindow, NativeImage } from 'electron';
 import { Menu, Tray, app, nativeImage, nativeTheme, screen } from 'electron';
 import os from 'node:os';
-import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { createLogger } from '../ts/logging/log.std.ts';
 import type { LocalizerType } from '../ts/types/I18N.std.ts';
-import { getAppRootDir } from '../ts/util/appRootDir.main.ts';
+import config from './config.main.ts';
+import { resolveTrayIconImagePath, resolveTrayToolTip } from './uuminutes_tray.main.ts';
 
 const log = createLogger('SystemTrayService');
 
@@ -231,7 +231,7 @@ export class SystemTrayService {
       }
     });
 
-    result.setToolTip(this.#i18n('icu:signalDesktop'));
+    result.setToolTip(resolveTrayToolTip(config, this.#i18n('icu:signalDesktop')));
 
     return result;
   }
@@ -271,29 +271,7 @@ function getVariantForScaleFactor(scaleFactor: number) {
 }
 
 function getTrayIconImagePath(size: number, unreadCount: number): string {
-  let dirName: string;
-  let fileName: string;
-
-  if (unreadCount === 0) {
-    dirName = 'base';
-    fileName = `signal-tray-icon-${size}x${size}-base.png`;
-  } else if (unreadCount < 10) {
-    dirName = 'alert';
-    fileName = `signal-tray-icon-${size}x${size}-alert-${unreadCount}.png`;
-  } else {
-    dirName = 'alert';
-    fileName = `signal-tray-icon-${size}x${size}-alert-9+.png`;
-  }
-
-  const iconPath = join(
-    getAppRootDir(),
-    'images',
-    'tray-icons',
-    dirName,
-    fileName
-  );
-
-  return iconPath;
+  return resolveTrayIconImagePath(config, size, unreadCount);
 }
 
 const TrayIconCache = new Map<string, NativeImage>();

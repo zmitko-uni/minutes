@@ -1,0 +1,99 @@
+/* Copyright 2026 uuMinutes contributors */
+/* SPDX-License-Identifier: AGPL-3.0-only */
+
+@use '../mixins';
+@use '../variables';
+
+.UuMinutesBookmarksModal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.UuMinutesBookmarksModal__item {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  border-radius: 10px;
+  border: 1px solid variables.$color-gray-15;
+
+  @include mixins.dark-theme {
+    border-color: variables.$color-gray-65;
+  }
+}
+
+.UuMinutesBookmarksModal__open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+
+  @include mixins.light-theme {
+    color: variables.$color-gray-90;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-gray-05;
+  }
+
+  &:hover {
+    @include mixins.light-theme {
+      background: variables.$color-gray-05;
+    }
+
+    @include mixins.dark-theme {
+      background: variables.$color-gray-75;
+    }
+  }
+}
+
+.UuMinutesBookmarksModal__title {
+  @include mixins.font-body-2-bold;
+}
+
+.UuMinutesBookmarksModal__preview {
+  @include mixins.font-body-2;
+  opacity: 0.85;
+  word-break: break-word;
+}
+
+.UuMinutesBookmarksModal__meta {
+  @include mixins.font-body-small;
+  opacity: 0.65;
+}
+
+.UuMinutesBookmarksModal__remove {
+  flex: 0 0 auto;
+  width: 40px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.55;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.UuMinutesBookmarksModal__error {
+  margin: 0 0 12px;
+  color: #c62828;
+
+  @include mixins.dark-theme {
+    color: #ef9a9a;
+  }
+}

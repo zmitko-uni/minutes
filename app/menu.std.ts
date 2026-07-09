@@ -9,6 +9,17 @@ import type {
   MenuOptionsType,
   MenuActionsType,
 } from '../ts/types/menu.std.ts';
+import { UUMINUTES_BUILD_ID } from '../ts/uuminutes/constants.std.ts';
+import {
+  UUMINUTES_MENU_AI_SETTINGS,
+  UUMINUTES_MENU_ABOUT,
+  UUMINUTES_MENU_LABEL,
+  UUMINUTES_MENU_OPEN_RECORDINGS,
+  UUMINUTES_MENU_OPEN_SUMMARIES,
+  UUMINUTES_MENU_SHOW_LOG,
+  UUMINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
+} from '../ts/uuminutes/menuLabels.std.ts';
+import { UUMINUTES_README_LABEL } from '../ts/uuminutes/welcomeContent.std.ts';
 import { strictAssert } from '../ts/util/assert.std.ts';
 
 const { isString } = lodash;
@@ -45,6 +56,15 @@ export const createTemplate = (
     zoomIn,
     zoomOut,
     zoomReset,
+    uuMinutesSummarizeChat,
+    uuMinutesOpenSettings,
+    uuMinutesOpenLog,
+    uuMinutesOpenRecordings,
+    uuMinutesOpenSummaries,
+    uuMinutesOpenCallSummaryExtension,
+    uuMinutesOpenBookmarks,
+    uuMinutesOpenReadme,
+    uuMinutesShowHome,
   } = options;
 
   const template: MenuListType = [
@@ -66,6 +86,59 @@ export const createTemplate = (
         {
           role: 'quit',
           label: i18n('icu:appMenuQuit'),
+        },
+      ],
+    },
+    {
+      label: UUMINUTES_MENU_LABEL,
+      submenu: [
+        {
+          label: `Build ${UUMINUTES_BUILD_ID}`,
+          enabled: false,
+        },
+        {
+          type: 'separator',
+        },
+        {
+          label: UUMINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
+          accelerator: 'CommandOrControl+Shift+U',
+          click: uuMinutesSummarizeChat,
+        },
+        {
+          label: 'Záložky…',
+          click: uuMinutesOpenBookmarks,
+        },
+        {
+          label: UUMINUTES_MENU_AI_SETTINGS,
+          click: uuMinutesOpenSettings,
+        },
+        {
+          label: 'Sumarizace hovoru…',
+          click: uuMinutesOpenCallSummaryExtension,
+        },
+        {
+          label: UUMINUTES_README_LABEL,
+          click: uuMinutesOpenReadme,
+        },
+        {
+          label: UUMINUTES_MENU_ABOUT,
+          click: uuMinutesShowHome,
+        },
+        {
+          label: UUMINUTES_MENU_SHOW_LOG,
+          accelerator: 'CommandOrControl+Shift+Alt+L',
+          click: uuMinutesOpenLog,
+        },
+        {
+          type: 'separator',
+        },
+        {
+          label: UUMINUTES_MENU_OPEN_RECORDINGS,
+          click: uuMinutesOpenRecordings,
+        },
+        {
+          label: UUMINUTES_MENU_OPEN_SUMMARIES,
+          click: uuMinutesOpenSummaries,
         },
       ],
     },

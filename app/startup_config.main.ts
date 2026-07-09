@@ -3,6 +3,8 @@
 
 import { app } from 'electron';
 
+import './uuminutes_runtime.main.ts';
+
 import { packageJson } from '../ts/util/packageJson.main.ts';
 import { createLogger } from '../ts/logging/log.std.ts';
 import * as GlobalErrors from './global_errors.main.ts';
@@ -15,7 +17,15 @@ GlobalErrors.addHandler();
 // set such that only we have read access to our files
 process.umask(0o077);
 
-export const AUMID = `org.whispersystems.${packageJson.name}`;
+export const AUMID =
+  process.env.NODE_CONFIG_ENV === 'uuminutes'
+    ? 'org.minutes.desktop'
+    : `org.whispersystems.${packageJson.name}`;
+
+if (process.env.NODE_CONFIG_ENV === 'uuminutes') {
+  app.setName('Minutes');
+}
+
 log.info('Set Windows Application User Model ID (AUMID)', {
   AUMID,
 });
