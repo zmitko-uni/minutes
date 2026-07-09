@@ -67,6 +67,7 @@ function Wrapper({
       getPreferredBadge={() => undefined}
       getRow={(index: number) => rows[index]}
       shouldRecomputeRowHeights={false}
+      resetShouldRecomputeRowHeights={action('resetShouldRecomputeRowHeights')}
       i18n={i18n}
       blockConversation={action('blockConversation')}
       onPreloadConversation={action('onPreloadConversation')}

@@ -16,6 +16,10 @@ import { drop } from '../util/drop.std.ts';
 import { toNumber } from '../util/toNumber.std.ts';
 import type { MessageAttributesType } from '../model-types.d.ts';
 import type { SocketStatuses } from '../textsecure/SocketManager.preload.ts';
+import type {
+  RestoreResponseType,
+  StoreParameters,
+} from '../textsecure/WebAPI.preload.ts';
 
 export type AppLoadedInfoType = Readonly<{
   loadTime: number;
@@ -111,6 +115,10 @@ export class App extends EventEmitter {
 
   public async waitForDbInitialized(): Promise<void> {
     return this.#waitForEvent('db-initialized');
+  }
+
+  public async waitUntilReadyForUpdates(): Promise<void> {
+    return this.#waitForEvent('ready-for-updates');
   }
 
   public async waitUntilLoaded(): Promise<AppLoadedInfoType> {
@@ -288,6 +296,20 @@ export class App extends EventEmitter {
     );
 
     return toNumber(result as bigint);
+  }
+
+  public async getSvr2StoreParameters(): Promise<StoreParameters | undefined> {
+    const window = await this.getWindow();
+    return window.evaluate(`window.SignalCI.getSVR2StoredData()`);
+  }
+
+  public async saveSVR2RestoreResponse(
+    response: RestoreResponseType
+  ): Promise<void> {
+    const window = await this.getWindow();
+    return window.evaluate(
+      `window.SignalCI.saveSVR2RestoreResponse(${JSON.stringify(response)})`
+    );
   }
 
   //

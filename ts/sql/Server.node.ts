@@ -1506,7 +1506,7 @@ function insertProtoRecipients(
   }: {
     id: number;
     recipientServiceId: ServiceIdString;
-    deviceIds: Array<number>;
+    deviceIds: ReadonlyArray<number>;
   }
 ): void {
   db.transaction(() => {

@@ -11,7 +11,6 @@ import type {
   ReadonlyMessageAttributesType,
 } from '../../model-types.d.ts';
 import type {
-  ActionCreator,
   MessageChangedActionType,
   MessageDeletedActionType,
 } from './conversations.preload.ts';
@@ -63,7 +62,7 @@ import type { BackfillFailureModalKind } from '../../components/BackfillFailureM
 import type { SmartDraftGifMessageSendModalProps } from '../smart/DraftGifMessageSendModal.preload.tsx';
 import { onCriticalIdlePrimaryDeviceModalDismissed } from '../../util/handleServerAlerts.preload.ts';
 import type { PinMessageDialogData } from '../smart/PinMessageDialog.preload.tsx';
-import type { StateThunk } from '../types.std.ts';
+import type { ActionCreator, StateThunk } from '../types.std.ts';
 import { itemStorage } from '../../textsecure/Storage.preload.ts';
 import type { ErrorModalDataProps } from '../../components/ErrorModal.dom.tsx';
 import { isDownloadableOrBackfillable } from '../../util/downloadAttachment.preload.ts';

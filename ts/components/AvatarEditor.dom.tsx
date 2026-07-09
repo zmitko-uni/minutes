@@ -23,6 +23,7 @@ import { createAvatarData } from '../util/createAvatarData.std.ts';
 import { isSameAvatarData } from '../util/isSameAvatarData.std.ts';
 import { missingCaseError } from '../util/missingCaseError.std.ts';
 import { useConfirmDiscard } from '../hooks/useConfirmDiscard.dom.tsx';
+import { AxoDialog } from '../axo/AxoDialog.dom.tsx';
 
 const { isEqual } = lodash;
 
@@ -34,6 +35,7 @@ export type PropsType = {
   conversationTitle?: string;
   deleteAvatarFromDisk: DeleteAvatarFromDiskActionType;
   i18n: LocalizerType;
+  isDisplayedAsPanel: boolean;
   isGroup?: boolean;
   onCancel: () => unknown;
   onSave: (buffer: Uint8Array<ArrayBuffer> | undefined) => unknown;
@@ -56,6 +58,7 @@ export function AvatarEditor({
   conversationTitle,
   deleteAvatarFromDisk,
   i18n,
+  isDisplayedAsPanel,
   isGroup,
   onCancel,
   onSave,
@@ -183,7 +186,7 @@ export function AvatarEditor({
   if (editMode === EditMode.Main) {
     content = (
       <>
-        <div className="AvatarEditor__preview">
+        <AxoDialog.Body maxHeight={isDisplayedAsPanel ? 9999 : undefined}>
           <AvatarPreview
             avatarColor={avatarColor}
             avatarUrl={pendingClear ? undefined : avatarUrl}
@@ -199,84 +202,88 @@ export function AvatarEditor({
               setProvisionalSelectedAvatar(undefined);
             }}
           />
-          <div className="AvatarEditor__top-buttons">
-            <AvatarUploadButton
-              className="AvatarEditor__button AvatarEditor__button--photo"
-              i18n={i18n}
-              onChange={newAvatar => {
-                const avatarData = createAvatarData({
-                  buffer: newAvatar,
-                  // This is so that the newly created avatar gets an X
-                  imagePath: 'TMP',
-                });
-                saveAvatarToDisk(avatarData, conversationId);
-                updateAvatarDataList(avatarData);
-              }}
-            />
-            <button
-              className="AvatarEditor__button AvatarEditor__button--text"
-              onClick={() => {
-                setProvisionalSelectedAvatar(undefined);
-                setEditMode(EditMode.Text);
-              }}
-              type="button"
-            >
-              {i18n('icu:text')}
-            </button>
+          <div className="AvatarEditor__top-buttons__container">
+            <div className="AvatarEditor__top-buttons">
+              <AvatarUploadButton
+                className="AvatarEditor__button AvatarEditor__button--photo"
+                i18n={i18n}
+                onChange={newAvatar => {
+                  const avatarData = createAvatarData({
+                    buffer: newAvatar,
+                    // This is so that the newly created avatar gets an X
+                    imagePath: 'TMP',
+                  });
+                  saveAvatarToDisk(avatarData, conversationId);
+                  updateAvatarDataList(avatarData);
+                }}
+              />
+              <button
+                className="AvatarEditor__button AvatarEditor__button--text"
+                onClick={() => {
+                  setProvisionalSelectedAvatar(undefined);
+                  setEditMode(EditMode.Text);
+                }}
+                type="button"
+              >
+                {i18n('icu:text')}
+              </button>
+            </div>
           </div>
-        </div>
-        <hr className="AvatarEditor__divider" />
-        <div className="AvatarEditor__avatar-selector-title">
-          {i18n('icu:AvatarEditor--choose')}
-        </div>
-        <div className="AvatarEditor__avatars">
-          {localAvatarData.map(avatarData => (
-            <BetterAvatar
-              avatarData={avatarData}
-              key={avatarData.id}
-              i18n={i18n}
-              isSelected={isSameAvatarData(avatarData, selectedAvatar)}
-              onClick={avatarBuffer => {
-                if (isSameAvatarData(avatarData, selectedAvatar)) {
-                  if (avatarData.text) {
-                    setEditMode(EditMode.Text);
-                  } else if (avatarData.icon) {
-                    setEditMode(EditMode.Custom);
+          <hr className="AvatarEditor__divider" />
+          <div className="AvatarEditor__avatar-selector-title">
+            {i18n('icu:AvatarEditor--choose')}
+          </div>
+          <div className="AvatarEditor__avatars">
+            {localAvatarData.map(avatarData => (
+              <BetterAvatar
+                avatarData={avatarData}
+                key={avatarData.id}
+                i18n={i18n}
+                isSelected={isSameAvatarData(avatarData, selectedAvatar)}
+                onClick={avatarBuffer => {
+                  if (isSameAvatarData(avatarData, selectedAvatar)) {
+                    if (avatarData.text) {
+                      setEditMode(EditMode.Text);
+                    } else if (avatarData.icon) {
+                      setEditMode(EditMode.Custom);
+                    }
+                  } else {
+                    setAvatarPreview(avatarBuffer);
+                    setProvisionalSelectedAvatar(avatarData);
                   }
-                } else {
-                  setAvatarPreview(avatarBuffer);
-                  setProvisionalSelectedAvatar(avatarData);
-                }
-              }}
-              onDelete={() => {
-                updateAvatarDataList(undefined, avatarData);
-                deleteAvatarFromDisk(avatarData, conversationId);
-              }}
-            />
-          ))}
-        </div>
-        <AvatarModalButtons
-          hasChanges={hasChanges}
-          i18n={i18n}
-          onCancel={() => {
-            setAvatarPreview(initialAvatar);
-            setPendingClear(false);
+                }}
+                onDelete={() => {
+                  updateAvatarDataList(undefined, avatarData);
+                  deleteAvatarFromDisk(avatarData, conversationId);
+                }}
+              />
+            ))}
+          </div>
+        </AxoDialog.Body>
+        <AxoDialog.Footer>
+          <AvatarModalButtons
+            hasChanges={hasChanges}
+            i18n={i18n}
+            onCancel={() => {
+              setAvatarPreview(initialAvatar);
+              setPendingClear(false);
 
-            // Delay navigation until new avatar data resolves and we are no longer dirty
-            setTimeout(() => onCancel(), 500);
-          }}
-          onSave={() => {
-            if (selectedAvatar) {
-              replaceAvatar(selectedAvatar, selectedAvatar, conversationId);
-            }
+              // Delay navigation until new avatar data resolves and we are no longer dirty
+              setTimeout(() => onCancel(), 500);
+            }}
+            onSave={() => {
+              if (selectedAvatar) {
+                replaceAvatar(selectedAvatar, selectedAvatar, conversationId);
+              }
 
-            setInitialAvatar(avatarPreview);
-            setPendingClear(false);
+              setInitialAvatar(avatarPreview);
+              setPendingClear(false);
 
-            // Delay navigation until new avatar data resolves and we are no longer dirty
-            setTimeout(() => onSave(avatarPreview), 500);
-          }}
-        />
+              // Delay navigation until new avatar data resolves and we are no longer dirty
+              setTimeout(() => onSave(avatarPreview), 500);
+            }}
+          />
+        </AxoDialog.Footer>
       </>
     );
   } else if (editMode === EditMode.Text) {
@@ -284,6 +291,7 @@ export function AvatarEditor({
       <AvatarTextEditor
         avatarData={selectedAvatar}
         i18n={i18n}
+        isDisplayedAsPanel={isDisplayedAsPanel}
         onCancel={() => {
           setEditMode(EditMode.Main);
           if (selectedAvatar) {
@@ -320,6 +328,7 @@ export function AvatarEditor({
       <AvatarIconEditor
         avatarData={selectedAvatar}
         i18n={i18n}
+        isDisplayedAsPanel={isDisplayedAsPanel}
         onClose={avatarData => {
           if (avatarData) {
             updateAvatarDataList(avatarData, selectedAvatar);

@@ -245,7 +245,7 @@ import type {
   PinnedMessage,
   PinnedMessagePreloadData,
 } from '../../types/PinnedMessage.std.ts';
-import type { StateThunk } from '../types.std.ts';
+import type { ActionCreator, StateThunk } from '../types.std.ts';
 import { getPinnedMessagesLimit } from '../../util/pinnedMessages.dom.ts';
 import { getPinnedMessageExpiresAt } from '../../util/pinnedMessages.std.ts';
 import { pinnedMessagesCleanupService } from '../../services/expiring/pinnedMessagesCleanupService.preload.ts';
@@ -261,6 +261,11 @@ import {
 } from '../../util/Conversation.preload.ts';
 import type { Emoji } from '../../axo/emoji.std.ts';
 import { isSignalConversation } from '../../util/isSignalConversation.dom.ts';
+import {
+  type DurationSecs,
+  SentTimestampMs,
+  TimestampMs,
+} from '@signalapp/types';
 
 const { chunk, difference, fromPairs, omit, orderBy, pick, values, without } =
   lodash;
@@ -4626,10 +4631,6 @@ function addMembersToGroup(
   };
 }
 
-// oxlint-disable-next-line typescript/no-explicit-any
-export type ActionCreator<T extends (...params: Array<any>) => any> =
-  ReadonlyDeep<(...params: Parameters<T>) => void>;
-
 export type UpdateGroupAttributesType = ReadonlyDeep<
   ActionCreator<typeof updateGroupAttributes>
 >;
@@ -5183,7 +5184,7 @@ function onPinnedMessagesChanged(
 
 function onPinnedMessageAdd(
   targetMessageId: string,
-  pinDurationSeconds: DurationInSeconds | null
+  pinDurationSeconds: DurationSecs | null
 ): StateThunk {
   return async dispatch => {
     const target = await getPinnedMessageTarget(targetMessageId);
@@ -5196,7 +5197,7 @@ function onPinnedMessageAdd(
     );
     strictAssert(targetConversation != null, 'Missing target conversation');
 
-    const pinnedAt = Date.now();
+    const pinnedAt = SentTimestampMs.now();
 
     await conversationJobQueue.add({
       type: conversationQueueJobEnum.enum.PinMessage,
@@ -5242,7 +5243,7 @@ function onPinnedMessageRemove(targetMessageId: string): StateThunk {
     await conversationJobQueue.add({
       type: conversationQueueJobEnum.enum.UnpinMessage,
       ...target,
-      unpinnedAt: Date.now(),
+      unpinnedAt: TimestampMs.now(),
       isSyncOnly: false,
     });
     await DataWriter.deletePinnedMessageByMessageId(targetMessageId);

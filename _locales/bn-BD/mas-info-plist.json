@@ -1,0 +1,8 @@
+{
+  "NSCameraUsageDescription": {
+    "messageformat": "Signal uses your camera for video calling."
+  },
+  "NSMicrophoneUsageDescription": {
+    "messageformat": "ফোন কল করতে ও গ্রহণ করতে এবং ভয়েস মেসেজ রেকর্ড করতে Signal-কে আপনার মাইক্রোফোন অ্যাক্সেস করতে হবে।"
+  }
+}

@@ -778,7 +778,7 @@ async function sendToGroupViaSenderKey(
     deviceIds,
   }: {
     serviceId: ServiceIdString;
-    deviceIds: Array<number>;
+    deviceIds: ReadonlyArray<number>;
   }) => {
     if (!shouldSaveProto(sendType)) {
       return;

@@ -49,6 +49,7 @@ overrides:
   'react-popper@2.3.0>react-dom': '19.2.4'
   'react-popper@2.3.0>react': '19.2.4'
   'thenify-all>thenify': '3.3.1'
+  'danger@13.0.10>undici': '6.27.0'
 
 allowUnusedPatches: false
 ignorePatchFailures: false
@@ -68,7 +69,6 @@ patchedDependencies:
   'node-fetch@3.3.2': 'patches/node-fetch@3.3.2.patch'
   'playwright-core': 'patches/playwright-core.patch'
   'qrcode-generator': 'patches/qrcode-generator.patch'
-  'tsx': 'patches/tsx.patch'
   'zod@4.3.6': 'patches/zod@4.3.6.patch'
 
 strictDepBuilds: true
@@ -79,7 +79,7 @@ allowBuilds:
   '@indutny/simple-windows-notifications@2.0.16': true
   '@parcel/watcher@2.5.6': true
   '@signalapp/libsignal-client@0.92.2': true # duplicate package
-  '@signalapp/libsignal-client@0.96.3': true
+  '@signalapp/libsignal-client@0.96.4': true
   '@signalapp/ringrtc@2.69.4': true
   '@signalapp/sqlcipher@3.3.9': true
   '@signalapp/windows-ucv@1.0.1': true
@@ -98,6 +98,7 @@ allowBuilds:
   'es5-ext': false
   'esbuild': false
   'utf-8-validate': false
+  '@signalapp/ringrtc': true
 
 dedupePeers: true
 dedupePeerDependents: true
@@ -133,3 +134,4 @@ allowedDeprecatedVersions:
   'rimraf': '2.6.3 || 3.0.2'
   'uuid': '8.3.2 || 9.0.1'
   'whatwg-encoding': '2.0.0'
+  'yaeti': '0.0.6'

@@ -448,6 +448,7 @@ export const _getLeftPaneLists = ({
   const conversations: Array<ConversationType> = [];
   const archivedConversations: Array<ConversationType> = [];
   const pinnedConversations: Array<ConversationType> = [];
+  const pinnedConversationIdsSet = new Set(pinnedConversationIds);
 
   for (let conversation of Object.values(conversationLookup)) {
     if (
@@ -468,7 +469,10 @@ export const _getLeftPaneLists = ({
     }
 
     // We always show pinned conversations
-    if (conversation.isPinned) {
+    if (
+      conversation.isPinned &&
+      pinnedConversationIdsSet.has(conversation.id)
+    ) {
       pinnedConversations.push(conversation);
       continue;
     }

@@ -126,7 +126,10 @@ const IPC: IPCType = {
       connectTime: preloadConnectTime - window.preloadEndTime,
       processedCount,
     }),
-  readyForUpdates: () => ipc.send('ready-for-updates'),
+  readyForUpdates: () => {
+    window.SignalCI?.handleEvent('ready-for-updates', null);
+    ipc.send('ready-for-updates');
+  },
   removeSetupMenuItems: () => ipc.send('remove-setup-menu-items'),
   setAutoHideMenuBar: autoHide => ipc.send('set-auto-hide-menu-bar', autoHide),
   setAutoLaunch: value => ipc.invoke('set-auto-launch', value),

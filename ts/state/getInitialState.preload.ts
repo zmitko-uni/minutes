@@ -34,6 +34,7 @@ import { getEmptyState as notificationProfilesEmptyState } from './ducks/notific
 import { getEmptyState as preferredReactionsEmptyState } from './ducks/preferredReactions.preload.ts';
 import { getEmptyState as safetyNumberEmptyState } from './ducks/safetyNumber.preload.ts';
 import { getEmptyState as searchEmptyState } from './ducks/search.preload.ts';
+import { getEmptyState as standaloneInstallerEmptyState } from './ducks/standaloneInstaller.preload.ts';
 import { getEmptyState as stickersEmptyState } from './ducks/stickers.preload.ts';
 import { getEmptyState as storiesEmptyState } from './ducks/stories.preload.ts';
 import { getEmptyState as storyDistributionListsEmptyState } from './ducks/storyDistributionLists.preload.ts';
@@ -178,6 +179,7 @@ function getEmptyState(): StateType {
     preferredReactions: preferredReactionsEmptyState(),
     safetyNumber: safetyNumberEmptyState(),
     search: searchEmptyState(),
+    standaloneInstaller: standaloneInstallerEmptyState(),
     stickers: stickersEmptyState(),
     stories: storiesEmptyState(),
     storyDistributionLists: storyDistributionListsEmptyState(),

@@ -26,7 +26,7 @@ export function AvatarModalButtons({
   >(undefined);
 
   return (
-    <div className={tw('flex justify-end-safe gap-2 py-2.5')}>
+    <div className={tw('flex w-full justify-end-safe gap-2 py-2.5')}>
       <AxoButton.Root
         variant="secondary"
         size="lg"

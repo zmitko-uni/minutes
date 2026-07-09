@@ -17,14 +17,13 @@ import {
   ServiceId,
   type KEMPublicKey,
   type PublicKey,
-  type Aci,
-  type Pni,
   CiphertextMessage,
 } from '@signalapp/libsignal-client';
 import { AccountAttributes } from '@signalapp/libsignal-client/dist/net.js';
 import type {
   ProvisioningConnection,
   ProvisioningConnectionListener,
+  RegisterAccountResponse,
 } from '@signalapp/libsignal-client/dist/net.js';
 import { GroupSendFullToken } from '@signalapp/libsignal-client/zkgroup.js';
 import type { Request as KTRequest } from '@signalapp/libsignal-client/dist/net/KeyTransparency.js';
@@ -73,7 +72,12 @@ import {
 import type { BackupPresentationHeadersType } from '../types/backups.node.ts';
 import { HTTPError } from '../types/HTTPError.std.ts';
 import * as Bytes from '../Bytes.std.ts';
-import { getRandomBytes, randomInt } from '../Crypto.node.ts';
+import {
+  decryptHmacSIV,
+  encryptHmacSIV,
+  getRandomBytes,
+  randomInt,
+} from '../Crypto.node.ts';
 import * as linkPreviewFetch from '../linkPreviews/linkPreviewFetch.preload.ts';
 import { isBadgeImageFileUrlValid } from '../badges/isBadgeImageFileUrlValid.std.ts';
 
@@ -138,6 +142,15 @@ import {
   UnauthorizedMessageSendError,
   UnregisteredUserError,
 } from './Errors.std.ts';
+import type { RawTimings } from '../types/StandaloneRegistration.std.ts';
+import {
+  SessionNotAllowedToRequestCodeError,
+  SessionNotVerifiedError,
+} from './Errors.std.ts';
+import { PhoneNumberDiscoverability } from '../util/phoneNumberDiscoverability.std.ts';
+import { PinHash } from '@signalapp/libsignal-client/dist/AccountKeys';
+import { sleep } from '../util/sleep.std.ts';
+import { exponentialBackoffSleepTime } from '../util/exponentialBackoff.std.ts';
 
 const { escapeRegExp, isNumber, throttle } = lodash;
 
@@ -774,6 +787,7 @@ export function makeKeysLowercase<V>(
 const CHAT_CALLS = {
   attachmentUploadForm: 'v4/attachments/form/upload',
   attestation: 'v1/attestation',
+  backupAuth: 'v2/backup/auth',
   batchIdentityCheck: 'v1/profile/identity_check/batch',
   boostReceiptCredentials: 'v1/subscription/boost/receipt_credentials',
   challenge: 'v1/challenge',
@@ -1125,7 +1139,6 @@ export type ResolveUsernameLinkResultType = {
 export type CreateAccountOptionsType = Readonly<{
   sessionId: string;
   number: string;
-  code: string;
   newPassword: string;
   registrationId: number;
   pniRegistrationId: number;
@@ -1136,6 +1149,8 @@ export type CreateAccountOptionsType = Readonly<{
   pniSignedPreKey: UploadSignedPreKeyType;
   aciPqLastResortPreKey: UploadKyberPreKeyType;
   pniPqLastResortPreKey: UploadKyberPreKeyType;
+  registrationLockToken?: string;
+  phoneNumberDiscoverability: PhoneNumberDiscoverability;
 }>;
 
 const linkDeviceResultZod = z.object({
@@ -1191,11 +1206,6 @@ export type LinkDeviceOptionsType = Readonly<{
   pniSignedPreKey: UploadSignedPreKeyType;
   aciPqLastResortPreKey: UploadKyberPreKeyType;
   pniPqLastResortPreKey: UploadKyberPreKeyType;
-}>;
-
-export type CreateAccountResultType = Readonly<{
-  aci: Aci;
-  pni: Pni;
 }>;
 
 export type CreateBoostOptionsType = Readonly<{
@@ -1749,15 +1759,16 @@ type InflightCallback = (cancelReason: string) => unknown;
 const libsignalNet = getLibsignalNet();
 
 const {
-  serverUrl: chatServiceUrl,
-  storageUrl,
-  updatesUrl,
-  resourcesUrl,
   certificateAuthority,
   contentProxyUrl,
   proxyUrl,
-  version,
+  resourcesUrl,
+  serverUrl: chatServiceUrl,
+  storageUrl,
   stripePublishableKey,
+  svr2Config,
+  updatesUrl,
+  version,
 } = window.SignalContext.config;
 
 const cdnUrlObject: Readonly<{
@@ -2774,33 +2785,99 @@ export async function reportMessage({
   });
 }
 
-export async function requestVerification(
-  number: string,
-  captcha: string,
-  transport: VerificationTransport
+export async function createVerificationSession(
+  phoneNumber: string
 ): Promise<RequestVerificationResultType> {
   // Create a new blank session using just a E164
   const session = await libsignalNet.createRegistrationSession({
-    e164: number,
+    e164: phoneNumber,
   });
 
-  // Submit a captcha solution to the session
-  await session.submitCaptcha(captcha);
+  // Verify that captcha is expected
+  if (!session.sessionState.requestedInformation.has('captcha')) {
+    throw new Error('createVerificationSession: Expected captcha requirement');
+  }
+
+  if (session.sessionState.allowedToRequestCode) {
+    log.warn(
+      'createVerificationSession: allowedToRequestCode was unexpectedly true!'
+    );
+  }
+
+  return { sessionId: session.sessionId };
+}
+
+export async function submitCaptchaForVerificationSession(options: {
+  phoneNumber: string;
+  verificationSessionId: string;
+  captchaToken: string;
+}): Promise<void> {
+  const session = await libsignalNet.resumeRegistrationSession({
+    e164: options.phoneNumber,
+    sessionId: options.verificationSessionId,
+  });
+
+  await session.submitCaptcha(options.captchaToken);
 
   // Verify that captcha was accepted
   if (!session.sessionState.allowedToRequestCode) {
-    throw new Error('requestVerification: Not allowed to send code');
+    throw new SessionNotAllowedToRequestCodeError(
+      'submitCaptchaForVerificationSession: Not allowed to send code'
+    );
+  }
+}
+
+export async function requestCodeForVerificationSession(options: {
+  phoneNumber: string;
+  verificationSessionId: string;
+  transport: VerificationTransport;
+  languages: Array<string>;
+}): Promise<RawTimings> {
+  const session = await libsignalNet.resumeRegistrationSession({
+    e164: options.phoneNumber,
+    sessionId: options.verificationSessionId,
+  });
+
+  if (!session.sessionState.allowedToRequestCode) {
+    throw new SessionNotAllowedToRequestCodeError(
+      'requestCodeForVerificationSession: Not allowed to send code'
+    );
   }
 
   // Request an SMS or Voice confirmation
   await session.requestVerification({
-    transport: transport === VerificationTransport.SMS ? 'sms' : 'voice',
-    client: 'ios',
-    languages: [],
+    transport:
+      options.transport === VerificationTransport.SMS ? 'sms' : 'voice',
+    client: 'desktop',
+    languages: options.languages,
   });
 
-  // Return sessionId to be used in `createAccount`
-  return { sessionId: session.sessionId };
+  return {
+    nextSmsSecs: session.sessionState.nextSmsSecs,
+    nextCallSecs: session.sessionState.nextCallSecs,
+    nextVerificationAttemptSecs:
+      session.sessionState.nextVerificationAttemptSecs,
+  };
+}
+
+export async function submitCodeForVerificationSession(options: {
+  phoneNumber: string;
+  verificationSessionId: string;
+  code: string;
+}): Promise<void> {
+  const session = await libsignalNet.resumeRegistrationSession({
+    e164: options.phoneNumber,
+    sessionId: options.verificationSessionId,
+  });
+
+  await session.verifySession(options.code);
+
+  // Verify that the code worked to make the session ready for account creation
+  if (!session.sessionState.verified) {
+    throw new SessionNotVerifiedError(
+      'submitCodeForVerificationSession: Not verified after providing code!'
+    );
+  }
 }
 
 export async function checkAccountExistence(
@@ -2870,7 +2947,6 @@ async function _withNewCredentials<
 export async function createAccount({
   sessionId,
   number,
-  code,
   newPassword,
   registrationId,
   pniRegistrationId,
@@ -2881,15 +2957,18 @@ export async function createAccount({
   pniSignedPreKey,
   aciPqLastResortPreKey,
   pniPqLastResortPreKey,
-}: CreateAccountOptionsType): Promise<CreateAccountResultType> {
+  registrationLockToken,
+  phoneNumberDiscoverability,
+}: CreateAccountOptionsType): Promise<RegisterAccountResponse> {
   const session = await libsignalNet.resumeRegistrationSession({
     sessionId,
     e164: number,
   });
-  const verified = await session.verifySession(code);
 
-  if (!verified) {
-    throw new Error('createAccount: invalid code');
+  if (!session.sessionState.verified) {
+    throw new SessionNotVerifiedError(
+      'createAccount: Session is not verified - was code previously provided?'
+    );
   }
 
   const capabilities: CapabilitiesUploadType = {
@@ -2910,8 +2989,9 @@ export async function createAccount({
     unidentifiedAccessKey: accessKey,
     unrestrictedUnidentifiedAccess: false,
     recoveryPassword,
-    registrationLock: null,
-    discoverableByPhoneNumber: false,
+    registrationLock: registrationLockToken ?? null,
+    discoverableByPhoneNumber:
+      phoneNumberDiscoverability === PhoneNumberDiscoverability.Discoverable,
   });
 
   // Massages UploadSignedPreKey into SignedPublicPreKey and likewise for Kyber.
@@ -2931,7 +3011,7 @@ export async function createAccount({
     };
   }
 
-  const { aci, pni } = await session.registerAccount({
+  const response: RegisterAccountResponse = await session.registerAccount({
     accountPassword: newPassword,
     accountAttributes,
     skipDeviceTransfer: true,
@@ -2943,7 +3023,7 @@ export async function createAccount({
     pniPqLastResortPreKey: asSignedKey(pniPqLastResortPreKey),
   });
 
-  return { aci, pni };
+  return response;
 }
 
 export async function linkDevice({
@@ -5077,6 +5157,197 @@ export async function deleteAccount(): Promise<void> {
     httpType: 'DELETE',
     responseType: 'bytes',
   });
+}
+
+const authSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+export type AuthType = z.infer<typeof authSchema>;
+
+async function getBackupAuth(): Promise<AuthType> {
+  return _ajax({
+    host: 'chatService',
+    call: 'backupAuth',
+    httpType: 'GET',
+    zodSchema: authSchema,
+    responseType: 'json',
+  });
+}
+
+function getPinHash(options: { pin: string; username: string }): PinHash {
+  const pinBytes = Bytes.fromString(options.pin);
+  const mrenclaveBytes = Bytes.fromHex(svr2Config.svr2MRENCLAVE.id);
+
+  return PinHash.fromUsernameMrenclave(
+    pinBytes,
+    options.username,
+    mrenclaveBytes
+  );
+}
+
+function encryptSVRPayload({
+  pinHash,
+  data,
+}: {
+  pinHash: PinHash;
+  data: Uint8Array<ArrayBuffer>;
+}): Uint8Array<ArrayBuffer> {
+  const key = pinHash.encryptionKey;
+  return encryptHmacSIV(key, data);
+}
+function decryptSVRPayload({
+  pinHash,
+  data,
+}: {
+  pinHash: PinHash;
+  data: Uint8Array<ArrayBuffer>;
+}): Uint8Array<ArrayBuffer> {
+  const key = pinHash.encryptionKey;
+  return decryptHmacSIV(key, data);
+}
+
+export type RestoreResponseType = Readonly<
+  | {
+      success: false;
+      error: 'missing';
+    }
+  | {
+      success: false;
+      error: 'pin-incorrect';
+      triesRemaining: number;
+    }
+  | {
+      success: true;
+      data: Uint8Array<ArrayBuffer>;
+      triesRemaining: number;
+    }
+>;
+
+export async function restoreFromSVR2(
+  options: { pin: string },
+  getAuth = getBackupAuth
+): Promise<RestoreResponseType> {
+  const logId = 'restoreFromSVR2';
+
+  if (window.SignalCI) {
+    log.info(`${logId}: Running under CI; using stored response`);
+    const response = window.SignalCI.getSVR2RestoreResponse();
+    if (!response) {
+      throw new Error(`${logId}: No response saved before restoring under CI`);
+    }
+    return response;
+  }
+
+  const auth = await getAuth();
+  const svr2 = libsignalNet.svr2(auth);
+
+  const pinHash = getPinHash({ pin: options.pin, username: auth.username });
+
+  try {
+    const { data, triesRemaining } = await svr2.restore(pinHash.accessKey);
+    return {
+      success: true,
+      data: decryptSVRPayload({ pinHash, data }),
+      triesRemaining,
+    };
+  } catch (error) {
+    if (error instanceof LibSignalErrorBase) {
+      if (error.is(ErrorCode.SvrDataMissing)) {
+        return {
+          success: false,
+          error: 'missing',
+        };
+      }
+      if (error.is(ErrorCode.SvrRestoreFailed)) {
+        return {
+          success: false,
+          error: 'pin-incorrect',
+          triesRemaining: error.triesRemaining,
+        };
+      }
+    }
+
+    throw error;
+  }
+}
+
+export async function deleteFromSVR2(getAuth = getBackupAuth): Promise<void> {
+  if (window.SignalCI) {
+    log.info('deleteFromSVR2: Returning early under CI');
+    return;
+  }
+
+  const auth = await getAuth();
+  const svr2 = libsignalNet.svr2(auth);
+
+  await svr2.delete();
+}
+
+const MAX_SVR2_TRIES = 10;
+const MAX_STORE_ATTEMPTS = 3;
+
+export type StoreParameters = {
+  pin: string;
+  data: Uint8Array<ArrayBuffer>;
+};
+
+export async function storeWithSVR2(
+  options: StoreParameters,
+  getAuth = getBackupAuth
+): Promise<void> {
+  const logId = 'storeWithSVR2';
+
+  if (window.SignalCI) {
+    log.info(`${logId}: Running under CI; saving data`);
+    window.SignalCI.saveSVR2StoredData(options);
+    return;
+  }
+
+  const auth = await getAuth();
+  const svr2 = libsignalNet.svr2(auth);
+
+  const pinHash = getPinHash({ pin: options.pin, username: auth.username });
+  const data = encryptSVRPayload({ pinHash, data: options.data });
+
+  log.info(`${logId}: startBackup...`);
+  const session = await svr2.startBackup(
+    pinHash.accessKey,
+    data,
+    MAX_SVR2_TRIES
+  );
+
+  let attempts = 1;
+  while (attempts <= MAX_STORE_ATTEMPTS) {
+    try {
+      log.info(`${logId}: finishBackup (attempt=${attempts})...`);
+      // oxlint-disable-next-line no-await-in-loop
+      await svr2.finishBackup(session);
+      break;
+    } catch (error) {
+      log.error(
+        `${logId}: Failed to finish store, attempt ${attempts} of ${MAX_STORE_ATTEMPTS}`,
+        toLogFormat(error)
+      );
+
+      if (attempts >= MAX_STORE_ATTEMPTS) {
+        throw new Error(
+          `${logId}: Failed after ${MAX_STORE_ATTEMPTS} to finish store`
+        );
+      }
+
+      const duration = exponentialBackoffSleepTime(attempts, {
+        firstBackoffs: [SECOND],
+        multiplier: 3,
+        maxBackoffTime: SECOND * 30,
+      });
+      // oxlint-disable-next-line no-await-in-loop
+      await sleep(duration);
+
+      attempts += 1;
+    }
+  }
+  log.info(`${logId}: complete (attempt=${attempts})`);
 }
 
 // TODO: DESKTOP-8300

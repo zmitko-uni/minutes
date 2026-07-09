@@ -12,7 +12,7 @@ export const UUMINUTES_WELCOME_FEATURES_HEADING =
   `Hlavní předností ${APP_DISPLAY_NAME} je:`;
 
 /** Upstream Signal Desktop release (sync when merging upstream). */
-export const UUMINUTES_SIGNAL_BASE_VERSION = '8.20.0';
+export const UUMINUTES_SIGNAL_BASE_VERSION = '8.21.0';
 
 export const UUMINUTES_README_LABEL = APP_README_LABEL;
 

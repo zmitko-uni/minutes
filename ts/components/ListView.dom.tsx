@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import classNames from 'classnames';
+import lodash from 'lodash';
 import {
   useRef,
   useCallback,
@@ -14,6 +15,8 @@ import type { Index, ListRowRenderer } from 'react-virtualized';
 import { List } from 'react-virtualized';
 import { ScrollBehavior } from '../types/Util.std.ts';
 
+const { noop } = lodash;
+
 type Props = {
   width: number;
   height: number;
@@ -24,6 +27,7 @@ type Props = {
   scrollable?: boolean;
   className?: string;
   shouldRecomputeRowHeights?: boolean;
+  resetShouldRecomputeRowHeights?: () => void;
   scrollBehavior?: ScrollBehavior;
 };
 
@@ -41,16 +45,18 @@ export function ListView({
   className,
   scrollable = true,
   shouldRecomputeRowHeights = false,
+  resetShouldRecomputeRowHeights = noop,
   scrollBehavior = ScrollBehavior.Default,
 }: Props): JSX.Element {
   const listRef = useRef<null | List>(null);
 
   useLayoutEffect(() => {
     const list = listRef.current;
-    if (shouldRecomputeRowHeights && list) {
-      list.recomputeRowHeights();
+    if (shouldRecomputeRowHeights) {
+      list?.recomputeRowHeights();
+      resetShouldRecomputeRowHeights();
     }
-  }, [shouldRecomputeRowHeights]);
+  }, [shouldRecomputeRowHeights, resetShouldRecomputeRowHeights]);
 
   const rowHeight = useCallback(
     (index: Index) => calculateRowHeight(index.index),

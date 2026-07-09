@@ -87,7 +87,7 @@
     "messageformat": "جهة الاتصال غير معروفة"
   },
   "icu:deletedAccount": {
-    "messageformat": "Deleted Account"
+    "messageformat": "حساب محذوف"
   },
   "icu:unknownContactShort": {
     "messageformat": "غير معروف"
@@ -543,7 +543,7 @@
     "messageformat": "انضم على أي حال"
   },
   "icu:debugLogExplanation": {
-    "messageformat": "‫عند النقر على زر \"إرسال\"، سوف يُنشَر السجلّ على الإنترنت لمدة 30 يومًا في عنوان URL فريد غير منشور. يمكنك حفظه محليًا أولًا."
+    "messageformat": "‫عند النقر على زر \"إرسال\"، سوف يُنشَر السجل على الإنترنت لمدة 30 يومًا في عنوان URL فريد غير منشور. يمكنك حفظه محليًا أولًا."
   },
   "icu:debugLogExplanation--close": {
     "messageformat": "سيُنشَر هذا السّجل علنًا على الانترنت حتى يتمكّن المساهمون من الاطِّلاع عليه. يمكنك تنزيله لمراجعته أو تعديله قبل إرساله."
@@ -558,7 +558,7 @@
     "messageformat": "تمَّ تحميل سجل الأخطاء. عند اتصالك بقسم الدعم، يُرجى نسخ عنوان URL في الأسفل ثم إرفاقه مع وصف للمشكلة التي لاحظتها وكذلك الخطوات التي أدَّت إلى تكرارها."
   },
   "icu:debugLogLogIsIncomplete": {
-    "messageformat": "للاطِّلاع على السجلّ بالكامل، يُرجى الضغط على \"حفظ\""
+    "messageformat": "للاطِّلاع على السجل بالكامل، يُرجى الضغط على \"حفظ\"."
   },
   "icu:debugLogCopy": {
     "messageformat": "نسخ الرابط"
@@ -1539,7 +1539,7 @@
     "messageformat": "إعادة التعيين"
   },
   "icu:linkedDevices": {
-    "messageformat": "الأجهزة المرتبطة"
+    "messageformat": "الأجهزة المُرتبِطة"
   },
   "icu:linkNewDevice": {
     "messageformat": "ربط جهاز جديد"
@@ -4074,7 +4074,7 @@
     "messageformat": "حاوِل مُجدَّدًا"
   },
   "icu:GroupV2--admin": {
-    "messageformat": "المُشرِف"
+    "messageformat": "مُشرِف"
   },
   "icu:GroupV2--only-admins": {
     "messageformat": "المُشرِفون فقط"
@@ -6704,7 +6704,7 @@
     "messageformat": "تمَّ تنزيل التحديث"
   },
   "icu:DialogUpdate__upgrade-mas": {
-    "messageformat": "Click to go to the App Store"
+    "messageformat": "انقر للانتقال إلى متجر App Store"
   },
   "icu:DialogExpiredBuild__upgrade-mas": {
     "messageformat": "انقر للانتقال إلى متجر App Store"
@@ -6747,6 +6747,405 @@
   },
   "icu:InstallScreenUpdateDialog--cannot-update__body": {
     "messageformat": "تعذَّر تحديث سيجنال Desktop، لكن هناك إصدار جديد متوفر. انتقِل إلى {downloadUrl} وثبِّت الإصدار الجديد يدويًا، ثم تواصَل مع الدعم أو بلِّغ عن خطأ بشأن هذا المشكلة."
+  },
+  "icu:StandaloneRegistration--signal-logo": {
+    "messageformat": "Signal Logo"
+  },
+  "icu:StandaloneRegistration--back": {
+    "messageformat": "Back"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--header": {
+    "messageformat": "Phone number"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--description--line-1": {
+    "messageformat": "Enter your phone number to verify your account."
+  },
+  "icu:StandaloneRegistration--PhoneNumber--description--line-2": {
+    "messageformat": "Carrier rates may apply."
+  },
+  "icu:StandaloneRegistration--PhoneNumber--waiting": {
+    "messageformat": "Please try again in {duration}"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--placeholder": {
+    "messageformat": "Phone number"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--button": {
+    "messageformat": "Continue"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--Confirmation--description": {
+    "messageformat": "Is your phone number above correct?"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--Confirmation--cancel": {
+    "messageformat": "Edit number"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--Confirmation--confirm": {
+    "messageformat": "Yes"
+  },
+  "icu:StandaloneRegistration--Captcha--header": {
+    "messageformat": "Verify you’re a human to continue"
+  },
+  "icu:StandaloneRegistration--Captcha--description": {
+    "messageformat": "To help prevent spam on Signal, please complete verification. After verifying, you can continue with registration."
+  },
+  "icu:StandaloneRegistration--Captcha--retry-button": {
+    "messageformat": "Retry verification"
+  },
+  "icu:StandaloneRegistration--Captcha--button": {
+    "messageformat": "Verify in browser"
+  },
+  "icu:StandaloneRegistration--Captcha--button--wait": {
+    "messageformat": "Verify in {duration}"
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--header": {
+    "messageformat": "Further verification required"
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--description": {
+    "messageformat": "Please complete another captcha to continue registration."
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--cancel": {
+    "messageformat": "Cancel"
+  },
+  "icu:StandaloneRegistration--Captcha--NeedAnother--retry": {
+    "messageformat": "Retry verification"
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--aria-title": {
+    "messageformat": "Try again later"
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--line-1": {
+    "messageformat": "Can’t complete verification right now."
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--line-2": {
+    "messageformat": "Try again in {duration}"
+  },
+  "icu:StandaloneRegistration--Captcha--MustWait--button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--Captcha--Error--header": {
+    "messageformat": "Verification error"
+  },
+  "icu:StandaloneRegistration--Captcha--Error--description": {
+    "messageformat": "Try verifying again to continue registration."
+  },
+  "icu:StandaloneRegistration--Captcha--Error--try-again": {
+    "messageformat": "Try again"
+  },
+  "icu:StandaloneRegistration--Captcha--Error--cancel": {
+    "messageformat": "Cancel"
+  },
+  "icu:StandaloneRegistration--VerificationCode--header": {
+    "messageformat": "Verification code"
+  },
+  "icu:StandaloneRegistration--VerificationCode--description": {
+    "messageformat": "Enter the code we sent to {phoneNumber}"
+  },
+  "icu:StandaloneRegistration--VerificationCode--button": {
+    "messageformat": "Continue"
+  },
+  "icu:StandaloneRegistration--VerificationCode--send-sms": {
+    "messageformat": "Resend code"
+  },
+  "icu:StandaloneRegistration--VerificationCode--send-sms--duration": {
+    "messageformat": "Resend code in {duration}"
+  },
+  "icu:StandaloneRegistration--VerificationCode--call-me": {
+    "messageformat": "Call me"
+  },
+  "icu:StandaloneRegistration--VerificationCode--call-me--duration": {
+    "messageformat": "Call me in {duration}"
+  },
+  "icu:StandaloneRegistration--VerificationCode--wrong-number": {
+    "messageformat": "Wrong number?"
+  },
+  "icu:StandaloneRegistration--VerificationCode--having-trouble": {
+    "messageformat": "Having trouble registering?"
+  },
+  "icu:StandaloneRegistration--VerificationCode--IncorrectCode--aria-title": {
+    "messageformat": "Incorrect code"
+  },
+  "icu:StandaloneRegistration--VerificationCode--IncorrectCode--description": {
+    "messageformat": "The code you entered is incorrect. Please review the 6 digit code and try again."
+  },
+  "icu:StandaloneRegistration--VerificationCode--IncorrectCode--button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--aria-title": {
+    "messageformat": "Invalid code"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--description": {
+    "messageformat": "The code you entered is not valid. Please resend the code and try again."
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--resend-button": {
+    "messageformat": "Resend code"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CodeInvalid--edit-number-button": {
+    "messageformat": "Edit number"
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--aria-title": {
+    "messageformat": "Unable to send SMS"
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--description": {
+    "messageformat": "We couldn't send you a verification code via SMS. Try receiving your code via voice call instead."
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--confirm": {
+    "messageformat": "Voice call"
+  },
+  "icu:StandaloneRegistration--VerificationCode--SMSFailed--cancel": {
+    "messageformat": "Cancel"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MustWait--aria-title": {
+    "messageformat": "Try again later"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MustWait--description": {
+    "messageformat": "You’ve made too many attempts to enter the code. Try again in {duration}."
+  },
+  "icu:StandaloneRegistration--VerificationCode--MustWait--button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--aria-title": {
+    "messageformat": "Too many attempts"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--description": {
+    "messageformat": "You’ve made too many attempts to enter the code. Please resend the code and try again."
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--resend-button": {
+    "messageformat": "Resend code"
+  },
+  "icu:StandaloneRegistration--VerificationCode--MaximumAttempts--edit-number-button": {
+    "messageformat": "Edit number"
+  },
+  "icu:StandaloneRegistration--VerificationCode--FailedToCall--aria-title": {
+    "messageformat": "Unable to call"
+  },
+  "icu:StandaloneRegistration--VerificationCode--FailedToCall--description": {
+    "messageformat": "We couldn't call the phone number you entered. Make sure the phone number is correct and try again."
+  },
+  "icu:StandaloneRegistration--VerificationCode--FailedToCall--ok-button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodePermanent--aria-title": {
+    "messageformat": "Cannot send code"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodePermanent--description": {
+    "messageformat": "A verification code cannot be sent to the phone number you’ve entered. Make sure the number you’ve entered is correct, or try a different number."
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodePermanent--ok-button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--aria-title": {
+    "messageformat": "Try again later"
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--description": {
+    "messageformat": "An error occurred and the verification code could not be sent. Try again in {duration}."
+  },
+  "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--ok-button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--header": {
+    "messageformat": "Set up your profile"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--description": {
+    "messageformat": "Profiles are visible to people you message, contacts, and groups."
+  },
+  "icu:StandaloneRegistration--ProfileEntry--learn-more": {
+    "messageformat": "Learn more"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--add-photo": {
+    "messageformat": "Add photo"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--first-name": {
+    "messageformat": "First name (required)"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--last-name": {
+    "messageformat": "Last name (optional)"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--discoverability": {
+    "messageformat": "Who can find me by phone number"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--discoverability--change-button": {
+    "messageformat": "Change"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--discoverability--done-button": {
+    "messageformat": "Done"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--continue": {
+    "messageformat": "Continue"
+  },
+  "icu:StandaloneRegistration--ProfileEntry--AvatarModal--header": {
+    "messageformat": "Your avatar"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--header": {
+    "messageformat": "Enter your PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--description": {
+    "messageformat": "Enter the PIN you created for your account. This is different from your SMS verification code. <needHelp>Need help?</needHelp>"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--placeholder": {
+    "messageformat": "Enter your PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--incorrect-pin": {
+    "messageformat": "Incorrect PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--incorrect-pin--with-count": {
+    "messageformat": "{triesRemaining, plural, one {Incorrect PIN. {triesRemaining,number} attempt remaining.} other {Incorrect PIN. {triesRemaining,number} attempts remaining.}}"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--header": {
+    "messageformat": "Need help?"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--description--no-reglock": {
+    "messageformat": "Your PIN is a 4+ digit code you created that can be numeric or alphanumeric. If you can’t remember your PIN, you can create a new one. You can register and use your account but you’ll lose some saved settings like your profile information. <learnMore>Learn more</learnMore>."
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--description--reglock": {
+    "messageformat": "Your PIN is a 4+ digit code you created that can be numeric or alphanumeric. If you can’t remember your PIN, you’ll have to wait 7 days to re-register your account. <learnMore>Learn more</learnMore>."
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--skip-button--no-reglock": {
+    "messageformat": "Skip and create new PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--contact-support-button": {
+    "messageformat": "Contact Support"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NeedHelp--cancel": {
+    "messageformat": "Cancel"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--header": {
+    "messageformat": "Incorrect PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--description--no-reglock": {
+    "messageformat": "{triesRemaining, plural, one {You have {triesRemaining,number} attempt remaining. If you run out of attempts, you can create a new PIN. You can register and use your account but you’ll lose some saved settings like your profile information. <learnMore>Learn more</learnMore>.} other {You have {triesRemaining,number} attempts remaining. If you run out of attempts, you can create a new PIN. You can register and use your account but you’ll lose some saved settings like your profile information. <learnMore>Learn more</learnMore>.}}"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--description--reglock": {
+    "messageformat": "{triesRemaining, plural, one {You have {triesRemaining,number} attempt remaining. If you run out of attempts, your account will be locked for 7 days. After 7 days of inactivity, you can re-register without your PIN. All content will be deleted. <learnMore>Learn more</learnMore>.} other {You have {triesRemaining,number} attempts remaining. If you run out of attempts, your account will be locked for 7 days. After 7 days of inactivity, you can re-register without your PIN. All content will be deleted. <learnMore>Learn more</learnMore>.}}"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--FewRemainingTries--button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--header": {
+    "messageformat": "Incorrect PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--description": {
+    "messageformat": "You’ve run out of PIN guesses, but you can still access your Signal account by creating a new PIN. For your privacy and security your account will be restored without any saved profile information or settings."
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--create-new-pin": {
+    "messageformat": "Create new PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--NoRemainingTries--learn-more": {
+    "messageformat": "Learn more about PINs"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--menu--skip-pin": {
+    "messageformat": "Skip PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--header": {
+    "messageformat": "Skip PIN entry?"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--description": {
+    "messageformat": "If you can’t remember your PIN, you can create a new one. You can register and use your account but you’ll lose some saved settings like your profile information. Learn more."
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--skip-button": {
+    "messageformat": "Skip and create new PIN"
+  },
+  "icu:StandaloneRegistration--VerifyPIN--SkipPIN--cancel-button": {
+    "messageformat": "Cancel"
+  },
+  "icu:StandaloneRegistration--CreatePIN--header": {
+    "messageformat": "Create your PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--description": {
+    "messageformat": "PINs can help you restore your account and keep your info encrypted with Signal. <learnMore>Learn More</learnMore>"
+  },
+  "icu:StandaloneRegistration--CreatePIN--placeholder": {
+    "messageformat": "Create your PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--helper-text": {
+    "messageformat": "PIN must be at least 4 characters"
+  },
+  "icu:StandaloneRegistration--CreatePIN--continue": {
+    "messageformat": "Continue"
+  },
+  "icu:StandaloneRegistration--CreatePIN--open-menu": {
+    "messageformat": "Open menu"
+  },
+  "icu:StandaloneRegistration--CreatePIN--menu--more-about": {
+    "messageformat": "More about PINs"
+  },
+  "icu:StandaloneRegistration--CreatePIN--menu--disable": {
+    "messageformat": "Disable PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--header": {
+    "messageformat": "Warning"
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
+    "messageformat": "If you disable the PIN, you will lose all data when you re-register Signal unless you transfer it from another iOS device. You can not turn on Registration Lock while the PIN is disabled."
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
+    "messageformat": "Disable PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--DisableWarning--cancel": {
+    "messageformat": "Cancel"
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--header": {
+    "messageformat": "About Signal PINs"
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--description": {
+    "messageformat": "PINs keep your information stored with Signal encrypted so only you can access it. Your profile, settings and contacts will restore when you reinstall."
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--learn-more-button": {
+    "messageformat": "Learn more"
+  },
+  "icu:StandaloneRegistration--CreatePIN--AboutPINs--ok-button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--CreatePIN--confirming--header": {
+    "messageformat": "Confirm your PIN"
+  },
+  "icu:StandaloneRegistration--CreatePIN--confirming--description": {
+    "messageformat": "Re-enter the PIN you just created."
+  },
+  "icu:StandaloneRegistration--CreatePIN--confirming--placeholder": {
+    "messageformat": "Enter your PIN"
+  },
+  "icu:StandaloneRegistration--AccountLocked--header": {
+    "messageformat": "Account locked"
+  },
+  "icu:StandaloneRegistration--AccountLocked--description": {
+    "messageformat": "Your account has been locked to protect your privacy and security. After 7 days of inactivity in your account you’ll be able to reregister this phone number without needing your PIN. All content will be deleted."
+  },
+  "icu:StandaloneRegistration--AccountLocked--start-over-button": {
+    "messageformat": "Use a different number"
+  },
+  "icu:StandaloneRegistration--AccountLocked--help-button": {
+    "messageformat": "Learn about locked accounts"
+  },
+  "icu:StandaloneRegistration--UpdateRequired--header": {
+    "messageformat": "Update required"
+  },
+  "icu:StandaloneRegistration--UpdateRequired--description": {
+    "messageformat": "To continue with registration, please update to the latest version of Signal."
+  },
+  "icu:StandaloneRegistration--UpdateRequired--update": {
+    "messageformat": "Update"
+  },
+  "icu:StandaloneRegistration--UpdateRequired--cancel": {
+    "messageformat": "Cancel"
+  },
+  "icu:StandaloneRegistration--ConnectionProblem--header": {
+    "messageformat": "Check your connection"
+  },
+  "icu:StandaloneRegistration--ConnectionProblem--description": {
+    "messageformat": "To continue, check your computer’s Internet connection and try again."
+  },
+  "icu:StandaloneRegistration--ConnectionProblem--button": {
+    "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--UnexpectedError--header": {
+    "messageformat": "Can’t complete registration"
+  },
+  "icu:StandaloneRegistration--UnexpectedError--description": {
+    "messageformat": "An error occurred and registration cannot be completed. If this problem persists, please contact support."
+  },
+  "icu:StandaloneRegistration--UnexpectedError--try-again-button": {
+    "messageformat": "Try again"
+  },
+  "icu:StandaloneRegistration--UnexpectedError--contact-support-button": {
+    "messageformat": "Contact support"
   },
   "icu:NSIS__retry-dialog--first-line": {
     "messageformat": "‫لا يمكن إغلاق سيجنال.",
@@ -7596,7 +7995,7 @@
     "messageformat": "لا يمكن حذف جميع روابط المكالمات. تحقّق من اتصالك بالشبكة ثم حاوِل مُجدَّدًا."
   },
   "icu:CallsTab__ClearCallHistoryError": {
-    "messageformat": "لا يمكن مسح جميع سجلّات المكالمات. تحقّق من اتصالك بالشبكة ثم حاوِل مُجدَّدًا."
+    "messageformat": "لا يمكن مسح جميع سجلات المكالمات. تحقَّق من اتصالك بالشبكة ثم حاوِل مُجدَّدًا."
   },
   "icu:CallsTab__EmptyStateText--with-icon-2": {
     "messageformat": "انقر على <newCallButtonIcon></newCallButtonIcon> لبدء مُكالمة صوتية أو مكالمة فيديو جديدة."
@@ -8268,16 +8667,10 @@
     "messageformat": "تعديلات صغيرة، وإصلاح أعطال، وتحسينات للأداء. شكرًا على استخدامك سيجنال!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.16--0": {
-    "messageformat": "أصلحنا خطًأ في مُنشِئ المُلصَقات كان يتسبَّب في عرض الواجهة بلغة خاطئة. على الرغم من أن المُلصَقات عبارة عن صور (أي أنها تُعبِّر عن ألف كلمة)، إلّا أنه لا يزال من المهم اختيار الكلمات المناسبة أيضًا."
-  },
-  "icu:WhatsNew__8.17--0": {
-    "messageformat": "يمكن لمشرفي المجموعات الآن حذف الرسائل التي تم إرسالها مؤخرًا في محادثة جماعية. إذا نشر أحدهم عن غير قصد معلومة تكشف عن أحداث القصة في مجموعة نادي القراءة الخاصة بك ثم ابتعد عن هاتفه، فيمكن لمشرف المجموعة حذفها للحفاظ على عنصر المفاجأة في القصة. يمكنك بسهولة معرفة متى تم حذف رسالة ما ومن قام بحذفها، تمامًا مثل ميزة \"حذف للجميع\" الموجودة حاليًا."
-  },
-  "icu:WhatsNew__8.17--1": {
-    "messageformat": "كما قمنا بزيادة الحد الأقصى لعدد الدردشات المثبتة من 4 إلى 10، حتى تتمكن من إظهار مدى تقديرك لما يقوله 6 أشخاص إضافيين."
-  },
   "icu:WhatsNew__8.18--0": {
-    "messageformat": "Polls can now be created in individual chats too. Present a curated list of choices to your indecisive friend, or recapture the magic of passing a note to your crush by creating a “Do you like me? Y/N/Maybe” poll."
+    "messageformat": "يُمكن إنشاء استطلاعات الرأي في الدردشات الفردية أيضًا. قدِّم قائمة مختارة بعناية من الخيارات لصديقك المُتردِّد، أو استرجِع سحر تمرير رسالة إلى المهتمين بك من خلال إنشاء استطلاع رأي بعنوان \"هل أنا أعجبك؟ نعم/لا/ربما\"."
+  },
+  "icu:WhatsNew__8.19--0": {
+    "messageformat": "Group admins can now bring chats to their natural conclusion with the new \"End Group\" option in group settings. Ending a group prevents group members from sending messages or starting calls, and also disables invites. Now you can make sure everyone stays on the right thread by ending last year's sewing meetup group before stitching a new one together."
   }
 }

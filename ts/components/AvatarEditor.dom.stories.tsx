@@ -20,6 +20,7 @@ const createProps = (overrideProps: Partial<PropsType> = {}): PropsType => ({
   conversationTitle: overrideProps.conversationTitle || 'Default Title',
   deleteAvatarFromDisk: action('deleteAvatarFromDisk'),
   i18n,
+  isDisplayedAsPanel: false,
   isGroup: Boolean(overrideProps.isGroup),
   onCancel: action('onCancel'),
   onSave: action('onSave'),

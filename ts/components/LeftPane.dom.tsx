@@ -6,6 +6,7 @@ import {
   useCallback,
   useMemo,
   useRef,
+  useState,
   Fragment,
   type JSX,
 } from 'react';
@@ -319,6 +320,17 @@ export function LeftPane({
     modeSpecificProps
   );
 
+  const [shouldRecomputeRowHeights, setShouldRecomputeRowHeights] =
+    useState(false);
+
+  const markShouldRecomputeRowHeights = useCallback(() => {
+    setShouldRecomputeRowHeights(true);
+  }, []);
+
+  const resetShouldRecomputeRowHeights = useCallback(() => {
+    setShouldRecomputeRowHeights(false);
+  }, []);
+
   // The left pane can be in various modes: the inbox, the archive, the composer, etc.
   //   Ideally, this would render subcomponents such as `<LeftPaneInbox>` or
   //   `<LeftPaneArchive>` (and if there's a way to do that cleanly, we should refactor
@@ -346,41 +358,48 @@ export function LeftPane({
     | LeftPaneFindByPhoneNumberHelper
     | LeftPaneChooseGroupMembersHelper
     | LeftPaneSetGroupMetadataHelper;
-  let shouldRecomputeRowHeights: boolean;
   switch (modeSpecificProps.mode) {
     case LeftPaneMode.Inbox: {
       const inboxHelper = new LeftPaneInboxHelper(modeSpecificProps);
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? inboxHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        inboxHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = inboxHelper;
       break;
     }
     case LeftPaneMode.Search: {
       const searchHelper = new LeftPaneSearchHelper(modeSpecificProps);
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? searchHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        searchHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = searchHelper;
       break;
     }
     case LeftPaneMode.Archive: {
       const archiveHelper = new LeftPaneArchiveHelper(modeSpecificProps);
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? archiveHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        archiveHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = archiveHelper;
       break;
     }
     case LeftPaneMode.Compose: {
       const composeHelper = new LeftPaneComposeHelper(modeSpecificProps);
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? composeHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        composeHelper.shouldRecomputeRowHeights(previousModeSpecificProps)
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = composeHelper;
       break;
     }
@@ -388,12 +407,14 @@ export function LeftPane({
       const findByUsernameHelper = new LeftPaneFindByUsernameHelper(
         modeSpecificProps
       );
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? findByUsernameHelper.shouldRecomputeRowHeights(
-              previousModeSpecificProps
-            )
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        findByUsernameHelper.shouldRecomputeRowHeights(
+          previousModeSpecificProps
+        )
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = findByUsernameHelper;
       break;
     }
@@ -401,12 +422,14 @@ export function LeftPane({
       const findByPhoneNumberHelper = new LeftPaneFindByPhoneNumberHelper(
         modeSpecificProps
       );
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? findByPhoneNumberHelper.shouldRecomputeRowHeights(
-              previousModeSpecificProps
-            )
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        findByPhoneNumberHelper.shouldRecomputeRowHeights(
+          previousModeSpecificProps
+        )
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = findByPhoneNumberHelper;
       break;
     }
@@ -414,12 +437,14 @@ export function LeftPane({
       const chooseGroupMembersHelper = new LeftPaneChooseGroupMembersHelper(
         modeSpecificProps
       );
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? chooseGroupMembersHelper.shouldRecomputeRowHeights(
-              previousModeSpecificProps
-            )
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        chooseGroupMembersHelper.shouldRecomputeRowHeights(
+          previousModeSpecificProps
+        )
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = chooseGroupMembersHelper;
       break;
     }
@@ -427,12 +452,14 @@ export function LeftPane({
       const setGroupMetadataHelper = new LeftPaneSetGroupMetadataHelper(
         modeSpecificProps
       );
-      shouldRecomputeRowHeights =
-        previousModeSpecificProps.mode === modeSpecificProps.mode
-          ? setGroupMetadataHelper.shouldRecomputeRowHeights(
-              previousModeSpecificProps
-            )
-          : false;
+      if (
+        previousModeSpecificProps.mode === modeSpecificProps.mode &&
+        setGroupMetadataHelper.shouldRecomputeRowHeights(
+          previousModeSpecificProps
+        )
+      ) {
+        markShouldRecomputeRowHeights();
+      }
       helper = setGroupMetadataHelper;
       break;
     }
@@ -961,6 +988,9 @@ export function LeftPane({
                   onClickClearFilterButton={() => {
                     updateFilterByUnread(false);
                   }}
+                  resetShouldRecomputeRowHeights={
+                    resetShouldRecomputeRowHeights
+                  }
                   showUserNotFoundModal={showUserNotFoundModal}
                   setIsFetchingUUID={setIsFetchingUUID}
                   lookupConversationWithoutServiceId={

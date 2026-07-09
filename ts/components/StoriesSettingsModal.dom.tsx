@@ -1247,6 +1247,7 @@ export function EditDistributionListModal({
                 rowCount={rowCount}
                 setIsFetchingUUID={shouldNeverBeCalled}
                 shouldRecomputeRowHeights={false}
+                resetShouldRecomputeRowHeights={shouldNeverBeCalled}
                 showChooseGroupMembers={shouldNeverBeCalled}
                 showFindByUsername={shouldNeverBeCalled}
                 showFindByPhoneNumber={shouldNeverBeCalled}

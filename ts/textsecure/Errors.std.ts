@@ -47,6 +47,18 @@ class ReplayableError extends Error {
 }
 
 // oxlint-disable-next-line max-classes-per-file
+export class SessionNotAllowedToRequestCodeError extends ReplayableError {
+  constructor(message: string) {
+    super({ name: 'SessionNotAllowedToRequestCodeError', message });
+  }
+}
+
+export class SessionNotVerifiedError extends ReplayableError {
+  constructor(message: string) {
+    super({ name: 'SessionNotVerifiedError', message });
+  }
+}
+
 export class OutgoingIdentityKeyError extends ReplayableError {
   public readonly identifier: string;
 
@@ -187,7 +199,7 @@ export class SendMessageProtoError extends Error implements CallbackResultType {
 
   public readonly timestamp?: number;
 
-  public readonly recipients?: Record<ServiceIdString, Array<number>>;
+  public readonly recipients?: Record<ServiceIdString, ReadonlyArray<number>>;
 
   public readonly sendIsNotFinal?: boolean;
 

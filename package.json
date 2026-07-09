@@ -6,7 +6,7 @@
   "description": "Signal Desktop fork with meeting minutes — call recording and chat summaries",
   "desktopName": "uuminutes.desktop",
   "repository": "https://github.com/signalapp/Signal-Desktop.git",
-  "version": "8.20.0-alpha.2",
+  "version": "8.21.0-alpha.1",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "Signal Messenger, LLC",
@@ -32,7 +32,7 @@
     "get-strings:locales": "node scripts/build-localized-display-names.mjs locales scripts/locale-data/locale-display-names.csv build/locale-display-names.json",
     "get-strings:countries": "node scripts/build-localized-display-names.mjs countries scripts/locale-data/country-display-names.csv build/country-display-names.json",
     "get-strings:emoji": "node scripts/get-emoji-locales.mjs",
-    "push-strings": "node scripts/remove-strings.mjs && node scripts/push-strings.mjs",
+    "push-strings": "node scripts/remove-strings.mjs && node scripts/extract-info-plist-strings.mjs && node scripts/push-strings.mjs",
     "mark-unusued-strings-deleted": "node scripts/mark-unused-strings-deleted.mjs",
     "get-expire-time": "node scripts/get-expire-time.mjs",
     "build:protobuf": "protopiler --module cjs --output ts/protobuf/compiled.std.js --typedefs ts/protobuf/compiled.std.d.ts protos",
@@ -129,10 +129,11 @@
   "dependencies": {
     "@indutny/mac-screen-share": "1.2.5",
     "@indutny/simple-windows-notifications": "2.0.21",
-    "@signalapp/libsignal-client": "0.96.3",
+    "@signalapp/libsignal-client": "0.96.4",
     "@signalapp/mute-state-change": "workspace:*",
-    "@signalapp/ringrtc": "2.69.4",
+    "@signalapp/ringrtc": "2.69.7",
     "@signalapp/sqlcipher": "3.3.9",
+    "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
     "google-libphonenumber": "3.2.44",
     "whisper-cpp-node": "0.2.12"
@@ -166,7 +167,7 @@
     "@react-spring/web": "10.0.3",
     "@signalapp/lame": "workspace:*",
     "@signalapp/minimask": "1.0.1",
-    "@signalapp/mock-server": "23.0.0",
+    "@signalapp/mock-server": "24.0.2",
     "@signalapp/parchment-cjs": "3.0.1",
     "@signalapp/quill-cjs": "2.1.2",
     "@storybook/addon-a11y": "8.4.4",
@@ -241,12 +242,12 @@
     "cross-env": "10.1.0",
     "css-loader": "7.1.4",
     "csv-parse": "6.2.1",
-    "danger": "13.0.7",
+    "danger": "13.0.10",
     "dashdash": "2.0.0",
     "debug": "4.4.3",
     "direction": "2.0.1",
     "dom-accessibility-api": "0.7.1",
-    "electron": "42.3.0",
+    "electron": "43.0.0",
     "electron-builder": "26.11.1",
     "electron-mocha": "13.1.0",
     "emoji-regex-xs": "2.0.1",
@@ -268,7 +269,6 @@
     "http-server": "14.1.1",
     "https-proxy-agent": "7.0.6",
     "humanize-duration": "3.33.2",
-    "intl-tel-input": "26.8.1",
     "is-glob": "4.0.3",
     "js-yaml": "4.1.1",
     "json-to-ast": "2.1.0",
@@ -298,12 +298,13 @@
     "pino": "10.3.1",
     "pixelmatch": "7.1.0",
     "playwright": "1.60.0",
+    "plist": "5.0.0",
     "pngjs": "7.0.0",
     "postcss-loader": "8.2.1",
     "prettier": "3.8.3",
     "prettier-plugin-tailwindcss": "0.8.0",
     "qrcode-generator": "2.0.4",
-    "radix-ui": "1.4.3",
+    "radix-ui": "1.5.0",
     "react": "19.2.4",
     "react-aria": "3.47.0",
     "react-aria-components": "1.16.0",
@@ -340,7 +341,7 @@
     "synckit": "0.11.12",
     "tailwindcss": "4.3.0",
     "tinykeys": "3.1.0",
-    "tsx": "4.21.0",
+    "tsx": "4.23.0",
     "type-fest": "5.5.0",
     "typescript": "6.0.3",
     "url": "0.11.4",
@@ -351,7 +352,7 @@
     "zod": "4.3.6"
   },
   "engines": {
-    "node": "24.15.0"
+    "node": "24.17.0"
   },
   "build": {
     "appId": "org.whispersystems.signal-desktop",
@@ -433,7 +434,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "ElectronTeamID": "U68MSDN6DR",
         "NSCameraUsageDescription": "Signal uses your camera for video calling.",
-        "NSMicrophoneUsageDescription": "Signal uses your microphone for voice and video calling."
+        "NSMicrophoneUsageDescription": "Signal needs access to your microphone to make and receive phone calls and record voice messages."
       }
     },
     "mas": {
@@ -441,7 +442,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "ElectronTeamID": "U68MSDN6DR",
         "NSCameraUsageDescription": "Signal uses your camera for video calling.",
-        "NSMicrophoneUsageDescription": "Signal uses your microphone for voice and video calling."
+        "NSMicrophoneUsageDescription": "Signal needs access to your microphone to make and receive phone calls and record voice messages."
       }
     },
     "win": {
@@ -637,6 +638,6 @@
     ]
   },
   "volta": {
-    "node": "24.15.0"
+    "node": "24.17.0"
   }
 }

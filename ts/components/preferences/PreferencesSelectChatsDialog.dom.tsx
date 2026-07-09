@@ -246,6 +246,7 @@ export function PreferencesSelectChatsDialog(
                       onClickContactCheckbox={handleToggleSelectedConversation}
                       rowCount={rows.length}
                       shouldRecomputeRowHeights={false}
+                      resetShouldRecomputeRowHeights={shouldNeverBeCalled}
                       theme={props.theme}
                       // never called:
                       blockConversation={shouldNeverBeCalled}

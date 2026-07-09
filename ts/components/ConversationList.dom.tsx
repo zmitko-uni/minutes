@@ -219,6 +219,7 @@ export type PropsType = {
   scrollBehavior?: ScrollBehavior;
   scrollToRowIndex?: number;
   shouldRecomputeRowHeights: boolean;
+  resetShouldRecomputeRowHeights: () => void;
   scrollable?: boolean;
   hasDialogPadding?: boolean;
 
@@ -269,6 +270,7 @@ export function ConversationList({
   removeConversation,
   renderMessageSearchResult,
   renderConversationListItemContextMenu,
+  resetShouldRecomputeRowHeights,
   rowCount,
   scrollBehavior = ScrollBehavior.Default,
   scrollToRowIndex,
@@ -690,6 +692,7 @@ export function ConversationList({
       rowRenderer={renderRow}
       scrollToIndex={scrollToRowIndex}
       shouldRecomputeRowHeights={shouldRecomputeRowHeights}
+      resetShouldRecomputeRowHeights={resetShouldRecomputeRowHeights}
       scrollable={scrollable}
       scrollBehavior={scrollBehavior}
     />

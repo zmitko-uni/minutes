@@ -395,6 +395,7 @@ export function ForwardMessagesModal({
                       }}
                       rowCount={rowCount}
                       shouldRecomputeRowHeights={false}
+                      resetShouldRecomputeRowHeights={shouldNeverBeCalled}
                       showChooseGroupMembers={shouldNeverBeCalled}
                       showFindByUsername={shouldNeverBeCalled}
                       showFindByPhoneNumber={shouldNeverBeCalled}

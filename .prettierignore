@@ -48,9 +48,6 @@ scripts/emoji-datasource/emoji-datasource.json
 /bower.json
 /package.json
 
-# Symlink into third-party `components`:
-stylesheets/_intlTelInput.scss
-
 preload.bundle.*
 preload.wrapper.js
 bundles/**

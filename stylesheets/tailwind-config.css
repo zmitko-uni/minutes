@@ -262,9 +262,10 @@
   }
   /* Farsi (Persian) */
   :lang(fa) {
-    --font-sans: 'Vazirmatn', 'Signal Emoji Large', 'Signal Emoji Small',
+    --font-sans: 'Vazirmatn', Inter, 'Noto Sans Arabic',
+      'Signal Emoji Large', 'Signal Emoji Small',
       -apple-system, system-ui, BlinkMacSystemFont,
-      'Segoe UI', Tahoma, 'Noto Sans Arabic', Helvetica, Arial, sans-serif;
+      'Segoe UI', Tahoma, Helvetica, Arial, sans-serif;
   }
   /* Urdu */
   :lang(ur) {

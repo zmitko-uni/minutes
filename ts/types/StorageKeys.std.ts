@@ -254,8 +254,10 @@ export type StorageAccessType = {
   // The `firstAppVersion` present on an BackupInfo from an imported backup.
   restoredBackupFirstAppVersion: string;
 
-  // Stored solely for pesistance during import/export sequence
+  // When Desktop is standalone, we use these. Otherwise, only used for backup.
   svrPin: string;
+
+  // Stored solely for persistence during import/export sequence
   optimizeOnDeviceStorage: boolean;
   pinReminders: boolean | undefined;
   screenLockTimeoutMinutes: number | undefined;

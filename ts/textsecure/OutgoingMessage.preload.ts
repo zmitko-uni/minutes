@@ -1,8 +1,6 @@
 // Copyright 2020 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import lodash from 'lodash';
-
 import { z } from 'zod';
 import type { CiphertextMessage } from '@signalapp/libsignal-client';
 import {
@@ -60,8 +58,6 @@ import { strictAssert } from '../util/assert.std.ts';
 import { toLogFormat } from '../types/errors.std.ts';
 import { ZERO_ACCESS_KEY } from '../types/SealedSender.std.ts';
 
-const { reject } = lodash;
-
 const log = createLogger('OutgoingMessage');
 
 export const enum SenderCertificateMode {
@@ -69,9 +65,18 @@ export const enum SenderCertificateMode {
   WithoutE164,
 }
 
+type SealedSenderAuth =
+  | Readonly<{ accessKey: string; groupSendToken?: never }>
+  | Readonly<{ accessKey?: never; groupSendToken: GroupSendToken }>;
+
+type SealedSenderAuthAndCert = SealedSenderAuth &
+  Readonly<{
+    senderCertificate: SerializedCertificateType;
+  }>;
+
 export type SendLogCallbackType = (options: {
   serviceId: ServiceIdString;
-  deviceIds: Array<number>;
+  deviceIds: ReadonlyArray<number>;
 }) => Promise<void>;
 
 export const serializedCertificateSchema = z.object({
@@ -175,7 +180,7 @@ export default class OutgoingMessage {
 
   story?: boolean;
 
-  recipients: Record<string, Array<number>>;
+  recipients: Record<string, ReadonlyArray<number>>;
 
   sendLogCallback?: SendLogCallbackType;
 
@@ -275,16 +280,67 @@ export default class OutgoingMessage {
     this.numberCompleted();
   }
 
+  #getSealedSenderAuthAndCert(
+    serviceId: ServiceIdString
+  ): SealedSenderAuthAndCert | null {
+    const { sendMetadata } = this;
+    const data = sendMetadata?.[serviceId];
+    if (data == null) {
+      return null;
+    }
+    const { accessKey, senderCertificate, groupSendToken } = data;
+
+    if (accessKey != null && senderCertificate == null) {
+      log.warn(
+        'doSendMessage: accessKey was provided, but senderCertificate was not'
+      );
+    }
+    if (senderCertificate == null) {
+      return null;
+    }
+    if (accessKey != null) {
+      return { accessKey, senderCertificate };
+    }
+    if (groupSendToken != null) {
+      return { groupSendToken, senderCertificate };
+    }
+    return null;
+  }
+
+  async #getDeviceIds(
+    serviceId: ServiceIdString
+  ): Promise<ReadonlyArray<number>> {
+    const ourAci = itemStorage.user.getCheckedAci();
+    const ourNumber = itemStorage.user.getNumber();
+
+    const deviceIds = await signalProtocolStore.getDeviceIds({
+      ourServiceId: ourAci,
+      serviceId,
+    });
+
+    const isOurServiceId = serviceId === ourNumber || serviceId === ourAci;
+    if (!isOurServiceId) {
+      return deviceIds;
+    }
+
+    const sealedSenderAuthAndCert = this.#getSealedSenderAuthAndCert(serviceId);
+    if (sealedSenderAuthAndCert != null) {
+      return deviceIds;
+    }
+
+    const ourDeviceId = itemStorage.user.getCheckedDeviceId();
+
+    return deviceIds.filter(deviceId => {
+      return deviceId !== ourDeviceId;
+    });
+  }
+
   reloadDevicesAndSend(
     serviceId: ServiceIdString,
     recurse?: boolean
   ): () => Promise<void> {
     return async () => {
-      const ourAci = itemStorage.user.getCheckedAci();
-      const deviceIds = await signalProtocolStore.getDeviceIds({
-        ourServiceId: ourAci,
-        serviceId,
-      });
+      const deviceIds = await this.#getDeviceIds(serviceId);
       if (deviceIds.length === 0) {
         this.registerError(
           serviceId,
@@ -324,13 +380,7 @@ export default class OutgoingMessage {
     serviceId: ServiceIdString,
     messages: ReadonlyArray<OutgoingSealedSenderMessageType>,
     timestamp: number,
-    {
-      accessKey,
-      groupSendToken,
-    }: {
-      accessKey: string | null;
-      groupSendToken: GroupSendToken | null;
-    } = { accessKey: null, groupSendToken: null }
+    sealedSenderAuth: SealedSenderAuth
   ): Promise<void> {
     const useLibsignal = isFeaturedEnabledNoRedux({
       betaKey: 'desktop.sendMessageViaLibsignal.beta',
@@ -341,13 +391,13 @@ export default class OutgoingMessage {
       let auth: SealedSenderAuthType;
       if (this.story) {
         auth = 'story';
-      } else if (groupSendToken) {
-        auth = new GroupSendFullToken(groupSendToken);
-      } else if (accessKey) {
-        if (accessKey === ZERO_ACCESS_KEY) {
+      } else if (sealedSenderAuth.groupSendToken) {
+        auth = new GroupSendFullToken(sealedSenderAuth.groupSendToken);
+      } else if (sealedSenderAuth.accessKey) {
+        if (sealedSenderAuth.accessKey === ZERO_ACCESS_KEY) {
           auth = 'unrestricted';
         } else {
-          auth = { accessKey: Bytes.fromBase64(accessKey) };
+          auth = { accessKey: Bytes.fromBase64(sealedSenderAuth.accessKey) };
         }
       } else {
         auth = 'unrestricted';
@@ -360,8 +410,8 @@ export default class OutgoingMessage {
     }
 
     return sendMessagesUnauthLegacy(serviceId, messages, timestamp, {
-      accessKey,
-      groupSendToken,
+      accessKey: sealedSenderAuth.accessKey ?? null,
+      groupSendToken: sealedSenderAuth.groupSendToken ?? null,
       online: this.online,
       story: this.story,
       urgent: this.urgent,
@@ -442,41 +492,13 @@ export default class OutgoingMessage {
 
   async doSendMessage(
     serviceId: ServiceIdString,
-    deviceIds: Array<number>,
+    deviceIds: ReadonlyArray<number>,
     recurse?: boolean
   ): Promise<void> {
-    const { sendMetadata } = this;
-    const {
-      accessKey = null,
-      groupSendToken = null,
-      senderCertificate,
-    } = sendMetadata?.[serviceId] || {};
+    const sealedSenderAuthAndCert = this.#getSealedSenderAuthAndCert(serviceId);
 
-    if (accessKey && !senderCertificate) {
-      log.warn(
-        'doSendMessage: accessKey was provided, but senderCertificate was not'
-      );
-    }
-
-    const sealedSender =
-      (accessKey != null || groupSendToken != null) &&
-      senderCertificate != null;
-
-    // We don't send to ourselves unless sealedSender is enabled
-    const ourNumber = itemStorage.user.getNumber();
     const ourAci = itemStorage.user.getCheckedAci();
     const ourDeviceId = itemStorage.user.getCheckedDeviceId();
-    if ((serviceId === ourNumber || serviceId === ourAci) && !sealedSender) {
-      // oxlint-disable-next-line no-param-reassign
-      deviceIds = reject(
-        deviceIds,
-        deviceId =>
-          // because we store our own device ID as a string at least sometimes
-          deviceId === ourDeviceId ||
-          (typeof ourDeviceId === 'string' &&
-            deviceId === parseInt(ourDeviceId, 10))
-      );
-    }
 
     const sessionStore = new Sessions({
       signalProtocolStore,
@@ -514,7 +536,7 @@ export default class OutgoingMessage {
 
               const registrationId = activeSession.remoteRegistrationId();
 
-              if (sealedSender && senderCertificate) {
+              if (sealedSenderAuthAndCert != null) {
                 const ciphertextMessage = await this.getCiphertextMessage({
                   identityKeyStore,
                   destinationAddress,
@@ -523,7 +545,7 @@ export default class OutgoingMessage {
                 });
 
                 const certificate = SenderCertificate.deserialize(
-                  senderCertificate.serialized
+                  sealedSenderAuthAndCert.senderCertificate.serialized
                 );
                 const groupIdBuffer = this.groupId
                   ? Bytes.fromBase64(this.groupId)
@@ -572,7 +594,7 @@ export default class OutgoingMessage {
       )
         // oxlint-disable-next-line promise/prefer-await-to-then, signal-desktop/no-then
         .then(async (ciphertextMessages: Array<OutgoingMessageType>) => {
-          if (sealedSender) {
+          if (sealedSenderAuthAndCert != null) {
             strictAssert(
               ciphertextMessages.every(
                 message =>
@@ -584,10 +606,7 @@ export default class OutgoingMessage {
               serviceId,
               ciphertextMessages,
               this.timestamp,
-              {
-                accessKey,
-                groupSendToken,
-              }
+              sealedSenderAuthAndCert
               // oxlint-disable-next-line signal-desktop/no-then
             ).then(
               () => {
@@ -617,8 +636,8 @@ export default class OutgoingMessage {
                   }
 
                   // This ensures that we don't hit this codepath the next time through
-                  if (sendMetadata) {
-                    delete sendMetadata[serviceId];
+                  if (this.sendMetadata != null) {
+                    delete this.sendMetadata[serviceId];
                   }
 
                   return this.doSendMessage(serviceId, deviceIds, recurse);
@@ -750,12 +769,8 @@ export default class OutgoingMessage {
     }
 
     try {
-      const ourAci = itemStorage.user.getCheckedAci();
-      const deviceIds = await signalProtocolStore.getDeviceIds({
-        ourServiceId: ourAci,
-        serviceId,
-      });
-      if (deviceIds.length === 0) {
+      const filteredDeviceIds = await this.#getDeviceIds(serviceId);
+      if (filteredDeviceIds.length === 0) {
         await this.getKeysForServiceId(serviceId, null);
       }
       await this.reloadDevicesAndSend(serviceId, true)();

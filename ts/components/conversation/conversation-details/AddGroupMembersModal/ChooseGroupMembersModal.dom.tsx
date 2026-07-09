@@ -15,6 +15,7 @@ import type { ListRowProps } from 'react-virtualized';
 import type { LocalizerType, ThemeType } from '../../../../types/Util.std.ts';
 import { strictAssert, assertDev } from '../../../../util/assert.std.ts';
 import { refMerger } from '../../../../util/refMerger.std.ts';
+import { shouldNeverBeCalled } from '../../../../util/shouldNeverBeCalled.std.ts';
 import { useRestoreFocus } from '../../../../hooks/useRestoreFocus.dom.ts';
 import { missingCaseError } from '../../../../util/missingCaseError.std.ts';
 import type { LookupConversationWithoutServiceIdActionsType } from '../../../../util/lookupConversationWithoutServiceId.preload.ts';
@@ -456,6 +457,8 @@ export function ChooseGroupMembersModal({
                       width={size.width}
                       height={size.height}
                       rowCount={rowCount}
+                      shouldRecomputeRowHeights={false}
+                      resetShouldRecomputeRowHeights={shouldNeverBeCalled}
                       calculateRowHeight={index => {
                         const row = getRow(index);
                         if (!row) {
