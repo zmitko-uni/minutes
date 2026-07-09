@@ -1,0 +1,21 @@
+/* Copyright 2026 Minutes contributors */
+/* SPDX-License-Identifier: AGPL-3.0-only */
+
+// Startup / migration loading screens (background.html, loading.html, App Blank view)
+
+.app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128 {
+  -webkit-mask: none !important;
+  mask: none !important;
+  background-color: transparent !important;
+  background-image: url('../images/uuminutes/app-icon-source.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 22%;
+}
+
+@media (forced-colors: active) {
+  .app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128 {
+    background-color: Canvas !important;
+  }
+}

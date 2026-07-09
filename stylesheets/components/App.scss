@@ -1,0 +1,22 @@
+// Copyright 2021 Signal Messenger, LLC
+// SPDX-License-Identifier: AGPL-3.0-only
+
+@use '../variables';
+
+.App {
+  height: 100%;
+  position: relative;
+
+  // TitleBar support
+  display: flex;
+  flex-direction: column;
+
+  &.light-theme {
+    background-color: variables.$color-white;
+    color: variables.$color-gray-90;
+  }
+  &.dark-theme {
+    background-color: variables.$color-gray-95;
+    color: variables.$color-gray-05;
+  }
+}

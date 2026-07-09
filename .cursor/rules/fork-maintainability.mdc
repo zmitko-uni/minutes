@@ -1,0 +1,35 @@
+---
+description: Klíčové pravidlo uuMinutes — fork Signal Desktop musí zůstat snadno aktualizovatelný o nové verze Signálu
+alwaysApply: true
+---
+
+# uuMinutes = fork Signal Desktop — udržitelnost má prioritu
+
+**Tento projekt je fork Signal Desktop. Vše děláme tak, aby šel fork pravidelně aktualizovat o nové verze Signálu bez merge konfliktů. Toto je klíčové a má přednost před rychlostí implementace.**
+
+## Povinný postup
+
+1. **Veškerá nová logika** → `ts/uuminutes/` (nebo `app/uuminutes_*.main.ts` pro main process)
+2. **Upstream soubory** → pouze tenké hooky: `import` + jedno volání do uuMinutes modulu
+3. **Nikdy** — velké refactory, kopírování upstream funkcí, přejmenování v Signal kódu „pro čistotu“
+4. **Každý dotčený upstream soubor** → zapsat do `docs/UUMINUTES-PATCHES.md`
+5. **Před větší změnou** — přečíst `docs/FORK-MAINTENANCE.md`
+6. **User-facing změna** — aktualizovat `images/uuminutes/prirucka.md` (viz pravidlo `readme-prirucka`)
+
+## Povolené úpravy upstream (výčet — rozšiřovat jen s odůvodněním)
+
+- `ts/services/calling.preload.ts` — lifecycle hooky (join/end call)
+- `ts/background.preload.ts` — `initializeUuMinutes()` + IPC listener
+- `app/main.main.ts` — `initializeUuMinutesChannel()` + menu akce (minimum řádků)
+- `app/menu.std.ts`, `ts/types/menu.std.ts` — menu položky uuMinutes
+- `package.json`, `app/user_config.main.ts` — branding / data dir
+
+## Zakázáno bez výjimečného důvodu
+
+- Úpravy `ts/state/`, `ts/components/`, RingRTC vrstvy
+- Vkládání business logiky do upstream handlerů
+- Mazání nebo přepisování upstream kódu při merge konfliktech
+
+## Při návrhu feature se ptej
+
+„Jde to udělat celé v `ts/uuminutes/` s jedním řádkem hooku?“ — pokud ne, hledej IPC / event / vlastní kanál dřív než větší zásah.

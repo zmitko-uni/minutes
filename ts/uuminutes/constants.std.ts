@@ -1,0 +1,29 @@
+// Copyright 2026 uuMinutes contributors
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/** IPC channel prefix for uuMinutes main-process handlers. */
+export const UUMINUTES_IPC_PREFIX = 'uuminutes';
+
+/** Subdirectory under Electron userData for call recordings. */
+export const RECORDINGS_DIR_NAME = 'uuMinutes/recordings';
+
+/** Subdirectory under Electron userData for chat summaries. */
+export const SUMMARIES_DIR_NAME = 'uuMinutes/summaries';
+
+/** Subdirectory under Electron userData for uuMinutes settings. */
+export const AI_SETTINGS_DIR_NAME = 'uuMinutes';
+
+/** Filename for AI provider settings (API key encrypted via OS safeStorage). */
+export const AI_SETTINGS_FILE_NAME = 'ai-settings.json';
+
+/** Default number of recent messages included in a chat summary. */
+export const CHAT_SUMMARY_MESSAGE_LIMIT = 200;
+
+/** Bump when testing that the latest build is running. */
+export const UUMINUTES_BUILD_ID = '2026-07-09l';
+
+/** Subdirectory under Electron userData for Whisper models. */
+export const MODELS_DIR_NAME = 'uuMinutes/models';
+
+/** Sidecar filename suffix for speaker activity log (paired with recording base name). */
+export const SPEAKER_ACTIVITY_FILE_SUFFIX = '.speaker-activity.json';
