@@ -64,7 +64,23 @@ pnpm install
 pnpm run build:uuminutes:installer
 ```
 
-Výstup: `release/uuminutes/uuMinutes-setup-<verze>.exe`
+Výstup: `release/uuminutes/Minutes-setup-<verze>.exe`
+
+### Release přes GitHub Actions (doporučeno)
+
+1. **GitHub → Actions → Release Minutes → Run workflow**
+2. Workflow automaticky:
+   - zvedne verzi v `package.json` (alpha.1 → alpha.2, …)
+   - sestaví Windows instalátor
+   - vytvoří **GitHub Release** s `.exe`
+   - commitne bump verze do `main`
+3. Release je vidět na homepage repa v sekci **Latest release**
+4. Stabilní odkaz na instalátor:  
+   `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe`
+
+Volba *Skip version bump* — přestaví stejnou verzi (např. po opravě buildu).
+
+### Lokální build (vývoj)
 
 | Co | Detail |
 |----|--------|

@@ -19,7 +19,11 @@ function run(label, command, env = {}) {
 console.log('uuMinutes Windows installer build');
 console.log('This can take 15–30 minutes on first run.\n');
 
-run('Release version bump', 'pnpm run bump:uuminutes:release');
+if (process.env.UUMINUTES_SKIP_VERSION_BUMP !== '1') {
+  run('Release version bump', 'pnpm run bump:uuminutes:release');
+} else {
+  console.log('Skipping version bump (UUMINUTES_SKIP_VERSION_BUMP=1)\n');
+}
 
 run('Icons', 'pnpm run build:uuminutes-icons');
 run('Generate assets (locales, emoji, schema, …)', 'pnpm run generate');
