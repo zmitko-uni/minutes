@@ -99,6 +99,7 @@ jobs:
 
       - name: Commit version bump
         if: inputs.skip_version_bump != true
+        shell: bash
         run: |
           git add package.json
           if git diff --staged --quiet; then
