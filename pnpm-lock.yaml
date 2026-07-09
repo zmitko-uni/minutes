@@ -390,8 +390,8 @@ importers:
         specifier: 0.7.1
         version: 0.7.1
       electron:
-        specifier: 42.3.0
-        version: 42.3.0(supports-color@8.1.1)
+        specifier: 43.1.0
+        version: 43.1.0
       electron-builder:
         specifier: 26.11.1
         version: 26.11.1(electron-builder-squirrel-windows@26.11.1)
@@ -1174,6 +1174,10 @@ packages:
   '@develar/schema-utils@2.6.5':
     resolution: {integrity: sha512-0cp4PsWQ/9avqTVMCtZ+GirikIA36ikvjtHweU4/j8yLtgObI0+JUPhYFScgwlteveGB1rt3Cm8UhN04XayDig==, tarball: https://registry.npmjs.org/@develar/schema-utils/-/schema-utils-2.6.5.tgz}
     engines: {node: '>= 8.9.0'}
+
+  '@electron-internal/extract-zip@1.0.4':
+    resolution: {integrity: sha512-Zr1Vs7E9tpCNhZHDAbFVXc2gEVCG9RqPDjrno5+bdgB6LRAuvgyMHJut4NCVyYwtAieapMzc3fiQ3CSTi75ARg==, tarball: https://registry.npmjs.org/@electron-internal/extract-zip/-/extract-zip-1.0.4.tgz}
+    engines: {node: '>=22.12.0'}
 
   '@electron/asar@3.4.1':
     resolution: {integrity: sha512-i4/rNPRS84t0vSRa2HorerGRXWyF4vThfHesw0dmcWHp+cspK743UanA0suA5Q5y8kzY2y6YKrvbIUn69BCAiA==, tarball: https://registry.npmjs.org/@electron/asar/-/asar-3.4.1.tgz}
@@ -6400,8 +6404,8 @@ packages:
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
-  electron@42.3.0:
-    resolution: {integrity: sha512-9ZiLdRXk+WDxW1OgIUz8J2rIQ5TYU9o629gCOjU48Q3dQiOmym7osWsH5Ubs/Jh4uuFLn6m6SBD2rmRXLAPz9g==, tarball: https://registry.npmjs.org/electron/-/electron-42.3.0.tgz}
+  electron@43.1.0:
+    resolution: {integrity: sha512-DPfxpQLd4NL3BJ8DBxYAfmLUKKesF5Rx9dQx5FyczAP8bhOPScjHE48GArVeXu68LlAainuwkmQTQvdZwpIIAQ==, tarball: https://registry.npmjs.org/electron/-/electron-43.1.0.tgz}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -11345,6 +11349,8 @@ snapshots:
       ajv: 6.14.0
       ajv-keywords: 3.5.2(ajv@6.14.0)
 
+  '@electron-internal/extract-zip@1.0.4': {}
+
   '@electron/asar@3.4.1':
     dependencies:
       commander: 5.1.0
@@ -11391,7 +11397,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@electron/get@5.0.0(supports-color@8.1.1)':
+  '@electron/get@5.0.0':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       env-paths: 3.0.0
@@ -17138,11 +17144,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@42.3.0(supports-color@8.1.1):
+  electron@43.1.0:
     dependencies:
-      '@electron/get': 5.0.0(supports-color@8.1.1)
+      '@electron-internal/extract-zip': 1.0.4
+      '@electron/get': 5.0.0
       '@types/node': 24.12.0
-      extract-zip: 2.0.1(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
