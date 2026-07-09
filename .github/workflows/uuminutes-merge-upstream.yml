@@ -18,7 +18,7 @@ permissions:
 jobs:
   merge-upstream:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout Minutes
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -48,8 +48,19 @@ jobs:
       - name: Merge Signal Desktop
         run: node scripts/merge-upstream.mjs "${{ inputs.signal_ref }}"
 
+      - name: Install libpulse0
+        run: sudo apt-get install -y libpulse0 || (sudo apt-get update && sudo apt-get install -y libpulse0)
+
       - name: Refresh lockfile after merge
         run: pnpm install --frozen-lockfile=false
+        env:
+          NPM_CONFIG_NODE_GYP: echo
+
+      - name: Generate build artifacts
+        run: pnpm run generate
+
+      - name: Typecheck
+        run: pnpm run check:types
 
       - name: Commit lockfile updates
         run: |
@@ -77,8 +88,9 @@ jobs:
           ## Review checklist
           - [ ] Konflikty vyřešeny (workflow selže, pokud merge neprojde)
           - [ ] `docs/UUMINUTES-PATCHES.md` — hooky v upstream souborech stále na místě
-          - [ ] `pnpm run check:types` lokálně OK
-          - [ ] `pnpm run start:uuminutes:quick` — aplikace startuje
+          - [ ] Minutes CI / `pnpm run check:types` prošlo (workflow to spouští automaticky)
+          - [ ] `pnpm run start:uuminutes:quick` — aplikace startuje lokálně
+          - [ ] `CHANGELOG.md` — doplnit změny ze Signálu pokud relevantní
 
           Po merge zkontroluj `ts/uuminutes/welcomeContent.std.ts` (`UUMINUTES_SIGNAL_BASE_VERSION`).
           EOF

@@ -107,8 +107,17 @@ Po merge konflikty řeš takto:
 - [ ] Většina diffu je v `ts/uuminutes/` nebo `app/uuminutes_*.ts`
 - [ ] Upstream změny jsou jen hooky / registrace
 - [ ] `docs/UUMINUTES-PATCHES.md` je aktuální
+- [ ] `CHANGELOG.md` — `[Unreleased]` doplněno u user-facing změn
+- [ ] `pnpm run check:types` (nebo Minutes CI na GitHubu)
 - [ ] Žádné formátování / rename v Signal souborech „pro čistotu“
 - [ ] Feature funguje bez nutnosti kopírovat upstream třídy
+
+## Release checklist (maintainer)
+
+1. Doplňte `CHANGELOG.md` → `[Unreleased]`
+2. Actions → **Release Minutes**
+3. Po release přejmenujte `[Unreleased]` na `## [verze]` a vyčistěte Unreleased
+4. Ověřte GitHub Release a stažení `Minutes-setup-windows-x64.exe`
 
 ## Co dělat, když to nejde bez většího zásahu
 

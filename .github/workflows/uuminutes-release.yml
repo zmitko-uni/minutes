@@ -50,6 +50,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Install dependencies
+        run: pnpm install
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose
+
+      - name: Generate build artifacts
+        run: pnpm run generate
+        env:
+          NODE_CONFIG_ENV: uuminutes
+
+      - name: Typecheck
+        run: pnpm run check:types
+
       - name: Bump version
         if: inputs.skip_version_bump != true
         run: pnpm run bump:uuminutes:release
@@ -62,11 +75,6 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Release version: ${VERSION}"
-
-      - name: Install dependencies
-        run: pnpm install
-        env:
-          NPM_CONFIG_LOGLEVEL: verbose
 
       - name: Build installer
         run: pnpm run build:uuminutes:installer
@@ -106,6 +114,8 @@ jobs:
         run: |
           TAG="${{ steps.version.outputs.tag }}"
           VERSION="${{ steps.version.outputs.version }}"
+          NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
+          node scripts/extract-changelog-release.mjs "${VERSION}" > "${NOTES_FILE}"
 
           gh release delete "${TAG}" --yes 2>/dev/null || true
           git push origin ":refs/tags/${TAG}" 2>/dev/null || true
@@ -113,22 +123,6 @@ jobs:
           gh release create "${TAG}" \
             --title "Minutes ${VERSION}" \
             --latest \
-            --notes "$(cat <<EOF
-          ## Minutes ${VERSION}
-
-          Windows instalátor (NSIS, x64, bez code signing).
-
-          ### Stažení
-          - **Instalátor:** [Minutes-setup-windows-x64.exe](https://github.com/${{ github.repository }}/releases/download/${TAG}/Minutes-setup-windows-x64.exe)
-          - Verzovaný soubor: \`Minutes-setup-${VERSION}.exe\`
-
-          ### Instalace
-          1. Stáhněte \`.exe\`
-          2. Windows SmartScreen může varovat (unsigned) → *Více informací* → *Přesto spustit*
-          3. Data uživatele: \`%APPDATA%\\uuMinutes-uuminutes\`
-
-          Viz [README-UUMINUTES.md](https://github.com/${{ github.repository }}/blob/main/README-UUMINUTES.md) pro dokumentaci.
-          EOF
-          )" \
+            --notes-file "${NOTES_FILE}" \
             "${INSTALLER}" \
             "${ASSET_STABLE}"

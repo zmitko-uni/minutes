@@ -27,6 +27,8 @@ Signal zůstává komunikační klient; Minutes přidává nástroje pro zápisy
 |----------|----------|--------|
 | **Příručka Minutes** | uživatelé aplikace | [images/uuminutes/prirucka.md](images/uuminutes/prirucka.md) |
 | **README-UUMINUTES** | vývojáři, build, architektura | [README-UUMINUTES.md](README-UUMINUTES.md) |
+| **Changelog** | co je nového ve verzích | [CHANGELOG.md](CHANGELOG.md) |
+| **Contributing** | PR, pravidla forku | [CONTRIBUTING-UUMINUTES.md](CONTRIBUTING-UUMINUTES.md) |
 | **Údržba forku** | merge se Signálem | [docs/FORK-MAINTENANCE.md](docs/FORK-MAINTENANCE.md) |
 | **Seznam patchů** | co jsme změnili v upstreamu | [docs/UUMINUTES-PATCHES.md](docs/UUMINUTES-PATCHES.md) |
 
@@ -52,13 +54,16 @@ Výstupy na disku:
 
 ---
 
-## Release (nová verze .exe)
+## Release Minutes (nová verze .exe)
 
-1. **GitHub → Actions → [Release Minutes](https://github.com/zmitko-uni/minutes/actions/workflows/uuminutes-release.yml) → Run workflow**
-2. Workflow zvedne verzi, sestaví instalátor a vytvoří **GitHub Release**
-3. Release se zobrazí vpravo na homepage repozitáře v sekci **Latest**
+1. Doplňte **`CHANGELOG.md`** — sekce `[Unreleased]` (workflow ji použije v popisu release)
+2. **GitHub → Actions → [Release Minutes](https://github.com/zmitko-uni/minutes/actions/workflows/uuminutes-release.yml) → Run workflow**
+3. Workflow: typecheck → bump verze → build → GitHub Release → commit verze
+4. Po release přesuňte položky z `[Unreleased]` do nové sekce `## [x.y.z]` v CHANGELOG
 
 Lokálně: `build-uuminutes-release.bat` (viz [README-UUMINUTES.md](README-UUMINUTES.md)).
+
+**CI:** každý push/PR do `main` spouští [Minutes CI](https://github.com/zmitko-uni/minutes/actions/workflows/uuminutes-ci.yml) (`check:types`).
 
 ---
 

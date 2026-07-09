@@ -76,3 +76,12 @@
 | `images/tray-icons/base/uuminutes-tray-icon-*` | vygenerované tray ikony |
 | `images/tray-icons/alert/uuminutes-tray-icon-*` | tray ikony s počtem nepřečtených |
 | `build/icons/uuminutes/**` | vygenerované ikony (gitignore volitelně) |
+| `.github/workflows/uuminutes-ci.yml` | CI: generate + check:types |
+| `.github/workflows/uuminutes-release.yml` | release instalátoru + GitHub Release |
+| `.github/workflows/uuminutes-merge-upstream.yml` | merge Signal upstream → PR |
+| `scripts/extract-changelog-release.mjs` | release notes z CHANGELOG.md |
+| `CHANGELOG.md` | uživatelský changelog verzí |
+| `CONTRIBUTING-UUMINUTES.md` | pravidla pro PR do Minutes |
+| `.github/ISSUE_TEMPLATE/config.yml` | Minutes issue odkazy (místo Signal) |
+| `.github/ISSUE_TEMPLATE/bug_report_minutes.yaml` | šablona bug reportu |
+| `.github/ISSUE_TEMPLATE/feature_request_minutes.yaml` | šablona feature requestu |

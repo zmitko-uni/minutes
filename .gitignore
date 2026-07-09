@@ -49,3 +49,7 @@ ts/protobuf/*.d.ts
 /.zed
 *.sublime*
 *.map
+
+# Local debug logs (uuMinutes dev)
+debuglog*
+me.txt.txt

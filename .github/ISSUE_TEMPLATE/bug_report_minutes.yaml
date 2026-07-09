@@ -1,0 +1,92 @@
+name: 🐛 Minutes — chyba
+description: Nahlásit bug v Minutes (nahrávání, sumarizace, AI, Whisper…)
+title: "[bug]: "
+labels:
+  - bug
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Hlaste prosím **bugy Minutes** (fork Signal Desktop), ne obecné problémy Signálu jako služby.
+
+        Před odesláním zkontrolujte [CHANGELOG](https://github.com/zmitko-uni/minutes/blob/main/CHANGELOG.md)
+        a [otevřené issues](https://github.com/zmitko-uni/minutes/issues).
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Kontrola
+      options:
+        - label: Prohledal(a) jsem existující issues (otevřené i uzavřené).
+          required: true
+        - label: Používám instalátor z [GitHub Releases](https://github.com/zmitko-uni/minutes/releases) (ne Signal Desktop).
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Oblast
+      options:
+        - Nahrávání hovoru
+        - Sumarizace chatu
+        - AI shrnutí (OpenAI / Gemini / Claude / Perplexity)
+        - Whisper / přepis hovoru
+        - Záložky zpráv
+        - Instalace / spuštění
+        - Signal login / synchronizace (mimo Minutes)
+        - Jiné
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Popis problému
+      description: Co se stalo a co jste očekávali?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Kroky k reprodukci
+      placeholder: |
+        1. Otevřít chat …
+        2. Menu Minutes → …
+        3. …
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Verze Minutes
+      description: Menu Minutes → O aplikaci, nebo Help → About
+      placeholder: 8.21.0-alpha.1
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operační systém
+      placeholder: Windows 11 x64
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log Minutes
+      description: Menu Minutes → Zobrazit log… (Ctrl+Shift+Alt+L) — vložte relevantní část nebo popis
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Další kontext
+      description: Screenshoty, chybová hláška, zda jde o skupinový hovor atd.
+    validations:
+      required: false

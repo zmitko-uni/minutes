@@ -1,0 +1,42 @@
+name: ✨ Minutes — návrh funkce
+description: Navrhnout novou funkci nebo vylepšení Minutes
+title: "[feature]: "
+labels:
+  - enhancement
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Minutes je fork Signal Desktop — nová logika patří do `ts/uuminutes/` s minimálními hooky v upstream.
+        Viz [FORK-MAINTENANCE.md](https://github.com/zmitko-uni/minutes/blob/main/docs/FORK-MAINTENANCE.md).
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Jaký problém to řeší?
+      description: Krátký popis use case (schůzky, zápisy, sumarizace…)
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Navrhované řešení
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Zvažované alternativy
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Rozsah
+      options:
+        - label: Jde implementovat v `ts/uuminutes/` bez velkých zásahů do Signal kódu
+        - label: Vyžaduje změnu upstream (hook) — ok s dokumentací v UUMINUTES-PATCHES.md
