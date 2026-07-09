@@ -5,7 +5,7 @@
   "productName": "Minutes",
   "description": "Signal Desktop fork with meeting minutes — call recording and chat summaries",
   "desktopName": "uuminutes.desktop",
-  "repository": "https://github.com/signalapp/Signal-Desktop.git",
+  "repository": "https://github.com/zmitko-uni/minutes.git",
   "version": "8.21.0-alpha.1",
   "license": "AGPL-3.0-only",
   "author": {

@@ -139,13 +139,10 @@ Hooks (keep small for upstream merges):
 
 ## Sync with upstream Signal
 
-```powershell
-pnpm run merge-upstream
-# or specific branch/tag:
-node scripts/merge-upstream.mjs v8.20.0
-```
+Toto repo sleduje jen **[github.com/zmitko-uni/minutes](https://github.com/zmitko-uni/minutes)**.  
+Upstream [signalapp/Signal-Desktop](https://github.com/signalapp/Signal-Desktop) se mergeuje **v GitHub Actions** (Actions → *Merge Signal upstream* → PR do `main`).
 
-Resolve conflicts preferring upstream, then re-apply uuMinutes hooks if needed.
+Podrobně: [docs/FORK-MAINTENANCE.md](docs/FORK-MAINTENANCE.md)
 
 ## License
 

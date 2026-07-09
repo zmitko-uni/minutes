@@ -68,17 +68,39 @@ Nový upstream soubor do seznamu přidáváš **jen když neexistuje čistší c
 1. Navrhni řešení **nejdřív v `ts/uuminutes/`**
 2. Potřebuješ hook? — přidej nejmenší možný řádek do upstream
 3. Aktualizuj `docs/UUMINUTES-PATCHES.md`
-4. Po implementaci zkus `pnpm run merge-upstream` (nebo aspoň `git fetch upstream`) — ověř, že konflikty jsou řiditelné
+4. Po implementaci spusť upstream sync přes GitHub Actions (ne lokální `git pull` ze Signálu)
 
 ## Merge workflow
 
+**Signal upstream není git remote v tomto repozitáři.**  
+Oficiální [Signal Desktop](https://github.com/signalapp/Signal-Desktop) držíme mimo tento clone (např. vedle v `../Signal-Desktop/`). Sloučení upstreamu probíhá **v GitHub Actions**:
+
+1. Repo → **Actions** → **Merge Signal upstream**
+2. Zvol ref (např. `main` nebo tag `v8.21.0-alpha.1`)
+3. Workflow vytvoří větev `sync/signal-<run>` a **pull request** do `main`
+4. Po review PR merge — zkontroluj hooky v `docs/UUMINUTES-PATCHES.md`
+
+Lokálně **nepoužívej** `git pull origin` ze Signálu. Jediný remote:
+
 ```powershell
-pnpm run merge-upstream          # nebo: node scripts/merge-upstream.mjs v8.21.0
-# Konflikty řeš takto:
-#   1. Upstream verze má přednost v Signal logice
-#   2. Na konec souboru / vedle hooku znovu přidej uuMinutes řádky
-#   3. Nikdy nemaž upstream změny kvůli uuMinutes
+git remote -v
+# origin  https://github.com/zmitko-uni/minutes.git (fetch)
+# origin  https://github.com/zmitko-uni/minutes.git (push)
 ```
+
+Pro lokální test merge skriptu (stejná logika jako CI, bez persistentního upstream remote):
+
+```powershell
+node scripts/merge-upstream.mjs main
+# nebo konkrétní tag:
+node scripts/merge-upstream.mjs v8.21.0-alpha.1
+```
+
+Po merge konflikty řeš takto:
+
+1. Upstream verze má přednost v Signal logice
+2. Na konec souboru / vedle hooku znovu přidej uuMinutes řádky
+3. Nikdy nemaž upstream změny kvůli uuMinutes
 
 ## Kontrolní seznam před PR / commitem
 
