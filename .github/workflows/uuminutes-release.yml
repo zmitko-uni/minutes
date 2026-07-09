@@ -20,7 +20,7 @@ concurrency:
 jobs:
   release-windows:
     name: Build & publish Windows installer
-    runs-on: windows-latest-8-cores
+    runs-on: windows-latest
     timeout-minutes: 90
     steps:
       - name: Checkout
@@ -80,6 +80,7 @@ jobs:
         run: pnpm run build:uuminutes:installer
         env:
           UUMINUTES_SKIP_VERSION_BUMP: '1'
+          UUMINUTES_SKIP_GENERATE: '1'
           NODE_CONFIG_ENV: uuminutes
           DISABLE_INSPECT_FUSE: on
 

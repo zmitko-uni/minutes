@@ -26,7 +26,11 @@ if (process.env.UUMINUTES_SKIP_VERSION_BUMP !== '1') {
 }
 
 run('Icons', 'pnpm run build:uuminutes-icons');
-run('Generate assets (locales, emoji, schema, …)', 'pnpm run generate');
+if (process.env.UUMINUTES_SKIP_GENERATE !== '1') {
+  run('Generate assets (locales, emoji, schema, …)', 'pnpm run generate');
+} else {
+  console.log('Skipping generate (UUMINUTES_SKIP_GENERATE=1)\n');
+}
 run('JavaScript bundles', 'pnpm run build:rolldown:prod');
 run('Styles', 'pnpm run build:styles:prod');
 
