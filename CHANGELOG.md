@@ -12,6 +12,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.21.0-alpha.7] - 2026-07-10
+
+### Added
 - Cursor rule: agent udržuje CHANGELOG [Unreleased] při user-facing změnách
 - `release:minutes:metadata` — bump verze + přesun changelog před push na main
 - Release workflow se spouští automaticky po pushi s novou verzí (bez ručního Actions)
