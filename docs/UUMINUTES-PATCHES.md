@@ -65,6 +65,8 @@
 | `ts/uuminutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update |
 | `ts/uuminutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/uuminutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |
+| `ts/sql/Server.node.ts` | `markMessagesUnreadFromAnchor` — SQL UPDATE readStatus/seenStatus |
+| `ts/sql/Interface.std.ts` | typ pro `markMessagesUnreadFromAnchor` |
 | `ts/uuminutes/components/UuMinutesAppUpdateBannerHost.dom.tsx` | banner aktualizace při startu |
 | `ts/uuminutes/components/UuMinutesVersionFooter.dom.tsx` | patička verze na domovské obrazovce |
 | `ts/uuminutes/components/UuMinutesSummaryToastHost.dom.tsx` | toast + odeslání do chatu |

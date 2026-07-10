@@ -1254,6 +1254,13 @@ type WritableInterface = {
     conversationId: string;
     readMessageReceivedAt: number;
   }) => Array<PollVoteReadResultType>;
+  markMessagesUnreadFromAnchor: (options: {
+    conversationId: string;
+    receivedAt: number;
+    sentAt: number;
+    includeStoryReplies: boolean;
+    storyId?: string;
+  }) => Array<{ id: string }>;
   markReactionAsRead: (
     targetAuthorServiceId: ServiceIdString,
     targetTimestamp: number

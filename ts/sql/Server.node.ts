@@ -652,6 +652,7 @@ export const DataWriter: ServerWritableInterface = {
   getUnreadEditedMessagesAndMarkRead,
   getUnreadReactionsAndMarkRead,
   getUnreadPollVotesAndMarkRead,
+  markMessagesUnreadFromAnchor,
 
   replaceAllEndorsementsForGroup,
   deleteAllEndorsementsForGroup,
@@ -3730,6 +3731,78 @@ function getUnreadByConversationAndMarkRead(
         type: msg.type as MessageType['type'],
       };
     });
+  })();
+}
+
+function markMessagesUnreadFromAnchor(
+  db: WritableDB,
+  {
+    conversationId,
+    receivedAt,
+    sentAt,
+    includeStoryReplies,
+    storyId,
+  }: {
+    conversationId: string;
+    receivedAt: number;
+    sentAt: number;
+    includeStoryReplies: boolean;
+    storyId?: string;
+  }
+): Array<{ id: string }> {
+  return db.transaction(() => {
+    const { predicate: storyReplyFilter } = _storyIdPredicateAndInfo(
+      storyId,
+      includeStoryReplies
+    );
+
+    const jsonPatch = JSON.stringify({
+      readStatus: ReadStatus.Unread,
+      seenStatus: SeenStatus.Unseen,
+    });
+
+    const [selectQuery, selectParams] = sql`
+      SELECT id
+      FROM messages
+      WHERE
+        conversationId = ${conversationId} AND
+        isStory = 0 AND
+        ${storyReplyFilter} AND
+        type IS NOT 'outgoing' AND
+        type IS NOT 'call-history' AND
+        (
+          received_at > ${receivedAt}
+          OR (received_at = ${receivedAt} AND sent_at >= ${sentAt})
+        )
+    `;
+
+    const rows = db.prepare(selectQuery).all<{ id: string }>(selectParams);
+
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const [updateQuery, updateParams] = sql`
+      UPDATE messages
+      SET
+        readStatus = ${ReadStatus.Unread},
+        seenStatus = ${SeenStatus.Unseen},
+        json = json_patch(json, ${jsonPatch})
+      WHERE
+        conversationId = ${conversationId} AND
+        isStory = 0 AND
+        ${storyReplyFilter} AND
+        type IS NOT 'outgoing' AND
+        type IS NOT 'call-history' AND
+        (
+          received_at > ${receivedAt}
+          OR (received_at = ${receivedAt} AND sent_at >= ${sentAt})
+        )
+    `;
+
+    db.prepare(updateQuery).run(updateParams);
+
+    return rows.map(row => ({ id: row.id }));
   })();
 }
 
