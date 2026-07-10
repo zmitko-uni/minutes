@@ -17,7 +17,6 @@ import {
   RECORDING_STATE_CHANGED,
   recordingStateEvents,
 } from './recordingStateEvents.std.ts';
-import { drop } from '../util/drop.std.ts';
 import { enqueueRecordingTranscription } from './callTranscriptionService.preload.ts';
 import { speakerActivityLogger } from './speakerActivityLogger.preload.ts';
 import { clampSpeakerActivityLogToPcmDuration } from './speakerActivity.std.ts';

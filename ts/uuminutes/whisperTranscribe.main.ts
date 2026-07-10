@@ -202,6 +202,9 @@ export async function transcribePcm(
     throwIfTranscriptionCancelled(options.jobId);
 
     const profile = profiles[profileIndex];
+    if (profile == null) {
+      continue;
+    }
     const result = await transcribeOnce({
       ...options,
       pcmf32: prepared,
