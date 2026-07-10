@@ -44,12 +44,17 @@ function normalizeVersionTag(tag: string): string {
   return tag.trim().replace(/^v/i, '');
 }
 
+function parseSemverVersion(version: string): semver.SemVer | null {
+  const normalized = normalizeVersionTag(version);
+  return semver.parse(normalized) ?? semver.parse(normalized, { loose: true });
+}
+
 function isRemoteVersionNewer(
   latestVersion: string,
   currentVersion: string
 ): boolean {
-  const latest = semver.coerce(normalizeVersionTag(latestVersion));
-  const current = semver.coerce(normalizeVersionTag(currentVersion));
+  const latest = parseSemverVersion(latestVersion);
+  const current = parseSemverVersion(currentVersion);
   if (!latest || !current) {
     return false;
   }
