@@ -1,31 +1,29 @@
-// Bump package.json version before each minutes release installer build.
+// Bump package.json version before each Minutes release installer build.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { parseVersion } from './utils/parseVersion.mjs';
+import { bumpMinutesVersion } from './utils/parseMinutesVersion.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const packageJsonPath = join(root, 'package.json');
 
-function bumpReleaseVersion(version) {
-  const info = parseVersion(version);
-
-  if (info.prepatch != null) {
-    return `${info.major}.${info.minor}.${info.patch}-${info.channel}.${info.prepatch + 1}`;
-  }
-
-  return `${info.major}.${info.minor}.${info.patch + 1}`;
+/** @type {'major' | 'minor' | 'patch'} */
+const bumpLevel = process.env.MINUTES_BUMP_LEVEL ?? 'patch';
+if (!['major', 'minor', 'patch'].includes(bumpLevel)) {
+  console.error('MINUTES_BUMP_LEVEL must be major, minor, or patch');
+  process.exit(1);
 }
 
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 const previousVersion = packageJson.version;
-const nextVersion = bumpReleaseVersion(previousVersion);
+const nextVersion = bumpMinutesVersion(previousVersion, bumpLevel);
 
 packageJson.version = nextVersion;
 
 writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf8');
 
-console.log('minutes release version bump');
+console.log('Minutes release version bump');
+console.log(`  Level:    ${bumpLevel} (patch = hotfix)`);
 console.log(`  Previous: ${previousVersion}`);
 console.log(`  New:      ${nextVersion}`);

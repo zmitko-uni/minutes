@@ -3,7 +3,8 @@
 Všechny významné změny v **Minutes** (fork Signal Desktop) jsou zdokumentovány zde.
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/cs/1.1.0/).
-Verze odpovídají `package.json` a GitHub Releases.
+Verze **Meetup** odpovídají `package.json` a GitHub Releases — semver `major.minor.patch` (patch = hotfix).
+V závorce UI se zobrazuje upstream Signal Desktop (`MINUTES_SIGNAL_BASE_VERSION` v `ts/minutes/version.std.ts`).
 
 Před release doplňte sekci **[Unreleased]** (Added / Changed / Fixed). Agent / vývojář spustí
 `pnpm run release:minutes:metadata`, commitne `package.json` + `CHANGELOG.md` a pushne na `main`.
@@ -15,7 +16,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - (doplňte před příštím release)
 
 ### Changed
+- Produktové verzování **Meetup** `1.0.0` (major / minor / patch) místo `8.21.0-alpha.*`
 - Aktualizace: po kontrole se nová verze jen zobrazí, stažení až po kliknutí na **Stáhnout**
+- Label verze: `Meetup X.Y.Z (Signal Desktop 8.21.0)`
+
+### Fixed
+- Migrace z alpha buildů: starší `8.21.0-alpha.N` správně nabídne Meetup 1.x jako novější
 
 ## [8.21.0-alpha.9] - 2026-07-10
 

@@ -15,6 +15,15 @@ on:
         required: false
         default: false
         type: boolean
+      bump_level:
+        description: 'Semver bump — patch = hotfix, minor = features, major = breaking'
+        required: false
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -80,6 +89,8 @@ jobs:
 
       - name: Bump version and prepare CHANGELOG
         if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
+        env:
+          MINUTES_BUMP_LEVEL: ${{ inputs.bump_level || 'patch' }}
         run: pnpm run release:minutes:metadata
 
       - name: Read release version

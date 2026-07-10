@@ -92,6 +92,6 @@ jobs:
           - [ ] `pnpm run start:minutes:quick` — aplikace startuje lokálně
           - [ ] `CHANGELOG.md` — doplnit změny ze Signálu pokud relevantní
 
-          Po merge zkontroluj `ts/minutes/welcomeContent.std.ts` (`MINUTES_SIGNAL_BASE_VERSION`).
+          Po merge zkontroluj `ts/minutes/version.std.ts` (`MINUTES_SIGNAL_BASE_VERSION`).
           EOF
           )"

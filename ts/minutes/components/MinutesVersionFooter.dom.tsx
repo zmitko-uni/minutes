@@ -16,7 +16,7 @@ import {
   installPendingAppUpdate,
   startBackgroundAppUpdateDownload,
 } from '../appUpdateService.preload.ts';
-import { formatMinutesVersionLabel } from '../welcomeContent.std.ts';
+import { formatMinutesVersionLabel } from '../version.std.ts';
 
 type Props = Readonly<{
   appVersion: string;

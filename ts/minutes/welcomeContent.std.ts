@@ -11,10 +11,8 @@ export const MINUTES_WELCOME_TAGLINE =
 export const MINUTES_WELCOME_FEATURES_HEADING =
   `Hlavní předností ${APP_DISPLAY_NAME} je:`;
 
-/** Upstream Signal Desktop release (sync when merging upstream). */
-export const MINUTES_SIGNAL_BASE_VERSION = '8.21.0';
-
-export const MINUTES_README_LABEL = APP_README_LABEL;
+/** @deprecated Import from ./version.std.ts */
+export { formatMinutesVersionLabel, MINUTES_SIGNAL_BASE_VERSION } from './version.std.ts';
 
 export type MinutesWelcomeTileId =
   | 'chat-summary'
@@ -59,6 +57,4 @@ export const MINUTES_AUTHOR = 'Ing. Martin Zmítko, Ph.D.';
 /** Signal username — pro přidání kontaktu v aplikaci Signal. */
 export const MINUTES_AUTHOR_SIGNAL_USERNAME = 'martinzmitko.01';
 
-export function formatMinutesVersionLabel(appVersion: string): string {
-  return `${appVersion} (Signal Desktop ${MINUTES_SIGNAL_BASE_VERSION})`;
-}
+export const MINUTES_README_LABEL = APP_README_LABEL;

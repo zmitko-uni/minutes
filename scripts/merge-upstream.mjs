@@ -50,4 +50,4 @@ run('git', ['merge', 'FETCH_HEAD', '--no-edit']);
 console.log('');
 console.log('Upstream merge complete.');
 console.log('Review conflicts in hook files listed in docs/MINUTES-PATCHES.md if any.');
-console.log('Update MINUTES_SIGNAL_BASE_VERSION in ts/minutes/welcomeContent.std.ts if needed.');
+console.log('Update MINUTES_SIGNAL_BASE_VERSION in ts/minutes/version.std.ts if needed.');

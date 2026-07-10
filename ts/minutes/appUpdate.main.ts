@@ -7,7 +7,6 @@ import { get as httpsGet } from 'node:https';
 import { join } from 'node:path';
 
 import { app, BrowserWindow, type WebContents } from 'electron';
-import semver from 'semver';
 
 import { createLogger } from '../logging/log.std.ts';
 import { AI_SETTINGS_DIR_NAME } from './constants.std.ts';
@@ -21,6 +20,11 @@ import {
   type PendingAppUpdate,
 } from './appUpdate.std.ts';
 import { downloadHttpsFile } from './httpsDownload.main.ts';
+import {
+  isMinutesVersionNewer,
+  normalizeVersionTag,
+  parseMinutesSemverVersion,
+} from './version.std.ts';
 
 const log = createLogger('minutes/appUpdate');
 
@@ -40,25 +44,17 @@ type GitHubLatestRelease = Readonly<{
   assets?: ReadonlyArray<GitHubReleaseAsset>;
 }>;
 
-function normalizeVersionTag(tag: string): string {
-  return tag.trim().replace(/^v/i, '');
-}
-
-function parseSemverVersion(version: string): semver.SemVer | null {
-  const normalized = normalizeVersionTag(version);
-  return semver.parse(normalized) ?? semver.parse(normalized, { loose: true });
-}
-
 function isRemoteVersionNewer(
   latestVersion: string,
   currentVersion: string
 ): boolean {
-  const latest = parseSemverVersion(latestVersion);
-  const current = parseSemverVersion(currentVersion);
-  if (!latest || !current) {
+  if (
+    !parseMinutesSemverVersion(latestVersion) ||
+    !parseMinutesSemverVersion(currentVersion)
+  ) {
     return false;
   }
-  return semver.gt(latest, current);
+  return isMinutesVersionNewer(latestVersion, currentVersion);
 }
 
 function getUpdatesDir(): string {
