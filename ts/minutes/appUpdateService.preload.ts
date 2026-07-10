@@ -152,7 +152,6 @@ async function runStartupAppUpdateFlow(): Promise<void> {
     }
 
     appUpdateUi.setAvailable(check);
-    await startBackgroundAppUpdateDownload(check);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Kontrola aktualizace selhala.';

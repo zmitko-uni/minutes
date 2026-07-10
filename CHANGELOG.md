@@ -14,6 +14,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+### Changed
+- Aktualizace: po kontrole se nová verze jen zobrazí, stažení až po kliknutí na **Stáhnout**
+
 ## [8.21.0-alpha.9] - 2026-07-10
 
 ### Changed

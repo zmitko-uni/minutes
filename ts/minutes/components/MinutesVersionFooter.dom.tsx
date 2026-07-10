@@ -13,7 +13,6 @@ import {
 } from '../appUpdateEvents.std.ts';
 import { MINUTES_GITHUB_RELEASES_URL } from '../appUpdate.std.ts';
 import {
-  downloadAndInstallAppUpdate,
   installPendingAppUpdate,
   startBackgroundAppUpdateDownload,
 } from '../appUpdateService.preload.ts';
@@ -55,30 +54,7 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
 
   useEffect(() => subscribeAppUpdateUi(setState), []);
 
-  const handleUpdate = useCallback(() => {
-    if (state.kind === 'ready') {
-      setIsBusy(true);
-      setActionError(null);
-      drop(
-        installPendingAppUpdate({ version: state.pending.version })
-          .catch(error => {
-            setActionError(
-              error instanceof Error ? error.message : 'Instalace selhala.'
-            );
-          })
-          .finally(() => setIsBusy(false))
-      );
-      return;
-    }
-
-    if (
-      state.kind !== 'available' &&
-      state.kind !== 'downloading' &&
-      state.kind !== 'error'
-    ) {
-      return;
-    }
-
+  const handleDownload = useCallback(() => {
     const check =
       state.kind === 'available' ||
       state.kind === 'downloading' ||
@@ -98,40 +74,48 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
     setIsBusy(true);
     setActionError(null);
     drop(
-      (async () => {
-        try {
-          await downloadAndInstallAppUpdate({
-            downloadUrl: check.downloadUrl!,
-            latestVersion: check.latestVersion!,
-            releaseUrl: check.releaseUrl!,
-          });
-        } catch (error) {
+      startBackgroundAppUpdateDownload(check)
+        .catch(error => {
           setActionError(
-            error instanceof Error ? error.message : 'Aktualizace selhala.'
+            error instanceof Error ? error.message : 'Stažení selhalo.'
           );
-        } finally {
+        })
+        .finally(() => {
           setIsBusy(false);
-        }
-      })()
+        })
     );
   }, [state]);
 
-  const handleRetryDownload = useCallback(() => {
-    if (state.kind !== 'available' && state.kind !== 'error') {
+  const handleInstall = useCallback(() => {
+    if (state.kind !== 'ready') {
       return;
     }
-    const check = state.check;
-    if (!check?.updateAvailable) {
-      return;
-    }
+
     setIsBusy(true);
     setActionError(null);
     drop(
-      startBackgroundAppUpdateDownload(check).finally(() => {
-        setIsBusy(false);
-      })
+      installPendingAppUpdate({ version: state.pending.version })
+        .catch(error => {
+          setActionError(
+            error instanceof Error ? error.message : 'Instalace selhala.'
+          );
+        })
+        .finally(() => setIsBusy(false))
     );
   }, [state]);
+
+  const handlePrimaryAction = useCallback(() => {
+    if (state.kind === 'ready') {
+      handleInstall();
+      return;
+    }
+    if (
+      state.kind === 'available' ||
+      (state.kind === 'error' && state.check?.updateAvailable)
+    ) {
+      handleDownload();
+    }
+  }, [state, handleDownload, handleInstall]);
 
   const handleOpenRelease = useCallback(() => {
     const releaseUrl =
@@ -153,9 +137,9 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
   const primaryLabel =
     state.kind === 'ready'
       ? 'Restartovat a nainstalovat'
-      : isBusy
+      : isBusy || state.kind === 'downloading'
         ? 'Stahuji…'
-        : 'Aktualizovat';
+        : 'Stáhnout';
 
   return (
     <footer className={tw('MinutesVersionFooter')}>
@@ -173,21 +157,11 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
               'MinutesVersionFooter__button',
               'MinutesVersionFooter__button--primary'
             )}
-            disabled={isBusy}
-            onClick={handleUpdate}
+            disabled={isBusy || state.kind === 'downloading'}
+            onClick={handlePrimaryAction}
           >
             {primaryLabel}
           </button>
-          {state.kind === 'error' && (
-            <button
-              type="button"
-              className={tw('MinutesVersionFooter__button')}
-              disabled={isBusy}
-              onClick={handleRetryDownload}
-            >
-              Stáhnout znovu
-            </button>
-          )}
           <button
             type="button"
             className={tw('MinutesVersionFooter__button')}

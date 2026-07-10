@@ -50,12 +50,11 @@ function AppUpdateBanner({
     return (
       <div className="MinutesAppUpdateBanner MinutesAppUpdateBanner--available">
         <span className="MinutesAppUpdateBanner__text">
-          Je dostupná nová verze Minutes {version}. Stahování proběhne na
-          pozadí, nebo aktualizujte hned.
+          Je dostupná nová verze Minutes {version}.
         </span>
         <div className="MinutesAppUpdateBanner__actions">
           <button type="button" disabled={isBusy} onClick={onDownloadNow}>
-            Aktualizovat
+            Stáhnout
           </button>
           <button type="button" disabled={isBusy} onClick={onOpenRelease}>
             Release notes

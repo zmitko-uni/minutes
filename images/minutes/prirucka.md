@@ -212,16 +212,17 @@ Minutes **automaticky kontroluje nové verze** cca 8 sekund po startu (jen u nai
 ### Co uvidíte
 
 1. **Horní lišta** (banner):
-   - *Je dostupná nová verze …* — nová verze na GitHubu
-   - *Stahuji Minutes …* — probíhá stahování na pozadí
+   - *Je dostupná nová verze …* — nová verze na GitHubu, tlačítko **Stáhnout**
+   - *Stahuji Minutes …* — probíhá stahování po kliknutí na Stáhnout
    - *Minutes X je stažen. Restartovat a nainstalovat?* — připraveno k instalaci
 
-2. **Domovská obrazovka dole** — stav verze a tlačítka Aktualizovat / Release notes
+2. **Domovská obrazovka dole** — stav verze, **Stáhnout** / **Restartovat a nainstalovat**, Release notes
 
 ### Jak aktualizovat
 
 | Situace | Co dělat |
 |---------|----------|
+| Je nová verze | Klikněte **Stáhnout** (banner nebo dole na domovské stránce) |
 | Stažení právě běží | Počkejte — dokončí se samo |
 | Verze je stažena | **Restartovat a nainstalovat** v banneru nebo dole na domovské stránce |
 | Chcete odložit | **Později** — banner se skryje do restartu aplikace |
