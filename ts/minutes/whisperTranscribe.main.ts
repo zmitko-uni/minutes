@@ -38,6 +38,13 @@ export type WhisperTranscribeRuntimeOptions = Readonly<{
   lenientWeakTranscriptCheck?: boolean;
 }>;
 
+type ResolvedWhisperTranscribeRuntimeOptions = Readonly<{
+  threadCount: number;
+  useGpu: boolean;
+  decodeProfiles: ReadonlyArray<WhisperDecodeParams>;
+  lenientWeakTranscriptCheck: boolean;
+}>;
+
 export type TranscribePcmOptions = Readonly<{
   modelPath: string;
   pcmf32: Float32Array;
@@ -137,7 +144,7 @@ function looksWeakTranscript(
 
 function resolveRuntimeOptions(
   runtime: WhisperTranscribeRuntimeOptions | undefined
-): WhisperTranscribeRuntimeOptions {
+): ResolvedWhisperTranscribeRuntimeOptions {
   const cpuCount = cpus().length;
   const threadCount = resolveWhisperThreadCount(
     runtime?.threadCount ?? 0,
@@ -229,7 +236,7 @@ export async function transcribePcm(
   const useVad = await isVadModelReady();
   const resolvedRuntime = resolveRuntimeOptions(options.runtime);
   const profiles = resolvedRuntime.decodeProfiles;
-  const lenient = resolvedRuntime.lenientWeakTranscriptCheck ?? false;
+  const lenient = resolvedRuntime.lenientWeakTranscriptCheck;
 
   let bestResult: TranscribePcmResult | null = null;
 

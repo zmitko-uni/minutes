@@ -82,6 +82,30 @@ type StoredExtension = {
 
 type ProgressSender = (progress: CallSummaryExtensionProgress) => void;
 
+type TranscriptionWithAlignedSegments = TranscribePcmResult & {
+  alignedSegments: ReadonlyArray<AlignedTranscriptSegment>;
+};
+
+type TranscriptionPipelineResult =
+  | TranscribePcmResult
+  | TranscriptionWithAlignedSegments;
+
+function getSpeakerAlignedSegments(
+  transcription: TranscriptionPipelineResult
+): ReadonlyArray<AlignedTranscriptSegment> {
+  return 'alignedSegments' in transcription ? transcription.alignedSegments : [];
+}
+
+function toTranscribePcmResult(
+  transcription: TranscriptionPipelineResult
+): TranscribePcmResult {
+  return {
+    text: transcription.text,
+    segments: transcription.segments,
+    language: transcription.language,
+  };
+}
+
 function getModelsDir(): string {
   return join(app.getPath('userData'), MODELS_DIR_NAME);
 }
@@ -606,7 +630,7 @@ export async function transcribeCallRecording(options: {
     detail: 'Přepis celého audia…',
   });
 
-  let transcription = await transcribePcm({
+  let transcription: TranscriptionPipelineResult = await transcribePcm({
     modelPath,
     pcmf32,
     language: DEFAULT_WHISPER_LANGUAGE,
@@ -649,19 +673,8 @@ export async function transcribeCallRecording(options: {
   throwIfTranscriptionCancelled(options.jobId);
   report({ percent: 90, phase: 'finalize', detail: 'Sestavuji přepis…' });
 
-  const speakerAlignedSegments: ReadonlyArray<AlignedTranscriptSegment> =
-    'alignedSegments' in transcription
-      ? (
-          transcription as TranscribePcmResult & {
-            alignedSegments: ReadonlyArray<AlignedTranscriptSegment>;
-          }
-        ).alignedSegments
-      : [];
-  const result: TranscribePcmResult = {
-    text: transcription.text,
-    segments: transcription.segments,
-    language: transcription.language,
-  };
+  const speakerAlignedSegments = getSpeakerAlignedSegments(transcription);
+  const result = toTranscribePcmResult(transcription);
 
   const basePath = options.recordingPath.replace(/\.mp3$/i, '');
   const transcriptPath = `${basePath}.transcript.md`;
