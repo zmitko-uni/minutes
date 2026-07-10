@@ -40,6 +40,7 @@ import { useDocumentKeyDown } from '../../hooks/useDocumentKeyDown.dom.ts';
 import type { Emoji } from '../../axo/emoji.std.ts';
 import { summarizeFromMessage } from '../../uuminutes/chatSummaryService.preload.ts';
 import { addMessageBookmark } from '../../uuminutes/bookmarksService.preload.ts';
+import { markUnreadFromMessage } from '../../uuminutes/markUnreadFromMessage.preload.ts';
 import { drop } from '../../util/drop.std.ts';
 
 const { useAxoContextMenuOutsideKeyboardTrigger } = AxoContextMenu;
@@ -381,6 +382,11 @@ export function TimelineMessage(props: Props): JSX.Element {
           onBookmarkMessage={
             window.uuMinutes != null
               ? () => drop(addMessageBookmark({ conversationId, messageId: id }))
+              : null
+          }
+          onMarkUnreadFromHere={
+            window.uuMinutes != null
+              ? () => drop(markUnreadFromMessage(conversationId, id))
               : null
           }
           onDebugMessage={handleDebugMessage}

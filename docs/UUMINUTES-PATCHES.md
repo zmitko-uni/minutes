@@ -20,8 +20,8 @@
 | `ts/components/CallScreen.dom.tsx` | `<UuMinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | uuMinutes uvítací obrazovka | 1 komponenta |
 | `ts/components/App.dom.tsx` | uuMinutes host komponenty | +TranscriptionQueueHost |
-| `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage` | 1 prop + item |
-| `ts/components/conversation/TimelineMessage.dom.tsx` | callback pro záložky | 1 callback |
+| `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere` | 2 props + items |
+| `ts/components/conversation/TimelineMessage.dom.tsx` | callback pro záložky + nepřečteno odsud | 2 callbacks |
 | `ts/uuminutes/bookmarks.std.ts` | typy záložek |
 | `ts/uuminutes/bookmarks.main.ts` | persist JSON |
 | `ts/uuminutes/bookmarksService.preload.ts` | add/list/navigate |
@@ -64,6 +64,7 @@
 | `ts/uuminutes/components/UuMinutesSettingsModal.dom.tsx` | dialog AI nastavení |
 | `ts/uuminutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update |
 | `ts/uuminutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
+| `ts/uuminutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |
 | `ts/uuminutes/components/UuMinutesAppUpdateBannerHost.dom.tsx` | banner aktualizace při startu |
 | `ts/uuminutes/components/UuMinutesVersionFooter.dom.tsx` | patička verze na domovské obrazovce |
 | `ts/uuminutes/components/UuMinutesSummaryToastHost.dom.tsx` | toast + odeslání do chatu |

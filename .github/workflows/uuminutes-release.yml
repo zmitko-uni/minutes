@@ -60,6 +60,11 @@ jobs:
         env:
           NODE_CONFIG_ENV: uuminutes
 
+      - name: Generate uuMinutes icons
+        run: pnpm run build:uuminutes-icons
+        env:
+          NODE_CONFIG_ENV: uuminutes
+
       - name: Typecheck
         run: pnpm run check:types
 

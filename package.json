@@ -20,7 +20,7 @@
     "start": "electron .",
     "start:uuminutes": "cross-env NODE_CONFIG_ENV=uuminutes pnpm run start:uuminutes:build && cross-env NODE_CONFIG_ENV=uuminutes electron .",
     "start:uuminutes:build": "run-s build:uuminutes-icons build:rolldown:prod build:styles:prod",
-    "start:uuminutes:quick": "cross-env NODE_CONFIG_ENV=uuminutes electron .",
+    "start:uuminutes:quick": "cross-env NODE_CONFIG_ENV=uuminutes pnpm run build:uuminutes-icons && cross-env NODE_CONFIG_ENV=uuminutes electron .",
     "test:call-pipeline": "cross-env NODE_CONFIG_ENV=uuminutes UUMINUTES_TEST_PIPELINE=1 electron .",
     "merge-upstream": "node scripts/merge-upstream.mjs",
     "generate": "run-s generate:phase-0 generate:phase-1",

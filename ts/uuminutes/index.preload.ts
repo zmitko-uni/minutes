@@ -70,6 +70,7 @@ export {
   openTranscriptionQueuePanel,
   transcriptionQueue,
 } from './transcriptionQueueService.preload.ts';
+export { markUnreadFromMessage } from './markUnreadFromMessage.preload.ts';
 export { sendSummaryToChat, sendSummaryToSelf } from './sendSummaryToChat.preload.ts';
 export {
   UuMinutesDropdownMenuItems,

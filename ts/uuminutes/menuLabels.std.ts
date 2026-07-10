@@ -40,6 +40,9 @@ export const UUMINUTES_MENU_SUMMARIZE_24H = 'Sumarizovat poslední 24 hodin';
 export const UUMINUTES_MENU_SUMMARIZE_FROM_HERE =
   formatMenuActionLabel('Sumarizovat odtud');
 
+export const UUMINUTES_MENU_MARK_UNREAD_FROM_HERE =
+  formatMenuActionLabel('Nepřečteno odsud');
+
 export const UUMINUTES_MENU_ADD_BOOKMARK =
   formatMenuActionLabel('Přidat do záložek');
 

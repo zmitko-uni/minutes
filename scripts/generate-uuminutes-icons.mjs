@@ -1,5 +1,8 @@
 // Copyright 2026 uuMinutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
+//
+// Generate uuMinutes app + taskbar (.ico) + system tray icons from app-icon-source.png.
+// Run via `pnpm run build:uuminutes-icons` after every change to the source PNG.
 // @ts-check
 
 import { createCanvas, loadImage } from '@napi-rs/canvas';

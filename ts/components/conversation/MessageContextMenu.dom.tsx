@@ -4,7 +4,7 @@
 import { useRef, type ReactNode, type JSX } from 'react';
 import type { LocalizerType } from '../../types/I18N.std.ts';
 import { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
-import { UUMINUTES_MENU_ADD_BOOKMARK, UUMINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../uuminutes/menuLabels.std.ts';
+import { UUMINUTES_MENU_ADD_BOOKMARK, UUMINUTES_MENU_MARK_UNREAD_FROM_HERE, UUMINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../uuminutes/menuLabels.std.ts';
 import { isInternalFeaturesEnabled } from '../../util/isInternalFeaturesEnabled.dom.ts';
 
 type MessageContextMenuProps = Readonly<{
@@ -28,6 +28,7 @@ type MessageContextMenuProps = Readonly<{
   onUnpinMessage: (() => void) | null;
   onMoreInfo: (() => void) | null;
   onSummarizeFromHere?: (() => void) | null;
+  onMarkUnreadFromHere?: (() => void) | null;
   onBookmarkMessage?: (() => void) | null;
   onSelect: (() => void) | null;
   children: ReactNode;
@@ -47,6 +48,7 @@ export function MessageContextMenu({
   onEndPoll,
   onMoreInfo,
   onSummarizeFromHere,
+  onMarkUnreadFromHere,
   onBookmarkMessage,
   onCopy,
   onSelect,
@@ -158,6 +160,14 @@ export function MessageContextMenu({
             onSelect={onSummarizeFromHere}
           >
             {UUMINUTES_MENU_SUMMARIZE_FROM_HERE}
+          </AxoMenuBuilder.Item>
+        )}
+        {onMarkUnreadFromHere && (
+          <AxoMenuBuilder.Item
+            symbol="check-circle"
+            onSelect={onMarkUnreadFromHere}
+          >
+            {UUMINUTES_MENU_MARK_UNREAD_FROM_HERE}
           </AxoMenuBuilder.Item>
         )}
         {onBookmarkMessage && (
