@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.2] - 2026-07-10
+
 ### Changed
 - Aktualizace: po kontrole jen tlačítko Stáhnout (bez automatického stahování); staré auto-stažené instalátory se nenabídnou k instalaci bez kliknutí
 - Verze produktu: formát `8.21.0-m1.0.1` (Signal base + `-m` + Meetup semver); UI zobrazuje celý tag
