@@ -16,7 +16,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - (doplňte před příštím release)
 
 ### Changed
-- Ctrl+Shift+M otevře Minutes (domovská obrazovka); zkratka pro log odstraněna
+- Ctrl+Shift+M otevře Přepisy (Minutes) místo Signálu „Všechna média“; zkratka pro log odstraněna
 - Aktualizace: po kontrole se nová verze jen zobrazí, stažení až po kliknutí na Stáhnout
 - Sumáře v Signal chatu: nativní formát místo markdown (`**`, `##`)
 - AI prompty generují prostý text vhodný pro Signal

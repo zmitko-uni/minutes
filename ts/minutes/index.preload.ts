@@ -14,6 +14,7 @@ import { showMinutesHome } from './homeNavigation.preload.ts';
 import { openMinutesLog } from './navigation.preload.ts';
 import { openReadmeModal } from './readmeService.preload.ts';
 import { initializeAppUpdate } from './appUpdateService.preload.ts';
+import { initializeMinutesKeyboardShortcuts } from './keyboardShortcuts.preload.ts';
 
 const log = createLogger('minutes');
 
@@ -42,6 +43,7 @@ export function initializeMinutes(): void {
   drop(refreshCallSummaryExtension());
   drop(refreshLocalLlmExtension());
   initializeAppUpdate();
+  initializeMinutesKeyboardShortcuts();
 
   ipcRenderer.on('minutes:show-home', () => {
     showMinutesHome();

@@ -169,11 +169,11 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 |---------|---------|
 | Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
 | Záložky | Seznam záložek (Ctrl+Shift+B) |
-| Přepisy (Minutes) | Fronta přepisů, historie nahrávek |
+| Přepisy (Minutes) | Fronta přepisů, historie nahrávek (Ctrl+Shift+M) |
 | Nastavení AI | Jazyk, poskytovatel, model, API klíč / lokální Gemma |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Příručka | Tato nápověda |
-| O Minutes | Úvodní obrazovka s přehledem funkcí (Ctrl+Shift+M) |
+| O Minutes | Úvodní obrazovka s přehledem funkcí |
 | Otevřít nahrávky hovorů | Složka s MP3 |
 | Otevřít sumarizace chatů | Složka s exporty chatů |
 | Zobrazit log | Diagnostika (jen z menu) |
@@ -184,7 +184,7 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 | Zkratka | Akce |
 |---------|------|
-| Ctrl+Shift+M | Otevřít Minutes (domovská obrazovka) |
+| Ctrl+Shift+M | Otevřít Přepisy (Minutes) |
 | Ctrl+Shift+U | Sumarizovat aktuální chat |
 | Ctrl+Shift+B | Záložky |
 

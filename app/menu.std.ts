@@ -122,6 +122,7 @@ export const createTemplate = (
         },
         {
           label: MINUTES_MENU_TRANSCRIPTION_QUEUE,
+          accelerator: 'CommandOrControl+Shift+M',
           click: minutesOpenTranscriptionQueue,
         },
         {
@@ -144,7 +145,6 @@ export const createTemplate = (
         },
         {
           label: MINUTES_MENU_ABOUT,
-          accelerator: 'CommandOrControl+Shift+M',
           click: minutesShowHome,
         },
         {
