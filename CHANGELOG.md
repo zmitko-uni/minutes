@@ -3,8 +3,9 @@
 Všechny významné změny v **Minutes** (fork Signal Desktop) jsou zdokumentovány zde.
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/cs/1.1.0/).
-Verze **Meetup** odpovídají `package.json` a GitHub Releases — semver `major.minor.patch` (patch = hotfix).
-V závorce UI se zobrazuje upstream Signal Desktop (`MINUTES_SIGNAL_BASE_VERSION` v `ts/minutes/version.std.ts`).
+Verze produktu odpovídají `package.json` a GitHub Releases ve tvaru **`{Signal}-m{Meetup}`**
+(např. `8.21.0-m1.0.1` — Signal Desktop base + Meetup semver za `-m`).
+Po merge upstream Signal aktualizuj `MINUTES_SIGNAL_BASE_VERSION` v `ts/minutes/version.std.ts`.
 
 Před release doplňte sekci **[Unreleased]** (Added / Changed / Fixed). Agent / vývojář spustí
 `pnpm run release:minutes:metadata`, commitne `package.json` + `CHANGELOG.md` a pushne na `main`.
@@ -12,13 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
-### Added
-- (doplňte před příštím release)
+### Changed
+- Verze produktu: formát `8.21.0-m1.0.1` (Signal base + `-m` + Meetup semver); UI zobrazuje celý tag
+- Migrace z alpha buildů a starého Meetup semver (`1.0.x`): nový formát se správně detekuje jako novější
 
 ## [1.0.1] - 2026-07-10
-
-### Added
-- (doplňte před příštím release)
 
 ### Changed
 - Ctrl+Shift+M otevře Přepisy (Minutes) místo Signálu „Všechna média“; zkratka pro log odstraněna

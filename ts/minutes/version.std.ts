@@ -3,51 +3,89 @@
 
 import semver from 'semver';
 
-export const MINUTES_MEETUP_VERSION_PREFIX = 'Meetup';
-
 /** Upstream Signal Desktop release (sync when merging upstream). */
 export const MINUTES_SIGNAL_BASE_VERSION = '8.21.0';
+
+/** `{signalBase}-m{meetupSemver}` e.g. `8.21.0-m1.0.1` */
+export const MINUTES_PRODUCT_VERSION_PATTERN =
+  /^(\d+\.\d+\.\d+)-m(\d+\.\d+\.\d+)$/i;
+
+export type MinutesProductVersion = Readonly<{
+  signalBase: string;
+  meetup: string;
+}>;
 
 export function normalizeVersionTag(tag: string): string {
   return tag.trim().replace(/^v/i, '');
 }
 
+export function parseMinutesProductVersion(
+  version: string
+): MinutesProductVersion | null {
+  const normalized = normalizeVersionTag(version);
+  const match = MINUTES_PRODUCT_VERSION_PATTERN.exec(normalized);
+  if (!match?.[1] || !match[2]) {
+    return null;
+  }
+
+  return {
+    signalBase: match[1],
+    meetup: match[2],
+  };
+}
+
+export function formatMinutesProductVersion(
+  signalBase: string,
+  meetup: string
+): string {
+  return `${signalBase}-m${meetup}`;
+}
+
 /** Legacy alpha builds tied to Signal base (8.21.0-alpha.N). */
 export function isLegacyMinutesAlphaVersion(version: string): boolean {
-  return /^8\.\d+\.\d+-alpha\.\d+$/i.test(normalizeVersionTag(version));
+  return /^(\d+\.\d+\.\d+)-alpha\.\d+$/i.test(normalizeVersionTag(version));
+}
+
+/** Legacy Meetup-only semver before `-m` format (e.g. 1.0.1). */
+export function isLegacyPlainMeetupVersion(version: string): boolean {
+  const normalized = normalizeVersionTag(version);
+  return /^\d+\.\d+\.\d+$/.test(normalized);
+}
+
+export function normalizeMinutesVersionForCompare(version: string): string {
+  const normalized = normalizeVersionTag(version);
+  const product = parseMinutesProductVersion(normalized);
+
+  if (product) {
+    return formatMinutesProductVersion(product.signalBase, product.meetup);
+  }
+
+  if (isLegacyMinutesAlphaVersion(normalized)) {
+    return normalized;
+  }
+
+  if (isLegacyPlainMeetupVersion(normalized)) {
+    return formatMinutesProductVersion(
+      MINUTES_SIGNAL_BASE_VERSION,
+      normalized
+    );
+  }
+
+  return normalized;
 }
 
 export function parseMinutesSemverVersion(
   version: string
 ): semver.SemVer | null {
-  const normalized = normalizeVersionTag(version);
+  const normalized = normalizeMinutesVersionForCompare(version);
   return semver.parse(normalized) ?? semver.parse(normalized, { loose: true });
 }
 
-/**
- * Compare Minutes product versions. Legacy alpha builds are always older than Meetup 1.x+.
- */
 export function compareMinutesVersions(left: string, right: string): number {
-  const a = normalizeVersionTag(left);
-  const b = normalizeVersionTag(right);
-
-  const aLegacy = isLegacyMinutesAlphaVersion(a);
-  const bLegacy = isLegacyMinutesAlphaVersion(b);
-
-  if (aLegacy && !bLegacy) {
-    const bParsed = semver.parse(b);
-    if (bParsed && bParsed.major >= 1) {
-      return -1;
-    }
-  }
-  if (!aLegacy && bLegacy) {
-    const aParsed = semver.parse(a);
-    if (aParsed && aParsed.major >= 1) {
-      return 1;
-    }
-  }
-
-  return semver.compare(a, b);
+  return semver.compare(
+    normalizeMinutesVersionForCompare(left),
+    normalizeMinutesVersionForCompare(right)
+  );
 }
 
 export function isMinutesVersionNewer(
@@ -58,5 +96,18 @@ export function isMinutesVersionNewer(
 }
 
 export function formatMinutesVersionLabel(appVersion: string): string {
-  return `${MINUTES_MEETUP_VERSION_PREFIX} ${appVersion} (Signal Desktop ${MINUTES_SIGNAL_BASE_VERSION})`;
+  const normalized = normalizeVersionTag(appVersion);
+
+  if (parseMinutesProductVersion(normalized)) {
+    return normalized;
+  }
+
+  if (isLegacyPlainMeetupVersion(normalized)) {
+    return formatMinutesProductVersion(
+      MINUTES_SIGNAL_BASE_VERSION,
+      normalized
+    );
+  }
+
+  return normalized;
 }

@@ -87,15 +87,16 @@ Výstup: `release/minutes/Minutes-setup-<verze>.exe`
 2. **GitHub → Actions → Release Minutes → Run workflow**
 3. Workflow automaticky:
    - spustí typecheck
-   - zvedne verzi Meetup semver (`1.0.0` → `1.0.1` hotfix, volba *minor* / *major* v Actions)
+   - zvedne verzi Meetup (`8.21.0-m1.0.1` → `8.21.0-m1.0.2` hotfix, volba *minor* / *major* v Actions)
    - přesune `[Unreleased]` v CHANGELOG a vytvoří GitHub Release
    - commitne bump verze do `main`
 4. Stabilní odkaz:  
    `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe`
 
-Volba *Skip version bump* — přestaví stejnou verzi (např. první release `1.0.0` nebo oprava buildu).
+Volba *Skip version bump* — přestaví stejnou verzi (např. první release nebo oprava buildu).
 
-**Verzování:** produkt **Meetup** `major.minor.patch` (patch = hotfix). Signal Desktop base se zobrazuje v závorce — aktualizuj `MINUTES_SIGNAL_BASE_VERSION` v `ts/minutes/version.std.ts` po merge upstream.
+**Verzování:** `{SignalDesktop}-m{MeetupSemver}` — např. `8.21.0-m1.0.1` (Signal 8.21.0, Meetup 1.0.1).
+Bump v Actions mění jen část za `-m`. Po merge upstream Signal aktualizuj base v `ts/minutes/version.std.ts`.
 
 Alternativa: lokálně `pnpm run release:minutes:metadata`, commit `chore(release):`, push → spustí stejný workflow bez dalšího bumpu.
 
