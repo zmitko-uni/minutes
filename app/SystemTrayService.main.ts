@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { createLogger } from '../ts/logging/log.std.ts';
 import type { LocalizerType } from '../ts/types/I18N.std.ts';
 import config from './config.main.ts';
-import { resolveTrayIconImagePath, resolveTrayToolTip } from './uuminutes_tray.main.ts';
+import { resolveTrayIconImagePath, resolveTrayToolTip } from './minutes_tray.main.ts';
 
 const log = createLogger('SystemTrayService');
 

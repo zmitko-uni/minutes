@@ -215,9 +215,9 @@ export default defineConfig([
     },
   },
 
-  // uuMinutes call recording — stereo mix + higher bitrate
+  // minutes call recording — stereo mix + higher bitrate
   {
-    input: 'ts/uuminutes/uuMinutesMp3Encoder.std.ts',
+    input: 'ts/minutes/minutesMp3Encoder.std.ts',
     transform: {
       define: {
         process: 'undefined',
@@ -226,7 +226,7 @@ export default defineConfig([
       },
     },
     output: {
-      file: 'bundles/workers/uuMinutesMp3Encoder.js',
+      file: 'bundles/workers/minutesMp3Encoder.js',
       exports: 'named',
       generatedCode: {
         symbols: false,

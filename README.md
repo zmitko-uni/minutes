@@ -17,7 +17,7 @@ Signal zůstává komunikační klient; Minutes přidává nástroje pro zápisy
 | **Přímý link instalátoru** | [Minutes-setup-windows-x64.exe](https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe) |
 
 > Instalátor není code-signed — SmartScreen může varovat → *Více informací* → *Přesto spustit*.  
-> Data uživatele: `%APPDATA%\uuMinutes-uuminutes` (při odinstalaci se nemazou).
+> Data uživatele: `%APPDATA%\Minutes` (při odinstalaci se nemazou).
 
 ---
 
@@ -25,12 +25,12 @@ Signal zůstává komunikační klient; Minutes přidává nástroje pro zápisy
 
 | Dokument | Pro koho | Odkaz |
 |----------|----------|--------|
-| **Příručka Minutes** | uživatelé aplikace | [images/uuminutes/prirucka.md](images/uuminutes/prirucka.md) |
-| **README-UUMINUTES** | vývojáři, build, architektura | [README-UUMINUTES.md](README-UUMINUTES.md) |
+| **Příručka Minutes** | uživatelé aplikace | [images/minutes/prirucka.md](images/minutes/prirucka.md) |
+| **README-MINUTES** | vývojáři, build, architektura | [README-MINUTES.md](README-MINUTES.md) |
 | **Changelog** | co je nového ve verzích | [CHANGELOG.md](CHANGELOG.md) |
-| **Contributing** | PR, pravidla forku | [CONTRIBUTING-UUMINUTES.md](CONTRIBUTING-UUMINUTES.md) |
+| **Contributing** | PR, pravidla forku | [CONTRIBUTING-MINUTES.md](CONTRIBUTING-MINUTES.md) |
 | **Údržba forku** | merge se Signálem | [docs/FORK-MAINTENANCE.md](docs/FORK-MAINTENANCE.md) |
-| **Seznam patchů** | co jsme změnili v upstreamu | [docs/UUMINUTES-PATCHES.md](docs/UUMINUTES-PATCHES.md) |
+| **Seznam patchů** | co jsme změnili v upstreamu | [docs/MINUTES-PATCHES.md](docs/MINUTES-PATCHES.md) |
 
 V aplikaci: menu **Minutes → Příručka Minutes** (stejný obsah jako `prirucka.md`).
 
@@ -49,21 +49,21 @@ V aplikaci: menu **Minutes → Příručka Minutes** (stejný obsah jako `priruc
 
 Výstupy na disku:
 
-- Nahrávky: `%APPDATA%\uuMinutes-uuminutes\uuMinutes\recordings\`
-- Sumarizace: `%APPDATA%\uuMinutes-uuminutes\uuMinutes\summaries\`
+- Nahrávky: `%APPDATA%\Minutes\minutes\recordings\`
+- Sumarizace: `%APPDATA%\Minutes\minutes\summaries\`
 
 ---
 
 ## Release Minutes (nová verze .exe)
 
 1. Doplňte **`CHANGELOG.md`** — sekce `[Unreleased]` (workflow ji použije v popisu release)
-2. **GitHub → Actions → [Release Minutes](https://github.com/zmitko-uni/minutes/actions/workflows/uuminutes-release.yml) → Run workflow**
+2. **GitHub → Actions → [Release Minutes](https://github.com/zmitko-uni/minutes/actions/workflows/minutes-release.yml) → Run workflow**
 3. Workflow: typecheck → bump verze → build → GitHub Release → commit verze
 4. Po release přesuňte položky z `[Unreleased]` do nové sekce `## [x.y.z]` v CHANGELOG
 
-Lokálně: `build-uuminutes-release.bat` (viz [README-UUMINUTES.md](README-UUMINUTES.md)).
+Lokálně: `build-minutes-release.bat` (viz [README-MINUTES.md](README-MINUTES.md)).
 
-**CI:** každý push/PR do `main` spouští [Minutes CI](https://github.com/zmitko-uni/minutes/actions/workflows/uuminutes-ci.yml) (`check:types`).
+**CI:** každý push/PR do `main` spouští [Minutes CI](https://github.com/zmitko-uni/minutes/actions/workflows/minutes-ci.yml) (`check:types`).
 
 ---
 
@@ -76,12 +76,12 @@ git clone https://github.com/zmitko-uni/minutes.git
 cd minutes
 pnpm install
 pnpm run generate
-pnpm run start:uuminutes
+pnpm run start:minutes
 ```
 
-Nebo `setup-uuminutes.bat` → `start-uuminutes.bat` (Windows).
+Nebo `setup-minutes.bat` → `start-minutes.bat` (Windows).
 
-**Aktualizace ze Signálu:** Actions → [Merge Signal upstream](https://github.com/zmitko-uni/minutes/actions/workflows/uuminutes-merge-upstream.yml) → review PR → merge.
+**Aktualizace ze Signálu:** Actions → [Merge Signal upstream](https://github.com/zmitko-uni/minutes/actions/workflows/minutes-merge-upstream.yml) → review PR → merge.
 
 ---
 
@@ -95,7 +95,7 @@ Nebo `setup-uuminutes.bat` → `start-uuminutes.bat` (Windows).
 
 Minutes je fork Signal Desktop (AGPL-3.0-only). Seznam **Contributors** na GitHubu zahrnuje autory celé historie Signálu — repozitář na ni navazuje kvůli pravidelným upstream merge.
 
-Naše rozšíření jsou v `ts/uuminutes/` s minimálními hooky v upstream souborech.
+Naše rozšíření jsou v `ts/minutes/` s minimálními hooky v upstream souborech.
 
 ## Licence
 

@@ -78,11 +78,11 @@ import * as userConfig from './user_config.main.ts';
 //   data directory has been set.
 import * as attachments from './attachments.node.ts';
 import * as attachmentChannel from './attachment_channel.main.ts';
-import { initializeUuMinutesChannel } from './uuminutes_channel.main.ts';
+import { initializeMinutesChannel } from './minutes_channel.main.ts';
 import {
-  getUuMinutesWindowIconPath,
-  isUuMinutesBrandingEnabled,
-} from './uuminutes_icon.main.ts';
+  getMinutesWindowIconPath,
+  isMinutesBrandingEnabled,
+} from './minutes_icon.main.ts';
 import * as bounce from '../ts/services/bounce.main.ts';
 import * as updater from '../ts/updater/index.main.ts';
 import { updateDefaultSession } from './updateDefaultSession.main.ts';
@@ -152,7 +152,7 @@ import { maybeMigrateSafeStorageBackend } from '../ts/util/linuxPasswordStoreMig
 import {
   RECORDINGS_DIR_NAME,
   SUMMARIES_DIR_NAME,
-} from '../ts/uuminutes/constants.std.ts';
+} from '../ts/minutes/constants.std.ts';
 
 const { chmod, realpath, writeFile } = fsExtra;
 const { get, pick, isNumber, isBoolean, some, debounce, noop } = lodash;
@@ -645,8 +645,8 @@ if (OS.isWindows()) {
   windowIcon = join(rootDir, 'build', 'icons', 'png', '512x512.png');
 }
 
-if (isUuMinutesBrandingEnabled(config)) {
-  windowIcon = getUuMinutesWindowIconPath(rootDir);
+if (isMinutesBrandingEnabled(config)) {
+  windowIcon = getMinutesWindowIconPath(rootDir);
 }
 
 const windowIconImage = nativeImage.createFromPath(windowIcon);
@@ -1409,79 +1409,79 @@ async function openArtCreator() {
   await showStickerCreatorWindow();
 }
 
-async function uuMinutesOpenRecordings(): Promise<void> {
+async function minutesOpenRecordings(): Promise<void> {
   const dir = join(app.getPath('userData'), RECORDINGS_DIR_NAME);
   await fsExtra.mkdir(dir, { recursive: true });
   await shell.openPath(dir);
 }
 
-async function uuMinutesOpenSummaries(): Promise<void> {
+async function minutesOpenSummaries(): Promise<void> {
   const dir = join(app.getPath('userData'), SUMMARIES_DIR_NAME);
   await fsExtra.mkdir(dir, { recursive: true });
   await shell.openPath(dir);
 }
 
-function uuMinutesSummarizeChat(): void {
+function minutesSummarizeChat(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:summarize-current-chat');
+  mainWindow.webContents.send('minutes:summarize-current-chat');
 }
 
-function uuMinutesSummarizeUnread(): void {
+function minutesSummarizeUnread(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:summarize-unread');
+  mainWindow.webContents.send('minutes:summarize-unread');
 }
 
-function uuMinutesOpenSettings(): void {
+function minutesOpenSettings(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:open-settings');
+  mainWindow.webContents.send('minutes:open-settings');
 }
 
-function uuMinutesOpenLog(): void {
+function minutesOpenLog(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:open-log');
+  mainWindow.webContents.send('minutes:open-log');
 }
 
-function uuMinutesOpenCallSummaryExtension(): void {
+function minutesOpenCallSummaryExtension(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:open-call-summary-extension');
+  mainWindow.webContents.send('minutes:open-call-summary-extension');
 }
 
-function uuMinutesOpenTranscriptionQueue(): void {
+function minutesOpenTranscriptionQueue(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:open-transcription-queue');
+  mainWindow.webContents.send('minutes:open-transcription-queue');
 }
 
-function uuMinutesOpenBookmarks(): void {
+function minutesOpenBookmarks(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:open-bookmarks');
+  mainWindow.webContents.send('minutes:open-bookmarks');
 }
 
-function uuMinutesOpenReadme(): void {
+function minutesOpenReadme(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:open-readme');
+  mainWindow.webContents.send('minutes:open-readme');
 }
 
-function uuMinutesShowHome(): void {
+function minutesShowHome(): void {
   if (!mainWindow?.webContents) {
     return;
   }
-  mainWindow.webContents.send('uuminutes:show-home');
+  mainWindow.webContents.send('minutes:show-home');
 }
 
 let debugLogWindow: BrowserWindow | undefined;
@@ -2199,9 +2199,9 @@ electronProtocol.registerSchemesAsPrivileged([
 // Some APIs can only be used after this event occurs.
 let ready = false;
 app.on('ready', async () => {
-  if (process.env.UUMINUTES_TEST_PIPELINE === '1') {
+  if (process.env.MINUTES_TEST_PIPELINE === '1') {
     const { runTestPipelineFromMain } = await import(
-      './uuminutes_test_pipeline.main.ts'
+      './minutes_test_pipeline.main.ts'
     );
     await runTestPipelineFromMain();
     return;
@@ -2459,7 +2459,7 @@ app.on('ready', async () => {
     sql,
     configDir: userDataPath,
   });
-  initializeUuMinutesChannel();
+  initializeMinutesChannel();
   sqlChannels.initialize(sql);
   PowerChannel.initialize({
     send(event) {
@@ -2562,17 +2562,17 @@ function setupMenu(options?: Partial<CreateTemplateOptionsType>) {
     zoomIn,
     zoomOut,
     zoomReset,
-    uuMinutesSummarizeChat,
-    uuMinutesSummarizeUnread,
-    uuMinutesOpenSettings,
-    uuMinutesOpenLog,
-    uuMinutesOpenRecordings,
-    uuMinutesOpenSummaries,
-    uuMinutesOpenCallSummaryExtension,
-    uuMinutesOpenTranscriptionQueue,
-    uuMinutesOpenBookmarks,
-    uuMinutesOpenReadme,
-    uuMinutesShowHome,
+    minutesSummarizeChat,
+    minutesSummarizeUnread,
+    minutesOpenSettings,
+    minutesOpenLog,
+    minutesOpenRecordings,
+    minutesOpenSummaries,
+    minutesOpenCallSummaryExtension,
+    minutesOpenTranscriptionQueue,
+    minutesOpenBookmarks,
+    minutesOpenReadme,
+    minutesShowHome,
 
     // overrides
     ...options,

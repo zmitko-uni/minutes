@@ -8,7 +8,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Minutes je fork Signal Desktop — nová logika patří do `ts/uuminutes/` s minimálními hooky v upstream.
+        Minutes je fork Signal Desktop — nová logika patří do `ts/minutes/` s minimálními hooky v upstream.
         Viz [FORK-MAINTENANCE.md](https://github.com/zmitko-uni/minutes/blob/main/docs/FORK-MAINTENANCE.md).
 
   - type: textarea
@@ -38,5 +38,5 @@ body:
     attributes:
       label: Rozsah
       options:
-        - label: Jde implementovat v `ts/uuminutes/` bez velkých zásahů do Signal kódu
-        - label: Vyžaduje změnu upstream (hook) — ok s dokumentací v UUMINUTES-PATCHES.md
+        - label: Jde implementovat v `ts/minutes/` bez velkých zásahů do Signal kódu
+        - label: Vyžaduje změnu upstream (hook) — ok s dokumentací v MINUTES-PATCHES.md

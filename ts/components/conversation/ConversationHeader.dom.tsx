@@ -53,7 +53,7 @@ import { OfficialChatInlineBadge } from './OfficialChatInlineBadge.dom.tsx';
 import { AxoIconButton } from '../../axo/AxoIconButton.dom.tsx';
 import { AxoButton } from '../../axo/AxoButton.dom.tsx';
 import { AxoConfirmDialog } from '../../axo/AxoConfirmDialog.dom.tsx';
-import { UuMinutesDropdownMenuItems } from '../../uuminutes/components/UuMinutesConversationMenuItems.dom.tsx';
+import { MinutesDropdownMenuItems } from '../../minutes/components/MinutesConversationMenuItems.dom.tsx';
 
 function HeaderInfoTitle({
   name,
@@ -724,7 +724,7 @@ function HeaderDropdownMenuContent({
         >
           {i18n('icu:deleteConversation')}
         </AxoDropdownMenu.Item>
-        <UuMinutesDropdownMenuItems conversationId={conversation.id} />
+        <MinutesDropdownMenuItems conversationId={conversation.id} />
       </AxoDropdownMenu.Content>
     );
   }
@@ -760,7 +760,7 @@ function HeaderDropdownMenuContent({
         >
           {i18n('icu:deleteConversation')}
         </AxoDropdownMenu.Item>
-        <UuMinutesDropdownMenuItems conversationId={conversation.id} />
+        <MinutesDropdownMenuItems conversationId={conversation.id} />
       </AxoDropdownMenu.Content>
     );
   }
@@ -942,7 +942,7 @@ function HeaderDropdownMenuContent({
           )}
         </>
       )}
-      <UuMinutesDropdownMenuItems conversationId={conversation.id} />
+      <MinutesDropdownMenuItems conversationId={conversation.id} />
     </AxoDropdownMenu.Content>
   );
 }

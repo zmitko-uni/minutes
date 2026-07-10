@@ -32,17 +32,17 @@ const stageLocalBackupForImport = stub();
 const zoomIn = stub();
 const zoomOut = stub();
 const zoomReset = stub();
-const uuMinutesSummarizeChat = stub();
-const uuMinutesSummarizeUnread = stub();
-const uuMinutesOpenSettings = stub();
-const uuMinutesOpenLog = stub();
-const uuMinutesOpenRecordings = stub();
-const uuMinutesOpenSummaries = stub();
-const uuMinutesOpenCallSummaryExtension = stub();
-const uuMinutesOpenTranscriptionQueue = stub();
-const uuMinutesOpenBookmarks = stub();
-const uuMinutesOpenReadme = stub();
-const uuMinutesShowHome = stub();
+const minutesSummarizeChat = stub();
+const minutesSummarizeUnread = stub();
+const minutesOpenSettings = stub();
+const minutesOpenLog = stub();
+const minutesOpenRecordings = stub();
+const minutesOpenSummaries = stub();
+const minutesOpenCallSummaryExtension = stub();
+const minutesOpenTranscriptionQueue = stub();
+const minutesOpenBookmarks = stub();
+const minutesOpenReadme = stub();
+const minutesShowHome = stub();
 
 const getExpectedEditMenu = (
   includeSpeech: boolean
@@ -254,17 +254,17 @@ describe('createTemplate', () => {
     zoomIn,
     zoomOut,
     zoomReset,
-    uuMinutesSummarizeChat,
-    uuMinutesSummarizeUnread,
-    uuMinutesOpenSettings,
-    uuMinutesOpenLog,
-    uuMinutesOpenRecordings,
-    uuMinutesOpenSummaries,
-    uuMinutesOpenCallSummaryExtension,
-    uuMinutesOpenTranscriptionQueue,
-    uuMinutesOpenBookmarks,
-    uuMinutesOpenReadme,
-    uuMinutesShowHome,
+    minutesSummarizeChat,
+    minutesSummarizeUnread,
+    minutesOpenSettings,
+    minutesOpenLog,
+    minutesOpenRecordings,
+    minutesOpenSummaries,
+    minutesOpenCallSummaryExtension,
+    minutesOpenTranscriptionQueue,
+    minutesOpenBookmarks,
+    minutesOpenReadme,
+    minutesShowHome,
   };
 
   PLATFORMS.forEach(({ label, platform, expectedDefault }) => {

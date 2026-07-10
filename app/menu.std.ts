@@ -9,21 +9,21 @@ import type {
   MenuOptionsType,
   MenuActionsType,
 } from '../ts/types/menu.std.ts';
-import { UUMINUTES_BUILD_ID } from '../ts/uuminutes/constants.std.ts';
+import { MINUTES_BUILD_ID } from '../ts/minutes/constants.std.ts';
 import {
-  UUMINUTES_MENU_AI_SETTINGS,
-  UUMINUTES_MENU_ABOUT,
-  UUMINUTES_MENU_BOOKMARKS,
-  UUMINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
-  UUMINUTES_MENU_LABEL,
-  UUMINUTES_MENU_OPEN_RECORDINGS,
-  UUMINUTES_MENU_OPEN_SUMMARIES,
-  UUMINUTES_MENU_README,
-  UUMINUTES_MENU_SHOW_LOG,
-  UUMINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
-  UUMINUTES_MENU_SUMMARIZE_UNREAD,
-  UUMINUTES_MENU_TRANSCRIPTION_QUEUE,
-} from '../ts/uuminutes/menuLabels.std.ts';
+  MINUTES_MENU_AI_SETTINGS,
+  MINUTES_MENU_ABOUT,
+  MINUTES_MENU_BOOKMARKS,
+  MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
+  MINUTES_MENU_LABEL,
+  MINUTES_MENU_OPEN_RECORDINGS,
+  MINUTES_MENU_OPEN_SUMMARIES,
+  MINUTES_MENU_README,
+  MINUTES_MENU_SHOW_LOG,
+  MINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
+  MINUTES_MENU_SUMMARIZE_UNREAD,
+  MINUTES_MENU_TRANSCRIPTION_QUEUE,
+} from '../ts/minutes/menuLabels.std.ts';
 import { strictAssert } from '../ts/util/assert.std.ts';
 
 const { isString } = lodash;
@@ -60,17 +60,17 @@ export const createTemplate = (
     zoomIn,
     zoomOut,
     zoomReset,
-    uuMinutesSummarizeChat,
-    uuMinutesSummarizeUnread,
-    uuMinutesOpenSettings,
-    uuMinutesOpenLog,
-    uuMinutesOpenRecordings,
-    uuMinutesOpenSummaries,
-    uuMinutesOpenCallSummaryExtension,
-    uuMinutesOpenTranscriptionQueue,
-    uuMinutesOpenBookmarks,
-    uuMinutesOpenReadme,
-    uuMinutesShowHome,
+    minutesSummarizeChat,
+    minutesSummarizeUnread,
+    minutesOpenSettings,
+    minutesOpenLog,
+    minutesOpenRecordings,
+    minutesOpenSummaries,
+    minutesOpenCallSummaryExtension,
+    minutesOpenTranscriptionQueue,
+    minutesOpenBookmarks,
+    minutesOpenReadme,
+    minutesShowHome,
   } = options;
 
   const template: MenuListType = [
@@ -96,71 +96,71 @@ export const createTemplate = (
       ],
     },
     {
-      label: UUMINUTES_MENU_LABEL,
+      label: MINUTES_MENU_LABEL,
       submenu: [
         {
-          label: `Build ${UUMINUTES_BUILD_ID}`,
+          label: `Build ${MINUTES_BUILD_ID}`,
           enabled: false,
         },
         {
           type: 'separator',
         },
         {
-          label: UUMINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
+          label: MINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
           accelerator: 'CommandOrControl+Shift+U',
-          click: uuMinutesSummarizeChat,
+          click: minutesSummarizeChat,
         },
         {
-          label: UUMINUTES_MENU_SUMMARIZE_UNREAD,
+          label: MINUTES_MENU_SUMMARIZE_UNREAD,
           accelerator: 'CommandOrControl+Shift+N',
-          click: uuMinutesSummarizeUnread,
+          click: minutesSummarizeUnread,
         },
         {
-          label: UUMINUTES_MENU_BOOKMARKS,
+          label: MINUTES_MENU_BOOKMARKS,
           accelerator: 'CommandOrControl+Shift+B',
-          click: uuMinutesOpenBookmarks,
+          click: minutesOpenBookmarks,
         },
         {
-          label: UUMINUTES_MENU_TRANSCRIPTION_QUEUE,
-          click: uuMinutesOpenTranscriptionQueue,
-        },
-        {
-          type: 'separator',
-        },
-        {
-          label: UUMINUTES_MENU_AI_SETTINGS,
-          click: uuMinutesOpenSettings,
-        },
-        {
-          label: UUMINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
-          click: uuMinutesOpenCallSummaryExtension,
+          label: MINUTES_MENU_TRANSCRIPTION_QUEUE,
+          click: minutesOpenTranscriptionQueue,
         },
         {
           type: 'separator',
         },
         {
-          label: UUMINUTES_MENU_README,
-          click: uuMinutesOpenReadme,
+          label: MINUTES_MENU_AI_SETTINGS,
+          click: minutesOpenSettings,
         },
         {
-          label: UUMINUTES_MENU_ABOUT,
-          click: uuMinutesShowHome,
+          label: MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
+          click: minutesOpenCallSummaryExtension,
         },
         {
           type: 'separator',
         },
         {
-          label: UUMINUTES_MENU_OPEN_RECORDINGS,
-          click: uuMinutesOpenRecordings,
+          label: MINUTES_MENU_README,
+          click: minutesOpenReadme,
         },
         {
-          label: UUMINUTES_MENU_OPEN_SUMMARIES,
-          click: uuMinutesOpenSummaries,
+          label: MINUTES_MENU_ABOUT,
+          click: minutesShowHome,
         },
         {
-          label: UUMINUTES_MENU_SHOW_LOG,
+          type: 'separator',
+        },
+        {
+          label: MINUTES_MENU_OPEN_RECORDINGS,
+          click: minutesOpenRecordings,
+        },
+        {
+          label: MINUTES_MENU_OPEN_SUMMARIES,
+          click: minutesOpenSummaries,
+        },
+        {
+          label: MINUTES_MENU_SHOW_LOG,
           accelerator: 'CommandOrControl+Shift+Alt+L',
-          click: uuMinutesOpenLog,
+          click: minutesOpenLog,
         },
       ],
     },

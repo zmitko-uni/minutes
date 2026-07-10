@@ -96,7 +96,7 @@ import type { ConversationModel } from '../models/conversations.preload.ts';
 import * as Bytes from '../Bytes.std.ts';
 import { uuidToBytes, bytesToUuid } from '../util/uuidToBytes.std.ts';
 import { drop } from '../util/drop.std.ts';
-import { callRecordingService } from '../uuminutes/index.preload.ts';
+import { callRecordingService } from '../minutes/index.preload.ts';
 import { dropNull } from '../util/dropNull.std.ts';
 import { getOwn } from '../util/getOwn.std.ts';
 import * as durations from '../util/durations/index.std.ts';

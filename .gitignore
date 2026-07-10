@@ -50,6 +50,6 @@ ts/protobuf/*.d.ts
 *.sublime*
 *.map
 
-# Local debug logs (uuMinutes dev)
+# Local debug logs (minutes dev)
 debuglog*
 me.txt.txt

@@ -25,11 +25,11 @@ Základní release na Signal Desktop 8.21.
 - Záložky zpráv, export sumářů do chatu (toast)
 - Příručka v aplikaci (`prirucka.md`), uvítací obrazovka
 - GitHub Actions: release instalátoru, merge upstream Signálu
-- Oddělený userData profil `%APPDATA%\uuMinutes-uuminutes`
+- Oddělený userData profil `%APPDATA%\Minutes`
 
 ### Changed
 - Branding Minutes (ikony, menu, startup splash)
-- Architektura: veškerá logika v `ts/uuminutes/`, tenké hooky v upstream
+- Architektura: veškerá logika v `ts/minutes/`, tenké hooky v upstream
 
 ### Known limitations
 - Pouze Windows instalátor (NSIS), bez code signing

@@ -38,9 +38,9 @@ import type { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
 import { AxoContextMenu } from '../../axo/AxoContextMenu.dom.tsx';
 import { useDocumentKeyDown } from '../../hooks/useDocumentKeyDown.dom.ts';
 import type { Emoji } from '../../axo/emoji.std.ts';
-import { summarizeFromMessage } from '../../uuminutes/chatSummaryService.preload.ts';
-import { addMessageBookmark } from '../../uuminutes/bookmarksService.preload.ts';
-import { markUnreadFromMessage } from '../../uuminutes/markUnreadFromMessage.preload.ts';
+import { summarizeFromMessage } from '../../minutes/chatSummaryService.preload.ts';
+import { addMessageBookmark } from '../../minutes/bookmarksService.preload.ts';
+import { markUnreadFromMessage } from '../../minutes/markUnreadFromMessage.preload.ts';
 import { drop } from '../../util/drop.std.ts';
 
 const { useAxoContextMenuOutsideKeyboardTrigger } = AxoContextMenu;
@@ -380,12 +380,12 @@ export function TimelineMessage(props: Props): JSX.Element {
               : null
           }
           onBookmarkMessage={
-            window.uuMinutes != null
+            window.minutes != null
               ? () => drop(addMessageBookmark({ conversationId, messageId: id }))
               : null
           }
           onMarkUnreadFromHere={
-            window.uuMinutes != null
+            window.minutes != null
               ? () => drop(markUnreadFromMessage(conversationId, id))
               : null
           }

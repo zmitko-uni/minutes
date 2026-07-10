@@ -51,13 +51,13 @@ const downloadBlock = `
 
 1. Stáhněte \`.exe\`
 2. Windows SmartScreen může varovat (unsigned) → *Více informací* → *Přesto spustit*
-3. Data uživatele: \`%APPDATA%\\uuMinutes-uuminutes\` (při odinstalaci se nemazou)
+3. Data uživatele: \`%APPDATA%\\Minutes\` (při odinstalaci se nemazou)
 
 ### Aktualizace
 
 Auto-update je vypnuto. Novou verzi stáhněte z [Releases](https://github.com/zmitko-uni/minutes/releases/latest) a nainstalujte přes stávající instalaci.
 
-Viz [CHANGELOG.md](https://github.com/zmitko-uni/minutes/blob/main/CHANGELOG.md) a [README-UUMINUTES.md](https://github.com/zmitko-uni/minutes/blob/main/README-UUMINUTES.md).
+Viz [CHANGELOG.md](https://github.com/zmitko-uni/minutes/blob/main/CHANGELOG.md) a [README-MINUTES.md](https://github.com/zmitko-uni/minutes/blob/main/README-MINUTES.md).
 `.trim();
 
 process.stdout.write(`## Minutes ${version}\n\n${section}\n\n${downloadBlock}\n`);

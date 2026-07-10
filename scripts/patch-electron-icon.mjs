@@ -1,4 +1,4 @@
-// Patch electron.exe icon for uuMinutes dev runs (`electron .` on Windows).
+// Patch electron.exe icon for minutes dev runs (`electron .` on Windows).
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
@@ -6,14 +6,14 @@ import { Data, NtExecutable, NtExecutableResource, Resource } from 'resedit';
 
 const require = createRequire(import.meta.url);
 const rootDir = join(import.meta.dirname, '..');
-const iconPath = join(rootDir, 'build', 'icons', 'uuminutes', 'win', 'icon.ico');
+const iconPath = join(rootDir, 'build', 'icons', 'minutes', 'win', 'icon.ico');
 
 if (process.platform !== 'win32') {
   process.exit(0);
 }
 
 if (!existsSync(iconPath)) {
-  console.warn(`[uuMinutes] skip electron icon patch — missing ${iconPath}`);
+  console.warn(`[minutes] skip electron icon patch — missing ${iconPath}`);
   process.exit(0);
 }
 
@@ -21,12 +21,12 @@ let electronPath;
 try {
   electronPath = require('electron');
 } catch {
-  console.warn('[uuMinutes] skip electron icon patch — electron not installed');
+  console.warn('[minutes] skip electron icon patch — electron not installed');
   process.exit(0);
 }
 
 if (typeof electronPath !== 'string' || !existsSync(electronPath)) {
-  console.warn('[uuMinutes] skip electron icon patch — invalid electron path');
+  console.warn('[minutes] skip electron icon patch — invalid electron path');
   process.exit(0);
 }
 
@@ -63,10 +63,10 @@ try {
 
   res.outputResource(exe);
   writeFileSync(electronPath, Buffer.from(exe.generate()));
-  console.log(`[uuMinutes] patched Windows icon on ${electronPath}`);
+  console.log(`[minutes] patched Windows icon on ${electronPath}`);
 } catch (error) {
   console.warn(
-    `[uuMinutes] electron icon patch failed — taskbar may show Electron logo in dev: ${
+    `[minutes] electron icon patch failed — taskbar may show Electron logo in dev: ${
       error instanceof Error ? error.message : String(error)
     }`
   );

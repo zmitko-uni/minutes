@@ -2,10 +2,10 @@
 blank_issues_enabled: false
 contact_links:
   - name: 📖 Příručka Minutes
-    url: https://github.com/zmitko-uni/minutes/blob/main/images/uuminutes/prirucka.md
+    url: https://github.com/zmitko-uni/minutes/blob/main/images/minutes/prirucka.md
     about: Uživatelská dokumentace funkcí a ovládání
   - name: 🛠️ Vývojářská dokumentace
-    url: https://github.com/zmitko-uni/minutes/blob/main/README-UUMINUTES.md
+    url: https://github.com/zmitko-uni/minutes/blob/main/README-MINUTES.md
     about: Build, architektura, release
   - name: 📋 Changelog
     url: https://github.com/zmitko-uni/minutes/blob/main/CHANGELOG.md

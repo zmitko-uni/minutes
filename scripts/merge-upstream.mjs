@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Copyright 2026 uuMinutes contributors
+// Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 // Merge Signal Desktop into Minutes without adding a persistent upstream remote.
-// Used from GitHub Actions (.github/workflows/uuminutes-merge-upstream.yml).
+// Used from GitHub Actions (.github/workflows/minutes-merge-upstream.yml).
 // Local use: run from a clone whose origin is https://github.com/zmitko-uni/minutes
 
 import { spawnSync } from 'node:child_process';
@@ -49,5 +49,5 @@ run('git', ['merge', 'FETCH_HEAD', '--no-edit']);
 
 console.log('');
 console.log('Upstream merge complete.');
-console.log('Review conflicts in hook files listed in docs/UUMINUTES-PATCHES.md if any.');
-console.log('Update UUMINUTES_SIGNAL_BASE_VERSION in ts/uuminutes/welcomeContent.std.ts if needed.');
+console.log('Review conflicts in hook files listed in docs/MINUTES-PATCHES.md if any.');
+console.log('Update MINUTES_SIGNAL_BASE_VERSION in ts/minutes/welcomeContent.std.ts if needed.');

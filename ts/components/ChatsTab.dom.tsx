@@ -5,7 +5,7 @@ import type { JSX } from 'react';
 
 import type { LocalizerType } from '../types/I18N.std.ts';
 import type { NavTabPanelProps } from './NavTabs.dom.tsx';
-import { UuMinutesWelcomeSplash } from '../uuminutes/components/UuMinutesWelcomeSplash.dom.tsx';
+import { MinutesWelcomeSplash } from '../minutes/components/MinutesWelcomeSplash.dom.tsx';
 import type { UnreadStats } from '../util/countUnreadStats.std.ts';
 import type { SmartConversationViewProps } from '../state/smart/ConversationView.preload.tsx';
 
@@ -62,7 +62,7 @@ export function ChatsTab({
         ) : (
           <div className="Inbox__no-conversation-open">
             {renderMiniPlayer({ shouldFlow: false })}
-            <UuMinutesWelcomeSplash isStaging={isStaging} i18n={i18n} />
+            <MinutesWelcomeSplash isStaging={isStaging} i18n={i18n} />
             <div className="Inbox__padding" />
           </div>
         )}

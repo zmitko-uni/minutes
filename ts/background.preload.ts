@@ -210,15 +210,15 @@ import { deleteAllLogs } from './util/deleteAllLogs.preload.ts';
 import { startInteractionMode } from './services/InteractionMode.dom.ts';
 import { calling } from './services/calling.preload.ts';
 import {
-  initializeUuMinutes,
+  initializeMinutes,
   summarizeSelectedConversation,
   summarizeUnreadConversations,
-} from './uuminutes/index.preload.ts';
+} from './minutes/index.preload.ts';
 import {
-  getUuMinutesConnectHasBuildExpired,
-  isUuMinutesBuildExpirationDisabled,
-  prepareUuMinutesBuildExpiration,
-} from './uuminutes/buildExpiration.preload.ts';
+  getMinutesConnectHasBuildExpired,
+  isMinutesBuildExpirationDisabled,
+  prepareMinutesBuildExpiration,
+} from './minutes/buildExpiration.preload.ts';
 import { ReactionSource } from './reactions/ReactionSource.std.ts';
 import { singleProtoJobQueue } from './jobs/singleProtoJobQueue.preload.ts';
 import { SeenStatus } from './MessageSeenStatus.std.ts';
@@ -578,11 +578,11 @@ async function startApp(): Promise<void> {
 
     window.Whisper.events.on('firstEnvelope', checkFirstEnvelope);
 
-    await prepareUuMinutesBuildExpiration(itemStorage);
+    await prepareMinutesBuildExpiration(itemStorage);
 
     const buildExpirationService = new BuildExpirationService();
-    const hasBuildExpired = isUuMinutesBuildExpirationDisabled()
-      ? getUuMinutesConnectHasBuildExpired()
+    const hasBuildExpired = isMinutesBuildExpirationDisabled()
+      ? getMinutesConnectHasBuildExpired()
       : buildExpirationService.hasBuildExpired();
 
     if (hasBuildExpired) {
@@ -597,7 +597,7 @@ async function startApp(): Promise<void> {
       })
     );
 
-    if (!isUuMinutesBuildExpirationDisabled()) {
+    if (!isMinutesBuildExpirationDisabled()) {
       buildExpirationService.on('expired', () => {
         drop(onExpiration('build'));
       });
@@ -1390,8 +1390,8 @@ async function startApp(): Promise<void> {
   });
 
   window.Whisper.events.on('httpResponse499', () => {
-    if (isUuMinutesBuildExpirationDisabled()) {
-      log.warn('uuMinutes: ignoring HTTP 499 remote build expiration');
+    if (isMinutesBuildExpirationDisabled()) {
+      log.warn('minutes: ignoring HTTP 499 remote build expiration');
       return;
     }
 
@@ -1617,7 +1617,7 @@ async function startApp(): Promise<void> {
 
     // Listen for changes to the `desktop.clientExpiration` remote flag
     onRemoteConfigChange(['desktop.clientExpiration'], () => {
-      if (isUuMinutesBuildExpirationDisabled()) {
+      if (isMinutesBuildExpirationDisabled()) {
         return;
       }
       if (!isRemoteConfigValueEnabled('desktop.clientExpiration')) {
@@ -2175,13 +2175,13 @@ async function startApp(): Promise<void> {
 
     drop(calling.prepareCallingAssets());
 
-    initializeUuMinutes();
+    initializeMinutes();
 
-    ipcRenderer.on('uuminutes:summarize-current-chat', () => {
+    ipcRenderer.on('minutes:summarize-current-chat', () => {
       drop(summarizeSelectedConversation());
     });
 
-    ipcRenderer.on('uuminutes:summarize-unread', () => {
+    ipcRenderer.on('minutes:summarize-unread', () => {
       drop(summarizeUnreadConversations());
     });
 

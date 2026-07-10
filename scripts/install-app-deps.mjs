@@ -1,4 +1,4 @@
-// Copyright 2026 uuMinutes contributors
+// Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { execSync } from 'node:child_process';
@@ -8,17 +8,17 @@ try {
 } catch (error) {
   const strict =
     process.env.CI === 'true' ||
-    process.env.UUMINUTES_STRICT_NATIVE_BUILD === '1';
+    process.env.MINUTES_STRICT_NATIVE_BUILD === '1';
 
   console.warn('');
   console.warn(
-    '[uuMinutes] electron:install-app-deps failed — native addons were not rebuilt.'
+    '[minutes] electron:install-app-deps failed — native addons were not rebuilt.'
   );
   console.warn(
-    '[uuMinutes] The app can still run on Windows; optional modules (e.g. windows-ucv) are skipped.'
+    '[minutes] The app can still run on Windows; optional modules (e.g. windows-ucv) are skipped.'
   );
   console.warn(
-    '[uuMinutes] For full native support, install Visual Studio 2022 with "Desktop development with C++".'
+    '[minutes] For full native support, install Visual Studio 2022 with "Desktop development with C++".'
   );
   console.warn('');
 

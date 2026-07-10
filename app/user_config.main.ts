@@ -15,11 +15,7 @@ let userData: string | undefined;
 if (config.has('storagePath')) {
   userData = String(config.get('storagePath'));
 } else if (config.has('storageProfile')) {
-  userData = join(
-    app.getPath('appData'),
-    // oxlint-disable-next-line typescript/restrict-template-expressions
-    `uuMinutes-${config.get('storageProfile')}`
-  );
+  userData = join(app.getPath('appData'), 'Minutes');
 } else if (OS.isAppImage()) {
   userData = join(app.getPath('appData'), `${app.getName()} AppImage`);
 }

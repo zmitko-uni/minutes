@@ -209,7 +209,7 @@ declare global {
       copyTextTemporarily: (text: string, clearAfterMs: number) => void;
     };
 
-    uuMinutes?: Readonly<{
+    minutes?: Readonly<{
       buildId: string;
       openLog: () => void;
       openReadme: () => void;

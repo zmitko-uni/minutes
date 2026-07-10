@@ -1,20 +1,20 @@
-# Fork maintainability — základní pravidlo uuMinutes
+# Fork maintainability — základní pravidlo minutes
 
 > **Tento projekt je fork Signal Desktop. Všechno musíme dělat tak, aby šel fork pravidelně aktualizovat o nové verze Signálu bez konfliktů. Toto je klíčové.**
 
 ## Proč
 
-Signal Desktop se mění často — protokol, RingRTC, Redux, build. Každá úprava uvnitř upstream souborů je budoucí merge konflikt. Cíl uuMinutes není přepsat Signál, ale **přidat tenkou vrstvu** vedle něj.
+Signal Desktop se mění často — protokol, RingRTC, Redux, build. Každá úprava uvnitř upstream souborů je budoucí merge konflikt. Cíl minutes není přepsat Signál, ale **přidat tenkou vrstvu** vedle něj.
 
 ## Zlaté pravidlo
 
 | ✅ Dělej | ❌ Nedělej |
 |---------|-----------|
-| Nový kód do `ts/uuminutes/` | Velké refactory v `ts/services/`, `ts/state/`, `app/` |
-| Jeden nový soubor `app/uuminutes_*.main.ts` pro IPC | Rozšiřovat `app/main.main.ts` o stovky řádků |
+| Nový kód do `ts/minutes/` | Velké refactory v `ts/services/`, `ts/state/`, `app/` |
+| Jeden nový soubor `app/minutes_*.main.ts` pro IPC | Rozšiřovat `app/main.main.ts` o stovky řádků |
 | V upstream souboru jen **hook** (import + 1 volání) | Kopírovat celé upstream funkce a upravovat |
 | Registrovat menu/IPC přes vlastní modul | Měnit chování existujících Signal menu položek |
-| Dokumentovat každý dotčený upstream soubor v `docs/UUMINUTES-PATCHES.md` | „Rychlé“ úpravy bez záznamu |
+| Dokumentovat každý dotčený upstream soubor v `docs/MINUTES-PATCHES.md` | „Rychlé“ úpravy bez záznamu |
 | Před merge: `pnpm run merge-upstream` + kontrola patch listu | Měsíce práce bez syncu s upstream |
 
 ## Architektura vrstvy
@@ -27,14 +27,14 @@ Signal Desktop se mění často — protokol, RingRTC, Redux, build. Každá úp
                │ tenké hooky (min. řádků)
                ▼
 ┌─────────────────────────────────────────┐
-│  ts/uuminutes/                          │
-│  — veškerá logika uuMinutes             │
+│  ts/minutes/                          │
+│  — veškerá logika minutes             │
 │  — vlastní testy, vlastní typy           │
 └──────────────┬──────────────────────────┘
                │ IPC
                ▼
 ┌─────────────────────────────────────────┐
-│  app/uuminutes_channel.main.ts          │
+│  app/minutes_channel.main.ts          │
 │  — main process (soubory, loopback)    │
 └─────────────────────────────────────────┘
 ```
@@ -44,7 +44,7 @@ Signal Desktop se mění často — protokol, RingRTC, Redux, build. Každá úp
 **Správně** — import + jedno volání, žádná business logika:
 
 ```typescript
-import { callRecordingService } from '../uuminutes/index.preload.ts';
+import { callRecordingService } from '../minutes/index.preload.ts';
 
 // ... uvnitř existujícího handleru:
 drop(callRecordingService.onGroupCallJoined({ conversationId, callMode, eraId }));
@@ -54,20 +54,20 @@ drop(callRecordingService.onGroupCallJoined({ conversationId, callMode, eraId })
 
 ## Kde smí být změny upstream
 
-Povolené dotyky (udržovat seznam v `docs/UUMINUTES-PATCHES.md` aktuální):
+Povolené dotyky (udržovat seznam v `docs/MINUTES-PATCHES.md` aktuální):
 
 1. **Registrace** — `background.preload.ts`, `main.main.ts` (jen `initialize…()`)
 2. **Lifecycle hook** — `calling.preload.ts` (join/end group call)
 3. **Branding / data dir** — `package.json`, `user_config.main.ts`
-4. **Menu** — `menu.std.ts`, `ts/types/menu.std.ts` (pouze nová položka uuMinutes)
+4. **Menu** — `menu.std.ts`, `ts/types/menu.std.ts` (pouze nová položka minutes)
 
 Nový upstream soubor do seznamu přidáváš **jen když neexistuje čistší cesta** (IPC, event, vlastní modul).
 
 ## Postup při nové feature
 
-1. Navrhni řešení **nejdřív v `ts/uuminutes/`**
+1. Navrhni řešení **nejdřív v `ts/minutes/`**
 2. Potřebuješ hook? — přidej nejmenší možný řádek do upstream
-3. Aktualizuj `docs/UUMINUTES-PATCHES.md`
+3. Aktualizuj `docs/MINUTES-PATCHES.md`
 4. Po implementaci spusť upstream sync přes GitHub Actions (ne lokální `git pull` ze Signálu)
 
 ## Merge workflow
@@ -78,7 +78,7 @@ Oficiální [Signal Desktop](https://github.com/signalapp/Signal-Desktop) drží
 1. Repo → **Actions** → **Merge Signal upstream**
 2. Zvol ref (např. `main` nebo tag `v8.21.0-alpha.1`)
 3. Workflow vytvoří větev `sync/signal-<run>` a **pull request** do `main`
-4. Po review PR merge — zkontroluj hooky v `docs/UUMINUTES-PATCHES.md`
+4. Po review PR merge — zkontroluj hooky v `docs/MINUTES-PATCHES.md`
 
 Lokálně **nepoužívej** `git pull origin` ze Signálu. Jediný remote:
 
@@ -99,14 +99,14 @@ node scripts/merge-upstream.mjs v8.21.0-alpha.1
 Po merge konflikty řeš takto:
 
 1. Upstream verze má přednost v Signal logice
-2. Na konec souboru / vedle hooku znovu přidej uuMinutes řádky
-3. Nikdy nemaž upstream změny kvůli uuMinutes
+2. Na konec souboru / vedle hooku znovu přidej minutes řádky
+3. Nikdy nemaž upstream změny kvůli minutes
 
 ## Kontrolní seznam před PR / commitem
 
-- [ ] Většina diffu je v `ts/uuminutes/` nebo `app/uuminutes_*.ts`
+- [ ] Většina diffu je v `ts/minutes/` nebo `app/minutes_*.ts`
 - [ ] Upstream změny jsou jen hooky / registrace
-- [ ] `docs/UUMINUTES-PATCHES.md` je aktuální
+- [ ] `docs/MINUTES-PATCHES.md` je aktuální
 - [ ] `CHANGELOG.md` — `[Unreleased]` doplněno u user-facing změn
 - [ ] `pnpm run check:types` (nebo Minutes CI na GitHubu)
 - [ ] Žádné formátování / rename v Signal souborech „pro čistotu“
@@ -123,7 +123,7 @@ Po merge konflikty řeš takto:
 
 1. Zastav se a zvaž **alternativu** (IPC, sidecar proces, externí nástroj)
 2. Pokud musíš — izoluj do samostatného souboru a jediného importu
-3. Zdokumentuj **proč** a plán na budoucí refaktor zpět do `ts/uuminutes/`
+3. Zdokumentuj **proč** a plán na budoucí refaktor zpět do `ts/minutes/`
 
 ---
 

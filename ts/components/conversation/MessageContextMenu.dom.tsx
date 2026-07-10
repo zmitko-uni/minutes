@@ -4,7 +4,7 @@
 import { useRef, type ReactNode, type JSX } from 'react';
 import type { LocalizerType } from '../../types/I18N.std.ts';
 import { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
-import { UUMINUTES_MENU_ADD_BOOKMARK, UUMINUTES_MENU_MARK_UNREAD_FROM_HERE, UUMINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../uuminutes/menuLabels.std.ts';
+import { MINUTES_MENU_ADD_BOOKMARK, MINUTES_MENU_MARK_UNREAD_FROM_HERE, MINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../minutes/menuLabels.std.ts';
 import { isInternalFeaturesEnabled } from '../../util/isInternalFeaturesEnabled.dom.ts';
 
 type MessageContextMenuProps = Readonly<{
@@ -159,7 +159,7 @@ export function MessageContextMenu({
             symbol="note"
             onSelect={onSummarizeFromHere}
           >
-            {UUMINUTES_MENU_SUMMARIZE_FROM_HERE}
+            {MINUTES_MENU_SUMMARIZE_FROM_HERE}
           </AxoMenuBuilder.Item>
         )}
         {onMarkUnreadFromHere && (
@@ -167,12 +167,12 @@ export function MessageContextMenu({
             symbol="check-circle"
             onSelect={onMarkUnreadFromHere}
           >
-            {UUMINUTES_MENU_MARK_UNREAD_FROM_HERE}
+            {MINUTES_MENU_MARK_UNREAD_FROM_HERE}
           </AxoMenuBuilder.Item>
         )}
         {onBookmarkMessage && (
           <AxoMenuBuilder.Item symbol="note" onSelect={onBookmarkMessage}>
-            {UUMINUTES_MENU_ADD_BOOKMARK}
+            {MINUTES_MENU_ADD_BOOKMARK}
           </AxoMenuBuilder.Item>
         )}
         {onDeleteMessage && (

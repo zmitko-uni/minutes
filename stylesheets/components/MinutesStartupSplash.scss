@@ -1,0 +1,35 @@
+/* Copyright 2026 Minutes contributors */
+/* SPDX-License-Identifier: AGPL-3.0-only */
+
+// Minutes logo on startup, migration, About, and other splash surfaces.
+
+@mixin minutes-app-logo-background {
+  -webkit-mask: none !important;
+  mask: none !important;
+  background-color: transparent !important;
+  background-image: url('../images/minutes/app-icon-source.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+.About .module-splash-screen__logo.module-splash-screen__logo--128,
+.module-splash-screen .module-splash-screen__logo.module-splash-screen__logo--128 {
+  @include minutes-app-logo-background;
+}
+
+.InstallScreenSignalLogo::before {
+  @include minutes-app-logo-background;
+  width: 32px;
+  height: 32px;
+}
+
+@media (forced-colors: active) {
+  .app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+  .About .module-splash-screen__logo.module-splash-screen__logo--128,
+  .module-splash-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+  .InstallScreenSignalLogo::before {
+    background-color: Canvas !important;
+  }
+}

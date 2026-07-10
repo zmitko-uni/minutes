@@ -12,14 +12,14 @@ import { ThemeType } from '../types/Util.std.ts';
 
 import type { ViewStoryActionCreatorType } from '../state/ducks/stories.preload.ts';
 import type { AppStateType } from '../state/ducks/app.preload.ts';
-import { UuMinutesSettingsHost } from '../uuminutes/components/UuMinutesSettingsModal.dom.tsx';
-import { UuMinutesCallSummaryExtensionHost } from '../uuminutes/components/UuMinutesCallSummaryExtensionModal.dom.tsx';
-import { UuMinutesSummaryToastHost } from '../uuminutes/components/UuMinutesSummaryToastHost.dom.tsx';
-import { UuMinutesAppUpdateBannerHost } from '../uuminutes/components/UuMinutesAppUpdateBannerHost.dom.tsx';
-import { UuMinutesLogHost } from '../uuminutes/components/UuMinutesLogModal.dom.tsx';
-import { UuMinutesBookmarksHost } from '../uuminutes/components/UuMinutesBookmarksModal.dom.tsx';
-import { UuMinutesReadmeHost } from '../uuminutes/components/UuMinutesReadmeModal.dom.tsx';
-import { UuMinutesTranscriptionQueueHost } from '../uuminutes/components/UuMinutesTranscriptionQueueHost.dom.tsx';
+import { MinutesSettingsHost } from '../minutes/components/MinutesSettingsModal.dom.tsx';
+import { MinutesCallSummaryExtensionHost } from '../minutes/components/MinutesCallSummaryExtensionModal.dom.tsx';
+import { MinutesSummaryToastHost } from '../minutes/components/MinutesSummaryToastHost.dom.tsx';
+import { MinutesAppUpdateBannerHost } from '../minutes/components/MinutesAppUpdateBannerHost.dom.tsx';
+import { MinutesLogHost } from '../minutes/components/MinutesLogModal.dom.tsx';
+import { MinutesBookmarksHost } from '../minutes/components/MinutesBookmarksModal.dom.tsx';
+import { MinutesReadmeHost } from '../minutes/components/MinutesReadmeModal.dom.tsx';
+import { MinutesTranscriptionQueueHost } from '../minutes/components/MinutesTranscriptionQueueHost.dom.tsx';
 
 type PropsType = {
   state: AppStateType;
@@ -122,14 +122,14 @@ export function App({
       {contents}
       {renderGlobalModalContainer()}
       {renderCallManager()}
-      <UuMinutesSettingsHost />
-      <UuMinutesCallSummaryExtensionHost />
-      <UuMinutesSummaryToastHost />
-      <UuMinutesAppUpdateBannerHost />
-      <UuMinutesLogHost />
-      <UuMinutesBookmarksHost />
-      <UuMinutesReadmeHost />
-      <UuMinutesTranscriptionQueueHost />
+      <MinutesSettingsHost />
+      <MinutesCallSummaryExtensionHost />
+      <MinutesSummaryToastHost />
+      <MinutesAppUpdateBannerHost />
+      <MinutesLogHost />
+      <MinutesBookmarksHost />
+      <MinutesReadmeHost />
+      <MinutesTranscriptionQueueHost />
       {renderLightbox()}
       {hasSelectedStoryData &&
         renderStoryViewer(() => viewStory({ closeViewer: true }))}
