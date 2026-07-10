@@ -39,6 +39,7 @@ export type MenuActionsType = Readonly<{
   uuMinutesOpenRecordings: () => unknown;
   uuMinutesOpenSummaries: () => unknown;
   uuMinutesOpenCallSummaryExtension: () => unknown;
+  uuMinutesOpenTranscriptionQueue: () => unknown;
   uuMinutesOpenBookmarks: () => unknown;
   uuMinutesOpenReadme: () => unknown;
   uuMinutesShowHome: () => unknown;

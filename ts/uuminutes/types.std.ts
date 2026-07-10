@@ -44,6 +44,17 @@ export type ChatSummaryResult = Readonly<{
   aiError?: string;
 }>;
 
+/** Výstup přepisu hovoru po dokončení fronty Whisperu */
+export type CallRecordingOutput = Readonly<{
+  conversationId: string;
+  conversationTitle: string;
+  transcriptPath: string;
+  /** Přepis pro chat — s AI korekcí, pokud byla zapnutá */
+  transcriptText: string;
+  summaryPath?: string;
+  summaryText?: string;
+}>;
+
 export type UuMinutesRecordingState =
   | Readonly<{ status: 'idle' }>
   | Readonly<{

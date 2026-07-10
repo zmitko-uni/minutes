@@ -7,12 +7,18 @@ import { ipcRenderer } from 'electron';
 
 import { drop } from '../../util/drop.std.ts';
 import type { ChatSummaryResult } from '../types.std.ts';
-import { APP_DISPLAY_NAME } from '../branding.std.ts';
 import {
   subscribeSummaryUi,
   summaryUi,
   type SummaryUiState,
 } from '../summaryUiEvents.std.ts';
+import { APP_DISPLAY_NAME } from '../branding.std.ts';
+import type { CallRecordingOutput } from '../types.std.ts';
+import {
+  isCallRecordingFromSelfChat,
+  sendCallSummaryToChat,
+  sendCallTranscriptToChat,
+} from '../sendCallRecordingToChat.preload.ts';
 import {
   isSummaryFromSelfChat,
   sendSummaryToChat,
@@ -21,6 +27,20 @@ import {
 import { openUuMinutesLog } from '../navigation.preload.ts';
 
 const TOAST_TIMEOUT_MS = 25_000;
+
+function isCallTranscriptResult(result: ChatSummaryResult): boolean {
+  return result.filePath.includes('.transcript.');
+}
+
+function toCallRecordingOutput(result: ChatSummaryResult): CallRecordingOutput {
+  return {
+    conversationId: result.conversationId,
+    conversationTitle: result.conversationTitle,
+    transcriptPath: result.filePath,
+    transcriptText: result.transcriptText?.trim() ?? result.summaryText.trim(),
+    summaryText: result.aiSummary?.trim(),
+  };
+}
 
 function formatSavedBannerMessage(result: ChatSummaryResult): string {
   const isTranscript = result.filePath.includes('.transcript.');
@@ -55,6 +75,7 @@ function ActivityBanner({
   onClose,
   onSendToChat,
   onSendToSelf,
+  onSendCall,
   onShowFile,
 }: Readonly<{
   state: SummaryUiState;
@@ -62,6 +83,11 @@ function ActivityBanner({
   onClose: () => void;
   onSendToChat: (result: ChatSummaryResult) => void;
   onSendToSelf: (result: ChatSummaryResult) => void;
+  onSendCall: (
+    output: CallRecordingOutput,
+    kind: 'transcript' | 'summary',
+    target: 'conversation' | 'self'
+  ) => void;
   onShowFile: (result: ChatSummaryResult) => void;
 }>): JSX.Element {
   if (state.kind === 'working') {
@@ -89,33 +115,83 @@ function ActivityBanner({
   }
 
   if (state.kind === 'saved') {
-    const hideSendToSelf = isSummaryFromSelfChat(state.result);
+    const result = state.result;
+    const isCallTranscript = isCallTranscriptResult(result);
+    const callOutput = isCallTranscript ? toCallRecordingOutput(result) : null;
+    const hideSendToSelf = isCallTranscript
+      ? isCallRecordingFromSelfChat(callOutput!)
+      : isSummaryFromSelfChat(result);
+    const hasCallSummary = Boolean(callOutput?.summaryText?.trim());
+
     return (
       <div className="UuMinutesActivityBanner UuMinutesActivityBanner--saved">
         <span className="UuMinutesActivityBanner__text">
-          {formatSavedBannerMessage(state.result)}
+          {formatSavedBannerMessage(result)}
         </span>
         <div className="UuMinutesActivityBanner__actions">
-          <button
-            type="button"
-            disabled={isSending}
-            onClick={() => onSendToChat(state.result)}
-          >
-            {isSending ? 'Odesílám…' : 'Odeslat do chatu'}
-          </button>
-          {!hideSendToSelf && (
-            <button
-              type="button"
-              disabled={isSending}
-              onClick={() => onSendToSelf(state.result)}
-            >
-              {isSending ? 'Odesílám…' : 'Poslat sobě'}
-            </button>
+          {isCallTranscript && callOutput ? (
+            <>
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={() => onSendCall(callOutput, 'transcript', 'conversation')}
+              >
+                {isSending ? 'Odesílám…' : 'Odeslat přepis do chatu'}
+              </button>
+              {!hideSendToSelf ? (
+                <button
+                  type="button"
+                  disabled={isSending}
+                  onClick={() => onSendCall(callOutput, 'transcript', 'self')}
+                >
+                  {isSending ? 'Odesílám…' : 'Přepis sobě'}
+                </button>
+              ) : null}
+              {hasCallSummary ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={isSending}
+                    onClick={() => onSendCall(callOutput, 'summary', 'conversation')}
+                  >
+                    {isSending ? 'Odesílám…' : 'Odeslat shrnutí do chatu'}
+                  </button>
+                  {!hideSendToSelf ? (
+                    <button
+                      type="button"
+                      disabled={isSending}
+                      onClick={() => onSendCall(callOutput, 'summary', 'self')}
+                    >
+                      {isSending ? 'Odesílám…' : 'Shrnutí sobě'}
+                    </button>
+                  ) : null}
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={() => onSendToChat(result)}
+              >
+                {isSending ? 'Odesílám…' : 'Odeslat do chatu'}
+              </button>
+              {!hideSendToSelf ? (
+                <button
+                  type="button"
+                  disabled={isSending}
+                  onClick={() => onSendToSelf(result)}
+                >
+                  {isSending ? 'Odesílám…' : 'Poslat sobě'}
+                </button>
+              ) : null}
+            </>
           )}
           <button
             type="button"
             disabled={isSending}
-            onClick={() => onShowFile(state.result)}
+            onClick={() => onShowFile(result)}
           >
             Zobrazit soubor
           </button>
@@ -194,6 +270,33 @@ export function UuMinutesSummaryToastHost(): JSX.Element | null {
     [handleSend]
   );
 
+  const handleSendCall = useCallback(
+    (
+      output: CallRecordingOutput,
+      kind: 'transcript' | 'summary',
+      target: 'conversation' | 'self'
+    ) => {
+      if (isSending) {
+        return;
+      }
+      setIsSending(true);
+      drop(
+        (async () => {
+          const sent =
+            kind === 'transcript'
+              ? await sendCallTranscriptToChat(output, target)
+              : await sendCallSummaryToChat(output, target);
+          if (sent) {
+            handleClose();
+          } else {
+            setIsSending(false);
+          }
+        })()
+      );
+    },
+    [handleClose, isSending]
+  );
+
   if (state.kind === 'idle') {
     return null;
   }
@@ -205,6 +308,7 @@ export function UuMinutesSummaryToastHost(): JSX.Element | null {
       onClose={handleClose}
       onSendToChat={handleSendToChat}
       onSendToSelf={handleSendToSelf}
+      onSendCall={handleSendCall}
       onShowFile={handleShowFile}
     />,
     document.body

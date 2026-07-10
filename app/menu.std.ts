@@ -18,6 +18,7 @@ import {
   UUMINUTES_MENU_OPEN_SUMMARIES,
   UUMINUTES_MENU_SHOW_LOG,
   UUMINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
+  UUMINUTES_MENU_TRANSCRIPTION_QUEUE,
 } from '../ts/uuminutes/menuLabels.std.ts';
 import { UUMINUTES_README_LABEL } from '../ts/uuminutes/welcomeContent.std.ts';
 import { strictAssert } from '../ts/util/assert.std.ts';
@@ -62,6 +63,7 @@ export const createTemplate = (
     uuMinutesOpenRecordings,
     uuMinutesOpenSummaries,
     uuMinutesOpenCallSummaryExtension,
+    uuMinutesOpenTranscriptionQueue,
     uuMinutesOpenBookmarks,
     uuMinutesOpenReadme,
     uuMinutesShowHome,
@@ -115,6 +117,10 @@ export const createTemplate = (
         {
           label: 'Sumarizace hovoru…',
           click: uuMinutesOpenCallSummaryExtension,
+        },
+        {
+          label: UUMINUTES_MENU_TRANSCRIPTION_QUEUE,
+          click: uuMinutesOpenTranscriptionQueue,
         },
         {
           label: UUMINUTES_README_LABEL,

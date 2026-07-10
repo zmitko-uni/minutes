@@ -18,14 +18,16 @@ import {
   recordingStateEvents,
 } from './recordingStateEvents.std.ts';
 import { drop } from '../util/drop.std.ts';
-import { transcribeSavedRecording } from './callTranscriptionService.preload.ts';
+import { enqueueRecordingTranscription } from './callTranscriptionService.preload.ts';
 import { speakerActivityLogger } from './speakerActivityLogger.preload.ts';
+import { clampSpeakerActivityLogToPcmDuration } from './speakerActivity.std.ts';
 
 const log = createLogger('uuminutes/callRecording');
 
 class CallRecordingService {
   #recorder = new CallRecorder();
   #state: UuMinutesRecordingState = { status: 'idle' };
+  #finalizing = false;
 
   getState(): UuMinutesRecordingState {
     return this.#state;
@@ -49,15 +51,20 @@ class CallRecordingService {
       return false;
     }
 
+    if (this.#finalizing) {
+      log.warn('startRecording: previous recording is still being saved');
+      return false;
+    }
+
+    if (this.#state.status !== 'idle') {
+      log.warn('startRecording: already active');
+      return false;
+    }
+
     if (this.#recorder.isActive()) {
-      if (this.#state.status === 'idle') {
-        log.warn('startRecording: recovering stale recorder');
-        await this.#recorder.stop().catch(() => undefined);
-        speakerActivityLogger.stop();
-      } else {
-        log.warn('startRecording: already active');
-        return false;
-      }
+      log.warn('startRecording: recovering stale recorder');
+      await this.#recorder.stop().catch(() => undefined);
+      speakerActivityLogger.stop();
     }
 
     const conversation =
@@ -161,6 +168,9 @@ class CallRecordingService {
     ) {
       return null;
     }
+    if (this.#finalizing) {
+      return null;
+    }
     return this.#finalizeRecording(this.#state);
   }
 
@@ -189,55 +199,73 @@ class CallRecordingService {
   async #finalizeRecording(
     active: Exclude<UuMinutesRecordingState, { status: 'idle' }>
   ): Promise<CallRecordingMetadata | null> {
-    const { conversationId, conversationTitle, callMode, eraId, startedAt } =
-      active;
-    const endedAt = Date.now();
-
-    const speakerActivityLog = speakerActivityLogger.stop();
-    const recording = await this.#recorder.stop();
-    this.#setState({ status: 'idle' });
-
-    if (!recording || recording.mp3.byteLength === 0) {
-      log.warn('finalizeRecording: empty recording');
+    if (this.#finalizing) {
       return null;
     }
 
-    const { mp3: mp3Data, pcm48 } = recording;
+    this.#finalizing = true;
 
-    const filePath = await ipcRenderer.invoke('uuminutes:save-recording', {
-      conversationId,
-      conversationTitle,
-      callMode,
-      eraId,
-      startedAt,
-      endedAt,
-      data: mp3Data,
-      pcm48,
-      speakerActivityLog,
-    });
+    try {
+      const { conversationId, conversationTitle, callMode, eraId, startedAt } =
+        active;
+      const endedAt = Date.now();
 
-    if (typeof filePath !== 'string') {
-      return null;
+      let speakerActivityLog = speakerActivityLogger.stop();
+      const recording = await this.#recorder.stop();
+
+      if (!recording || recording.mp3.byteLength === 0) {
+        log.warn('finalizeRecording: empty recording');
+        return null;
+      }
+
+      const { mp3: mp3Data, pcm48 } = recording;
+
+      if (speakerActivityLog != null && pcm48 != null && pcm48.length > 0) {
+        const pcmDurationMs = (pcm48.length / 48_000) * 1000;
+        speakerActivityLog = clampSpeakerActivityLogToPcmDuration(
+          speakerActivityLog,
+          pcmDurationMs
+        );
+      }
+
+      const filePath = await ipcRenderer.invoke('uuminutes:save-recording', {
+        conversationId,
+        conversationTitle,
+        callMode,
+        eraId,
+        startedAt,
+        endedAt,
+        data: mp3Data,
+        pcm48,
+        speakerActivityLog,
+      });
+
+      if (typeof filePath !== 'string') {
+        return null;
+      }
+
+      const metadata: CallRecordingMetadata = {
+        conversationId,
+        conversationTitle,
+        eraId,
+        startedAt,
+        endedAt,
+        filePath,
+        durationMs: endedAt - startedAt,
+      };
+
+      window.reduxActions.toast.showToast({
+        toastType: ToastType.FileSaved,
+        parameters: { fullPath: filePath },
+      });
+
+      enqueueRecordingTranscription(metadata);
+
+      return metadata;
+    } finally {
+      this.#finalizing = false;
+      this.#setState({ status: 'idle' });
     }
-
-    const metadata: CallRecordingMetadata = {
-      conversationId,
-      conversationTitle,
-      eraId,
-      startedAt,
-      endedAt,
-      filePath,
-      durationMs: endedAt - startedAt,
-    };
-
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.FileSaved,
-      parameters: { fullPath: filePath },
-    });
-
-    drop(transcribeSavedRecording(metadata, mp3Data, pcm48));
-
-    return metadata;
   }
 }
 

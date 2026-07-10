@@ -50,6 +50,7 @@ $is-storybook: false !default;
 @use 'components/UuMinutesCallRecordingControls.scss';
 @use 'components/UuMinutesCallSummaryExtension.scss';
 @use 'components/UuMinutesSummaryToast.scss';
+@use 'components/UuMinutesTranscriptionQueue.scss';
 @use 'components/CallControls.scss';
 @use 'components/CallingLobby.scss';
 @use 'components/CallingPendingParticipants.scss';

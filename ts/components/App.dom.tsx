@@ -18,6 +18,7 @@ import { UuMinutesSummaryToastHost } from '../uuminutes/components/UuMinutesSumm
 import { UuMinutesLogHost } from '../uuminutes/components/UuMinutesLogModal.dom.tsx';
 import { UuMinutesBookmarksHost } from '../uuminutes/components/UuMinutesBookmarksModal.dom.tsx';
 import { UuMinutesReadmeHost } from '../uuminutes/components/UuMinutesReadmeModal.dom.tsx';
+import { UuMinutesTranscriptionQueueHost } from '../uuminutes/components/UuMinutesTranscriptionQueueHost.dom.tsx';
 
 type PropsType = {
   state: AppStateType;
@@ -126,6 +127,7 @@ export function App({
       <UuMinutesLogHost />
       <UuMinutesBookmarksHost />
       <UuMinutesReadmeHost />
+      <UuMinutesTranscriptionQueueHost />
       {renderLightbox()}
       {hasSelectedStoryData &&
         renderStoryViewer(() => viewStory({ closeViewer: true }))}

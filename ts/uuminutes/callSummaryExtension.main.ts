@@ -47,6 +47,14 @@ import {
 } from './speakerActivityAlign.std.ts';
 import { countDistinctSpeakersInLog } from './speakerWindowAlign.std.ts';
 import { transcribePcmWithSpeakerWindows } from './transcribeBySpeakerWindows.main.ts';
+import {
+  clampProgressPercent,
+  type TranscriptionProgressCallback,
+} from './transcriptionProgress.std.ts';
+import {
+  clearTranscriptionJobCancellation,
+  throwIfTranscriptionCancelled,
+} from './transcriptionCancel.main.ts';
 
 const log = createLogger('uuminutes/callSummaryExtension');
 
@@ -204,7 +212,6 @@ async function ensureVadModel(
 
 async function loadRecordingPcmSidecar(
   recordingPath: string,
-  fallback: Float32Array,
   sampleRate = 48_000
 ): Promise<Float32Array> {
   const basePath = recordingPath.replace(/\.mp3$/i, '');
@@ -212,7 +219,7 @@ async function loadRecordingPcmSidecar(
   try {
     const raw = await readFile(pcmPath);
     if (raw.byteLength < 4) {
-      return preparePcmForWhisper(fallback, 16_000);
+      throw new Error('PCM sidecar is empty');
     }
     const pcm48 = new Float32Array(
       raw.buffer,
@@ -220,11 +227,15 @@ async function loadRecordingPcmSidecar(
       Math.floor(raw.byteLength / 4)
     );
     if (pcm48.length === 0) {
-      return preparePcmForWhisper(fallback, 16_000);
+      throw new Error('PCM sidecar is empty');
     }
     return preparePcmForWhisper(pcm48, sampleRate);
-  } catch {
-    return preparePcmForWhisper(fallback, 16_000);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'PCM sidecar missing';
+    throw new Error(
+      `Chybí PCM data nahrávky (${message}). Přepis vyžaduje soubor ${pcmPath}.`
+    );
   }
 }
 
@@ -431,29 +442,47 @@ async function loadSpeakerActivityLog(
 }
 
 export async function transcribeCallRecording(options: {
-  pcmf32: Float32Array;
+  jobId?: string;
+  pcmf32?: Float32Array;
   conversationId: string;
   conversationTitle: string;
   startedAt: number;
   endedAt: number;
   recordingPath: string;
-  onProgress?: (percent: number) => void;
+  background?: boolean;
+  onProgress?: TranscriptionProgressCallback;
 }): Promise<{
   transcriptPath: string;
   transcriptText: string;
   summaryPath?: string;
+  summaryText?: string;
 }> {
+  try {
   const extension = await getCallSummaryExtensionPublic();
   if (!extension.activated || !extension.modelFileName) {
     throw new Error('Rozšíření Sumarizace hovoru není aktivní.');
   }
 
+  throwIfTranscriptionCancelled(options.jobId);
+
+  const report: TranscriptionProgressCallback = update => {
+    options.onProgress?.({
+      percent: clampProgressPercent(update.percent),
+      phase: update.phase,
+      detail: update.detail,
+    });
+  };
+
+  report({ percent: 1, phase: 'prepare', detail: 'Načítám audio nahrávky…' });
+
   const modelPath = await getModelPath(extension.modelFileName);
+  throwIfTranscriptionCancelled(options.jobId);
   const activityLog = await loadSpeakerActivityLog(options.recordingPath);
-  const pcmf32 = await loadRecordingPcmSidecar(
-    options.recordingPath,
-    options.pcmf32
-  );
+  const pcmf32 = await loadRecordingPcmSidecar(options.recordingPath);
+  const background = options.background === true;
+
+  report({ percent: 4, phase: 'prepare', detail: 'Audio připraveno k přepisu' });
+  throwIfTranscriptionCancelled(options.jobId);
 
   if (!(await isVadModelReady())) {
     try {
@@ -468,23 +497,38 @@ export async function transcribeCallRecording(options: {
     activityLog.samples.length > 0 &&
     countDistinctSpeakersInLog(activityLog) >= 1;
 
+  const whisperOnProgress = (innerPercent: number, detail?: string): void => {
+    report({
+      percent: 5 + (innerPercent / 100) * 85,
+      phase: 'whisper',
+      detail: detail ?? 'Whisper přepis',
+    });
+  };
+
   const transcription = useSpeakerWindows
     ? await transcribePcmWithSpeakerWindows({
         modelPath,
         pcmf32,
         activityLog,
         language: DEFAULT_WHISPER_LANGUAGE,
-        onProgress: options.onProgress,
+        background,
+        jobId: options.jobId,
+        onProgress: whisperOnProgress,
       })
     : {
         ...(await transcribePcm({
           modelPath,
           pcmf32,
           language: DEFAULT_WHISPER_LANGUAGE,
-          onProgress: options.onProgress,
+          background,
+          jobId: options.jobId,
+          onProgress: whisperOnProgress,
         })),
         alignedSegments: [] as Array<AlignedTranscriptSegment>,
       };
+
+  throwIfTranscriptionCancelled(options.jobId);
+  report({ percent: 90, phase: 'finalize', detail: 'Sestavuji přepis…' });
 
   const { alignedSegments: speakerAlignedSegments, ...result } = transcription;
 
@@ -511,10 +555,13 @@ export async function transcribeCallRecording(options: {
     activityLog,
     alignedSegments: [...alignedSegments],
   });
+  report({ percent: 92, phase: 'finalize', detail: 'Ukládám soubory přepisu…' });
+  throwIfTranscriptionCancelled(options.jobId);
   await writeFile(`${basePath}.transcript.whisper.md`, whisperMarkdown, 'utf8');
 
   if (await isTranscriptCorrectionEnabled()) {
-    options.onProgress?.(95);
+    throwIfTranscriptionCancelled(options.jobId);
+    report({ percent: 94, phase: 'ai-correction', detail: 'AI korekce přepisu…' });
     const settings = await getAiSettingsPublic();
     const apiKey = await getAiApiKey(settings.provider);
     if (apiKey && transcriptForAi.length > 0) {
@@ -559,6 +606,7 @@ export async function transcribeCallRecording(options: {
     }
   }
 
+  throwIfTranscriptionCancelled(options.jobId);
   const markdown = formatTranscriptMarkdown({
     conversationTitle: options.conversationTitle,
     startedAt: options.startedAt,
@@ -576,6 +624,8 @@ export async function transcribeCallRecording(options: {
 
   let summaryPath: string | undefined;
   if (await isAiSummaryEnabled()) {
+    throwIfTranscriptionCancelled(options.jobId);
+    report({ percent: 97, phase: 'ai-correction', detail: 'AI shrnutí hovoru…' });
     const settings = await getAiSettingsPublic();
     const apiKey = await getAiApiKey(settings.provider);
     if (apiKey && correctedTranscriptForAi.length > 0) {
@@ -593,11 +643,95 @@ export async function transcribeCallRecording(options: {
     }
   }
 
+  report({ percent: 100, phase: 'finalize', detail: 'Přepis dokončen' });
+
+  let summaryText: string | undefined;
+  if (summaryPath) {
+    try {
+      summaryText = (await readFile(summaryPath, 'utf8')).trim();
+    } catch {
+      summaryText = undefined;
+    }
+  }
+
   return {
     transcriptPath,
     transcriptText: transcriptForDisplay,
     summaryPath,
+    summaryText,
   };
+  } finally {
+    clearTranscriptionJobCancellation(options.jobId);
+  }
+}
+
+export async function generateCallRecordingSummary(options: {
+  jobId?: string;
+  recordingPath: string;
+  conversationTitle: string;
+  onProgress?: TranscriptionProgressCallback;
+}): Promise<{ summaryPath: string; summaryText: string }> {
+  try {
+    throwIfTranscriptionCancelled(options.jobId);
+
+    if (!(await isAiSummaryEnabled())) {
+      throw new Error('AI shrnutí není zapnuté v nastavení.');
+    }
+
+    const settings = await getAiSettingsPublic();
+    const apiKey = await getAiApiKey(settings.provider);
+    if (!apiKey) {
+      throw new Error('Chybí API klíč pro AI shrnutí.');
+    }
+
+    const basePath = options.recordingPath.replace(/\.mp3$/i, '');
+    const transcriptPath = `${basePath}.transcript.md`;
+    let transcript: string;
+    try {
+      transcript = (await readFile(transcriptPath, 'utf8')).trim();
+    } catch {
+      throw new Error('Přepis nahrávky neexistuje — nejdřív spusťte přepis.');
+    }
+
+    if (transcript.length === 0) {
+      throw new Error('Přepis nahrávky je prázdný.');
+    }
+
+    options.onProgress?.({
+      percent: 20,
+      phase: 'ai-correction',
+      detail: 'Generuji AI shrnutí…',
+    });
+    throwIfTranscriptionCancelled(options.jobId);
+
+    const summaryText = await generateAiSummaryForProvider({
+      provider: settings.provider,
+      apiKey,
+      model: settings.model,
+      outputLanguage: settings.outputLanguage,
+      conversationTitle: options.conversationTitle,
+      scopeLabel: 'Přepis hovoru',
+      transcript,
+    });
+
+    throwIfTranscriptionCancelled(options.jobId);
+
+    const summaryPath = `${basePath}.summary.md`;
+    await writeFile(summaryPath, summaryText, 'utf8');
+
+    options.onProgress?.({
+      percent: 100,
+      phase: 'finalize',
+      detail: 'Shrnutí uloženo',
+    });
+
+    return {
+      summaryPath,
+      summaryText: summaryText.trim(),
+    };
+  } finally {
+    clearTranscriptionJobCancellation(options.jobId);
+  }
 }
 
 export function createExtensionProgressSender(

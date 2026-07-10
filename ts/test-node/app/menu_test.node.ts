@@ -38,6 +38,7 @@ const uuMinutesOpenLog = stub();
 const uuMinutesOpenRecordings = stub();
 const uuMinutesOpenSummaries = stub();
 const uuMinutesOpenCallSummaryExtension = stub();
+const uuMinutesOpenTranscriptionQueue = stub();
 const uuMinutesOpenBookmarks = stub();
 const uuMinutesOpenReadme = stub();
 const uuMinutesShowHome = stub();
@@ -258,6 +259,7 @@ describe('createTemplate', () => {
     uuMinutesOpenRecordings,
     uuMinutesOpenSummaries,
     uuMinutesOpenCallSummaryExtension,
+    uuMinutesOpenTranscriptionQueue,
     uuMinutesOpenBookmarks,
     uuMinutesOpenReadme,
     uuMinutesShowHome,

@@ -19,7 +19,7 @@
 | `ts/background.preload.ts` | init + IPC summarize, build expiration | bootstrap |
 | `ts/components/CallScreen.dom.tsx` | `<UuMinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | uuMinutes uvítací obrazovka | 1 komponenta |
-| `ts/components/App.dom.tsx` | uuMinutes host komponenty | +ReadmeHost |
+| `ts/components/App.dom.tsx` | uuMinutes host komponenty | +TranscriptionQueueHost |
 | `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage` | 1 prop + item |
 | `ts/components/conversation/TimelineMessage.dom.tsx` | callback pro záložky | 1 callback |
 | `ts/uuminutes/bookmarks.std.ts` | typy záložek |

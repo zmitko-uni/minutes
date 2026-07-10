@@ -60,6 +60,11 @@ export { UuMinutesBookmarksHost } from './components/UuMinutesBookmarksModal.dom
 export { openBookmarksModal } from './bookmarksService.preload.ts';
 export { UuMinutesSummaryToastHost } from './components/UuMinutesSummaryToastHost.dom.tsx';
 export { UuMinutesLogHost } from './components/UuMinutesLogModal.dom.tsx';
+export { UuMinutesTranscriptionQueueHost } from './components/UuMinutesTranscriptionQueueHost.dom.tsx';
+export {
+  openTranscriptionQueuePanel,
+  transcriptionQueue,
+} from './transcriptionQueueService.preload.ts';
 export { sendSummaryToChat, sendSummaryToSelf } from './sendSummaryToChat.preload.ts';
 export {
   UuMinutesDropdownMenuItems,

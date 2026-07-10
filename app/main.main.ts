@@ -1449,6 +1449,13 @@ function uuMinutesOpenCallSummaryExtension(): void {
   mainWindow.webContents.send('uuminutes:open-call-summary-extension');
 }
 
+function uuMinutesOpenTranscriptionQueue(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:open-transcription-queue');
+}
+
 function uuMinutesOpenBookmarks(): void {
   if (!mainWindow?.webContents) {
     return;
@@ -2554,6 +2561,7 @@ function setupMenu(options?: Partial<CreateTemplateOptionsType>) {
     uuMinutesOpenRecordings,
     uuMinutesOpenSummaries,
     uuMinutesOpenCallSummaryExtension,
+    uuMinutesOpenTranscriptionQueue,
     uuMinutesOpenBookmarks,
     uuMinutesOpenReadme,
     uuMinutesShowHome,

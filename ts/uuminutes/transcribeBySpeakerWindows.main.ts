@@ -10,6 +10,7 @@ import {
   buildSpeakerWindows,
   formatMsAsWhisperTimestamp,
   slicePcmForWindow,
+  WHISPER_PCM_SAMPLE_RATE,
 } from './speakerWindowAlign.std.ts';
 import { buildChainedWhisperPrompt } from './whisperAudioPrep.std.ts';
 import {
@@ -17,6 +18,7 @@ import {
   type TranscribePcmResult,
 } from './whisperTranscribe.main.ts';
 import { DEFAULT_WHISPER_LANGUAGE } from './whisperSettings.std.ts';
+import { throwIfTranscriptionCancelled } from './transcriptionCancel.main.ts';
 
 function resolveSpeakerLabel(
   speakerId: string,
@@ -42,9 +44,15 @@ export async function transcribePcmWithSpeakerWindows(options: {
   activityLog: SpeakerActivityLog;
   language?: string;
   prompt?: string;
-  onProgress?: (percent: number) => void;
+  background?: boolean;
+  jobId?: string;
+  onProgress?: (percent: number, detail?: string) => void;
 }): Promise<TranscribePcmResult & { alignedSegments: Array<AlignedTranscriptSegment> }> {
-  const windows = buildSpeakerWindows(options.activityLog);
+  const pcmDurationMs =
+    (options.pcmf32.length / WHISPER_PCM_SAMPLE_RATE) * 1000;
+  const windows = buildSpeakerWindows(options.activityLog).filter(
+    window => window.startMs < pcmDurationMs
+  );
   const fallbackIndexById = new Map<string, number>();
   const alignedSegments: Array<AlignedTranscriptSegment> = [];
   let chainedPrompt = options.prompt;
@@ -55,6 +63,8 @@ export async function transcribePcmWithSpeakerWindows(options: {
       pcmf32: options.pcmf32,
       language: options.language ?? DEFAULT_WHISPER_LANGUAGE,
       prompt: chainedPrompt,
+      background: options.background,
+      jobId: options.jobId,
       onProgress: options.onProgress,
     });
     const aligned = alignWhisperSegmentsWithSpeakerActivity(
@@ -66,6 +76,8 @@ export async function transcribePcmWithSpeakerWindows(options: {
 
   let completed = 0;
   for (const window of windows) {
+    throwIfTranscriptionCancelled(options.jobId);
+
     const chunk = slicePcmForWindow(
       options.pcmf32,
       window.startMs,
@@ -73,15 +85,35 @@ export async function transcribePcmWithSpeakerWindows(options: {
     );
     if (chunk.length < 16_000 * 0.35) {
       completed += 1;
-      options.onProgress?.(Math.round((completed / windows.length) * 100));
+      options.onProgress?.(
+        Math.round((completed / windows.length) * 100),
+        `Úsek ${completed}/${windows.length} (krátký, přeskočeno)`
+      );
       continue;
     }
+
+    const windowLabel = resolveSpeakerLabel(
+      window.speakerId,
+      options.activityLog,
+      fallbackIndexById
+    );
 
     const chunkResult = await transcribePcm({
       modelPath: options.modelPath,
       pcmf32: chunk,
       language: options.language ?? DEFAULT_WHISPER_LANGUAGE,
       prompt: chainedPrompt,
+      background: options.background,
+      jobId: options.jobId,
+      onProgress: (chunkPercent, chunkDetail) => {
+        const windowBase = ((completed + chunkPercent / 100) / windows.length) * 100;
+        options.onProgress?.(
+          Math.round(windowBase),
+          chunkDetail
+            ? `Úsek ${completed + 1}/${windows.length} · ${windowLabel} — ${chunkDetail}`
+            : `Úsek ${completed + 1}/${windows.length} · ${windowLabel}`
+        );
+      },
     });
 
     const text = chunkResult.text.trim();
@@ -101,7 +133,10 @@ export async function transcribePcmWithSpeakerWindows(options: {
     }
 
     completed += 1;
-    options.onProgress?.(Math.round((completed / windows.length) * 100));
+    options.onProgress?.(
+      Math.round((completed / windows.length) * 100),
+      `Úsek ${completed}/${windows.length} hotovo`
+    );
   }
 
   const text = alignedSegments.map(segment => segment.text).join('\n\n').trim();

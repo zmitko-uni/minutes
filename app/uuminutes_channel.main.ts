@@ -29,10 +29,13 @@ import {
 import type { AddBookmarkInput } from '../ts/uuminutes/bookmarks.std.ts';
 import {
   createExtensionProgressSender,
+  generateCallRecordingSummary,
   getCallSummaryExtensionPublic,
   installCallSummaryExtension,
   transcribeCallRecording,
 } from '../ts/uuminutes/callSummaryExtension.main.ts';
+import { listCallRecordings } from '../ts/uuminutes/recordingsCatalog.main.ts';
+import { cancelTranscriptionJob } from '../ts/uuminutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
   generateAiSummaryForProvider,
@@ -224,6 +227,12 @@ export function initializeUuMinutesChannel(): void {
     await shell.openPath(recordingsDir);
   });
 
+  ipcMain.handle('uuminutes:list-call-recordings', async () => {
+    const recordingsDir = getRecordingsDir();
+    await ensureDir(recordingsDir);
+    return listCallRecordings(recordingsDir);
+  });
+
   ipcMain.handle('uuminutes:open-summaries-folder', async () => {
     const summariesDir = getSummariesDir();
     await ensureDir(summariesDir);
@@ -289,20 +298,59 @@ export function initializeUuMinutesChannel(): void {
     async (
       event,
       options: {
-        pcmf32: Float32Array;
+        jobId?: string;
+        recordingPath: string;
         conversationId: string;
         conversationTitle: string;
         startedAt: number;
         endedAt: number;
-        recordingPath: string;
+        background?: boolean;
       }
     ) => {
       return transcribeCallRecording({
         ...options,
-        onProgress: percent => {
+        onProgress: update => {
           if (!event.sender.isDestroyed()) {
             event.sender.send('uuminutes:call-transcription-progress', {
-              percent,
+              jobId: options.jobId,
+              percent: update.percent,
+              phase: update.phase,
+              detail: update.detail,
+            });
+          }
+        },
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'uuminutes:cancel-transcription-job',
+    (_event, options: { jobId: string }) => {
+      if (typeof options?.jobId === 'string' && options.jobId.length > 0) {
+        cancelTranscriptionJob(options.jobId);
+      }
+    }
+  );
+
+  ipcMain.handle(
+    'uuminutes:generate-call-recording-summary',
+    async (
+      event,
+      options: {
+        jobId?: string;
+        recordingPath: string;
+        conversationTitle: string;
+      }
+    ) => {
+      return generateCallRecordingSummary({
+        ...options,
+        onProgress: update => {
+          if (!event.sender.isDestroyed()) {
+            event.sender.send('uuminutes:call-transcription-progress', {
+              jobId: options.jobId,
+              percent: update.percent,
+              phase: update.phase,
+              detail: update.detail,
             });
           }
         },

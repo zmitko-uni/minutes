@@ -53,3 +53,20 @@ export type AlignedTranscriptSegment = Readonly<{
   speakerLabel: string;
   speakerId: string;
 }>;
+
+/** Keep activity samples within actual PCM length so speaker windows cannot outlive audio. */
+export function clampSpeakerActivityLogToPcmDuration(
+  log: SpeakerActivityLog,
+  pcmDurationMs: number
+): SpeakerActivityLog {
+  if (!Number.isFinite(pcmDurationMs) || pcmDurationMs <= 0) {
+    return log;
+  }
+
+  const samples = log.samples.filter(sample => sample.tMs < pcmDurationMs);
+  return {
+    ...log,
+    recordingDurationMs: Math.min(log.recordingDurationMs, pcmDurationMs),
+    samples,
+  };
+}

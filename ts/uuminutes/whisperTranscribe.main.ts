@@ -17,6 +17,7 @@ import {
   WHISPER_VAD_MODEL_FILE,
   WHISPER_VAD_MODEL_MIN_BYTES,
 } from './whisperSettings.std.ts';
+import { throwIfTranscriptionCancelled } from './transcriptionCancel.main.ts';
 
 const log = createLogger('uuminutes/whisper');
 
@@ -32,7 +33,9 @@ export type TranscribePcmOptions = Readonly<{
   pcmf32: Float32Array;
   language?: string;
   prompt?: string;
-  onProgress?: (percent: number) => void;
+  background?: boolean;
+  jobId?: string;
+  onProgress?: (percent: number, detail?: string) => void;
 }>;
 
 export type TranscribePcmResult = Readonly<{
@@ -109,6 +112,14 @@ function looksWeakTranscript(text: string, durationSamples: number): boolean {
   return trimmed.length < minChars;
 }
 
+function getThreadCount(background: boolean): number {
+  const total = cpus().length;
+  if (background) {
+    return Math.max(2, Math.min(4, total - 3));
+  }
+  return Math.max(2, Math.min(8, total));
+}
+
 async function transcribeOnce(
   options: TranscribePcmOptions & {
     pcmf32: Float32Array;
@@ -117,10 +128,11 @@ async function transcribeOnce(
   }
 ): Promise<TranscribePcmResult> {
   const { createWhisperContext, transcribeAsync } = loadWhisperCppNode();
+  const background = options.background === true;
 
   const ctx = createWhisperContext({
     model: options.modelPath,
-    use_gpu: true,
+    use_gpu: !background,
     no_prints: true,
   });
 
@@ -137,7 +149,7 @@ async function transcribeOnce(
       max_len: 0,
       beam_size: options.profile.beam_size,
       best_of: options.profile.best_of,
-      n_threads: Math.max(2, Math.min(8, cpus().length)),
+      n_threads: getThreadCount(background),
       progress_callback: options.onProgress,
       vad: options.useVad,
       vad_model: options.useVad ? vadModelPath : undefined,
@@ -184,13 +196,29 @@ export async function transcribePcm(
   const useVad = await isVadModelReady();
 
   let bestResult: TranscribePcmResult | null = null;
+  const profiles = WHISPER_DECODE_PROFILES;
 
-  for (const profile of WHISPER_DECODE_PROFILES) {
+  for (let profileIndex = 0; profileIndex < profiles.length; profileIndex += 1) {
+    throwIfTranscriptionCancelled(options.jobId);
+
+    const profile = profiles[profileIndex];
     const result = await transcribeOnce({
       ...options,
       pcmf32: prepared,
       profile,
       useVad,
+      onProgress: whisperPercent => {
+        if (!options.onProgress) {
+          return;
+        }
+        const span = 100 / profiles.length;
+        const overall = profileIndex * span + (whisperPercent / 100) * span;
+        const detail =
+          profiles.length > 1
+            ? `Whisper profil ${profileIndex + 1}/${profiles.length}`
+            : 'Whisper dekóduje audio';
+        options.onProgress(Math.round(overall), detail);
+      },
     });
 
     if (

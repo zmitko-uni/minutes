@@ -25,13 +25,16 @@ export function formatExportHeader(kind: 'chat-summary' | 'call-transcript'): st
 }
 
 export function formatChatMessageHeader(
-  kind: 'chat-summary' | 'call-transcript',
+  kind: 'chat-summary' | 'call-transcript' | 'call-summary',
   conversationTitle: string
 ): string {
-  const emoji = kind === 'call-transcript' ? '🎙️' : '📋';
+  const emoji =
+    kind === 'call-transcript' ? '🎙️' : kind === 'call-summary' ? '📝' : '📋';
   const label =
     kind === 'call-transcript'
       ? `${APP_DISPLAY_NAME} — přepis hovoru`
-      : `${APP_DISPLAY_NAME} — shrnutí chatu`;
+      : kind === 'call-summary'
+        ? `${APP_DISPLAY_NAME} — shrnutí hovoru`
+        : `${APP_DISPLAY_NAME} — shrnutí chatu`;
   return `${emoji} ${label}\n${conversationTitle}\n\n`;
 }

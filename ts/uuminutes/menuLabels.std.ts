@@ -32,3 +32,5 @@ export const UUMINUTES_MENU_SUMMARIZE_FROM_HERE =
 
 export const UUMINUTES_MENU_ADD_BOOKMARK =
   formatMenuActionLabel('Přidat do záložek');
+
+export const UUMINUTES_MENU_TRANSCRIPTION_QUEUE = 'Fronta přepisů…';

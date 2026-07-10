@@ -174,16 +174,17 @@ export async function runCallPipelineTest(options: {
 
   let lastPercent = -1;
   const result = await transcribeCallRecording({
-    pcmf32,
     conversationId: metadata.conversationId,
     conversationTitle: metadata.conversationTitle,
     startedAt: metadata.startedAt,
     endedAt: metadata.endedAt,
     recordingPath,
-    onProgress: percent => {
-      if (percent !== lastPercent && percent % 10 === 0) {
-        log.info(`progress: ${percent}%`);
-        lastPercent = percent;
+    onProgress: update => {
+      if (update.percent !== lastPercent && update.percent % 10 === 0) {
+        log.info(
+          `progress: ${update.percent}%${update.detail ? ` — ${update.detail}` : ''}`
+        );
+        lastPercent = update.percent;
       }
     },
   });
