@@ -566,6 +566,7 @@ export function initializeMinutesChannel(): void {
         downloadUrl: string;
         latestVersion: string;
         releaseUrl: string;
+        userInitiated?: boolean;
       }
     ) => {
       const sendProgress = createAppUpdateProgressSender(event.sender);

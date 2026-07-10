@@ -42,6 +42,7 @@ export async function downloadAppUpdate(options: {
   downloadUrl: string;
   latestVersion: string;
   releaseUrl: string;
+  userInitiated?: boolean;
 }): Promise<PendingAppUpdate> {
   return ipcRenderer.invoke('minutes:download-app-update', options);
 }
@@ -98,6 +99,7 @@ async function runBackgroundDownload(check: AppUpdateCheckResult): Promise<void>
       downloadUrl: check.downloadUrl,
       latestVersion: check.latestVersion,
       releaseUrl: check.releaseUrl,
+      userInitiated: true,
     });
     appUpdateUi.setReady(check, pending);
   } catch (error) {
@@ -138,7 +140,7 @@ async function runStartupAppUpdateFlow(): Promise<void> {
     }
 
     if (
-      pending &&
+      pending?.userInitiated &&
       check.latestVersion &&
       pending.version === check.latestVersion
     ) {
@@ -168,7 +170,7 @@ export function initializeAppUpdate(): void {
 
   subscribeAppUpdateProgress(progress => {
     const current = getAppUpdateUiState();
-    if (current.kind !== 'downloading' && current.kind !== 'available') {
+    if (current.kind !== 'downloading') {
       return;
     }
     appUpdateUi.setDownloading(current.check, progress);

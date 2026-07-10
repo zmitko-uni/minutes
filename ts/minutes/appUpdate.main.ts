@@ -241,6 +241,7 @@ export async function getPendingAppUpdate(): Promise<PendingAppUpdate | null> {
       releaseUrl: parsed.releaseUrl,
       downloadedAt: parsed.downloadedAt,
       fileSizeBytes: fileInfo.size,
+      userInitiated: parsed.userInitiated === true ? true : undefined,
     };
   } catch {
     return null;
@@ -259,11 +260,19 @@ export async function downloadAppUpdate(options: {
   downloadUrl: string;
   latestVersion: string;
   releaseUrl: string;
+  userInitiated?: boolean;
   sendProgress?: (progress: AppUpdateProgress) => void;
 }): Promise<PendingAppUpdate> {
+  const userInitiated = options.userInitiated ?? true;
+
   if (activeDownloadVersion === options.latestVersion) {
     const existing = await getPendingAppUpdate();
     if (existing?.version === options.latestVersion) {
+      if (userInitiated && !existing.userInitiated) {
+        const updated: PendingAppUpdate = { ...existing, userInitiated: true };
+        await writePendingAppUpdate(updated);
+        return updated;
+      }
       return existing;
     }
   }
@@ -313,6 +322,7 @@ export async function downloadAppUpdate(options: {
       releaseUrl: options.releaseUrl,
       downloadedAt: Date.now(),
       fileSizeBytes: fileInfo.size,
+      userInitiated,
     };
 
     await writePendingAppUpdate(pending);

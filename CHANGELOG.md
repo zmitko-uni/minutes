@@ -14,6 +14,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Changed
+- Aktualizace: po kontrole jen tlačítko Stáhnout (bez automatického stahování); staré auto-stažené instalátory se nenabídnou k instalaci bez kliknutí
 - Verze produktu: formát `8.21.0-m1.0.1` (Signal base + `-m` + Meetup semver); UI zobrazuje celý tag
 - Migrace z alpha buildů a starého Meetup semver (`1.0.x`): nový formát se správně detekuje jako novější
 

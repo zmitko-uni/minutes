@@ -34,6 +34,8 @@ export type PendingAppUpdate = Readonly<{
   releaseUrl: string;
   downloadedAt: number;
   fileSizeBytes: number;
+  /** False for installers left by legacy auto-download on check. */
+  userInitiated?: boolean;
 }>;
 
 export type AppUpdateInstallResult = Readonly<{
