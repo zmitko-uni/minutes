@@ -83,18 +83,19 @@ Výstup: `release/minutes/Minutes-setup-<verze>.exe`
 
 ### Release přes GitHub Actions (doporučeno)
 
-1. Doplňte **`CHANGELOG.md`** — sekce `[Unreleased]` (workflow ji použije v release notes)
-2. **GitHub → Actions → Release Minutes → Run workflow**
-3. Workflow automaticky:
-   - spustí typecheck (fail-fast před buildem)
-   - zvedne verzi v `package.json` (alpha.1 → alpha.2, …)
-   - sestaví Windows instalátor
-   - vytvoří **GitHub Release** s `.exe` a poznámkami z CHANGELOG
-   - commitne bump verze do `main`
+1. Při vývoji doplňujte **`CHANGELOG.md`** → `[Unreleased]` (Cursor rule to dělá automaticky u user-facing změn)
+2. Před release lokálně:
+   ```powershell
+   pnpm run release:minutes:metadata
+   git add package.json CHANGELOG.md
+   git commit -m "chore(release): Minutes <verze>"
+   git push origin main
+   ```
+3. Push **automaticky spustí** workflow *Release Minutes* — typecheck, build instalátoru, GitHub Release s patch notes z CHANGELOG
 4. Stabilní odkaz:  
    `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe`
 
-Volba *Skip version bump* — přestaví stejnou verzi (např. po opravě buildu).
+Ruční spuštění v Actions je jen pro přestavbu stejné verze (*force_version*).
 
 ### Lokální build (vývoj)
 

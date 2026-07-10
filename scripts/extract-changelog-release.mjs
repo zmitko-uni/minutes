@@ -36,27 +36,11 @@ function extractVersionSection(version) {
   return rest.slice(0, end).trim();
 }
 
-function extractSection(headerText) {
-  const idx = changelog.indexOf(headerText);
-  if (idx === -1) {
-    return null;
-  }
-
-  const start = idx + headerText.length;
-  const rest = changelog.slice(start);
-  const nextMatch = rest.match(/\n## \[/);
-  const end = nextMatch ? nextMatch.index : rest.length;
-
-  return rest.slice(0, end).trim();
-}
-
-const versionHeader = `## [${version}]`;
-let section =
-  extractVersionSection(version) ?? extractSection('## [Unreleased]');
+let section = extractVersionSection(version);
 
 if (!section || section.includes('(doplňte před příštím release)')) {
   console.warn(
-    `extract-changelog-release: missing notes for ${version} — run prepare-changelog-release.mjs first`
+    `extract-changelog-release: missing notes for ${version} — run release:minutes:metadata first`
   );
 }
 

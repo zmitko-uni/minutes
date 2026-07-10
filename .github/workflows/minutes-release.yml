@@ -1,11 +1,17 @@
-# Build Windows installer and publish GitHub Release (visible on repo homepage).
+# Build Windows installer and publish GitHub Release when version is bumped on main.
 name: Release Minutes
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - CHANGELOG.md
   workflow_dispatch:
     inputs:
-      skip_version_bump:
-        description: 'Skip auto bump of package.json version (rebuild same version)'
+      force_version:
+        description: 'Release this version from package.json even if tag exists (rebuild)'
         required: false
         default: false
         type: boolean
@@ -27,7 +33,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
@@ -45,47 +50,75 @@ jobs:
           path: ~/.electron-gyp
           key: electron-gyp-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Configure git
+      - name: Decide whether to release
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force_version && '1' || '0' }}
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Package version: ${VERSION}"
+
+          if [ "${FORCE}" = "1" ]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Force rebuild requested."
+            exit 0
+          fi
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "Release ${TAG} already exists — skipping build."
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Will create release ${TAG}."
+          fi
+
+      - name: Verify CHANGELOG has release section
+        if: steps.gate.outputs.release == 'true'
+        shell: bash
+        run: |
+          VERSION="${{ steps.gate.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const version = process.argv[1];
+            const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const marker = '## [' + version + ']';
+            if (!changelog.includes(marker)) {
+              console.error('CHANGELOG.md missing section ' + marker);
+              console.error('Run: pnpm run release:minutes:metadata');
+              console.error('Then commit package.json + CHANGELOG.md and push.');
+              process.exit(1);
+            }
+          " "${VERSION}"
 
       - name: Install dependencies
+        if: steps.gate.outputs.release == 'true'
         run: pnpm install
         env:
           NPM_CONFIG_LOGLEVEL: verbose
 
       - name: Generate build artifacts
+        if: steps.gate.outputs.release == 'true'
         run: pnpm run generate
         env:
           NODE_CONFIG_ENV: minutes
 
       - name: Generate minutes icons
+        if: steps.gate.outputs.release == 'true'
         run: pnpm run build:minutes-icons
         env:
           NODE_CONFIG_ENV: minutes
 
       - name: Typecheck
+        if: steps.gate.outputs.release == 'true'
         run: pnpm run check:types
 
-      - name: Bump version
-        if: inputs.skip_version_bump != true
-        run: pnpm run bump:minutes:release
-
-      - name: Read release version
-        id: version
-        shell: bash
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Release version: ${VERSION}"
-
-      - name: Prepare CHANGELOG and release notes
-        if: inputs.skip_version_bump != true
-        run: node scripts/prepare-changelog-release.mjs "${{ steps.version.outputs.version }}"
-
       - name: Build installer
+        if: steps.gate.outputs.release == 'true'
         run: pnpm run build:minutes:installer
         env:
           MINUTES_SKIP_VERSION_BUMP: '1'
@@ -94,6 +127,7 @@ jobs:
           DISABLE_INSPECT_FUSE: on
 
       - name: Prepare release assets
+        if: steps.gate.outputs.release == 'true'
         shell: bash
         run: |
           INSTALLER=$(ls release/minutes/Minutes-setup-*.exe | head -n 1)
@@ -106,25 +140,14 @@ jobs:
           echo "ASSET_STABLE=release/minutes/Minutes-setup-windows-x64.exe" >> "$GITHUB_ENV"
           ls -la release/minutes/*.exe
 
-      - name: Commit version bump
-        if: inputs.skip_version_bump != true
-        shell: bash
-        run: |
-          git add package.json CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "No release metadata changes to commit"
-          else
-            git commit -m "chore(release): Minutes ${{ steps.version.outputs.version }}"
-            git push origin HEAD:main
-          fi
-
       - name: Create GitHub Release
+        if: steps.gate.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.gate.outputs.tag }}"
+          VERSION="${{ steps.gate.outputs.version }}"
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
           node scripts/extract-changelog-release.mjs "${VERSION}" > "${NOTES_FILE}"
 

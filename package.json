@@ -100,6 +100,7 @@
     "build:minutes-icons": "node scripts/generate-minutes-icons.mjs && node scripts/generate-minutes-tray-icons.mjs && node scripts/patch-electron-icon.mjs",
     "bump:minutes:release": "node scripts/bump-minutes-release-version.mjs",
     "prepare:minutes:changelog": "node scripts/prepare-changelog-release.mjs",
+    "release:minutes:metadata": "node scripts/prepare-minutes-release-metadata.mjs",
     "build:minutes:installer": "node scripts/build-minutes-installer.mjs",
     "build:dev": "run-s --print-label generate build:rolldown:prod",
     "build:rolldown": "rolldown -c",

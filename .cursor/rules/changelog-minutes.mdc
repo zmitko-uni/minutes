@@ -1,0 +1,28 @@
+---
+description: Agent udržuje CHANGELOG.md [Unreleased] a připravuje release metadata pro Minutes
+alwaysApply: true
+---
+
+# CHANGELOG (Minutes)
+
+## Při user-facing změnách
+
+Vždy aktualizuj **`CHANGELOG.md`** → sekce **`[Unreleased]`** (Added / Changed / Fixed / Removed).
+
+- česky, stručné odrážky pro koncové uživatele
+- jen viditelné chování: UI, menu, instalace, AI, nahrávání, sumarizace — ne interní refactory
+- ve stejném commitu jako související změna kódu (ne až „někdy před release“)
+
+## Při release (uživatel chce novou verzi / push s releasem)
+
+1. Zkontroluj, že `[Unreleased]` obsahuje všechny změny od poslední verze
+2. Spusť `pnpm run release:minutes:metadata` — bump `package.json` + přesun `[Unreleased]` → `## [verze] - datum`
+3. Commitni `package.json` + `CHANGELOG.md`: `chore(release): Minutes <verze>`
+4. Push na `main` — **GitHub Actions release běží automaticky** (bez ručního spouštění workflow)
+
+Release workflow čte sekci verze z CHANGELOG a vloží ji do GitHub Release patch notes.
+
+## Nepoužívat
+
+- Ruční spouštění *Release Minutes* v GitHub UI (jen výjimečně přes `workflow_dispatch`)
+- Commit release bez aktualizovaného CHANGELOG
