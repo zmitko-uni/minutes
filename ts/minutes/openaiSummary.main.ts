@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createLogger } from '../logging/log.std.ts';
+import { SIGNAL_AI_SUMMARY_FORMAT_INSTRUCTIONS_EN } from './signalChatText.std.ts';
 
 const log = createLogger('minutes/openai');
 
@@ -32,10 +33,7 @@ export async function generateOpenAiSummary(options: {
   const systemPrompt = [
     'You summarize chat conversations from Signal for the user.',
     `Write the summary in ${options.outputLanguage}.`,
-    'Use markdown with these sections when relevant:',
-    '## Shrnutí',
-    '## Rozhodnutí a úkoly',
-    '## Otevřené body',
+    SIGNAL_AI_SUMMARY_FORMAT_INSTRUCTIONS_EN,
     'Be concise, keep participant names, do not invent facts not present in the transcript.',
   ].join('\n');
 

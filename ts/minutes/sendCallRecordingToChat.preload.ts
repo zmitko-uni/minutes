@@ -5,23 +5,16 @@ import { ipcRenderer } from 'electron';
 import { formatChatMessageHeader } from './branding.std.ts';
 import { createLogger } from '../logging/log.std.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
-import * as Errors from '../types/errors.std.ts';
 import type { CallRecordingOutput } from './types.std.ts';
 import type { CallRecordingCatalogEntry } from './recordingsCatalog.std.ts';
 import { getLocalSpeakerDisplayName } from './localSpeakerName.preload.ts';
 import { replaceLegacyLocalSpeakerLabels } from './speakerActivity.std.ts';
+import {
+  sendSignalChatMessage,
+  truncateSignalChatMessage,
+} from './sendSignalChatMessage.preload.ts';
 
 const log = createLogger('minutes/sendCallRecording');
-
-const MAX_MESSAGE_BODY_LENGTH = 64 * 1024;
-
-function truncateBody(header: string, body: string): string {
-  const maxBodyLength = MAX_MESSAGE_BODY_LENGTH - header.length - 80;
-  if (body.length <= maxBodyLength) {
-    return `${header}${body}`;
-  }
-  return `${header}${body.slice(0, maxBodyLength)}\n\n… (text pokračuje v uloženém souboru)`;
-}
 
 function buildTranscriptMessage(output: CallRecordingOutput): string {
   const header = formatChatMessageHeader(
@@ -35,7 +28,7 @@ function buildTranscriptMessage(output: CallRecordingOutput): string {
   if (!body) {
     return `${header}(Prázdný přepis.)`;
   }
-  return truncateBody(header, body);
+  return truncateSignalChatMessage(header, body);
 }
 
 function buildSummaryMessage(output: CallRecordingOutput): string {
@@ -50,40 +43,14 @@ function buildSummaryMessage(output: CallRecordingOutput): string {
   if (!body) {
     return `${header}(Shrnutí není k dispozici.)`;
   }
-  return truncateBody(header, body);
+  return truncateSignalChatMessage(header, body);
 }
 
 async function sendToConversation(
   conversationId: string,
   body: string
 ): Promise<boolean> {
-  const conversation = window.ConversationController.get(conversationId);
-  if (!conversation) {
-    log.warn(`sendCallRecording: conversation not found (${conversationId})`);
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.InvalidConversation,
-    });
-    return false;
-  }
-
-  if (body.length > MAX_MESSAGE_BODY_LENGTH) {
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.MessageBodyTooLong,
-    });
-    return false;
-  }
-
-  try {
-    await conversation.enqueueMessageForSend(
-      { body, attachments: [] },
-      { dontClearDraft: true }
-    );
-    return true;
-  } catch (error) {
-    log.error(`sendCallRecording failed: ${Errors.toLogFormat(error)}`);
-    window.reduxActions.toast.showToast({ toastType: ToastType.Error });
-    return false;
-  }
+  return sendSignalChatMessage(conversationId, body, 'sendCallRecording');
 }
 
 function resolveTargetConversationId(

@@ -17,7 +17,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ### Changed
 - Produktové verzování **Meetup** `1.0.0` (major / minor / patch) místo `8.21.0-alpha.*`
-- Aktualizace: po kontrole se nová verze jen zobrazí, stažení až po kliknutí na **Stáhnout**
+- Aktualizace: po kontrole se nová verze jen zobrazí, stažení až po kliknutí na Stáhnout
+- Sumáře v Signal chatu: nativní formát místo markdown (`**`, `##`)
+- AI prompty generují prostý text vhodný pro Signal
 - Label verze: `Meetup X.Y.Z (Signal Desktop 8.21.0)`
 
 ### Fixed

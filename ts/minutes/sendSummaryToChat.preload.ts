@@ -4,12 +4,13 @@
 import { formatChatMessageHeader } from './branding.std.ts';
 import { createLogger } from '../logging/log.std.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
-import * as Errors from '../types/errors.std.ts';
 import type { ChatSummaryResult } from './types.std.ts';
+import {
+  sendSignalChatMessage,
+  truncateSignalChatMessage,
+} from './sendSignalChatMessage.preload.ts';
 
 const log = createLogger('minutes/sendSummary');
-
-const MAX_MESSAGE_BODY_LENGTH = 64 * 1024;
 
 function extractChatSummaryBody(summaryText: string): string {
   return summaryText.replace(/^#.*\n+/m, '').trim();
@@ -41,55 +42,24 @@ function buildSummaryChatMessage(result: ChatSummaryResult): string {
     return `${header}(Prázdný export.)`;
   }
 
-  const maxBodyLength = MAX_MESSAGE_BODY_LENGTH - header.length - 80;
+  const maxBodyLength = 64 * 1024 - header.length - 80;
   if (body.length <= maxBodyLength) {
     return `${header}${body}`;
   }
 
-  return `${header}${body.slice(0, maxBodyLength)}\n\n… (přepis pokračuje v uloženém souboru)`;
+  return truncateSignalChatMessage(header, body);
 }
 
 async function sendSummaryToConversation(
   result: ChatSummaryResult,
   targetConversationId: string
 ): Promise<boolean> {
-  const conversation = window.ConversationController.get(targetConversationId);
-  if (!conversation) {
-    log.warn(
-      `sendSummaryToChat: conversation not found (${targetConversationId})`
-    );
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.InvalidConversation,
-    });
-    return false;
-  }
-
-  const body = buildSummaryChatMessage(result);
-  if (body.length > MAX_MESSAGE_BODY_LENGTH) {
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.MessageBodyTooLong,
-    });
-    return false;
-  }
-
-  try {
-    await conversation.enqueueMessageForSend(
-      {
-        body,
-        attachments: [],
-      },
-      {
-        dontClearDraft: true,
-      }
-    );
-
-    log.info(`sendSummaryToChat: queued summary for ${targetConversationId}`);
-    return true;
-  } catch (error) {
-    log.error(`sendSummaryToChat failed: ${Errors.toLogFormat(error)}`);
-    window.reduxActions.toast.showToast({ toastType: ToastType.Error });
-    return false;
-  }
+  const message = buildSummaryChatMessage(result);
+  return sendSignalChatMessage(
+    targetConversationId,
+    message,
+    'sendSummaryToChat'
+  );
 }
 
 export async function sendSummaryToChat(

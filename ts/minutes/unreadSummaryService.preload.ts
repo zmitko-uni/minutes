@@ -17,6 +17,7 @@ import {
 } from './constants.std.ts';
 import { generateUnreadConversationSummary, getAiSettings } from './aiSettingsService.preload.ts';
 import { formatAiSummaryProgressMessage } from './aiSettings.std.ts';
+import { sendSignalChatMessage } from './sendSignalChatMessage.preload.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 
 const log = createLogger('minutes/unreadSummary');
@@ -340,18 +341,16 @@ function buildUnreadDigestMessage(options: {
       : undefined,
     options.errorCount > 0 ? `Chyby AI: ${options.errorCount}` : undefined,
     '',
-    '---',
-    '',
   ]
     .filter((line): line is string => line != null)
     .join('\n');
 
   const body =
     options.summaries.length > 0
-      ? options.summaries.join('\n\n---\n\n')
-      : '_Žádné relevantní nepřečtené konverzace k zobrazení (vše triviální nebo prázdné)._';
+      ? options.summaries.join('\n\n')
+      : 'Žádné relevantní nepřečtené konverzace k zobrazení (vše triviální nebo prázdné).';
 
-  const footer = `\n\n---\nCelkem nepřečtených zpráv v přehledu: ${options.totalUnreadMessages}`;
+  const footer = `\n\nCelkem nepřečtených zpráv v přehledu: ${options.totalUnreadMessages}`;
 
   return `${header}${intro}${body}${footer}`;
 }
@@ -365,14 +364,6 @@ async function sendDigestToSelf(message: string): Promise<boolean> {
     return false;
   }
 
-  const conversation = window.ConversationController.get(selfConversationId);
-  if (!conversation) {
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.InvalidConversation,
-    });
-    return false;
-  }
-
   if (message.length > MAX_DIGEST_MESSAGE_LENGTH) {
     window.reduxActions.toast.showToast({
       toastType: ToastType.MessageBodyTooLong,
@@ -380,22 +371,11 @@ async function sendDigestToSelf(message: string): Promise<boolean> {
     return false;
   }
 
-  try {
-    await conversation.enqueueMessageForSend(
-      {
-        body: message,
-        attachments: [],
-      },
-      {
-        dontClearDraft: true,
-      }
-    );
-    return true;
-  } catch (error) {
-    log.error(`sendDigestToSelf failed: ${Errors.toLogFormat(error)}`);
-    window.reduxActions.toast.showToast({ toastType: ToastType.Error });
-    return false;
-  }
+  return sendSignalChatMessage(
+    selfConversationId,
+    message,
+    'sendDigestToSelf'
+  );
 }
 
 export async function summarizeUnreadConversations(): Promise<void> {

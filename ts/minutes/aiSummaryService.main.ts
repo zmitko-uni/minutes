@@ -20,6 +20,10 @@ import {
   generatePerplexitySummary,
   testPerplexityConnection,
 } from './perplexitySummary.main.ts';
+import {
+  SIGNAL_AI_SUMMARY_FORMAT_INSTRUCTIONS_CS,
+  SIGNAL_AI_SUMMARY_FORMAT_INSTRUCTIONS_EN,
+} from './signalChatText.std.ts';
 
 const MAX_TRANSCRIPT_CHARS = 80_000;
 
@@ -120,10 +124,7 @@ function buildSummaryPrompts(options: {
     const systemPrompt = [
       'Shrnuješ konverzace ze Signalu pro uživatele.',
       'Celé shrnutí piš výhradně v češtině. Nepoužívej angličtinu ani jiný jazyk.',
-      'Použij markdown s těmito sekcemi, pokud jsou relevantní:',
-      '## Shrnutí',
-      '## Rozhodnutí a úkoly',
-      '## Otevřené body',
+      SIGNAL_AI_SUMMARY_FORMAT_INSTRUCTIONS_CS,
       'Buď stručný, zachovej jména účastníků, nevymýšlej fakta, která v přepisu nejsou.',
       'Když jsou řádky ve tvaru [Jméno mluvčího]:, přiřaď rozhodnutí a úkoly těmto lidem.',
     ].join('\n');
@@ -146,10 +147,7 @@ function buildSummaryPrompts(options: {
   const systemPrompt = [
     'You summarize chat conversations from Signal for the user.',
     `IMPORTANT: Write the ENTIRE summary only in ${languageLabel}. Never use any other language.`,
-    'Use markdown with these sections when relevant:',
-    '## Shrnutí',
-    '## Rozhodnutí a úkoly',
-    '## Otevřené body',
+    SIGNAL_AI_SUMMARY_FORMAT_INSTRUCTIONS_EN,
     'Be concise, keep participant names, do not invent facts not present in the transcript.',
     'When lines are prefixed with [Speaker Name]:, attribute decisions and action items to those speakers.',
   ].join('\n');
