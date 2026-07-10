@@ -22,6 +22,7 @@ import {
   DEFAULT_AI_SETTINGS,
   getAiProviderDefinition,
 } from './aiSettings.std.ts';
+import { isLocalLlmExtensionActive } from './localLlmExtension.main.ts';
 
 const log = createLogger('uuminutes/aiSettings');
 
@@ -98,7 +99,8 @@ function normalizeProvider(value: unknown): AiProvider {
     value === 'google' ||
     value === 'anthropic' ||
     value === 'perplexity' ||
-    value === 'openai'
+    value === 'openai' ||
+    value === 'local'
   ) {
     return value;
   }
@@ -173,18 +175,25 @@ function buildKeyStatusByProvider(
   return result;
 }
 
-function toPublicSettings(stored: StoredAiSettings): AiSettingsPublic {
+async function toPublicSettings(
+  stored: StoredAiSettings
+): Promise<AiSettingsPublic> {
   const provider = normalizeProvider(stored.provider);
   const model = resolveModelForProvider(stored, provider);
   const keyStatusByProvider = buildKeyStatusByProvider(stored);
   const activeKeyStatus = keyStatusByProvider[provider];
+
+  let hasApiKey = activeKeyStatus?.hasApiKey ?? false;
+  if (provider === 'local') {
+    hasApiKey = await isLocalLlmExtensionActive(model);
+  }
 
   return {
     aiEnabled: stored.aiEnabled,
     provider,
     model,
     outputLanguage: stored.outputLanguage || DEFAULT_AI_SETTINGS.outputLanguage,
-    hasApiKey: activeKeyStatus?.hasApiKey ?? false,
+    hasApiKey,
     apiKeyMasked: activeKeyStatus?.apiKeyMasked ?? null,
     keyStatusByProvider,
     modelsByProvider: migrateModelsByProvider(stored),
@@ -336,6 +345,10 @@ export async function isAiSummaryEnabled(): Promise<boolean> {
     return false;
   }
   const provider = normalizeProvider(stored.provider);
+  if (provider === 'local') {
+    const model = resolveModelForProvider(stored, provider);
+    return isLocalLlmExtensionActive(model);
+  }
   if (getStoredKeyForProvider(stored, provider)) {
     return true;
   }
@@ -351,8 +364,9 @@ export async function isTranscriptCorrectionEnabled(): Promise<boolean> {
     return false;
   }
   const provider = normalizeProvider(stored.provider);
-  if (getStoredKeyForProvider(stored, provider)) {
-    return true;
+  if (provider === 'local') {
+    const model = resolveModelForProvider(stored, provider);
+    return isLocalLlmExtensionActive(model);
   }
   return Boolean(await readPipelineApiKeyFallback());
 }

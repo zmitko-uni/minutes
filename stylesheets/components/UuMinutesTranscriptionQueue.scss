@@ -242,6 +242,50 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
+}
+
+.UuMinutesTranscriptionQueue__send-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.UuMinutesTranscriptionQueue__send-icon {
+  min-width: 32px;
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  border: 1px solid variables.$color-gray-20;
+  background: variables.$color-white;
+  color: variables.$color-gray-75;
+  cursor: pointer;
+
+  @include mixins.dark-theme {
+    border-color: variables.$color-gray-60;
+    background: variables.$color-gray-78;
+    color: variables.$color-gray-05;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: variables.$color-ultramarine;
+    color: variables.$color-ultramarine;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.UuMinutesTranscriptionQueue__send-icon--active {
+  border-color: variables.$color-ultramarine;
+  color: variables.$color-ultramarine;
 }
 
 .UuMinutesTranscriptionQueue__send-group {

@@ -3,6 +3,7 @@
 
 import {
   LOCAL_SPEAKER_ID,
+  resolveSpeakerDisplayName,
   type AlignedTranscriptSegment,
   type SpeakerActivityLog,
 } from './speakerActivity.std.ts';
@@ -113,31 +114,12 @@ function pickDominantSpeakerId(
   return winner;
 }
 
-function resolveSpeakerLabel(
-  speakerId: string,
-  activityLog: SpeakerActivityLog,
-  fallbackIndexById: Map<string, number>
-): string {
-  const known = activityLog.participants[speakerId]?.displayName;
-  if (known && known.length > 0) {
-    return known;
-  }
-
-  if (speakerId === LOCAL_SPEAKER_ID) {
-    return 'Já';
-  }
-
-  if (!fallbackIndexById.has(speakerId)) {
-    fallbackIndexById.set(speakerId, fallbackIndexById.size + 1);
-  }
-  return `Řečník ${fallbackIndexById.get(speakerId)}`;
-}
-
 export function alignWhisperSegmentsWithSpeakerActivity(
   segments: ReadonlyArray<
     Readonly<{ start: string; end: string; text: string }>
   >,
-  activityLog: SpeakerActivityLog | null | undefined
+  activityLog: SpeakerActivityLog | null | undefined,
+  options?: { localSpeakerDisplayName?: string }
 ): Array<AlignedTranscriptSegment> {
   const fallbackIndexById = new Map<string, number>();
 
@@ -154,7 +136,10 @@ export function alignWhisperSegmentsWithSpeakerActivity(
       }
 
       const speakerLabel = activityLog
-        ? resolveSpeakerLabel(speakerId, activityLog, fallbackIndexById)
+        ? resolveSpeakerDisplayName(speakerId, activityLog, {
+            localSpeakerDisplayName: options?.localSpeakerDisplayName,
+            fallbackIndexById,
+          })
         : 'Neznámý';
 
       return {

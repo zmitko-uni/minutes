@@ -136,6 +136,7 @@
     "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
     "google-libphonenumber": "3.2.44",
+    "node-llama-cpp": "3.18.1",
     "whisper-cpp-node": "0.2.12"
   },
   "devDependencies": {
@@ -312,7 +313,6 @@
     "react-devtools": "7.0.1",
     "react-devtools-core": "7.0.1",
     "react-dom": "19.2.4",
-    "resedit": "3.0.2",
     "react-intl": "10.1.0",
     "react-popper": "2.3.0",
     "react-redux": "9.2.0",
@@ -322,6 +322,7 @@
     "redux-logger": "3.0.6",
     "redux-promise-middleware": "6.2.0",
     "redux-thunk": "3.1.0",
+    "resedit": "3.0.2",
     "reselect": "5.1.1",
     "rolldown": "1.0.1",
     "sass": "1.99.0",
@@ -635,6 +636,12 @@
       "node_modules/fs-xattr/build/Release/*.node",
       "!node_modules/tar",
       "sticker-creator/dist/**"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "node-llama-cpp",
+      "whisper-cpp-node"
     ]
   },
   "volta": {

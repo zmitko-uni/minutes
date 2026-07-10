@@ -17,11 +17,20 @@ export function formatMenuActionLabel(action: string): string {
   return `${APP_MENU_PREFIX}: ${action}`;
 }
 
+/** Popisek položky hlavního menu Minutes, např. „Přepisy (Minutes)". */
+export function formatMinutesScopedMenuLabel(action: string): string {
+  return `${action} (${APP_DISPLAY_NAME})`;
+}
+
 export function formatExportHeader(kind: 'chat-summary' | 'call-transcript'): string {
   if (kind === 'call-transcript') {
     return `# ${APP_DISPLAY_NAME} — přepis hovoru`;
   }
   return `# ${APP_DISPLAY_NAME} — chat summary`;
+}
+
+export function formatUnreadDigestHeader(): string {
+  return `📬 ${APP_DISPLAY_NAME} — přehled nepřečtených\n\n`;
 }
 
 export function formatChatMessageHeader(

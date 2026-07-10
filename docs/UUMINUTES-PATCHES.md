@@ -53,10 +53,19 @@
 | `ts/uuminutes/aiSettings.main.ts` | uložení klíče (safeStorage) |
 | `ts/uuminutes/branding.std.ts` | zobrazovaný název Minutes (centrální branding) |
 | `ts/uuminutes/aiSummaryService.main.ts` | směrování AI sumarizace podle poskytovatele |
+| `ts/uuminutes/localLlmSettings.std.ts` | katalog GGUF modelů Gemma |
+| `ts/uuminutes/localLlmExtension.*` | stažení + inference lokálního LLM |
+| `ts/uuminutes/localLlmInference.main.ts` | node-llama-cpp chat session |
+| `ts/uuminutes/components/UuMinutesLocalLlmPanel.dom.tsx` | panel instalace v Nastavení AI |
+| `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external) |
 | `ts/uuminutes/perplexitySummary.main.ts` | Perplexity API (bez web search) |
 | `ts/uuminutes/anthropicSummary.main.ts` | Anthropic Claude API |
 | `ts/uuminutes/aiSettingsService.preload.ts` | preload IPC wrapper |
 | `ts/uuminutes/components/UuMinutesSettingsModal.dom.tsx` | dialog AI nastavení |
+| `ts/uuminutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update |
+| `ts/uuminutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
+| `ts/uuminutes/components/UuMinutesAppUpdateBannerHost.dom.tsx` | banner aktualizace při startu |
+| `ts/uuminutes/components/UuMinutesVersionFooter.dom.tsx` | patička verze na domovské obrazovce |
 | `ts/uuminutes/components/UuMinutesSummaryToastHost.dom.tsx` | toast + odeslání do chatu |
 | `stylesheets/components/UuMinutesSummaryToast.scss` | styly toastu |
 | `stylesheets/manifest.scss` | import SCSS | 1 řádek |

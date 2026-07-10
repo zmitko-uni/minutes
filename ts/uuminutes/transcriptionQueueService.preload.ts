@@ -18,6 +18,7 @@ import type { TranscriptionProgressPhase } from './transcriptionProgress.std.ts'
 import { clampProgressPercent } from './transcriptionProgress.std.ts';
 import { emitTranscriptionQueueSnapshot } from './transcriptionQueueEvents.std.ts';
 import type { CallRecordingCatalogEntry } from './recordingsCatalog.std.ts';
+import { getLocalSpeakerDisplayName } from './localSpeakerName.preload.ts';
 
 const log = createLogger('uuminutes/transcriptionQueue');
 
@@ -289,6 +290,7 @@ class TranscriptionQueueService {
             jobId: job.id,
             recordingPath: metadata.filePath,
             conversationTitle: metadata.conversationTitle,
+            localSpeakerDisplayName: getLocalSpeakerDisplayName(),
           }
         )) as {
           summaryPath?: string;
@@ -330,6 +332,7 @@ class TranscriptionQueueService {
           startedAt: metadata.startedAt,
           endedAt: metadata.endedAt,
           background: true,
+          localSpeakerDisplayName: getLocalSpeakerDisplayName(),
         }
       )) as {
         transcriptPath?: string;

@@ -209,7 +209,11 @@ import { createLogger } from './logging/log.std.ts';
 import { deleteAllLogs } from './util/deleteAllLogs.preload.ts';
 import { startInteractionMode } from './services/InteractionMode.dom.ts';
 import { calling } from './services/calling.preload.ts';
-import { initializeUuMinutes, summarizeSelectedConversation } from './uuminutes/index.preload.ts';
+import {
+  initializeUuMinutes,
+  summarizeSelectedConversation,
+  summarizeUnreadConversations,
+} from './uuminutes/index.preload.ts';
 import {
   getUuMinutesConnectHasBuildExpired,
   isUuMinutesBuildExpirationDisabled,
@@ -2175,6 +2179,10 @@ async function startApp(): Promise<void> {
 
     ipcRenderer.on('uuminutes:summarize-current-chat', () => {
       drop(summarizeSelectedConversation());
+    });
+
+    ipcRenderer.on('uuminutes:summarize-unread', () => {
+      drop(summarizeUnreadConversations());
     });
 
     drop(usernameIntegrity.start());

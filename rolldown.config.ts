@@ -21,6 +21,8 @@ const external = [
   '@napi-rs/canvas',
   'whisper-cpp-node',
   /^@whisper-cpp-node\/.*/,
+  'node-llama-cpp',
+  /^@node-llama-cpp\/.*/,
   'electron',
   'fs-xattr',
   'fsevents',

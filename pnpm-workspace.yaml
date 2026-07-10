@@ -99,6 +99,7 @@ allowBuilds:
   'esbuild': false
   'utf-8-validate': false
   '@signalapp/ringrtc': true
+  node-llama-cpp: set this to true or false
 
 dedupePeers: true
 dedupePeerDependents: true
@@ -135,3 +136,5 @@ allowedDeprecatedVersions:
   'uuid': '8.3.2 || 9.0.1'
   'whatwg-encoding': '2.0.0'
   'yaeti': '0.0.6'
+
+onlyBuiltDependencies: node-llama-cpp

@@ -34,6 +34,7 @@ export type MenuActionsType = Readonly<{
   zoomOut: () => unknown;
   zoomReset: () => unknown;
   uuMinutesSummarizeChat: () => unknown;
+  uuMinutesSummarizeUnread: () => unknown;
   uuMinutesOpenSettings: () => unknown;
   uuMinutesOpenLog: () => unknown;
   uuMinutesOpenRecordings: () => unknown;

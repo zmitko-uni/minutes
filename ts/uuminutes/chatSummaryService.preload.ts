@@ -18,12 +18,14 @@ import { CHAT_SUMMARY_MESSAGE_LIMIT } from './constants.std.ts';
 import type { ChatSummaryResult, ChatSummaryScope } from './types.std.ts';
 import { openRecordingsFolder, openSummariesFolder } from './navigation.preload.ts';
 import { generateAiSummary, getAiSettings } from './aiSettingsService.preload.ts';
+import { formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 
 const log = createLogger('uuminutes/chatSummary');
 
 const HOUR_MS = 60 * 60 * 1000;
 const AI_SUMMARY_TIMEOUT_MS = 120_000;
+const AI_SUMMARY_LOCAL_TIMEOUT_MS = 600_000;
 /** Max DB pages when scanning by received_at (synced old msgs need full pass). */
 const MAX_MESSAGE_SCAN_BATCHES = 80;
 const MESSAGE_SCAN_BATCH_SIZE = 100;
@@ -104,7 +106,13 @@ async function maybeGenerateAiSummary(
   const transcript = lines.join('\n\n');
   try {
     log.info(`maybeGenerateAiSummary: calling ${settings.provider}`);
-    summaryUi.showWorking('Generuji AI shrnutí…');
+    summaryUi.showWorking(
+      formatAiSummaryProgressMessage(settings.provider, settings.model)
+    );
+    const timeoutMs =
+      settings.provider === 'local'
+        ? AI_SUMMARY_LOCAL_TIMEOUT_MS
+        : AI_SUMMARY_TIMEOUT_MS;
     const aiSummary = await Promise.race([
       generateAiSummary({
         conversationTitle,
@@ -113,8 +121,13 @@ async function maybeGenerateAiSummary(
       }),
       new Promise<never>((_resolve, reject) => {
         setTimeout(
-          () => reject(new Error('AI summary timed out after 2 minutes')),
-          AI_SUMMARY_TIMEOUT_MS
+          () =>
+            reject(
+              new Error(
+                `AI summary timed out after ${Math.round(timeoutMs / 1000)} seconds`
+              )
+            ),
+          timeoutMs
         );
       }),
     ]);

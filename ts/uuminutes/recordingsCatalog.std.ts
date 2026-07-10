@@ -25,4 +25,7 @@ export type CallRecordingCatalogEntry = Readonly<{
   hasSummary: boolean;
   transcriptPath?: string;
   summaryPath?: string;
+  transcriptWhisperModelFileName?: string;
+  transcriptWhisperModelLabel?: string;
+  transcriptGeneratedAt?: number;
 }>;

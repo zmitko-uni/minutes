@@ -17,7 +17,7 @@
 .Inbox__no-conversation-open .UuMinutesWelcomeSplash {
   flex: 1 1 auto;
   min-height: 0;
-  justify-content: flex-start;
+  justify-content: space-between;
   padding-block-start: 16px;
 }
 
@@ -240,5 +240,162 @@
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+.UuMinutesVersionFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 720px;
+  margin-block-start: 20px;
+  padding-block-start: 16px;
+  border-top: 1px solid transparent;
+  text-align: center;
+
+  @include mixins.light-theme {
+    border-top-color: variables.$color-gray-15;
+  }
+
+  @include mixins.dark-theme {
+    border-top-color: variables.$color-gray-60;
+  }
+}
+
+.UuMinutesVersionFooter__line {
+  margin: 0;
+
+  @include mixins.font-body-2-medium;
+
+  @include mixins.light-theme {
+    color: variables.$color-gray-75;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-gray-15;
+  }
+}
+
+.UuMinutesVersionFooter__label {
+  opacity: 0.85;
+}
+
+.UuMinutesVersionFooter__status {
+  margin: 0;
+
+  @include mixins.font-body-2;
+
+  @include mixins.light-theme {
+    color: variables.$color-gray-60;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-gray-25;
+  }
+}
+
+.UuMinutesVersionFooter__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.UuMinutesVersionFooter__button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+
+  @include mixins.font-body-2-medium;
+
+  @include mixins.light-theme {
+    color: variables.$color-gray-75;
+    background-color: variables.$color-gray-05;
+    border-color: variables.$color-gray-20;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-gray-05;
+    background-color: variables.$color-gray-75;
+    border-color: variables.$color-gray-60;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.UuMinutesVersionFooter__button--primary {
+  @include mixins.light-theme {
+    color: variables.$color-white;
+    background-color: variables.$color-ultramarine;
+    border-color: variables.$color-ultramarine;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-white;
+    background-color: variables.$color-ultramarine-light;
+    border-color: variables.$color-ultramarine-light;
+  }
+}
+
+.UuMinutesVersionFooter__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(100%, 320px);
+
+  @include mixins.font-body-2;
+
+  @include mixins.light-theme {
+    color: variables.$color-gray-60;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-gray-25;
+  }
+}
+
+.UuMinutesVersionFooter__progressBar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+
+  @include mixins.light-theme {
+    background-color: variables.$color-gray-15;
+  }
+
+  @include mixins.dark-theme {
+    background-color: variables.$color-gray-65;
+  }
+}
+
+.UuMinutesVersionFooter__progressFill {
+  height: 100%;
+
+  @include mixins.light-theme {
+    background-color: variables.$color-ultramarine;
+  }
+
+  @include mixins.dark-theme {
+    background-color: variables.$color-ultramarine-light;
+  }
+}
+
+.UuMinutesVersionFooter__error {
+  margin: 0;
+
+  @include mixins.font-body-2;
+
+  @include mixins.light-theme {
+    color: variables.$color-crimson;
+  }
+
+  @include mixins.dark-theme {
+    color: variables.$color-accent-red;
   }
 }

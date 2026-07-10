@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { ipcRenderer } from 'electron';
 
 import { drop } from '../../util/drop.std.ts';
+import { ToastType } from '../../types/Toast.dom.tsx';
 import { APP_DISPLAY_NAME } from '../branding.std.ts';
 import type {
   TranscriptionJob,
@@ -19,7 +20,13 @@ import {
   transcriptionQueue,
 } from '../transcriptionQueueService.preload.ts';
 import {
+  getCallSummaryExtensionState,
+} from '../callSummaryExtensionService.preload.ts';
+import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
+import { getWhisperModelLabel } from '../whisperSettings.std.ts';
+import {
   isCallRecordingFromSelfChat,
+  loadCallRecordingOutputFromEntry,
   sendCallSummaryToChat,
   sendCallTranscriptToChat,
 } from '../sendCallRecordingToChat.preload.ts';
@@ -169,97 +176,162 @@ function formatStatus(job: TranscriptionJob, snapshot: TranscriptionQueueSnapsho
   }
 }
 
-function CallOutputSendActions({
-  output,
-  activeAction,
-  isSending,
+async function performSendAction(
+  output: CallRecordingOutput,
+  action: SendAction
+): Promise<void> {
+  switch (action) {
+    case 'transcript-chat':
+      await sendCallTranscriptToChat(output, 'conversation');
+      break;
+    case 'transcript-self':
+      await sendCallTranscriptToChat(output, 'self');
+      break;
+    case 'summary-chat':
+      await sendCallSummaryToChat(output, 'conversation');
+      break;
+    case 'summary-self':
+      await sendCallSummaryToChat(output, 'self');
+      break;
+    default:
+      break;
+  }
+}
+
+function SendIconButton({
+  label,
+  tooltip,
+  disabled,
+  active,
+  onClick,
+}: Readonly<{
+  label: string;
+  tooltip: string;
+  disabled: boolean;
+  active: boolean;
+  onClick: () => void;
+}>): JSX.Element {
+  return (
+    <button
+      type="button"
+      className={`UuMinutesTranscriptionQueue__send-icon${
+        active ? ' UuMinutesTranscriptionQueue__send-icon--active' : ''
+      }`}
+      title={tooltip}
+      aria-label={tooltip}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {active ? '…' : label}
+    </button>
+  );
+}
+
+function RecordingSendActions({
+  itemKey,
+  conversationId,
+  conversationTitle,
+  hasTranscript,
+  hasSummary,
+  sendingKey,
   onSend,
 }: Readonly<{
-  output: CallRecordingOutput;
-  activeAction: SendAction | null;
-  isSending: boolean;
+  itemKey: string;
+  conversationId: string;
+  conversationTitle: string;
+  hasTranscript: boolean;
+  hasSummary: boolean;
+  sendingKey: string | null;
   onSend: (action: SendAction) => void;
-}>): JSX.Element {
-  const hideSendToSelf = isCallRecordingFromSelfChat(output);
-  const hasSummary = Boolean(output.summaryText?.trim());
+}>): JSX.Element | null {
+  if (!hasTranscript && !hasSummary) {
+    return null;
+  }
+
+  const hideSendToSelf = isCallRecordingFromSelfChat({
+    conversationId,
+    conversationTitle,
+    transcriptPath: '',
+    transcriptText: '',
+  });
+  const busy = sendingKey != null;
+  const isActive = (action: SendAction): boolean =>
+    sendingKey === `${itemKey}:${action}`;
 
   return (
-    <>
-      <div className="UuMinutesTranscriptionQueue__send-group">
-        <span className="UuMinutesTranscriptionQueue__send-label">Přepis</span>
-        <div className="UuMinutesTranscriptionQueue__send-row">
-          <button
-            type="button"
-            disabled={isSending}
+    <div className="UuMinutesTranscriptionQueue__send-icons">
+      {hasTranscript ? (
+        <>
+          <SendIconButton
+            label="P→"
+            tooltip="Poslat přepis do chatu"
+            disabled={busy}
+            active={isActive('transcript-chat')}
             onClick={() => onSend('transcript-chat')}
-          >
-            {activeAction === 'transcript-chat'
-              ? 'Odesílám…'
-              : 'Odeslat do chatu'}
-          </button>
+          />
           {!hideSendToSelf ? (
-            <button
-              type="button"
-              disabled={isSending}
+            <SendIconButton
+              label="P↩"
+              tooltip="Poslat přepis sobě"
+              disabled={busy}
+              active={isActive('transcript-self')}
               onClick={() => onSend('transcript-self')}
-            >
-              {activeAction === 'transcript-self'
-                ? 'Odesílám…'
-                : 'Poslat sobě'}
-            </button>
+            />
           ) : null}
-        </div>
-      </div>
-      {hasSummary ? (
-        <div className="UuMinutesTranscriptionQueue__send-group">
-          <span className="UuMinutesTranscriptionQueue__send-label">
-            Shrnutí
-          </span>
-          <div className="UuMinutesTranscriptionQueue__send-row">
-            <button
-              type="button"
-              disabled={isSending}
-              onClick={() => onSend('summary-chat')}
-            >
-              {activeAction === 'summary-chat'
-                ? 'Odesílám…'
-                : 'Odeslat do chatu'}
-            </button>
-            {!hideSendToSelf ? (
-              <button
-                type="button"
-                disabled={isSending}
-                onClick={() => onSend('summary-self')}
-              >
-                {activeAction === 'summary-self'
-                  ? 'Odesílám…'
-                  : 'Poslat sobě'}
-              </button>
-            ) : null}
-          </div>
-        </div>
+        </>
       ) : null}
-    </>
+      {hasSummary ? (
+        <>
+          <SendIconButton
+            label="S→"
+            tooltip="Poslat shrnutí do chatu"
+            disabled={busy}
+            active={isActive('summary-chat')}
+            onClick={() => onSend('summary-chat')}
+          />
+          {!hideSendToSelf ? (
+            <SendIconButton
+              label="S↩"
+              tooltip="Poslat shrnutí sobě"
+              disabled={busy}
+              active={isActive('summary-self')}
+              onClick={() => onSend('summary-self')}
+            />
+          ) : null}
+        </>
+      ) : null}
+    </div>
   );
 }
 
 function HistoryRecordingCard({
   entry,
   activeJob,
+  sendingKey,
+  activeWhisperModelLabel,
   onEnqueueTranscription,
   onEnqueueSummary,
   onRefresh,
+  onSend,
 }: Readonly<{
   entry: CallRecordingCatalogEntry;
   activeJob?: TranscriptionJob;
+  sendingKey: string | null;
+  activeWhisperModelLabel: string;
   onEnqueueTranscription: (entry: CallRecordingCatalogEntry) => void;
   onEnqueueSummary: (entry: CallRecordingCatalogEntry) => void;
   onRefresh: () => void;
+  onSend: (entry: CallRecordingCatalogEntry, action: SendAction) => void;
 }>): JSX.Element {
   const durationLabel =
     entry.durationMs > 0
       ? formatRecordingDuration(entry.durationMs)
       : 'neznámá';
+  const usedModelLabel =
+    entry.transcriptWhisperModelLabel ??
+    (entry.transcriptWhisperModelFileName
+      ? getWhisperModelLabel(entry.transcriptWhisperModelFileName)
+      : null);
 
   return (
     <div className="UuMinutesTranscriptionQueue__job UuMinutesTranscriptionQueue__job--history">
@@ -270,6 +342,12 @@ function HistoryRecordingCard({
         Délka: <strong>{durationLabel}</strong>
         {' · '}
         {new Date(entry.endedAt || entry.startedAt).toLocaleString('cs-CZ')}
+        {entry.hasTranscript && usedModelLabel ? (
+          <>
+            {' · '}
+            Whisper: <strong>{usedModelLabel}</strong>
+          </>
+        ) : null}
       </div>
       <div className="UuMinutesTranscriptionQueue__badges">
         <ArtifactBadge label="Přepis" ready={entry.hasTranscript} />
@@ -293,6 +371,15 @@ function HistoryRecordingCard({
           })}
         </div>
       ) : null}
+      <RecordingSendActions
+        itemKey={entry.mp3Path}
+        conversationId={entry.conversationId}
+        conversationTitle={entry.conversationTitle}
+        hasTranscript={entry.hasTranscript}
+        hasSummary={entry.hasSummary}
+        sendingKey={sendingKey}
+        onSend={action => onSend(entry, action)}
+      />
       <div className="UuMinutesTranscriptionQueue__job-actions">
         {!entry.hasTranscript ? (
           <button
@@ -324,18 +411,35 @@ function HistoryRecordingCard({
           </button>
         ) : null}
         {entry.hasTranscript ? (
-          <button
-            type="button"
-            onClick={() => {
-              ipcRenderer.send(
-                'show-item-in-folder',
-                entry.transcriptPath ??
-                  entry.mp3Path.replace(/\.mp3$/i, '.transcript.md')
-              );
-            }}
-          >
-            Otevřít přepis
-          </button>
+          <>
+            <button
+              type="button"
+              disabled={!entry.hasPcmSidecar || Boolean(activeJob)}
+              title={
+                entry.hasPcmSidecar
+                  ? `Přegenerovat přepis aktivním modelem ${activeWhisperModelLabel}`
+                  : 'Přepis vyžaduje PCM sidecar z nahrávání v této verzi Minutes'
+              }
+              onClick={() => {
+                onEnqueueTranscription(entry);
+                onRefresh();
+              }}
+            >
+              Přegenerovat ({activeWhisperModelLabel})
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                ipcRenderer.send(
+                  'show-item-in-folder',
+                  entry.transcriptPath ??
+                    entry.mp3Path.replace(/\.mp3$/i, '.transcript.md')
+                );
+              }}
+            >
+              Otevřít přepis
+            </button>
+          </>
         ) : null}
         {entry.hasSummary ? (
           <button
@@ -375,10 +479,12 @@ function TranscriptionQueuePanel({
   onRefreshHistory,
   onEnqueueTranscription,
   onEnqueueSummary,
+  onSendHistory,
   onSendOutput,
   onMinimize,
   onExpand,
   onClose,
+  activeWhisperModelLabel,
 }: Readonly<{
   snapshot: TranscriptionQueueSnapshot;
   minimized: boolean;
@@ -390,10 +496,12 @@ function TranscriptionQueuePanel({
   onRefreshHistory: () => void;
   onEnqueueTranscription: (entry: CallRecordingCatalogEntry) => void;
   onEnqueueSummary: (entry: CallRecordingCatalogEntry) => void;
+  onSendHistory: (entry: CallRecordingCatalogEntry, action: SendAction) => void;
   onSendOutput: (job: TranscriptionJob, action: SendAction) => void;
   onMinimize: () => void;
   onExpand: () => void;
   onClose: () => void;
+  activeWhisperModelLabel: string;
 }>): JSX.Element | null {
   const activeCount = useMemo(
     () =>
@@ -504,9 +612,12 @@ function TranscriptionQueuePanel({
                 key={entry.mp3Path}
                 entry={entry}
                 activeJob={findActiveJobForRecording(entry.mp3Path, snapshot.jobs)}
+                sendingKey={sendingKey}
+                activeWhisperModelLabel={activeWhisperModelLabel}
                 onEnqueueTranscription={onEnqueueTranscription}
                 onEnqueueSummary={onEnqueueSummary}
                 onRefresh={onRefreshHistory}
+                onSend={onSendHistory}
               />
             ))
           )
@@ -557,6 +668,20 @@ function TranscriptionQueuePanel({
                     </div>
                   </>
                 ) : null}
+                {job.status === 'completed' ? (
+                  <RecordingSendActions
+                    itemKey={job.id}
+                    conversationId={job.metadata.conversationId}
+                    conversationTitle={job.metadata.conversationTitle}
+                    hasTranscript={
+                      job.kind === 'transcription' ||
+                      Boolean(job.output?.transcriptText?.trim())
+                    }
+                    hasSummary={Boolean(job.output?.summaryText?.trim())}
+                    sendingKey={sendingKey}
+                    onSend={action => onSendOutput(job, action)}
+                  />
+                ) : null}
                 <div className="UuMinutesTranscriptionQueue__job-actions">
                   {job.status === 'failed' ? (
                     <button
@@ -588,18 +713,6 @@ function TranscriptionQueuePanel({
                     >
                       Odstranit
                     </button>
-                  ) : null}
-                  {job.status === 'completed' && job.output ? (
-                    <CallOutputSendActions
-                      output={job.output}
-                      activeAction={
-                        sendingKey?.startsWith(`${job.id}:`)
-                          ? (sendingKey.slice(job.id.length + 1) as SendAction)
-                          : null
-                      }
-                      isSending={sendingKey != null}
-                      onSend={action => onSendOutput(job, action)}
-                    />
                   ) : null}
                   {job.status === 'completed' ? (
                     <button
@@ -674,6 +787,12 @@ export function UuMinutesTranscriptionQueueHost(): JSX.Element | null {
   >([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [, setTick] = useState(0);
+  const [activeWhisperModelLabel, setActiveWhisperModelLabel] = useState(() => {
+    const state = getCallSummaryExtensionState();
+    return state.modelFileName
+      ? getWhisperModelLabel(state.modelFileName)
+      : 'Medium';
+  });
 
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -688,6 +807,19 @@ export function UuMinutesTranscriptionQueueHost(): JSX.Element | null {
   }, []);
 
   useEffect(() => subscribeTranscriptionQueue(setSnapshot), []);
+
+  useEffect(() => {
+    const syncActiveModel = (): void => {
+      const state = getCallSummaryExtensionState();
+      setActiveWhisperModelLabel(
+        state.modelFileName
+          ? getWhisperModelLabel(state.modelFileName)
+          : 'Medium'
+      );
+    };
+    syncActiveModel();
+    return callSummaryExtensionEvents.on(syncActiveModel);
+  }, []);
 
   useEffect(() => {
     if (!showHistory || !snapshot.panelOpen) {
@@ -782,23 +914,34 @@ export function UuMinutesTranscriptionQueueHost(): JSX.Element | null {
             if (!output) {
               return;
             }
+            await performSendAction(output, action);
+          } finally {
+            setSendingKey(null);
+          }
+        })()
+      );
+    },
+    [sendingKey]
+  );
 
-            switch (action) {
-              case 'transcript-chat':
-                await sendCallTranscriptToChat(output, 'conversation');
-                break;
-              case 'transcript-self':
-                await sendCallTranscriptToChat(output, 'self');
-                break;
-              case 'summary-chat':
-                await sendCallSummaryToChat(output, 'conversation');
-                break;
-              case 'summary-self':
-                await sendCallSummaryToChat(output, 'self');
-                break;
-              default:
-                break;
+  const handleSendHistory = useCallback(
+    (entry: CallRecordingCatalogEntry, action: SendAction) => {
+      if (sendingKey) {
+        return;
+      }
+
+      const key = `${entry.mp3Path}:${action}`;
+      setSendingKey(key);
+
+      drop(
+        (async () => {
+          try {
+            const output = await loadCallRecordingOutputFromEntry(entry);
+            if (!output) {
+              window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+              return;
             }
+            await performSendAction(output, action);
           } finally {
             setSendingKey(null);
           }
@@ -827,10 +970,12 @@ export function UuMinutesTranscriptionQueueHost(): JSX.Element | null {
       }}
       onEnqueueTranscription={handleEnqueueTranscription}
       onEnqueueSummary={handleEnqueueSummary}
+      onSendHistory={handleSendHistory}
       onSendOutput={handleSendOutput}
       onMinimize={() => setMinimized(true)}
       onExpand={handleExpand}
       onClose={handleClose}
+      activeWhisperModelLabel={activeWhisperModelLabel}
     />,
     document.body
   );

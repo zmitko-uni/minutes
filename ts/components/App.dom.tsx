@@ -15,6 +15,7 @@ import type { AppStateType } from '../state/ducks/app.preload.ts';
 import { UuMinutesSettingsHost } from '../uuminutes/components/UuMinutesSettingsModal.dom.tsx';
 import { UuMinutesCallSummaryExtensionHost } from '../uuminutes/components/UuMinutesCallSummaryExtensionModal.dom.tsx';
 import { UuMinutesSummaryToastHost } from '../uuminutes/components/UuMinutesSummaryToastHost.dom.tsx';
+import { UuMinutesAppUpdateBannerHost } from '../uuminutes/components/UuMinutesAppUpdateBannerHost.dom.tsx';
 import { UuMinutesLogHost } from '../uuminutes/components/UuMinutesLogModal.dom.tsx';
 import { UuMinutesBookmarksHost } from '../uuminutes/components/UuMinutesBookmarksModal.dom.tsx';
 import { UuMinutesReadmeHost } from '../uuminutes/components/UuMinutesReadmeModal.dom.tsx';
@@ -124,6 +125,7 @@ export function App({
       <UuMinutesSettingsHost />
       <UuMinutesCallSummaryExtensionHost />
       <UuMinutesSummaryToastHost />
+      <UuMinutesAppUpdateBannerHost />
       <UuMinutesLogHost />
       <UuMinutesBookmarksHost />
       <UuMinutesReadmeHost />

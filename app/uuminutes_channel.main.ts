@@ -34,13 +34,29 @@ import {
   installCallSummaryExtension,
   transcribeCallRecording,
 } from '../ts/uuminutes/callSummaryExtension.main.ts';
-import { listCallRecordings } from '../ts/uuminutes/recordingsCatalog.main.ts';
+import {
+  cancelLocalLlmExtensionDownload,
+  createLocalLlmProgressSender,
+  getLocalLlmExtensionPublic,
+  installLocalLlmExtension,
+} from '../ts/uuminutes/localLlmExtension.main.ts';
+import { listCallRecordings, loadCallRecordingOutput } from '../ts/uuminutes/recordingsCatalog.main.ts';
 import { cancelTranscriptionJob } from '../ts/uuminutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
   generateAiSummaryForProvider,
+  generateUnreadConversationSummaryForProvider,
 } from '../ts/uuminutes/aiSummaryService.main.ts';
 import { readUuMinutesReadmeContent } from './uuminutes_readme.main.ts';
+import {
+  checkForAppUpdate,
+  createAppUpdateProgressSender,
+  downloadAndInstallAppUpdate,
+  downloadAppUpdate,
+  getPendingAppUpdate,
+  installPendingAppUpdate,
+  resolveStartupAppUpdateState,
+} from '../ts/uuminutes/appUpdate.main.ts';
 
 const log = createLogger('uuminutes/main');
 
@@ -233,6 +249,24 @@ export function initializeUuMinutesChannel(): void {
     return listCallRecordings(recordingsDir);
   });
 
+  ipcMain.handle(
+    'uuminutes:load-call-recording-output',
+    async (
+      _event,
+      entry: {
+        mp3Path: string;
+        conversationId: string;
+        conversationTitle: string;
+        hasTranscript: boolean;
+        hasSummary: boolean;
+        transcriptPath?: string;
+        summaryPath?: string;
+      }
+    ) => {
+      return loadCallRecordingOutput(entry);
+    }
+  );
+
   ipcMain.handle('uuminutes:open-summaries-folder', async () => {
     const summariesDir = getSummariesDir();
     await ensureDir(summariesDir);
@@ -293,6 +327,25 @@ export function initializeUuMinutesChannel(): void {
     }
   );
 
+  ipcMain.handle('uuminutes:get-local-llm-extension', async () => {
+    return getLocalLlmExtensionPublic();
+  });
+
+  ipcMain.handle(
+    'uuminutes:install-local-llm-extension',
+    async (
+      event,
+      options: { modelFileName?: string; forceRedownload?: boolean } = {}
+    ) => {
+      const sendProgress = createLocalLlmProgressSender(event.sender);
+      return installLocalLlmExtension(sendProgress, options);
+    }
+  );
+
+  ipcMain.handle('uuminutes:cancel-local-llm-download', async () => {
+    cancelLocalLlmExtensionDownload();
+  });
+
   ipcMain.handle(
     'uuminutes:transcribe-call-recording',
     async (
@@ -304,6 +357,7 @@ export function initializeUuMinutesChannel(): void {
         conversationTitle: string;
         startedAt: number;
         endedAt: number;
+        localSpeakerDisplayName?: string;
         background?: boolean;
       }
     ) => {
@@ -340,6 +394,7 @@ export function initializeUuMinutesChannel(): void {
         jobId?: string;
         recordingPath: string;
         conversationTitle: string;
+        localSpeakerDisplayName?: string;
       }
     ) => {
       return generateCallRecordingSummary({
@@ -377,6 +432,15 @@ export function initializeUuMinutesChannel(): void {
     ): Promise<{ ok: true; message: string }> => {
       const settings = await getAiSettingsPublic();
       const provider = options.provider ?? settings.provider;
+      const model = options.model ?? settings.model;
+      if (provider === 'local') {
+        const message = await testAiConnectionForProvider({
+          provider: 'local',
+          apiKey: '',
+          model,
+        });
+        return { ok: true, message };
+      }
       const apiKey =
         options.apiKey?.trim() || (await getAiApiKey(provider)) || undefined;
       if (!apiKey) {
@@ -385,7 +449,7 @@ export function initializeUuMinutesChannel(): void {
       const message = await testAiConnectionForProvider({
         provider,
         apiKey,
-        model: options.model,
+        model,
       });
       return { ok: true, message };
     }
@@ -403,23 +467,125 @@ export function initializeUuMinutesChannel(): void {
     ): Promise<string> => {
       const enabled = await isAiSummaryEnabled();
       if (!enabled) {
-        throw new Error('AI sumarizace je vypnutá nebo chybí API klíč');
+        throw new Error(
+          'AI sumarizace je vypnutá nebo chybí API klíč / lokální model'
+        );
       }
 
       const settings = await getAiSettingsPublic();
-      const apiKey = await getAiApiKey(settings.provider);
-      if (!apiKey) {
+      const apiKey =
+        settings.provider === 'local'
+          ? ''
+          : (await getAiApiKey(settings.provider)) ?? undefined;
+      if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
 
       return generateAiSummaryForProvider({
         provider: settings.provider,
-        apiKey,
+        apiKey: apiKey ?? '',
         model: settings.model,
         outputLanguage: settings.outputLanguage,
         conversationTitle: options.conversationTitle,
         scopeLabel: options.scopeLabel,
         transcript: options.transcript,
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'uuminutes:generate-unread-conversation-summary',
+    async (
+      _event,
+      options: {
+        conversationTitle: string;
+        unreadCount: number;
+        transcript: string;
+      }
+    ): Promise<string> => {
+      const enabled = await isAiSummaryEnabled();
+      if (!enabled) {
+        throw new Error(
+          'AI sumarizace je vypnutá nebo chybí API klíč / lokální model'
+        );
+      }
+
+      const settings = await getAiSettingsPublic();
+      const apiKey =
+        settings.provider === 'local'
+          ? ''
+          : (await getAiApiKey(settings.provider)) ?? undefined;
+      if (settings.provider !== 'local' && !apiKey) {
+        throw new Error('API klíč není nastaven');
+      }
+
+      return generateUnreadConversationSummaryForProvider({
+        provider: settings.provider,
+        apiKey: apiKey ?? '',
+        model: settings.model,
+        outputLanguage: settings.outputLanguage,
+        conversationTitle: options.conversationTitle,
+        unreadCount: options.unreadCount,
+        transcript: options.transcript,
+      });
+    }
+  );
+
+  ipcMain.handle('uuminutes:check-for-app-update', async () => {
+    return checkForAppUpdate();
+  });
+
+  ipcMain.handle('uuminutes:get-startup-app-update-state', async () => {
+    return resolveStartupAppUpdateState();
+  });
+
+  ipcMain.handle('uuminutes:get-pending-app-update', async () => {
+    return getPendingAppUpdate();
+  });
+
+  ipcMain.handle(
+    'uuminutes:download-app-update',
+    async (
+      event,
+      options: {
+        downloadUrl: string;
+        latestVersion: string;
+        releaseUrl: string;
+      }
+    ) => {
+      const sendProgress = createAppUpdateProgressSender(event.sender);
+      return downloadAppUpdate({
+        ...options,
+        sendProgress,
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'uuminutes:install-pending-app-update',
+    async (event, options: { version?: string } = {}) => {
+      const sendProgress = createAppUpdateProgressSender(event.sender);
+      return installPendingAppUpdate({
+        ...options,
+        sendProgress,
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'uuminutes:download-and-install-app-update',
+    async (
+      event,
+      options: {
+        downloadUrl: string;
+        latestVersion: string;
+        releaseUrl: string;
+      }
+    ) => {
+      const sendProgress = createAppUpdateProgressSender(event.sender);
+      return downloadAndInstallAppUpdate({
+        ...options,
+        sendProgress,
       });
     }
   );

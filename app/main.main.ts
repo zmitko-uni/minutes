@@ -1428,6 +1428,13 @@ function uuMinutesSummarizeChat(): void {
   mainWindow.webContents.send('uuminutes:summarize-current-chat');
 }
 
+function uuMinutesSummarizeUnread(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('uuminutes:summarize-unread');
+}
+
 function uuMinutesOpenSettings(): void {
   if (!mainWindow?.webContents) {
     return;
@@ -2556,6 +2563,7 @@ function setupMenu(options?: Partial<CreateTemplateOptionsType>) {
     zoomOut,
     zoomReset,
     uuMinutesSummarizeChat,
+    uuMinutesSummarizeUnread,
     uuMinutesOpenSettings,
     uuMinutesOpenLog,
     uuMinutesOpenRecordings,

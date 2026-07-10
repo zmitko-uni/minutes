@@ -1,7 +1,18 @@
 // Copyright 2026 uuMinutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-export type AiProvider = 'openai' | 'google' | 'anthropic' | 'perplexity';
+import {
+  DEFAULT_LOCAL_LLM_MODEL,
+  LOCAL_LLM_MODEL_CATALOG,
+  getLocalLlmModelLabel,
+} from './localLlmSettings.std.ts';
+
+export type AiProvider =
+  | 'openai'
+  | 'google'
+  | 'anthropic'
+  | 'perplexity'
+  | 'local';
 
 export type AiProviderDefinition = Readonly<{
   id: AiProvider;
@@ -13,6 +24,8 @@ export type AiProviderDefinition = Readonly<{
   models: ReadonlyArray<string>;
   defaultModel: string;
   billingNote: string;
+  /** Cloud poskytovatelé vyžadují API klíč; lokální ne. */
+  requiresApiKey: boolean;
 }>;
 
 export const AI_PROVIDER_DEFINITIONS: ReadonlyArray<AiProviderDefinition> = [
@@ -27,6 +40,7 @@ export const AI_PROVIDER_DEFINITIONS: ReadonlyArray<AiProviderDefinition> = [
     defaultModel: 'gpt-4o-mini',
     billingNote:
       'Fakturace na OpenAI účtu. Pro nízké náklady doporučujeme gpt-4o-mini.',
+    requiresApiKey: true,
   },
   {
     id: 'google',
@@ -35,10 +49,15 @@ export const AI_PROVIDER_DEFINITIONS: ReadonlyArray<AiProviderDefinition> = [
     keyPlaceholder: 'AIza…',
     keyHelpUrl: 'https://aistudio.google.com/apikey',
     keyHelpLabel: 'aistudio.google.com/apikey',
-    models: ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.5-pro'],
-    defaultModel: 'gemini-2.0-flash',
+    models: [
+      'gemini-3.1-flash-lite',
+      'gemini-3.5-flash',
+      'gemini-2.5-pro',
+    ],
+    defaultModel: 'gemini-3.1-flash-lite',
     billingNote:
-      'Fakturace v Google AI Studio. Flash modely jsou obvykle levné.',
+      'Fakturace v Google AI Studio. Pro nízké náklady doporučujeme gemini-3.1-flash-lite.',
+    requiresApiKey: true,
   },
   {
     id: 'anthropic',
@@ -55,6 +74,7 @@ export const AI_PROVIDER_DEFINITIONS: ReadonlyArray<AiProviderDefinition> = [
     defaultModel: 'claude-3-5-haiku-latest',
     billingNote:
       'Fakturace na Anthropic účtu. Haiku je nejlevnější volba.',
+    requiresApiKey: true,
   },
   {
     id: 'perplexity',
@@ -67,10 +87,46 @@ export const AI_PROVIDER_DEFINITIONS: ReadonlyArray<AiProviderDefinition> = [
     defaultModel: 'sonar',
     billingNote:
       'Fakturace v Perplexity API Portal (prepaid kredity). Pro sumarizaci chatu bez webu doporučujeme sonar.',
+    requiresApiKey: true,
+  },
+  {
+    id: 'local',
+    label: 'Lokální LLM (Gemma)',
+    keyLabel: '',
+    keyPlaceholder: '',
+    keyHelpUrl: '',
+    keyHelpLabel: '',
+    models: LOCAL_LLM_MODEL_CATALOG.map(model => model.fileName),
+    defaultModel: DEFAULT_LOCAL_LLM_MODEL.fileName,
+    billingNote:
+      'Model běží lokálně na vašem počítači. Nejdřív stáhněte a aktivujte model níže.',
+    requiresApiKey: false,
   },
 ];
 
 const DEFAULT_AI_PROVIDER = AI_PROVIDER_DEFINITIONS[0]!;
+
+export function normalizeAiOutputLanguage(code: string): string {
+  const normalized = code.trim().toLowerCase();
+  return normalized || DEFAULT_AI_SETTINGS.outputLanguage;
+}
+
+const AI_OUTPUT_LANGUAGE_LABELS: Readonly<Record<string, string>> = {
+  cs: 'čeština',
+  en: 'English',
+  sk: 'slovenčina',
+  de: 'Deutsch',
+  pl: 'polština',
+};
+
+export function getAiOutputLanguageLabel(code: string): string {
+  const normalized = normalizeAiOutputLanguage(code);
+  return AI_OUTPUT_LANGUAGE_LABELS[normalized] ?? normalized;
+}
+
+export function isCzechAiOutputLanguage(code: string): boolean {
+  return normalizeAiOutputLanguage(code) === 'cs';
+}
 
 export function getAiProviderDefinition(
   provider: AiProvider
@@ -80,6 +136,23 @@ export function getAiProviderDefinition(
     return DEFAULT_AI_PROVIDER;
   }
   return found;
+}
+
+export function formatAiModelDisplayLabel(
+  provider: AiProvider,
+  model: string
+): string {
+  if (provider === 'local') {
+    return getLocalLlmModelLabel(model);
+  }
+  return `${getAiProviderDefinition(provider).label} · ${model}`;
+}
+
+export function formatAiSummaryProgressMessage(
+  provider: AiProvider,
+  model: string
+): string {
+  return `Generuji AI shrnutí… (${formatAiModelDisplayLabel(provider, model)})`;
 }
 
 export type AiProviderKeyStatus = Readonly<{

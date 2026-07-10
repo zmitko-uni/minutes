@@ -1,11 +1,15 @@
 // Copyright 2026 uuMinutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { ipcRenderer } from 'electron';
 import { formatChatMessageHeader } from './branding.std.ts';
 import { createLogger } from '../logging/log.std.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
 import * as Errors from '../types/errors.std.ts';
 import type { CallRecordingOutput } from './types.std.ts';
+import type { CallRecordingCatalogEntry } from './recordingsCatalog.std.ts';
+import { getLocalSpeakerDisplayName } from './localSpeakerName.preload.ts';
+import { replaceLegacyLocalSpeakerLabels } from './speakerActivity.std.ts';
 
 const log = createLogger('uuminutes/sendCallRecording');
 
@@ -24,7 +28,10 @@ function buildTranscriptMessage(output: CallRecordingOutput): string {
     'call-transcript',
     output.conversationTitle
   );
-  const body = output.transcriptText.trim();
+  const body = replaceLegacyLocalSpeakerLabels(
+    output.transcriptText.trim(),
+    getLocalSpeakerDisplayName()
+  );
   if (!body) {
     return `${header}(Prázdný přepis.)`;
   }
@@ -36,7 +43,10 @@ function buildSummaryMessage(output: CallRecordingOutput): string {
     'call-summary',
     output.conversationTitle
   );
-  const body = output.summaryText?.trim() ?? '';
+  const body = replaceLegacyLocalSpeakerLabels(
+    output.summaryText?.trim() ?? '',
+    getLocalSpeakerDisplayName()
+  );
   if (!body) {
     return `${header}(Shrnutí není k dispozici.)`;
   }
@@ -130,4 +140,14 @@ export async function sendCallSummaryToChat(
     return false;
   }
   return sendToConversation(conversationId, buildSummaryMessage(output));
+}
+
+export async function loadCallRecordingOutputFromEntry(
+  entry: CallRecordingCatalogEntry
+): Promise<CallRecordingOutput | null> {
+  const result = (await ipcRenderer.invoke(
+    'uuminutes:load-call-recording-output',
+    entry
+  )) as CallRecordingOutput | null;
+  return result ?? null;
 }

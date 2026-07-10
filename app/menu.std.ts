@@ -13,14 +13,17 @@ import { UUMINUTES_BUILD_ID } from '../ts/uuminutes/constants.std.ts';
 import {
   UUMINUTES_MENU_AI_SETTINGS,
   UUMINUTES_MENU_ABOUT,
+  UUMINUTES_MENU_BOOKMARKS,
+  UUMINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
   UUMINUTES_MENU_LABEL,
   UUMINUTES_MENU_OPEN_RECORDINGS,
   UUMINUTES_MENU_OPEN_SUMMARIES,
+  UUMINUTES_MENU_README,
   UUMINUTES_MENU_SHOW_LOG,
   UUMINUTES_MENU_SUMMARIZE_CURRENT_CHAT,
+  UUMINUTES_MENU_SUMMARIZE_UNREAD,
   UUMINUTES_MENU_TRANSCRIPTION_QUEUE,
 } from '../ts/uuminutes/menuLabels.std.ts';
-import { UUMINUTES_README_LABEL } from '../ts/uuminutes/welcomeContent.std.ts';
 import { strictAssert } from '../ts/util/assert.std.ts';
 
 const { isString } = lodash;
@@ -58,6 +61,7 @@ export const createTemplate = (
     zoomOut,
     zoomReset,
     uuMinutesSummarizeChat,
+    uuMinutesSummarizeUnread,
     uuMinutesOpenSettings,
     uuMinutesOpenLog,
     uuMinutesOpenRecordings,
@@ -107,33 +111,40 @@ export const createTemplate = (
           click: uuMinutesSummarizeChat,
         },
         {
-          label: 'Záložky…',
+          label: UUMINUTES_MENU_SUMMARIZE_UNREAD,
+          accelerator: 'CommandOrControl+Shift+N',
+          click: uuMinutesSummarizeUnread,
+        },
+        {
+          label: UUMINUTES_MENU_BOOKMARKS,
+          accelerator: 'CommandOrControl+Shift+B',
           click: uuMinutesOpenBookmarks,
-        },
-        {
-          label: UUMINUTES_MENU_AI_SETTINGS,
-          click: uuMinutesOpenSettings,
-        },
-        {
-          label: 'Sumarizace hovoru…',
-          click: uuMinutesOpenCallSummaryExtension,
         },
         {
           label: UUMINUTES_MENU_TRANSCRIPTION_QUEUE,
           click: uuMinutesOpenTranscriptionQueue,
         },
         {
-          label: UUMINUTES_README_LABEL,
+          type: 'separator',
+        },
+        {
+          label: UUMINUTES_MENU_AI_SETTINGS,
+          click: uuMinutesOpenSettings,
+        },
+        {
+          label: UUMINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
+          click: uuMinutesOpenCallSummaryExtension,
+        },
+        {
+          type: 'separator',
+        },
+        {
+          label: UUMINUTES_MENU_README,
           click: uuMinutesOpenReadme,
         },
         {
           label: UUMINUTES_MENU_ABOUT,
           click: uuMinutesShowHome,
-        },
-        {
-          label: UUMINUTES_MENU_SHOW_LOG,
-          accelerator: 'CommandOrControl+Shift+Alt+L',
-          click: uuMinutesOpenLog,
         },
         {
           type: 'separator',
@@ -145,6 +156,11 @@ export const createTemplate = (
         {
           label: UUMINUTES_MENU_OPEN_SUMMARIES,
           click: uuMinutesOpenSummaries,
+        },
+        {
+          label: UUMINUTES_MENU_SHOW_LOG,
+          accelerator: 'CommandOrControl+Shift+Alt+L',
+          click: uuMinutesOpenLog,
         },
       ],
     },

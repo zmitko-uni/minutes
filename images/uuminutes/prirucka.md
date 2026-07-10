@@ -1,350 +1,284 @@
-Desktopová aplikace Signal pro **nahrávání hovorů**, **sumarizaci konverzací** a **AI asistenci** u schůzek a chatů. Signal slouží k běžné komunikaci; Minutes přidává nástroje pro práci se zápisy a shrnutími.
+# Minutes — příručka pro uživatele
 
+Minutes rozšiřuje Signal Desktop o **nahrávání hovorů**, **přepisy**, **AI shrnutí chatů** a **záložky** na důležité zprávy.
 
-
-Data zůstávají primárně u vás na disku (nahrávky, exporty). Volitelná AI sumarizace využívá **váš vlastní API klíč** u zvoleného poskytovatele (OpenAI, Gemini, Claude nebo Perplexity).
-
-
+Vaše data (nahrávky, exporty, modely) zůstávají **primárně u vás na disku**. Cloud AI je volitelné — používáte vlastní API klíč, nebo můžete shrnovat **lokálně** bez internetu.
 
 ---
 
+## Za 5 minut — rychlý start
 
+### 1. Zapněte AI shrnutí (volitelné, ale doporučené)
 
-## Rychlý přehled funkcí
+1. Otevřete **Menu → Minutes → Nastavení AI**
+2. Zapněte **Povolit AI shrnutí**
+3. Nastavte v tomto pořadí:
+   - **Jazyk shrnutí** — nechte `cs` pro češtinu
+   - **Poskytovatel** — vyberte, kdo bude tvořit shrnutí
+   - Podle poskytovatele doplňte **model** a **API klíč**, nebo u lokálního Gemma **stáhněte model**
+4. Klikněte **Otestovat aktivního**, pak **Uložit**
 
+### 2. Sumarizujte chat
 
+- **Ctrl+Shift+U** — shrnutí otevřeného chatu
+- Nebo pravý klik na zprávu → **Minutes: Sumarizovat odtud**
+- Nebo menu chatu → **Sumarizovat poslední 1 / 8 / 24 hodin**
 
-| Funkce | Kde ji najdete |
+Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**). Zelená lišta nabídne odeslání do chatu nebo sobě.
 
-|--------|----------------|
+### 3. Nahrajte a přepište hovor
 
-| Sumarizace chatu | Menu chatu, pravý klik na zprávu, menu Minutes |
-
-| Záložky zpráv | Pravý klik na zprávu, menu Minutes → Záložky… |
-
-| Nahrávání hovoru | Obrazovka hovoru — tlačítka Record / Pause / Stop |
-
-| Přepis hovoru (Whisper) | menu Minutes → Sumarizace hovoru… |
-
-| AI nastavení | menu Minutes → Nastavení AI… |
-
-| Příručka | menu Minutes → Příručka Minutes (nebo odkaz na úvodní obrazovce) |
-
-| O Minutes | menu Minutes → O Minutes — návrat na úvodní obrazovku |
-
-| Složky s výstupy | menu Minutes → Otevřít nahrávky hovorů / Otevřít sumarizace chatů |
-
-
+1. Během hovoru stiskněte **Record** (vedle mute)
+2. Po skončení se nahrávka uloží automaticky
+3. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Medium** (doporučeno)
+4. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ---
 
+## Nastavení AI — podrobný návod
 
+Dialog **Minutes → Nastavení AI** je uspořádaný shora dolů:
 
-## 1. Sumarizace konverzací
+| Pořadí | Co nastavíte | Popis |
+|--------|--------------|-------|
+| 1 | Povolit AI shrnutí | Zapne/vypne AI u chatů a hovorů |
+| 2 | Opravit přepis hovoru | Po Whisperu opraví zjevné chyby v textu |
+| 3 | **Jazyk shrnutí** | `cs` = čeština, `en` = angličtina |
+| 4 | **Poskytovatel** | Kdo shrnutí vytvoří |
+| 5 | Model + klíč / stažení | Zobrazí se podle zvoleného poskytovatele |
 
+### Cloud poskytovatel (OpenAI, Gemini, Claude, Perplexity)
 
+1. Zvolte poskytovatele
+2. Vyberte **model** (levnější modely jsou v seznamu první)
+3. Vložte **API klíč** — odkaz „kde klíč získat“ je přímo pod polem
+4. **Otestovat aktivního** → **Uložit**
 
-### Co to dělá
+Klíče u ostatních poskytovatelů zůstávají uložené. Chcete-li později přepnout na Gemini, stačí změnit poskytovatele a doplnit jeho klíč.
 
+| Poskytovatel | Kde získat klíč | Levný model pro start |
+|--------------|-----------------|------------------------|
+| OpenAI (ChatGPT) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | `gpt-4o-mini` |
+| Google Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | `gemini-3.1-flash-lite` |
+| Anthropic (Claude) | [console.anthropic.com](https://console.anthropic.com/settings/keys) | `claude-3-5-haiku-latest` |
+| Perplexity | [perplexity.ai → API](https://www.perplexity.ai/settings/api) | `sonar` |
 
+> **Poznámka:** Předplatné ChatGPT Plus, Claude Pro nebo Cursor **není** totéž co API klíč. Minutes potřebuje pay-as-you-go API účet u poskytovatele.
 
-- Exportuje vybrané zprávy z chatu do souboru **Markdown** (`.md`) s metadaty (`.json`).
+### Lokální LLM (Gemma) — bez API klíče
 
-- Volitelně po exportu zavolá **AI API** zvoleného poskytovatele a doplní sekci **AI Summary** (pokud máte nastavený API klíč a zapnuté AI shrnutí).
+1. Zvolte poskytovatele **Lokální LLM (Gemma)**
+2. Vyberte model ke stažení:
 
+| Model | RAM | Velikost | Kdy použít |
+|-------|-----|----------|------------|
+| **Gemma 3 4B** | od 8 GB | cca 2,5 GB | Slabší PC, rychlejší shrnutí |
+| **Gemma 3 12B** | od 12 GB | cca 7,5 GB | Kompromis kvalita/rychlost |
+| **Gemma 4 12B** *(doporučeno)* | od 16 GB | cca 7 GB | Nejlepší kvalita, včetně češtiny |
 
+3. Klikněte **Stáhnout a aktivovat** (během stahování lze **Zrušit stahování**)
+4. **Uložit** nastavení
+
+Shrnutí proběhne **jen na vašem počítači** — nic se neposílá do cloudu. První shrnutí může trvat déle (načtení modelu do paměti).
+
+---
+
+## Sumarizace konverzací
+
+### Co dostanete
+
+- Soubor **Markdown** (`.md`) s přepisem zpráv
+- Volitelně sekci **AI Summary** (pokud je AI zapnuté a nastavené)
+- Metadata v `.json` souboru
 
 ### Jak spustit
 
-
-
-1. **Celý otevřený chat** — menu **Minutes → Sumarizovat aktuální chat** nebo klávesa **Ctrl+Shift+U**.
-
-2. **Od konkrétní zprávy** — pravý klik na zprávu → **Minutes: Sumarizovat odtud**.
-
-3. **Za poslední období** — menu **⋯** v hlavičce chatu → Minutes → **Sumarizovat poslední 1 / 8 / 24 hodin**.
-
-4. **Levý panel** — pravý klik na konverzaci → stejné položky sumarizace.
-
-
+| Situace | Jak na to |
+|---------|-----------|
+| Celý otevřený chat | **Ctrl+Shift+U** nebo menu Minutes |
+| Od konkrétní zprávy | Pravý klik → **Minutes: Sumarizovat odtud** |
+| Poslední 1 / 8 / 24 h | Menu **⋯** v hlavičce chatu → Minutes |
+| Chat v levém panelu | Pravý klik na konverzaci → sumarizace |
 
 ### Kam se ukládá
-
-
 
 `%APPDATA%\uuMinutes-uuminutes\uuMinutes\summaries\`
 
+Po dokončení se zobrazí zelená lišta — můžete **odeslat do chatu**, **poslat sobě** nebo **otevřít soubor**.
 
+### Bez AI klíče
 
-Soubor obsahuje přepis zpráv a případně AI shrnutí. Po dokončení se zobrazí zelená lišta s potvrzením — bez AI klíče upozorní, že byl uložen jen přepis konverzace. Můžete **odeslat do chatu**, **poslat sobě** nebo **zobrazit soubor**.
-
-
-
-### AI sumarizace — nastavení
-
-
-
-1. **Menu → Minutes → Nastavení AI…**
-
-2. Vyplňte API klíče u poskytovatelů, které chcete používat (můžete mít uložené klíče pro více poskytovatelů najednou).
-
-3. Zvolte **aktivního poskytovatele** a **model** — ten se používá pro sumarizaci, dokud ho nepřepnete.
-
-4. Zapněte „Povolit AI shrnutí po exportu“ a jazyk shrnutí (výchozí **cs**).
-
-5. **Otestovat aktivního** ověří připojení, **Uložit** uloží nastavení (klíče šifrovaně přes safeStorage OS).
-
-
-
-#### Podporovaní poskytovatelé
-
-
-
-| Poskytovatel | Kde získat API klíč | Doporučený levný model |
-
-|--------------|---------------------|-------------------------|
-
-| OpenAI (ChatGPT) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | `gpt-4o-mini` |
-
-| Google Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | `gemini-2.0-flash` |
-
-| Anthropic (Claude) | [console.anthropic.com](https://console.anthropic.com/settings/keys) | `claude-3-5-haiku-latest` |
-
-| Perplexity | [perplexity.ai → API](https://www.perplexity.ai/settings/api) | `sonar` |
-
-
-
-**Poznámka:** Předplatné ChatGPT Plus, Claude Pro, Perplexity Pro nebo Cursor **není** totéž co API klíč. Minutes potřebuje API klíč s pay-as-you-go fakturací u poskytovatele.
-
-
-
-### Upozornění k AI
-
-
-
-Text vybraných zpráv se při zapnuté AI sumarizaci odesílá na servery **zvoleného poskytovatele** podle vašeho účtu a klíče. **Nepoužívejte** tuto funkci pro důvěrný obsah bez souhlasu účastníků konverzace. Náklady na API hradíte vy.
-
-
+Export proběhne vždy — uloží se přepis zpráv. Lišta upozorní, že AI shrnutí chybí nebo je vypnuté.
 
 ---
 
+## Nahrávání a přepis hovorů
 
+### Nahrávání během hovoru
 
-## 2. Nahrávání a sumarizace hovorů
+V obrazovce hovoru (vedle mute):
 
+- **Record** — začne nahrávání (funguje i bez Whisperu — uloží se MP3)
+- **Pause / Resume** — pozastaví / obnoví nahrávku i log řečníků
+- **Stop** — ukončí a uloží
 
+Po **skončení hovoru** se aktivní nahrávka uloží automaticky.
 
-### Nahrávání
+Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u vás). To pomáhá u přepisu a shrnutí přiřadit věty správným lidem.
 
+### Přepis (Whisper)
 
+1. **Menu → Minutes → Nastavení Přepisů (Minutes)**
+2. Stáhněte model **Medium** *(doporučeno)* — u češtiny dává nejlepší poměr kvalita/rychlost
+3. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**)
 
-- Funguje u **1:1 i skupinových** hovorů.
+**Tip:** Model **Small** je rychlejší, ale u češtiny často dělá chyby. **Large** je nejpřesnější, ale pomalý.
 
-- V obrazovce hovoru (vedle mute) najdete ovládání Minutes:
+Přepis probíhá **lokálně** — audio se do cloudu neposílá. Do cloudu jde až text, pokud zapnete **AI shrnutí** nebo **AI korekci přepisu**.
 
-  - **Record** — spustí nahrávání (loopback + mikrofon); funguje i bez nainstalovaného Whisper rozšíření (uloží se jen MP3)
+### AI shrnutí hovoru
 
-  - **Pause / Resume** — pozastaví / obnoví bez ukončení (včetně logu řečníků)
-
-  - **Stop** — uloží soubor
-
-- Po **skončení hovoru** se aktivní nahrávka automaticky uloží.
-
-- Během nahrávání Minutes **loguje aktivitu řečníků** ze stejných dat jako Signal UI (ikona aktivního mikrofonu): `localAudioLevel` / `remoteAudioLevel` z Reduxu, pravidlo **level > 0**. Ve skupině navíc ukládá RingRTC **`speakerTime`** (kdo naposledy mluvil). Při **Pause** se log i nahrávka zastaví; po **Resume** pokračují obě synchronně.
-
-
+Stejné nastavení jako u chatů (**Nastavení AI**). Shrnutí vznikne nad hotovým přepisem a může obsahovat jména řečníků.
 
 ### Kam se ukládá
 
-
-
 `%APPDATA%\uuMinutes-uuminutes\uuMinutes\recordings\`
 
-
-
-Každá nahrávka: soubor **`.mp3`** + **`.json`** s metadaty (chat, čas, délka) + volitelně **`.speaker-activity.json`** (log řečníků pro párování s přepisem).
-
-
-
-### Přepis a sumarizace hovoru (Whisper)
-
-Přepis probíhá **po úsecích podle řečníka** (z logu `speaker-activity.json`) — každý úsek se přepíše zvlášť, takže u střídajících se řečníků nejsou věty omylem přiřazené jednomu jménu.
-
-1. **Menu → Minutes → Sumarizace hovoru…**
-
-2. Při prvním použití nainstalujte rozšíření — vyberte **Whisper model** (doporučený je *small*) a stáhněte ho. Model lze kdykoli **změnit** nebo **přeinstalovat** ve stejném dialogu.
-
-3. Po nahrání hovoru se spustí přepis automaticky; výsledek lze dále sumarizovat přes AI (pokud je zapnuté v Nastavení AI).
-
-4. Tlačítkem **Odeslat do chatu** v zelené liště se do konverzace vloží **celý text přepisu** (ne jen odkaz na soubor). U segmentů je uvedeno **jméno řečníka** (pokud byl k dispozici log z nahrávání).
-
-5. **AI sumarizace** nad přepisem využívá stejné jméno řečníka u každé věty — shrnutí může přiřadit úkoly a rozhodnutí konkrétním lidem.
-
-
-
-Výchozí jazyk přepisu je **čeština** (`cs`). Přepis probíhá **lokálně** na vašem počítači (Whisper). Do cloudu se při přepisu neposílá audio — pouze pokud explicitně použijete AI sumarizaci nad textem.
-
-**Změna modelu:** v **Sumarizace hovoru…** zvolte jiný model (*base* / *small* / *medium* / *large v3*). Pokud se výchozí model aktualizuje, použijte **Přeinstalovat model**.
-
-**Kvalita přepisu:** Minutes používá VAD filtr (Silero), normalizaci hlasitosti, lepší dekódování Whisperu a volitelně **AI korekci přepisu** v Nastavení AI (opraví zjevné chyby typu „jak se máš“). Nové nahrávky ukládají i bezeztrátový PCM sidecar (`.pcm.f32`) pro přesnější přepis než z MP3.
-
-
+Soubory: `.mp3`, `.json` (metadata), `.transcript.md`, volitelně `.summary.md`.
 
 ### Právní upozornění
 
-
-
-Zákony o nahrávání hovorů se liší podle jurisdikce. **Informujte účastníky** a získejte souhlas tam, kde je to vyžadováno.
-
-
+Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba.
 
 ---
 
+## Záložky
 
+Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
-## 3. Záložky
-
-
-
-### Co to dělá
-
-
-
-Uloží odkaz na důležitou zprávu v chatu pro rychlý návrat.
-
-
-
-### Jak používat
-
-
-
-1. **Přidat** — pravý klik na zprávu → **Minutes: Přidat do záložek**.
-
-2. **Seznam** — **Menu → Minutes → Záložky…** (hned pod Sumarizovat aktuální chat).
-
-3. V dialogu zvolte záložku — aplikace přejde do příslušné konverzace a zprávy.
-
-4. **Odebrat** — v dialogu Záložky u konkrétní položky.
-
-
+1. **Přidat** — pravý klik na zprávu → **Minutes: Přidat do záložek**
+2. **Seznam** — **Ctrl+Shift+B** nebo menu Minutes → Záložky
+3. Klik na položku → skok do chatu na danou zprávu
+4. **Odebrat** — v dialogu Záložky u konkrétní položky
 
 ---
 
+## Menu Minutes — přehled
 
-
-## 4. menu Minutes (přehled)
-
-
-
-| Položka | Popis |
-
-|---------|--------|
-
-| Sumarizovat aktuální chat | Sumarizace právě otevřeného chatu (Ctrl+Shift+U) |
-
-| Záložky… | Seznam uložených záložek |
-
-| Nastavení AI… | API klíče, aktivní poskytovatel, model, jazyk |
-
-| Sumarizace hovoru… | Instalace Whisper, přepis nahrávek |
-
-| Příručka Minutes | Tato příručka v okně aplikace |
-
-| O Minutes | Znovu zobrazí úvodní obrazovku s dlaždicemi funkcí |
-
-| Zobrazit log… | Log Minutes pro diagnostiku |
-
-| Otevřít nahrávky hovorů | Složka s MP3 nahrávkami |
-
+| Položka | Co dělá |
+|---------|---------|
+| Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
+| Záložky | Seznam záložek (Ctrl+Shift+B) |
+| Přepisy (Minutes) | Fronta přepisů, historie nahrávek |
+| Nastavení AI | Jazyk, poskytovatel, model, API klíč / lokální Gemma |
+| Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
+| Příručka | Tato nápověda |
+| O Minutes | Úvodní obrazovka s přehledem funkcí |
+| Otevřít nahrávky hovorů | Složka s MP3 |
 | Otevřít sumarizace chatů | Složka s exporty chatů |
-
-
+| Zobrazit log | Diagnostika (Ctrl+Shift+Alt+L) |
 
 ---
 
-
-
-## 5. Klávesové zkratky
-
-
+## Klávesové zkratky
 
 | Zkratka | Akce |
-
 |---------|------|
-
 | Ctrl+Shift+U | Sumarizovat aktuální chat |
-
-| Ctrl+Shift+Alt+L | Zobrazit Log Minutes |
-
-
+| Ctrl+Shift+B | Záložky |
+| Ctrl+Shift+Alt+L | Zobrazit log |
 
 ---
 
-
-
-## 6. Kde jsou data
-
-
+## Kde jsou data
 
 | Typ | Cesta |
-
 |-----|--------|
-
 | Nahrávky hovorů | `%APPDATA%\uuMinutes-uuminutes\uuMinutes\recordings\` |
-
 | Sumáře chatů | `%APPDATA%\uuMinutes-uuminutes\uuMinutes\summaries\` |
-
 | AI nastavení | `%APPDATA%\uuMinutes-uuminutes\uuMinutes\ai-settings.json` |
-
 | Modely Whisper | `%APPDATA%\uuMinutes-uuminutes\uuMinutes\models\` |
+| Lokální LLM (Gemma) | `%APPDATA%\uuMinutes-uuminutes\uuMinutes\models\llm\` |
+| Záložky | `%APPDATA%\uuMinutes-uuminutes\uuMinutes\` |
 
-| Záložky | `%APPDATA%\uuMinutes-uuminutes\uuMinutes\` (bookmarks JSON) |
-
-
-
-Při odinstalaci aplikace se uživatelská data **standardně nemazou**. Technické názvy složek na disku (`uuMinutes-uuminutes`, `uuMinutes/recordings`…) zůstávají kvůli kompatibilitě s dříve uloženými daty.
-
-
+Při odinstalaci se data **standardně nemazou**.
 
 ---
 
+## Aktualizace aplikace
 
+Minutes **automaticky kontroluje nové verze** cca 8 sekund po startu (jen u nainstalované `.exe` verze, ne ve vývoji).
 
-## 7. Řešení problémů
+### Co uvidíte
 
+1. **Horní lišta** (banner):
+   - *Je dostupná nová verze …* — nová verze na GitHubu
+   - *Stahuji Minutes …* — probíhá stahování na pozadí
+   - *Minutes X je stažen. Restartovat a nainstalovat?* — připraveno k instalaci
 
+2. **Domovská obrazovka dole** — stav verze a tlačítka Aktualizovat / Release notes
 
-- **AI nefunguje** — zkontrolujte API klíč aktivního poskytovatele v Nastavení AI, kredit u poskytovatele a připojení k internetu.
+### Jak aktualizovat
 
-- **Nahrávání nejde** — ověřte oprávnění k mikrofonu a že jste v aktivním hovoru.
+| Situace | Co dělat |
+|---------|----------|
+| Stažení právě běží | Počkejte — dokončí se samo |
+| Verze je stažena | **Restartovat a nainstalovat** v banneru nebo dole na domovské stránce |
+| Chcete odložit | **Později** — banner se skryje do restartu aplikace |
 
-- **Whisper / sumarizace hovoru** — nejdřív dokončete instalaci rozšíření v Sumarizace hovoru…
+Instalátor se stáhne do `%APPDATA%\uuMinutes-uuminutes\uuMinutes\updates\` a spustí se po kliknutí na instalaci. Minutes se zavře a průvodce dokončíte ručně (SmartScreen u unsigned buildu: *Více informací* → *Přesto spustit*).
 
-- **Log** — menu Minutes → Zobrazit log… nebo Ctrl+Shift+Alt+L
-
-
-
----
-
-
-
-## 8. Verze a licence
-
-
-
-Minutes je fork Signal Desktop (AGPL-3.0-only). Signal zůstává samostatnou službou; Minutes přidává vlastní rozšíření v adresáři `ts/uuminutes/`.
-
-**Autor:** Ing. Martin Zmítko, Ph.D. — na Signalu `@martinzmitko.01` (vyhledáním jména si mě můžete přidat do kontaktů).
-
-
-
-Pro vývojáře a údržbu forku viz `README-UUMINUTES.md` a `docs/FORK-MAINTENANCE.md` v repozitáři projektu.
-
-
+Auto-update Signalu zůstává vypnuté — Minutes používá vlastní kontrolu přes [GitHub Releases](https://github.com/zmitko-uni/minutes/releases).
 
 ---
 
+## Řešení problémů
 
+### AI shrnutí nefunguje
 
-*Poslední aktualizace příručky: 2026-07-09*
+- Otevřete **Nastavení AI** → **Otestovat aktivního**
+- U cloudu: zkontrolujte API klíč, kredit u poskytovatele a internet
+- U lokálního Gemma: stáhněte a aktivujte model (**Stáhnout a aktivovat**)
+- Ujistěte se, že je zapnuté **Povolit AI shrnutí**
 
+### Shrnutí je v angličtině místo češtiny
+
+- V **Nastavení AI** nastavte **Jazyk shrnutí** na `cs` a uložte
+- U lokálního Gemma zkuste větší model (Gemma 4 12B)
+
+### Chyba „No sequences left“ (lokální model)
+
+- Restartujte aplikaci a zkuste znovu — jde o dočasný stav načteného modelu
+
+### Přepis hovoru nejde
+
+- Dokončete instalaci Whisperu v **Nastavení Přepisů (Minutes)**
+- Sledujte frontu v **Přepisy (Minutes)**
+
+### Nahrávání nejde
+
+- Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
+
+### Log pro podporu
+
+**Menu → Minutes → Zobrazit log** nebo **Ctrl+Shift+Alt+L**
+
+---
+
+## Soukromí a AI
+
+Při **cloud AI** se text chatu nebo přepisu odesílá na servery zvoleného poskytovatele. Náklady hradíte vy podle ceníku poskytovatele.
+
+Při **lokálním Gemma** a **Whisper přepisu** zůstává audio i text zpracování na vašem počítači.
+
+**Nepoužívejte AI sumarizaci** pro důvěrný obsah bez souhlasu účastníků.
+
+---
+
+## Verze a autor
+
+Minutes je fork Signal Desktop (AGPL-3.0-only).
+
+**Autor:** Ing. Martin Zmítko, Ph.D. — na Signalu `@martinzmitko.01`
+
+*Poslední aktualizace příručky: 2026-07-10*

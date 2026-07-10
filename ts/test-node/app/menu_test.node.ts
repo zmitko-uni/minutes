@@ -33,6 +33,7 @@ const zoomIn = stub();
 const zoomOut = stub();
 const zoomReset = stub();
 const uuMinutesSummarizeChat = stub();
+const uuMinutesSummarizeUnread = stub();
 const uuMinutesOpenSettings = stub();
 const uuMinutesOpenLog = stub();
 const uuMinutesOpenRecordings = stub();
@@ -254,6 +255,7 @@ describe('createTemplate', () => {
     zoomOut,
     zoomReset,
     uuMinutesSummarizeChat,
+    uuMinutesSummarizeUnread,
     uuMinutesOpenSettings,
     uuMinutesOpenLog,
     uuMinutesOpenRecordings,

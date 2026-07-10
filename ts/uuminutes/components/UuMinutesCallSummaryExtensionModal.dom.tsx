@@ -244,6 +244,11 @@ export function UuMinutesCallSummaryExtensionModal({
             <legend className="UuMinutesCallSummaryExtensionModal__modelLegend">
               Whisper model pro přepis
             </legend>
+            <p className={tw('mb-2 text-label-small text-label-secondary')}>
+              Pro české hovory doporučujeme <strong>Medium</strong> — méně
+              chyb než small (~1,5 GB). Small je rychlejší, ale u češtiny často
+              nestačí.
+            </p>
             <label className="UuMinutesCallSummaryExtensionModal__modelLabel">
               <span>Model</span>
               <select
@@ -255,6 +260,7 @@ export function UuMinutesCallSummaryExtensionModal({
                 {state.availableModels.map(model => (
                   <option key={model.fileName} value={model.fileName}>
                     {model.label} ({model.downloadLabel})
+                    {model.recommended ? ' — doporučeno' : ''}
                     {model.ready ? ' ✓' : ''}
                   </option>
                 ))}

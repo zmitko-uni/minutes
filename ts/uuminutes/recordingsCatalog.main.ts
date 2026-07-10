@@ -10,6 +10,8 @@ import type {
   CallRecordingCatalogEntry,
   StoredCallRecordingMetadata,
 } from './recordingsCatalog.std.ts';
+import type { CallRecordingOutput } from './types.std.ts';
+import { readCallTranscriptMetadata } from './transcriptMetadata.main.ts';
 
 const log = createLogger('uuminutes/recordingsCatalog');
 
@@ -51,6 +53,9 @@ async function buildCatalogEntry(
   );
   const hasTranscript = await fileExists(transcriptPath);
   const hasSummary = await fileExists(summaryPath);
+  const transcriptMeta = hasTranscript
+    ? await readCallTranscriptMetadata(basePath)
+    : null;
 
   return {
     conversationId: metadata.conversationId,
@@ -64,6 +69,9 @@ async function buildCatalogEntry(
     hasSummary,
     transcriptPath: hasTranscript ? transcriptPath : undefined,
     summaryPath: hasSummary ? summaryPath : undefined,
+    transcriptWhisperModelFileName: transcriptMeta?.whisperModelFileName,
+    transcriptWhisperModelLabel: transcriptMeta?.whisperModelLabel,
+    transcriptGeneratedAt: transcriptMeta?.transcribedAt,
   };
 }
 
@@ -124,6 +132,9 @@ export async function listCallRecordings(
     );
     const hasTranscript = await fileExists(transcriptPath);
     const hasSummary = await fileExists(summaryPath);
+    const transcriptMeta = hasTranscript
+      ? await readCallTranscriptMetadata(basePath)
+      : null;
     let startedAt = Date.now();
     let durationMs = 0;
     try {
@@ -146,8 +157,71 @@ export async function listCallRecordings(
       hasSummary,
       transcriptPath: hasTranscript ? transcriptPath : undefined,
       summaryPath: hasSummary ? summaryPath : undefined,
+      transcriptWhisperModelFileName: transcriptMeta?.whisperModelFileName,
+      transcriptWhisperModelLabel: transcriptMeta?.whisperModelLabel,
+      transcriptGeneratedAt: transcriptMeta?.transcribedAt,
     });
   }
 
   return [...entries.values()].sort((a, b) => b.startedAt - a.startedAt);
+}
+
+function extractTranscriptBodyFromMarkdown(markdown: string): string {
+  const marker = '## Přepis';
+  const index = markdown.indexOf(marker);
+  if (index >= 0) {
+    return markdown.slice(index + marker.length).trim();
+  }
+  return markdown.trim();
+}
+
+export async function loadCallRecordingOutput(
+  entry: Pick<
+    CallRecordingCatalogEntry,
+    | 'mp3Path'
+    | 'conversationId'
+    | 'conversationTitle'
+    | 'hasTranscript'
+    | 'hasSummary'
+    | 'transcriptPath'
+    | 'summaryPath'
+  >
+): Promise<CallRecordingOutput | null> {
+  const basePath = entry.mp3Path.replace(/\.mp3$/i, '');
+  const transcriptPath =
+    entry.transcriptPath ?? `${basePath}.transcript.md`;
+  const summaryPath = entry.summaryPath ?? `${basePath}.summary.md`;
+
+  let transcriptText = '';
+  if (entry.hasTranscript) {
+    try {
+      transcriptText = extractTranscriptBodyFromMarkdown(
+        await readFile(transcriptPath, 'utf8')
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  let summaryText: string | undefined;
+  if (entry.hasSummary) {
+    try {
+      summaryText = (await readFile(summaryPath, 'utf8')).trim();
+    } catch {
+      summaryText = undefined;
+    }
+  }
+
+  if (!entry.hasTranscript && !summaryText) {
+    return null;
+  }
+
+  return {
+    conversationId: entry.conversationId,
+    conversationTitle: entry.conversationTitle,
+    transcriptPath,
+    transcriptText,
+    summaryPath: entry.hasSummary ? summaryPath : undefined,
+    summaryText,
+  };
 }

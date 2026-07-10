@@ -13,8 +13,8 @@ import {
   UUMINUTES_WELCOME_TAGLINE,
   UUMINUTES_WELCOME_TILES,
   UUMINUTES_WELCOME_TITLE,
-  formatUuMinutesVersionLabel,
 } from '../welcomeContent.std.ts';
+import { UuMinutesVersionFooter } from './UuMinutesVersionFooter.dom.tsx';
 
 const UUMINUTES_ICON_PATH = 'images/uuminutes/app-icon-source.png';
 
@@ -35,7 +35,6 @@ export function UuMinutesWelcomeSplash({
     typeof window.getVersion === 'function'
       ? window.getVersion()
       : window.SignalContext.getVersion();
-  const versionLabel = formatUuMinutesVersionLabel(appVersion);
 
   return (
     <div className="UuMinutesWelcomeSplash">
@@ -64,10 +63,6 @@ export function UuMinutesWelcomeSplash({
               <div className="UuMinutesWelcomeSplash__about">
                 <dl className="UuMinutesWelcomeSplash__aboutMeta">
                   <div>
-                    <dt>Verze</dt>
-                    <dd>{versionLabel}</dd>
-                  </div>
-                  <div>
                     <dt>Autor</dt>
                     <dd>{UUMINUTES_AUTHOR}</dd>
                   </div>
@@ -92,6 +87,7 @@ export function UuMinutesWelcomeSplash({
           </article>
         ))}
       </div>
+      <UuMinutesVersionFooter appVersion={appVersion} />
     </div>
   );
 }

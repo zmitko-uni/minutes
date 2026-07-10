@@ -5,6 +5,7 @@ import type {
   AlignedTranscriptSegment,
   SpeakerActivityLog,
 } from './speakerActivity.std.ts';
+import { resolveSpeakerDisplayName } from './speakerActivity.std.ts';
 import { alignWhisperSegmentsWithSpeakerActivity } from './speakerActivityAlign.std.ts';
 import {
   buildSpeakerWindows,
@@ -20,24 +21,6 @@ import {
 import { DEFAULT_WHISPER_LANGUAGE } from './whisperSettings.std.ts';
 import { throwIfTranscriptionCancelled } from './transcriptionCancel.main.ts';
 
-function resolveSpeakerLabel(
-  speakerId: string,
-  activityLog: SpeakerActivityLog,
-  fallbackIndexById: Map<string, number>
-): string {
-  const known = activityLog.participants[speakerId]?.displayName;
-  if (known && known.length > 0) {
-    return known;
-  }
-  if (speakerId === 'local') {
-    return 'Já';
-  }
-  if (!fallbackIndexById.has(speakerId)) {
-    fallbackIndexById.set(speakerId, fallbackIndexById.size + 1);
-  }
-  return `Řečník ${fallbackIndexById.get(speakerId)}`;
-}
-
 export async function transcribePcmWithSpeakerWindows(options: {
   modelPath: string;
   pcmf32: Float32Array;
@@ -46,6 +29,7 @@ export async function transcribePcmWithSpeakerWindows(options: {
   prompt?: string;
   background?: boolean;
   jobId?: string;
+  localSpeakerDisplayName?: string;
   onProgress?: (percent: number, detail?: string) => void;
 }): Promise<TranscribePcmResult & { alignedSegments: Array<AlignedTranscriptSegment> }> {
   const pcmDurationMs =
@@ -69,7 +53,8 @@ export async function transcribePcmWithSpeakerWindows(options: {
     });
     const aligned = alignWhisperSegmentsWithSpeakerActivity(
       result.segments,
-      options.activityLog
+      options.activityLog,
+      { localSpeakerDisplayName: options.localSpeakerDisplayName }
     );
     return { ...result, alignedSegments: aligned };
   }
@@ -92,10 +77,13 @@ export async function transcribePcmWithSpeakerWindows(options: {
       continue;
     }
 
-    const windowLabel = resolveSpeakerLabel(
+    const windowLabel = resolveSpeakerDisplayName(
       window.speakerId,
       options.activityLog,
-      fallbackIndexById
+      {
+        localSpeakerDisplayName: options.localSpeakerDisplayName,
+        fallbackIndexById,
+      }
     );
 
     const chunkResult = await transcribePcm({
@@ -123,10 +111,13 @@ export async function transcribePcmWithSpeakerWindows(options: {
         end: formatMsAsWhisperTimestamp(window.endMs),
         text,
         speakerId: window.speakerId,
-        speakerLabel: resolveSpeakerLabel(
+        speakerLabel: resolveSpeakerDisplayName(
           window.speakerId,
           options.activityLog,
-          fallbackIndexById
+          {
+            localSpeakerDisplayName: options.localSpeakerDisplayName,
+            fallbackIndexById,
+          }
         ),
       });
       chainedPrompt = buildChainedWhisperPrompt(text);

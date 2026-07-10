@@ -18,10 +18,9 @@ import {
   type SpeakerActivitySample,
   type SpeakerParticipantInfo,
 } from './speakerActivity.std.ts';
+import { getLocalSpeakerDisplayName } from './localSpeakerName.preload.ts';
 
 const log = createLogger('uuminutes/speakerActivity');
-
-const LOCAL_SPEAKER_LABEL = 'Já';
 
 /** Matches Signal CallingAudioIndicator (GroupCallRemoteParticipant.dom.tsx). */
 function isSignalSpeaking(level: number): boolean {
@@ -60,7 +59,7 @@ class SpeakerActivityLogger {
     this.#samples = [];
 
     this.#registerParticipant(LOCAL_SPEAKER_ID, {
-      displayName: LOCAL_SPEAKER_LABEL,
+      displayName: getLocalSpeakerDisplayName(),
       isLocal: true,
     });
 

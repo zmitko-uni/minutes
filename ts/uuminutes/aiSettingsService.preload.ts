@@ -34,3 +34,14 @@ export async function generateAiSummary(options: {
 }): Promise<string> {
   return ipcRenderer.invoke('uuminutes:generate-ai-summary', options);
 }
+
+export async function generateUnreadConversationSummary(options: {
+  conversationTitle: string;
+  unreadCount: number;
+  transcript: string;
+}): Promise<string> {
+  return ipcRenderer.invoke(
+    'uuminutes:generate-unread-conversation-summary',
+    options
+  );
+}

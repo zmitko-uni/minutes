@@ -8,10 +8,12 @@ import { drop } from '../util/drop.std.ts';
 import { callRecordingService } from './callRecordingService.preload.ts';
 import { initializeUuMinutesLogBuffer } from './logBuffer.preload.ts';
 import { refreshCallSummaryExtension } from './callSummaryExtensionService.preload.ts';
+import { refreshLocalLlmExtension } from './localLlmExtensionService.preload.ts';
 import { UUMINUTES_BUILD_ID } from './constants.std.ts';
 import { showMinutesHome } from './homeNavigation.preload.ts';
 import { openUuMinutesLog } from './navigation.preload.ts';
 import { openReadmeModal } from './readmeService.preload.ts';
+import { initializeAppUpdate } from './appUpdateService.preload.ts';
 
 const log = createLogger('uuminutes');
 
@@ -38,6 +40,8 @@ export function initializeUuMinutes(): void {
 
   drop(callRecordingService.prepare());
   drop(refreshCallSummaryExtension());
+  drop(refreshLocalLlmExtension());
+  initializeAppUpdate();
 
   ipcRenderer.on('uuminutes:show-home', () => {
     showMinutesHome();
@@ -53,6 +57,7 @@ export {
   openRecordingsFolder,
   openSummariesFolder,
 } from './chatSummaryService.preload.ts';
+export { summarizeUnreadConversations } from './unreadSummaryService.preload.ts';
 export { UuMinutesCallRecordingControls } from './components/UuMinutesCallRecordingControls.dom.tsx';
 export { UuMinutesSettingsHost } from './components/UuMinutesSettingsModal.dom.tsx';
 export { UuMinutesCallSummaryExtensionHost } from './components/UuMinutesCallSummaryExtensionModal.dom.tsx';

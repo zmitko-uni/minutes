@@ -4,6 +4,7 @@
 import {
   APP_DISPLAY_NAME,
   formatMenuActionLabel,
+  formatMinutesScopedMenuLabel,
 } from './branding.std.ts';
 
 export const UUMINUTES_MENU_LABEL = APP_DISPLAY_NAME;
@@ -11,9 +12,18 @@ export const UUMINUTES_MENU_LABEL = APP_DISPLAY_NAME;
 export const UUMINUTES_MENU_SUMMARIZE_CURRENT_CHAT =
   'Sumarizovat aktuální chat';
 
-export const UUMINUTES_MENU_AI_SETTINGS = 'Nastavení AI…';
+export const UUMINUTES_MENU_SUMMARIZE_UNREAD = 'Sesumarizuj nepřečtené';
 
-export const UUMINUTES_MENU_SHOW_LOG = 'Zobrazit log…';
+export const UUMINUTES_MENU_BOOKMARKS = 'Záložky';
+
+export const UUMINUTES_MENU_AI_SETTINGS = 'Nastavení AI';
+
+export const UUMINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS =
+  formatMinutesScopedMenuLabel('Nastavení Přepisů');
+
+export const UUMINUTES_MENU_README = 'Příručka';
+
+export const UUMINUTES_MENU_SHOW_LOG = 'Zobrazit log';
 
 export const UUMINUTES_MENU_ABOUT = `O ${APP_DISPLAY_NAME}`;
 
@@ -33,4 +43,5 @@ export const UUMINUTES_MENU_SUMMARIZE_FROM_HERE =
 export const UUMINUTES_MENU_ADD_BOOKMARK =
   formatMenuActionLabel('Přidat do záložek');
 
-export const UUMINUTES_MENU_TRANSCRIPTION_QUEUE = 'Fronta přepisů…';
+export const UUMINUTES_MENU_TRANSCRIPTION_QUEUE =
+  formatMinutesScopedMenuLabel('Přepisy');

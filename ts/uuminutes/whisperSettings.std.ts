@@ -44,41 +44,43 @@ export type WhisperModelDefinition = Readonly<{
 const HF_BASE =
   'https://huggingface.co/ggerganov/whisper.cpp/resolve/main';
 
-/** Modely ke stažení — pořadí v UI. */
+/** Modely ke stažení — doporučený první, pořadí v UI. */
 export const WHISPER_MODEL_CATALOG: ReadonlyArray<WhisperModelDefinition> = [
+  {
+    id: 'medium',
+    fileName: 'ggml-medium.bin',
+    label: 'Medium',
+    description:
+      'Doporučeno pro české hovory — výrazně méně chyb než small, pomalejší přepis.',
+    downloadUrl: `${HF_BASE}/ggml-medium.bin`,
+    minBytes: 1_400_000_000,
+    downloadLabel: 'cca 1,5 GB',
+    recommended: true,
+  },
+  {
+    id: 'small',
+    fileName: 'ggml-small.bin',
+    label: 'Small',
+    description:
+      'Rychlejší a menší, u českých hovorů ale často chyby — spíš pro test',
+    downloadUrl: `${HF_BASE}/ggml-small.bin`,
+    minBytes: 400_000_000,
+    downloadLabel: 'cca 470 MB',
+  },
   {
     id: 'base',
     fileName: 'ggml-base.bin',
-    label: 'Základní (base)',
-    description: 'Nejrychlejší přepis, nižší přesnost',
+    label: 'Base',
+    description: 'Nejrychlejší, ale u hovorů v češtině často chyby — spíš pro test',
     downloadUrl: `${HF_BASE}/ggml-base.bin`,
     minBytes: 100_000_000,
     downloadLabel: 'cca 150 MB',
   },
   {
-    id: 'small',
-    fileName: 'ggml-small.bin',
-    label: 'Doporučený (small)',
-    description: 'Vyvážená kvalita pro češtinu',
-    downloadUrl: `${HF_BASE}/ggml-small.bin`,
-    minBytes: 400_000_000,
-    downloadLabel: 'cca 470 MB',
-    recommended: true,
-  },
-  {
-    id: 'medium',
-    fileName: 'ggml-medium.bin',
-    label: 'Nejlepší (medium)',
-    description: 'Nejvyšší přesnost, pomalejší a větší soubor',
-    downloadUrl: `${HF_BASE}/ggml-medium.bin`,
-    minBytes: 1_400_000_000,
-    downloadLabel: 'cca 1,5 GB',
-  },
-  {
     id: 'large-v3-turbo',
     fileName: 'ggml-large-v3-turbo.bin',
     label: 'Large v3 Turbo',
-    description: 'Velmi dobrá přesnost, rychlejší než full large',
+    description: 'Velmi dobrá přesnost, podobná velikost jako medium',
     downloadUrl: `${HF_BASE}/ggml-large-v3-turbo.bin`,
     minBytes: 1_400_000_000,
     downloadLabel: 'cca 1,5 GB',
@@ -86,8 +88,8 @@ export const WHISPER_MODEL_CATALOG: ReadonlyArray<WhisperModelDefinition> = [
   {
     id: 'large-v3',
     fileName: 'ggml-large-v3.bin',
-    label: 'Nejvyšší (large v3)',
-    description: 'Maximální přesnost pro češtinu, nejpomalejší',
+    label: 'Large v3',
+    description: 'Maximální přesnost, nejpomalejší — jen pro výkonné PC',
     downloadUrl: `${HF_BASE}/ggml-large-v3.bin`,
     minBytes: 2_900_000_000,
     downloadLabel: 'cca 3,1 GB',
@@ -96,7 +98,7 @@ export const WHISPER_MODEL_CATALOG: ReadonlyArray<WhisperModelDefinition> = [
 
 export const DEFAULT_WHISPER_MODEL: WhisperModelDefinition =
   WHISPER_MODEL_CATALOG.find(model => model.recommended) ??
-  WHISPER_MODEL_CATALOG[1]!;
+  WHISPER_MODEL_CATALOG[0]!;
 
 export function getWhisperModelDefinition(
   fileName: string
@@ -120,4 +122,8 @@ export function getWhisperModelDownloadLabel(fileName: string): string {
     getWhisperModelDefinition(fileName)?.downloadLabel ??
     DEFAULT_WHISPER_MODEL.downloadLabel
   );
+}
+
+export function getWhisperModelLabel(fileName: string): string {
+  return getWhisperModelDefinition(fileName)?.label ?? fileName;
 }

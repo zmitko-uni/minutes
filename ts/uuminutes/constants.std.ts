@@ -19,6 +19,12 @@ export const AI_SETTINGS_FILE_NAME = 'ai-settings.json';
 /** Default number of recent messages included in a chat summary. */
 export const CHAT_SUMMARY_MESSAGE_LIMIT = 200;
 
+/** Max conversations processed in one unread digest run. */
+export const UNREAD_SUMMARY_MAX_CONVERSATIONS = 30;
+
+/** Max unread messages loaded per conversation for digest. */
+export const UNREAD_SUMMARY_PER_CHAT_LIMIT = 80;
+
 /** Bump when testing that the latest build is running. */
 export const UUMINUTES_BUILD_ID = '2026-07-09l';
 

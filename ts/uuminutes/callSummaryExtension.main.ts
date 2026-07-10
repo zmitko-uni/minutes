@@ -19,7 +19,7 @@ import {
   type CallSummaryExtensionPublic,
   type WhisperModelPublic,
 } from './callSummaryExtension.std.ts';
-import { DEFAULT_WHISPER_MODEL } from './whisperSettings.std.ts';
+import { DEFAULT_WHISPER_MODEL, getWhisperModelLabel } from './whisperSettings.std.ts';
 import {
   AI_SETTINGS_DIR_NAME,
 } from './constants.std.ts';
@@ -32,6 +32,7 @@ import {
 } from './whisperTranscribe.main.ts';
 import { preparePcmForWhisper } from './whisperAudioPrep.std.ts';
 import { isAiSummaryEnabled, getAiSettingsPublic, getAiApiKey, isTranscriptCorrectionEnabled } from './aiSettings.main.ts';
+import { formatAiModelDisplayLabel, formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { generateAiSummaryForProvider } from './aiSummaryService.main.ts';
 import { correctTranscriptWithAi } from './transcriptCorrection.main.ts';
 import { DEFAULT_WHISPER_LANGUAGE, RECORDING_PCM_SIDECAR_SUFFIX, WHISPER_VAD_MODEL_FILE, WHISPER_VAD_MODEL_MIN_BYTES, WHISPER_VAD_MODEL_URL } from './whisperSettings.std.ts';
@@ -40,6 +41,7 @@ import type {
   AlignedTranscriptSegment,
   SpeakerActivityLog,
 } from './speakerActivity.std.ts';
+import { replaceLegacyLocalSpeakerLabels } from './speakerActivity.std.ts';
 import {
   alignWhisperSegmentsWithSpeakerActivity,
   formatAlignedSegmentsForAi,
@@ -51,10 +53,10 @@ import {
   clampProgressPercent,
   type TranscriptionProgressCallback,
 } from './transcriptionProgress.std.ts';
-import {
-  clearTranscriptionJobCancellation,
+import { clearTranscriptionJobCancellation,
   throwIfTranscriptionCancelled,
 } from './transcriptionCancel.main.ts';
+import { writeCallTranscriptMetadata } from './transcriptMetadata.main.ts';
 
 const log = createLogger('uuminutes/callSummaryExtension');
 
@@ -391,6 +393,8 @@ function formatTranscriptMarkdown(options: {
   result: TranscribePcmResult;
   activityLog?: SpeakerActivityLog | null;
   alignedSegments?: ReadonlyArray<AlignedTranscriptSegment>;
+  localSpeakerDisplayName?: string;
+  whisperModelLabel?: string;
 }): string {
   const lines = [
     `# Přepis hovoru: ${options.conversationTitle}`,
@@ -398,16 +402,20 @@ function formatTranscriptMarkdown(options: {
     `- Začátek: ${new Date(options.startedAt).toLocaleString('cs-CZ')}`,
     `- Konec: ${new Date(options.endedAt).toLocaleString('cs-CZ')}`,
     `- Délka: ${Math.round((options.endedAt - options.startedAt) / 1000)} s`,
-    '',
-    '## Přepis',
-    '',
   ];
+
+  if (options.whisperModelLabel) {
+    lines.push(`- Whisper model: ${options.whisperModelLabel}`);
+  }
+
+  lines.push('', '## Přepis', '');
 
   const alignedSegments =
     options.alignedSegments ??
     alignWhisperSegmentsWithSpeakerActivity(
       options.result.segments,
-      options.activityLog
+      options.activityLog,
+      { localSpeakerDisplayName: options.localSpeakerDisplayName }
     );
 
   if (alignedSegments.length > 0) {
@@ -450,6 +458,7 @@ export async function transcribeCallRecording(options: {
   endedAt: number;
   recordingPath: string;
   background?: boolean;
+  localSpeakerDisplayName?: string;
   onProgress?: TranscriptionProgressCallback;
 }): Promise<{
   transcriptPath: string;
@@ -513,6 +522,7 @@ export async function transcribeCallRecording(options: {
         language: DEFAULT_WHISPER_LANGUAGE,
         background,
         jobId: options.jobId,
+        localSpeakerDisplayName: options.localSpeakerDisplayName,
         onProgress: whisperOnProgress,
       })
     : {
@@ -537,7 +547,11 @@ export async function transcribeCallRecording(options: {
   const alignedSegments: Array<AlignedTranscriptSegment> =
     speakerAlignedSegments.length > 0
       ? [...speakerAlignedSegments]
-      : [...alignWhisperSegmentsWithSpeakerActivity(result.segments, activityLog)];
+      : [
+          ...alignWhisperSegmentsWithSpeakerActivity(result.segments, activityLog, {
+            localSpeakerDisplayName: options.localSpeakerDisplayName,
+          }),
+        ];
   const transcriptForAi =
     alignedSegments.length > 0
       ? formatAlignedSegmentsForAi(alignedSegments)
@@ -547,6 +561,9 @@ export async function transcribeCallRecording(options: {
       ? formatAlignedSegmentsForDisplay(alignedSegments)
       : result.text;
 
+  const whisperModelFileName = extension.modelFileName;
+  const whisperModelLabel = getWhisperModelLabel(whisperModelFileName);
+
   const whisperMarkdown = formatTranscriptMarkdown({
     conversationTitle: options.conversationTitle,
     startedAt: options.startedAt,
@@ -554,6 +571,8 @@ export async function transcribeCallRecording(options: {
     result,
     activityLog,
     alignedSegments: [...alignedSegments],
+    localSpeakerDisplayName: options.localSpeakerDisplayName,
+    whisperModelLabel,
   });
   report({ percent: 92, phase: 'finalize', detail: 'Ukládám soubory přepisu…' });
   throwIfTranscriptionCancelled(options.jobId);
@@ -561,8 +580,12 @@ export async function transcribeCallRecording(options: {
 
   if (await isTranscriptCorrectionEnabled()) {
     throwIfTranscriptionCancelled(options.jobId);
-    report({ percent: 94, phase: 'ai-correction', detail: 'AI korekce přepisu…' });
     const settings = await getAiSettingsPublic();
+    report({
+      percent: 94,
+      phase: 'ai-correction',
+      detail: `AI korekce přepisu… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
+    });
     const apiKey = await getAiApiKey(settings.provider);
     if (apiKey && transcriptForAi.length > 0) {
       try {
@@ -597,6 +620,8 @@ export async function transcribeCallRecording(options: {
             result,
             activityLog,
             alignedSegments,
+            localSpeakerDisplayName: options.localSpeakerDisplayName,
+            whisperModelLabel,
           }),
           'utf8'
         );
@@ -614,8 +639,15 @@ export async function transcribeCallRecording(options: {
     result,
     activityLog,
     alignedSegments,
+    localSpeakerDisplayName: options.localSpeakerDisplayName,
+    whisperModelLabel,
   });
   await writeFile(transcriptPath, markdown, 'utf8');
+  await writeCallTranscriptMetadata(basePath, {
+    whisperModelFileName,
+    whisperModelLabel,
+    transcribedAt: Date.now(),
+  });
 
   const correctedTranscriptForAi =
     alignedSegments.length > 0
@@ -625,8 +657,12 @@ export async function transcribeCallRecording(options: {
   let summaryPath: string | undefined;
   if (await isAiSummaryEnabled()) {
     throwIfTranscriptionCancelled(options.jobId);
-    report({ percent: 97, phase: 'ai-correction', detail: 'AI shrnutí hovoru…' });
     const settings = await getAiSettingsPublic();
+    report({
+      percent: 97,
+      phase: 'ai-correction',
+      detail: `AI shrnutí hovoru… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
+    });
     const apiKey = await getAiApiKey(settings.provider);
     if (apiKey && correctedTranscriptForAi.length > 0) {
       const summaryText = await generateAiSummaryForProvider({
@@ -669,6 +705,7 @@ export async function generateCallRecordingSummary(options: {
   jobId?: string;
   recordingPath: string;
   conversationTitle: string;
+  localSpeakerDisplayName?: string;
   onProgress?: TranscriptionProgressCallback;
 }): Promise<{ summaryPath: string; summaryText: string }> {
   try {
@@ -697,10 +734,17 @@ export async function generateCallRecordingSummary(options: {
       throw new Error('Přepis nahrávky je prázdný.');
     }
 
+    if (options.localSpeakerDisplayName) {
+      transcript = replaceLegacyLocalSpeakerLabels(
+        transcript,
+        options.localSpeakerDisplayName
+      );
+    }
+
     options.onProgress?.({
       percent: 20,
       phase: 'ai-correction',
-      detail: 'Generuji AI shrnutí…',
+      detail: formatAiSummaryProgressMessage(settings.provider, settings.model),
     });
     throwIfTranscriptionCancelled(options.jobId);
 
