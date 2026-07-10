@@ -1,8 +1,6 @@
 // Copyright 2026 uuMinutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { ipcRenderer } from 'electron';
-
 import { DataReader } from '../sql/Client.preload.ts';
 import type { MessageType } from '../sql/Interface.std.ts';
 import { createLogger } from '../logging/log.std.ts';
@@ -186,7 +184,7 @@ function getUnreadConversationTargets(): Array<UnreadConversationTarget> {
     })
     .sort(
       (left, right) =>
-        (right.get('activeAt') ?? 0) - (left.get('activeAt') ?? 0)
+        (right.get('timestamp') ?? 0) - (left.get('timestamp') ?? 0)
     )
     .slice(0, UNREAD_SUMMARY_MAX_CONVERSATIONS)
     .map(conversation => ({

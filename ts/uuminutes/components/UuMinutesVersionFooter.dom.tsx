@@ -173,7 +173,7 @@ export function UuMinutesVersionFooter({ appVersion }: Props): JSX.Element {
               'UuMinutesVersionFooter__button',
               'UuMinutesVersionFooter__button--primary'
             )}
-            disabled={isBusy || state.kind === 'downloading'}
+            disabled={isBusy}
             onClick={handleUpdate}
           >
             {primaryLabel}

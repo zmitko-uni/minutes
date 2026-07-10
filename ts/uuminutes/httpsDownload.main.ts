@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createWriteStream, type WriteStream } from 'node:fs';
-import { get as httpsGet, type ClientRequest } from 'node:https';
+import type { ClientRequest } from 'node:http';
+import { get as httpsGet } from 'node:https';
 
 export class DownloadCancelledError extends Error {
   constructor() {
@@ -104,6 +105,6 @@ export function downloadHttpsFile(
       response.on('error', error => finish(error));
     });
 
-    request.on('error', error => finish(error));
+    request.on('error', (error: Error) => finish(error));
   });
 }
