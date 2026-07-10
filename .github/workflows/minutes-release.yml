@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - package.json
-      - CHANGELOG.md
   workflow_dispatch:
     inputs:
       force_version:
@@ -26,6 +23,9 @@ concurrency:
 jobs:
   release-windows:
     name: Build & publish Windows installer
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && contains(github.event.head_commit.message, 'chore(release):'))
     runs-on: windows-latest
     timeout-minutes: 90
     steps:
