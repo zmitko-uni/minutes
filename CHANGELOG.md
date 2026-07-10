@@ -15,6 +15,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [1.0.1] - 2026-07-10
+
+### Added
+- (doplňte před příštím release)
+
 ### Changed
 - Ctrl+Shift+M otevře Přepisy (Minutes) místo Signálu „Všechna média“; zkratka pro log odstraněna
 - Aktualizace: po kontrole se nová verze jen zobrazí, stažení až po kliknutí na Stáhnout
