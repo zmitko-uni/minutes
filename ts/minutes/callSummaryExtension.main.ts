@@ -649,10 +649,19 @@ export async function transcribeCallRecording(options: {
   throwIfTranscriptionCancelled(options.jobId);
   report({ percent: 90, phase: 'finalize', detail: 'Sestavuji přepis…' });
 
-  const { alignedSegments: speakerAlignedSegments, ...result } =
+  const speakerAlignedSegments: ReadonlyArray<AlignedTranscriptSegment> =
     'alignedSegments' in transcription
-      ? transcription
-      : { ...transcription, alignedSegments: [] as Array<AlignedTranscriptSegment> };
+      ? (
+          transcription as TranscribePcmResult & {
+            alignedSegments: ReadonlyArray<AlignedTranscriptSegment>;
+          }
+        ).alignedSegments
+      : [];
+  const result: TranscribePcmResult = {
+    text: transcription.text,
+    segments: transcription.segments,
+    language: transcription.language,
+  };
 
   const basePath = options.recordingPath.replace(/\.mp3$/i, '');
   const transcriptPath = `${basePath}.transcript.md`;

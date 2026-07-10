@@ -229,7 +229,7 @@ export async function transcribePcm(
   const useVad = await isVadModelReady();
   const resolvedRuntime = resolveRuntimeOptions(options.runtime);
   const profiles = resolvedRuntime.decodeProfiles;
-  const lenient = resolvedRuntime.lenientWeakTranscriptCheck;
+  const lenient = resolvedRuntime.lenientWeakTranscriptCheck ?? false;
 
   let bestResult: TranscribePcmResult | null = null;
 
