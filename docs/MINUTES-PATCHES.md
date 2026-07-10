@@ -7,6 +7,7 @@
 | Soubor | Co | Hook |
 |--------|-----|------|
 | `package.json` | productName, skripty | branding |
+| `scripts/utils/parseVersion.mjs` | Minutes `-m` verze pro build skripty | regex větev |
 | `app/user_config.main.ts` | `minutes-*` userData | 1 řádek |
 | `app/startup_config.main.ts` | minutes AUMID + název aplikace | pár řádků |
 | `app/WindowsNotifications.main.ts` | fallback toast + log AUMID | minutes |

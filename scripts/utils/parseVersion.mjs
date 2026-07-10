@@ -4,6 +4,10 @@
 import * as semver from 'semver';
 import { assert } from './assert.mjs';
 
+/** Minutes product version: `{signal}-m{meetup}` e.g. `8.21.0-m1.0.1` */
+const MINUTES_PRODUCT_VERSION_RE =
+  /^(\d+)\.(\d+)\.(\d+)-m(\d+)\.(\d+)\.(\d+)$/;
+
 /**
  * @typedef {'prod' | 'beta' | 'alpha' | 'staging' | 'axolotl' | 'adhoc'} VersionChannel
  */
@@ -25,6 +29,20 @@ import { assert } from './assert.mjs';
  * @returns {VersionInfo}
  */
 export function parseVersion(version) {
+  const minutesMatch = MINUTES_PRODUCT_VERSION_RE.exec(version);
+  if (minutesMatch) {
+    return {
+      channel: 'prod',
+      major: Number(minutesMatch[1]),
+      minor: Number(minutesMatch[2]),
+      patch: Number(minutesMatch[3]),
+      prepatch: null,
+      build: [],
+      isUpdatable: true,
+      isNightly: false,
+    };
+  }
+
   const parsed = semver.parse(version);
   assert(parsed != null, `Invalid version: ${version}`);
 
