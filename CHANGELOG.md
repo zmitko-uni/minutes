@@ -16,7 +16,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - (doplňte před příštím release)
 
 ### Changed
-- Produktové verzování **Meetup** `1.0.0` (major / minor / patch) místo `8.21.0-alpha.*`
+- Ctrl+Shift+M otevře Minutes (domovská obrazovka); zkratka pro log odstraněna
 - Aktualizace: po kontrole se nová verze jen zobrazí, stažení až po kliknutí na Stáhnout
 - Sumáře v Signal chatu: nativní formát místo markdown (`**`, `##`)
 - AI prompty generují prostý text vhodný pro Signal

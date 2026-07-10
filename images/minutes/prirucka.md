@@ -173,10 +173,10 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 | Nastavení AI | Jazyk, poskytovatel, model, API klíč / lokální Gemma |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Příručka | Tato nápověda |
-| O Minutes | Úvodní obrazovka s přehledem funkcí |
+| O Minutes | Úvodní obrazovka s přehledem funkcí (Ctrl+Shift+M) |
 | Otevřít nahrávky hovorů | Složka s MP3 |
 | Otevřít sumarizace chatů | Složka s exporty chatů |
-| Zobrazit log | Diagnostika (Ctrl+Shift+Alt+L) |
+| Zobrazit log | Diagnostika (jen z menu) |
 
 ---
 
@@ -184,9 +184,9 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 | Zkratka | Akce |
 |---------|------|
+| Ctrl+Shift+M | Otevřít Minutes (domovská obrazovka) |
 | Ctrl+Shift+U | Sumarizovat aktuální chat |
 | Ctrl+Shift+B | Záložky |
-| Ctrl+Shift+Alt+L | Zobrazit log |
 
 ---
 
@@ -262,7 +262,7 @@ Auto-update Signalu zůstává vypnuté — Minutes používá vlastní kontrolu
 
 ### Log pro podporu
 
-**Menu → Minutes → Zobrazit log** nebo **Ctrl+Shift+Alt+L**
+**Menu → Minutes → Zobrazit log**
 
 ---
 

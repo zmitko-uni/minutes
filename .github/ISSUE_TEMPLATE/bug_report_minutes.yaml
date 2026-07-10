@@ -79,7 +79,7 @@ body:
     id: log
     attributes:
       label: Log Minutes
-      description: Menu Minutes → Zobrazit log… (Ctrl+Shift+Alt+L) — vložte relevantní část nebo popis
+      description: Menu Minutes → Zobrazit log… — vložte relevantní část nebo popis
     validations:
       required: false
 

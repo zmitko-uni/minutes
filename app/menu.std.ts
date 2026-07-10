@@ -144,6 +144,7 @@ export const createTemplate = (
         },
         {
           label: MINUTES_MENU_ABOUT,
+          accelerator: 'CommandOrControl+Shift+M',
           click: minutesShowHome,
         },
         {
@@ -159,7 +160,6 @@ export const createTemplate = (
         },
         {
           label: MINUTES_MENU_SHOW_LOG,
-          accelerator: 'CommandOrControl+Shift+Alt+L',
           click: minutesOpenLog,
         },
       ],
