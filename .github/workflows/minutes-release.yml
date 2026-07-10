@@ -81,6 +81,10 @@ jobs:
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Release version: ${VERSION}"
 
+      - name: Prepare CHANGELOG and release notes
+        if: inputs.skip_version_bump != true
+        run: node scripts/prepare-changelog-release.mjs "${{ steps.version.outputs.version }}"
+
       - name: Build installer
         run: pnpm run build:minutes:installer
         env:
@@ -106,11 +110,11 @@ jobs:
         if: inputs.skip_version_bump != true
         shell: bash
         run: |
-          git add package.json
+          git add package.json CHANGELOG.md
           if git diff --staged --quiet; then
-            echo "No package.json changes to commit"
+            echo "No release metadata changes to commit"
           else
-            git commit -m "chore(release): bump version to ${{ steps.version.outputs.version }}"
+            git commit -m "chore(release): Minutes ${{ steps.version.outputs.version }}"
             git push origin HEAD:main
           fi
 

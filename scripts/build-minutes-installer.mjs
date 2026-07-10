@@ -2,7 +2,7 @@
 import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -21,6 +21,10 @@ console.log('This can take 15–30 minutes on first run.\n');
 
 if (process.env.MINUTES_SKIP_VERSION_BUMP !== '1') {
   run('Release version bump', 'pnpm run bump:minutes:release');
+  const version = JSON.parse(
+    readFileSync(join(root, 'package.json'), 'utf8')
+  ).version;
+  run('Prepare CHANGELOG', `node scripts/prepare-changelog-release.mjs ${version}`);
 } else {
   console.log('Skipping version bump (MINUTES_SKIP_VERSION_BUMP=1)\n');
 }

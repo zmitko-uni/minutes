@@ -16,6 +16,26 @@ const packageJson = JSON.parse(
 const version = process.argv[2] ?? packageJson.version;
 const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8');
 
+function extractVersionSection(version) {
+  const marker = `## [${version}]`;
+  const idx = changelog.indexOf(marker);
+  if (idx === -1) {
+    return null;
+  }
+
+  let start = idx + marker.length;
+  const dateSuffix = changelog.slice(start).match(/^ - \d{4}-\d{2}-\d{2}/);
+  if (dateSuffix) {
+    start += dateSuffix[0].length;
+  }
+
+  const rest = changelog.slice(start);
+  const nextMatch = rest.match(/\n## \[/);
+  const end = nextMatch ? nextMatch.index : rest.length;
+
+  return rest.slice(0, end).trim();
+}
+
 function extractSection(headerText) {
   const idx = changelog.indexOf(headerText);
   if (idx === -1) {
@@ -32,7 +52,13 @@ function extractSection(headerText) {
 
 const versionHeader = `## [${version}]`;
 let section =
-  extractSection(versionHeader) ?? extractSection('## [Unreleased]');
+  extractVersionSection(version) ?? extractSection('## [Unreleased]');
+
+if (!section || section.includes('(doplňte před příštím release)')) {
+  console.warn(
+    `extract-changelog-release: missing notes for ${version} — run prepare-changelog-release.mjs first`
+  );
+}
 
 if (!section) {
   section =
