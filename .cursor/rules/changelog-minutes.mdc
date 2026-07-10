@@ -13,16 +13,11 @@ Vždy aktualizuj **`CHANGELOG.md`** → sekce **`[Unreleased]`** (Added / Change
 - jen viditelné chování: UI, menu, instalace, AI, nahrávání, sumarizace — ne interní refactory
 - ve stejném commitu jako související změna kódu (ne až „někdy před release“)
 
-## Při release (uživatel chce novou verzi / push s releasem)
+## Při release
 
-1. Zkontroluj, že `[Unreleased]` obsahuje všechny změny od poslední verze
-2. Spusť `pnpm run release:minutes:metadata` — bump `package.json` + přesun `[Unreleased]` → `## [verze] - datum`
-3. Commitni `package.json` + `CHANGELOG.md`: `chore(release): Minutes <verze>`
-4. Push na `main` — **GitHub Actions release běží automaticky** (bez ručního spouštění workflow)
+**Ručně v GitHub Actions** (*Release Minutes* → Run workflow): workflow sám zvedne verzi, přesune `[Unreleased]` v CHANGELOG, sestaví instalátor a vytvoří Release.
 
-Release workflow čte sekci verze z CHANGELOG a vloží ji do GitHub Release patch notes.
+**Nebo lokálně** (push spustí build bez dalšího bumpu):
 
-## Nepoužívat
-
-- Ruční spouštění *Release Minutes* v GitHub UI (jen výjimečně přes `workflow_dispatch`)
-- Commit release bez aktualizovaného CHANGELOG
+1. Zkontroluj, že `[Unreleased]` je kompletní
+2. `pnpm run release:minutes:metadata` → commit `chore(release): Minutes <verze>` → push na `main`

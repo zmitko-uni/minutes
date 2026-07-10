@@ -114,8 +114,8 @@ Po merge konflikty řeš takto:
 
 ## Release checklist (maintainer)
 
-1. `[Unreleased]` v `CHANGELOG.md` je aktuální (agent to doplňuje při změnách)
-2. `pnpm run release:minutes:metadata` → commit `package.json` + `CHANGELOG.md` → push `main`
+1. `[Unreleased]` v `CHANGELOG.md` je aktuální
+2. Actions → **Release Minutes** → Run workflow (nebo lokálně `release:minutes:metadata` + push `chore(release):`)
 3. Ověřte GitHub Release a stažení `Minutes-setup-windows-x64.exe`
 
 ## Co dělat, když to nejde bez většího zásahu
