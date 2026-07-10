@@ -157,7 +157,7 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
               'MinutesVersionFooter__button',
               'MinutesVersionFooter__button--primary'
             )}
-            disabled={isBusy || state.kind === 'downloading'}
+            disabled={isBusy}
             onClick={handlePrimaryAction}
           >
             {primaryLabel}
