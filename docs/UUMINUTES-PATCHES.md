@@ -79,7 +79,7 @@
 | `stylesheets/components/UuMinutesCallSummaryExtension.scss` | styly dialogu |
 | `app/uuminutes_icon.main.ts` | cesta k uuMinutes ikoně |
 | `app/uuminutes_tray.main.ts` | tray ikona + tooltip uuMinutes |
-| `images/uuminutes/app-icon-source.png` | zdrojová ikona (jednorožec) |
+| `images/uuminutes/app-icon-source.png` | zdrojová ikona Minutes (M + skupina) |
 | `scripts/generate-uuminutes-icons.mjs` | generuje .ico + PNG velikosti |
 | `scripts/generate-uuminutes-tray-icons.mjs` | tray ikony (base + badge) |
 | `images/tray-icons/base/uuminutes-tray-icon-*` | vygenerované tray ikony |

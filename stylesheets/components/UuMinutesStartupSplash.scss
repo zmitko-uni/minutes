@@ -1,9 +1,9 @@
 /* Copyright 2026 Minutes contributors */
 /* SPDX-License-Identifier: AGPL-3.0-only */
 
-// Startup / migration loading screens (background.html, loading.html, App Blank view)
+// Minutes logo on startup, migration, About, and other splash surfaces.
 
-.app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128 {
+@mixin uuminutes-app-logo-background {
   -webkit-mask: none !important;
   mask: none !important;
   background-color: transparent !important;
@@ -14,8 +14,23 @@
   border-radius: 22%;
 }
 
+.app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+.About .module-splash-screen__logo.module-splash-screen__logo--128,
+.module-splash-screen .module-splash-screen__logo.module-splash-screen__logo--128 {
+  @include uuminutes-app-logo-background;
+}
+
+.InstallScreenSignalLogo::before {
+  @include uuminutes-app-logo-background;
+  width: 32px;
+  height: 32px;
+}
+
 @media (forced-colors: active) {
-  .app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128 {
+  .app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+  .About .module-splash-screen__logo.module-splash-screen__logo--128,
+  .module-splash-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+  .InstallScreenSignalLogo::before {
     background-color: Canvas !important;
   }
 }
