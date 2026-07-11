@@ -7,7 +7,8 @@
 // @ts-check
 
 import { loadImage } from '@napi-rs/canvas';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { assert } from './utils/assert.mjs';
@@ -22,8 +23,23 @@ const sourcePath = join(baseDir, 'images', 'minutes', 'app-icon-source.png');
 const outputRoot = join(baseDir, 'build', 'icons', 'minutes');
 const pngDir = join(outputRoot, 'png');
 const winDir = join(outputRoot, 'win');
+const macDir = join(outputRoot, 'mac');
 
 const PNG_SIZES = [16, 32, 48, 64, 128, 256, 512];
+
+// Standard macOS .iconset members (@2x = double pixel size).
+const ICONSET_SPECS = [
+  { name: 'icon_16x16.png', size: 16 },
+  { name: 'icon_16x16@2x.png', size: 32 },
+  { name: 'icon_32x32.png', size: 32 },
+  { name: 'icon_32x32@2x.png', size: 64 },
+  { name: 'icon_128x128.png', size: 128 },
+  { name: 'icon_128x128@2x.png', size: 256 },
+  { name: 'icon_256x256.png', size: 256 },
+  { name: 'icon_256x256@2x.png', size: 512 },
+  { name: 'icon_512x512.png', size: 512 },
+  { name: 'icon_512x512@2x.png', size: 1024 },
+];
 
 /**
  * @param {ReadonlyArray<{ width: number; height: number; buffer: Buffer }>} images
@@ -65,6 +81,33 @@ async function renderSquarePng(image, size) {
   return renderRoundedSquarePng(image, size, MINUTES_ICON_CORNER_RADIUS_RATIO);
 }
 
+/**
+ * Generate the macOS app .icns via the system `iconutil` (darwin only).
+ * @param {import('@napi-rs/canvas').Image} image
+ */
+async function generateIcns(image) {
+  if (process.platform !== 'darwin') {
+    // eslint-disable-next-line no-console
+    console.log('Skipping .icns (requires macOS iconutil).');
+    return;
+  }
+
+  await mkdir(macDir, { recursive: true });
+  const iconsetDir = join(macDir, 'icon.iconset');
+  await rm(iconsetDir, { recursive: true, force: true });
+  await mkdir(iconsetDir, { recursive: true });
+
+  for (const { name, size } of ICONSET_SPECS) {
+    await writeFile(join(iconsetDir, name), await renderSquarePng(image, size));
+  }
+
+  const icnsPath = join(macDir, 'icon.icns');
+  execFileSync('iconutil', ['-c', 'icns', iconsetDir, '-o', icnsPath], {
+    stdio: 'inherit',
+  });
+  await rm(iconsetDir, { recursive: true, force: true });
+}
+
 async function main() {
   const outputPaths = [
     ...PNG_SIZES.map(size => join(pngDir, `${size}x${size}.png`)),
@@ -98,6 +141,8 @@ async function main() {
 
   const ico = encodeIco(icoImages);
   await writeFile(join(winDir, 'icon.ico'), ico);
+
+  await generateIcns(image);
 
   // eslint-disable-next-line no-console
   console.log(`minutes icons generated in ${outputRoot}`);

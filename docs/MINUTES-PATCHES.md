@@ -6,8 +6,10 @@
 
 | Soubor | Co | Hook |
 |--------|-----|------|
-| `package.json` | productName, skripty | branding |
+| `package.json` | productName, skripty, závislost `@minutes/mac-audio-tap` | branding + 1 řádek |
 | `scripts/utils/parseVersion.mjs` | Minutes `-m` verze pro build skripty | regex větev |
+| `pnpm-workspace.yaml` | `allowBuilds` pro `@minutes/mac-audio-tap` | 1 řádek |
+| `rolldown.config.ts` | `@minutes/mac-audio-tap` v `external` (native modul) | 1 řádek |
 | `app/user_config.main.ts` | `minutes-*` userData | 1 řádek |
 | `app/startup_config.main.ts` | minutes AUMID + název aplikace | pár řádků |
 | `app/WindowsNotifications.main.ts` | fallback toast + log AUMID | minutes |
@@ -56,8 +58,8 @@
 | `ts/minutes/**` | business logika, UI komponenty |
 | `app/minutes_channel.main.ts` | main-process IPC |
 | `app/minutes_runtime.main.ts` | výchozí `NODE_CONFIG_ENV=minutes` pro balíček |
-| `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build) |
-| `scripts/build-minutes-installer.mjs` | build Windows instalátoru |
+| `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build); `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`) |
+| `scripts/build-minutes-installer.mjs` | build instalátoru — Windows NSIS (`.exe`), macOS DMG arm64 (`.dmg`) podle `process.platform` |
 | `scripts/patch-electron-icon.mjs` | ikona electron.exe pro dev na Windows |
 | `ts/minutes/aiSettings.std.ts` | typy + výchozí model |
 | `ts/minutes/aiSettings.main.ts` | uložení klíče (safeStorage) |
@@ -72,7 +74,8 @@
 | `ts/minutes/anthropicSummary.main.ts` | Anthropic Claude API |
 | `ts/minutes/aiSettingsService.preload.ts` | preload IPC wrapper |
 | `ts/minutes/components/MinutesSettingsModal.dom.tsx` | dialog AI nastavení |
-| `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update |
+| `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
+| `ts/minutes/callRecordingService.preload.ts` | větev podle platformy — macOS loopback přes `macLoopbackAudio.preload.ts`, jinak Windows `desktopCapturer` |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/minutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |
 | `ts/sql/Server.node.ts` | `markMessagesUnreadFromAnchor` — SQL UPDATE readStatus/seenStatus |
@@ -93,13 +96,16 @@
 | `app/minutes_icon.main.ts` | cesta k minutes ikoně |
 | `app/minutes_tray.main.ts` | tray ikona + tooltip minutes |
 | `images/minutes/app-icon-source.png` | zdrojová ikona Minutes (M + skupina) |
-| `scripts/generate-minutes-icons.mjs` | generuje .ico + PNG velikosti |
+| `scripts/generate-minutes-icons.mjs` | generuje .ico + PNG velikosti; na macOS navíc `.icns` přes `iconutil` (`build/icons/minutes/mac/icon.icns`) |
+| `packages/mac-audio-tap/**` | native workspace balíček — ScreenCaptureKit binding pro systémové audio na macOS (13+) |
+| `ts/minutes/macLoopbackAudio.preload.ts` | renderer wrapper nad `@minutes/mac-audio-tap` (loopback MediaStream) |
+| `setup-minutes.sh`, `start-minutes.sh`, `start-minutes-quick.sh`, `minutes-quality-gate.sh`, `test-call-pipeline.sh`, `prepare-minutes-release.sh`, `build-minutes-release.sh` | macOS obdoby `.bat` skriptů (Xcode Command Line Tools místo Visual Studio) |
 | `scripts/generate-minutes-tray-icons.mjs` | tray ikony (base + badge) |
 | `images/tray-icons/base/minutes-tray-icon-*` | vygenerované tray ikony |
 | `images/tray-icons/alert/minutes-tray-icon-*` | tray ikony s počtem nepřečtených |
 | `build/icons/minutes/**` | vygenerované ikony (gitignore volitelně) |
 | `.github/workflows/minutes-ci.yml` | CI: generate + check:types |
-| `.github/workflows/minutes-release.yml` | release instalátoru + GitHub Release |
+| `.github/workflows/minutes-release.yml` | release instalátoru + GitHub Release; job `release-macos` (po `release-windows`, `macos-latest`) přidá `Minutes-<verze>-mac-arm64.dmg` + stabilní `Minutes-mac-arm64.dmg` |
 | `.github/workflows/minutes-merge-upstream.yml` | merge Signal upstream → PR |
 | `scripts/extract-changelog-release.mjs` | release notes z CHANGELOG.md |
 | `CHANGELOG.md` | uživatelský changelog verzí |

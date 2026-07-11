@@ -106,6 +106,10 @@ const config = {
     danger: {
       project: ['danger-exports.mjs', 'rules/**/*.mjs'],
     },
+    'packages/mac-audio-tap': {
+      ignoreBinaries: ['xcrun'],
+      ignoreDependencies: ['node-addon-api'],
+    },
     'packages/mute-state-change': {
       ignoreBinaries: ['xcrun'],
       ignoreDependencies: ['node-addon-api'],

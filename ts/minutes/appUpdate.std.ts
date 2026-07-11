@@ -15,15 +15,29 @@ export const MINUTES_GITHUB_RELEASES_LATEST_API_URL = `https://api.github.com/re
 
 export const MINUTES_GITHUB_RELEASES_LIST_API_URL = `https://api.github.com/repos/${MINUTES_GITHUB_REPO}/releases?per_page=30`;
 
-export function getMinutesInstallerAssetNameForChannel(
+const MINUTES_INSTALLER_ASSET_NAME_MACOS = 'Minutes-mac-arm64.dmg';
+
+/**
+ * GitHub release asset name for the given platform + release channel. macOS
+ * ships a single arm64 dmg (no per-channel variant), so on 'darwin' the channel
+ * is ignored; every other platform uses the channel-specific Windows installer
+ * name from releaseChannel.std. `platform` mirrors the values of
+ * `process.platform` ('darwin', 'win32', …); pass `window.platform` from
+ * renderer/DOM contexts.
+ */
+export function getMinutesInstallerAssetNameForPlatform(
+  platform: string,
   channel: MinutesReleaseChannel = getMinutesReleaseChannel()
 ): string {
-  return getMinutesInstallerAssetName(channel);
+  return platform === 'darwin'
+    ? MINUTES_INSTALLER_ASSET_NAME_MACOS
+    : getMinutesInstallerAssetName(channel);
 }
 
-export const MINUTES_INSTALLER_ASSET_NAME = getMinutesInstallerAssetName('prod');
-
-export const MINUTES_INSTALLER_LATEST_DOWNLOAD_URL = `${MINUTES_GITHUB_RELEASES_URL}/latest/download/${MINUTES_INSTALLER_ASSET_NAME}`;
+/** Builds the "latest release" download URL for the given platform's asset. */
+export function getMinutesInstallerLatestDownloadUrl(platform: string): string {
+  return `${MINUTES_GITHUB_RELEASES_URL}/latest/download/${getMinutesInstallerAssetNameForPlatform(platform)}`;
+}
 
 export type AppUpdateCheckResult = Readonly<{
   currentVersion: string;

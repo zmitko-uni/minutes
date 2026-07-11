@@ -54,6 +54,8 @@ jobs:
         !contains(github.event.head_commit.message, '[skip ci]'))
     runs-on: windows-latest
     timeout-minutes: 90
+    outputs:
+      channel: ${{ steps.channel.outputs.channel }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -227,3 +229,106 @@ jobs:
               "${INSTALLER}" \
               "${ASSET_STABLE}"
           fi
+
+  release-macos:
+    name: Build & publish macOS installer
+    needs: release-windows
+    # macOS ships prod-only (arm64 dmg, no beta variant); skip on beta so the
+    # stable Minutes-mac-arm64.dmg is never overwritten by a beta build.
+    if: needs.release-windows.result == 'success' && needs.release-windows.outputs.channel == 'prod'
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Cache electron-gyp
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: ~/.electron-gyp
+          key: electron-gyp-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose
+
+      - name: Generate build artifacts
+        run: pnpm run generate
+        env:
+          NODE_CONFIG_ENV: minutes
+
+      - name: Generate minutes icons
+        run: pnpm run build:minutes-icons
+        env:
+          NODE_CONFIG_ENV: minutes
+
+      - name: Typecheck
+        run: pnpm run check:types
+
+      - name: Read release version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Release version: ${VERSION}"
+
+      - name: Verify CHANGELOG has release section
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const version = process.argv[1];
+            const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const marker = '## [' + version + ']';
+            if (!changelog.includes(marker)) {
+              console.error('CHANGELOG.md missing section ' + marker);
+              process.exit(1);
+            }
+          " "${VERSION}"
+
+      - name: Build installer
+        run: pnpm run build:minutes:installer
+        env:
+          MINUTES_SKIP_VERSION_BUMP: '1'
+          MINUTES_SKIP_GENERATE: '1'
+          NODE_CONFIG_ENV: minutes
+          DISABLE_INSPECT_FUSE: on
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          INSTALLER=$(ls release/minutes/*.dmg | head -n 1)
+          if [ -z "${INSTALLER}" ]; then
+            echo "Installer .dmg not found in release/minutes/"
+            exit 1
+          fi
+          cp "${INSTALLER}" "release/minutes/Minutes-mac-arm64.dmg"
+          echo "INSTALLER=${INSTALLER}" >> "$GITHUB_ENV"
+          echo "ASSET_STABLE=release/minutes/Minutes-mac-arm64.dmg" >> "$GITHUB_ENV"
+          ls -la release/minutes/*.dmg
+
+      - name: Upload macOS release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          gh release upload "${TAG}" "${INSTALLER}" "${ASSET_STABLE}" --clobber

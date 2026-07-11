@@ -14,6 +14,10 @@ import {
   getMicrophoneStream,
 } from './callRecorder.dom.ts';
 import {
+  getMacLoopbackAudioStream,
+  stopMacLoopbackAudio,
+} from './macLoopbackAudio.preload.ts';
+import {
   RECORDING_STATE_CHANGED,
   recordingStateEvents,
 } from './recordingStateEvents.std.ts';
@@ -73,7 +77,10 @@ class CallRecordingService {
 
     try {
     const streams = new Array<MediaStream>();
-    const loopback = await getLoopbackAudioStream();
+    const loopback =
+      window.platform === 'darwin'
+        ? await getMacLoopbackAudioStream()
+        : await getLoopbackAudioStream();
     if (loopback) {
       streams.push(loopback);
     }
@@ -96,6 +103,7 @@ class CallRecordingService {
       streams.forEach(stream =>
         stream.getTracks().forEach(track => track.stop())
       );
+      stopMacLoopbackAudio();
       window.reduxActions.toast.showToast({ toastType: ToastType.Error });
       return false;
     }
@@ -125,6 +133,7 @@ class CallRecordingService {
     if (this.#recorder.isActive()) {
       await this.#recorder.stop().catch(() => undefined);
     }
+    stopMacLoopbackAudio();
     speakerActivityLogger.stop();
     this.#setState({ status: 'idle' });
     window.reduxActions.toast.showToast({ toastType: ToastType.Error });
@@ -214,6 +223,7 @@ class CallRecordingService {
       const endedAt = Date.now();
 
       const recording = await this.#recorder.stop();
+      stopMacLoopbackAudio();
       let speakerActivityLog = speakerActivityLogger.stop();
 
       if (!recording || recording.mp3.byteLength === 0) {

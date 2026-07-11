@@ -1,10 +1,12 @@
-// Build a Windows NSIS installer for minutes (unsigned, for ad-hoc distribution).
+// Build a minutes installer (unsigned, for ad-hoc distribution):
+// Windows NSIS on win32, macOS DMG (arm64) on darwin.
 import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const isMac = process.platform === 'darwin';
 
 function run(label, command, env = {}) {
   console.log(`\n=== ${label} ===\n`);
@@ -16,7 +18,7 @@ function run(label, command, env = {}) {
   });
 }
 
-console.log('minutes Windows installer build');
+console.log(`minutes ${isMac ? 'macOS' : 'Windows'} installer build`);
 console.log('This can take 15–30 minutes on first run.\n');
 
 if (process.env.MINUTES_SKIP_VERSION_BUMP !== '1') {
@@ -53,11 +55,11 @@ if (!existsSync(mainBundle)) {
 }
 
 run(
-  'NSIS installer (unsigned)',
+  isMac ? 'DMG (unsigned)' : 'NSIS installer (unsigned)',
   [
     'npx electron-builder',
-    '--win nsis',
-    '--x64',
+    isMac ? '--mac dmg' : '--win nsis',
+    isMac ? '--arm64' : '--x64',
     '--publish never',
     '--config electron-builder.minutes.mjs',
   ].join(' '),
@@ -71,8 +73,9 @@ run(
 );
 
 const outputDir = join(root, 'release', 'minutes');
+const installerExt = isMac ? '.dmg' : '.exe';
 const installers = readdirSync(outputDir).filter(name =>
-  name.endsWith('.exe')
+  name.endsWith(installerExt)
 );
 
 console.log('\n=== Done ===\n');
@@ -84,9 +87,19 @@ if (installers.length > 0) {
   console.log(`  Check output in: ${outputDir}`);
 }
 
-console.log(`
+if (isMac) {
+  console.log(`
+Notes:
+  • App is NOT code-signed/notarized — Gatekeeper blocks a normal double-click.
+  • First launch: right-click Minutes.app → Open, or run:
+      xattr -dr com.apple.quarantine /Applications/Minutes.app
+  • User data stays in ~/Library/Application Support/Minutes.
+`);
+} else {
+  console.log(`
 Notes:
   • Installer is NOT code-signed — Windows SmartScreen may warn on first run.
   • Recipient can click "More info" → "Run anyway".
   • Prod data: %APPDATA%\\Minutes — beta: %APPDATA%\\Minutes-Beta (parallel install).
 `);
+}

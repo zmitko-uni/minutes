@@ -77,6 +77,7 @@ const NODE_PACKAGES = new Set([
   '@indutny/mac-screen-share',
   '@indutny/range-finder',
   '@indutny/simple-windows-notifications',
+  '@minutes/mac-audio-tap',
   '@signalapp/libsignal-client',
   '@signalapp/mute-state-change',
   '@signalapp/ringrtc',

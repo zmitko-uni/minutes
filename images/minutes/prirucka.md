@@ -151,6 +151,15 @@ Soubory: `.mp3`, `.json` (metadata), `.transcript.md`, volitelně `.summary.md`.
 
 Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba.
 
+### Nahrávání na macOS
+
+Nahrávání systémového zvuku (co slyšíte od ostatních) vyžaduje na macOS dvě oprávnění:
+
+1. **Screen Recording** — v **System Settings → Privacy & Security → Screen Recording** povolte Minutes. Systémový dialog se poprvé zobrazí až při prvním pokusu o nahrávání.
+2. **Microphone** — stejné místo, sekce **Microphone**.
+
+> **Po povolení Screen Recording je nutné aplikaci restartovat** — do restartu se nahrává **jen mikrofon** (bez zvuku ostatních účastníků).
+
 ---
 
 ## Záložky
@@ -229,6 +238,8 @@ Minutes **automaticky kontroluje nové verze** cca 8 sekund po startu (jen u nai
 | Chcete odložit | **Později** — banner se skryje do restartu aplikace |
 
 Instalátor se stáhne do `%APPDATA%\Minutes\minutes\updates\` a spustí se po kliknutí na instalaci. Minutes se zavře a průvodce dokončíte ručně (SmartScreen u unsigned buildu: *Více informací* → *Přesto spustit*).
+
+**Na macOS** je postup jiný: po kliknutí na instalaci se stažený `.dmg` **otevře** a Minutes se zavře. Přetáhněte **Minutes** do složky **Applications** (přepsání předchozí verze) a aplikaci spusťte znovu. Gatekeeper u nepodepsaného buildu může vyžadovat pravý klik → **Otevřít**.
 
 Auto-update Signalu zůstává vypnuté — Minutes používá vlastní kontrolu přes [GitHub Releases](https://github.com/zmitko-uni/minutes/releases).
 

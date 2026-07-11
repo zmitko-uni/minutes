@@ -31,7 +31,9 @@ Signal UX and login are unchanged. Minutes extensions live in `ts/minutes/` with
 Detailní popis: **[images/minutes/prirucka.md](images/minutes/prirucka.md)**  
 Změny verzí: **[CHANGELOG.md](CHANGELOG.md)**
 
-## Prerequisites (Windows)
+## Prerequisites (Windows / macOS)
+
+### Windows
 
 1. **Node.js** — see `.nvmrc` (use nvm-windows or install matching version)
 2. **pnpm** — `npm install -g pnpm`
@@ -39,16 +41,35 @@ Změny verzí: **[CHANGELOG.md](CHANGELOG.md)**
 4. **Visual Studio 2022** — workload *Desktop development with C++*
 5. Build from **x64 Native Tools Command Prompt** or short path (avoid Windows MAX_PATH issues)
 
+### macOS (jen Apple Silicon)
+
+1. **Node.js** — see `.nvmrc` (nvm / fnm doporučeno)
+2. **pnpm** — `npm install -g pnpm`
+3. **Python 3**
+4. **Xcode Command Line Tools** — `xcode-select --install` (potřeba pro native moduly, `iconutil`)
+5. Pouze **Apple Silicon (arm64)** — `whisper-cpp-node` nemá prebuild pro darwin-x64, Intel Mac není podporovaný
+
 ## First-time build
 
 ```powershell
+# Windows
 cd c:\WORK\_TECH\AI_tools\minutes
 pnpm install
 pnpm run generate
 pnpm run start:minutes
 ```
 
-`start:minutes` uses production Signal servers (`config/minutes.json`) and separate user data at `%APPDATA%\Minutes`.
+```bash
+# macOS
+cd ~/dev/minutes
+pnpm install
+pnpm run generate
+pnpm run start:minutes
+```
+
+Alternativa (stejné kroky ve skriptu): `setup-minutes.bat` → `start-minutes.bat` (Windows) nebo `./setup-minutes.sh` → `./start-minutes.sh` (macOS).
+
+`start:minutes` uses production Signal servers (`config/minutes.json`) and separate user data — `%APPDATA%\Minutes` (Windows) / `~/Library/Application Support/Minutes` (macOS).
 
 ## Development workflow
 
@@ -70,16 +91,18 @@ Lokálně před commitem:
 pnpm run check:types
 ```
 
-## Windows installer (pro někoho jiného)
+## Windows / macOS installer (pro někoho jiného)
 
-Pro vytvoření **NSIS instalátoru** (`.exe`), který můžete poslat kolegovi:
+Pro vytvoření **instalátoru**, který můžete poslat kolegovi — NSIS `.exe` na Windows, `.dmg` na macOS (arm64):
 
 ```powershell
 pnpm install
 pnpm run build:minutes:installer
 ```
 
-Výstup: `release/minutes/Minutes-setup-<verze>.exe`
+Výstup: `release/minutes/Minutes-setup-<verze>.exe` (Windows) / `release/minutes/Minutes-<verze>-mac-arm64.dmg` (macOS).
+
+Na macOS build automaticky detekuje `darwin` a spustí `electron-builder --mac dmg --arm64` (viz `scripts/build-minutes-installer.mjs`). Instalátor je **nepodepsaný** (ad-hoc, bez Apple Developer ID) — po instalaci Gatekeeper zablokuje normální dvojklik: klikněte pravým tlačítkem na `Minutes.app` → **Otevřít**, nebo spusťte `xattr -dr com.apple.quarantine /Applications/Minutes.app`.
 
 ### Release přes GitHub Actions (doporučeno)
 
@@ -94,8 +117,10 @@ Workflow automaticky:
    - zvedne verzi Meetup (`8.21.0-m1.0.1` → `8.21.0-m1.0.2` hotfix, volba *minor* / *major* v Actions; beta bump přidá `-beta.N`)
    - přesune `[Unreleased]` v CHANGELOG a vytvoří GitHub Release
    - commitne bump verze do aktuální branch (`main` nebo `beta`)
-4. Stabilní odkaz (prod):  
-   `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe`
+   - job `release-macos` (běží po `release-windows` na `macos-latest`, jen pro prod) sestaví `.dmg` a přidá ho k Release jako `Minutes-<verze>-mac-arm64.dmg` a stabilní `Minutes-mac-arm64.dmg`
+4. Stabilní odkazy:  
+   `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe` (Windows)  
+   `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-mac-arm64.dmg` (macOS, Apple Silicon)
 
 Volba *Skip version bump* — přestaví stejnou verzi (např. první release nebo oprava buildu).
 
@@ -106,24 +131,24 @@ Alternativa: lokálně `pnpm run release:minutes:metadata` (prod) nebo `release:
 
 ### Lokální build (vývoj)
 
-| Co | Detail |
-|----|--------|
-| První build | 15–30 min (locales, emoji, native moduly) |
-| Požadavky | stejné jako vývoj — Node, pnpm, VS C++ workload |
-| Podpis | **bez** code signing — SmartScreen může varovat → *Více informací* → *Přesto spustit* |
-| Data uživatele | `%APPDATA%\Minutes` — při odinstalaci se **nemazou** |
-| Aktualizace | vypnuté (`updatesEnabled: false`) — stáhněte nový `.exe` z [Releases](https://github.com/zmitko-uni/minutes/releases/latest) a nainstalujte přes existující instalaci |
+| Co | Windows | macOS |
+|----|---------|-------|
+| První build | 15–30 min (locales, emoji, native moduly) | 15–30 min (locales, emoji, native moduly) |
+| Požadavky | stejné jako vývoj — Node, pnpm, VS C++ workload | stejné jako vývoj — Node, pnpm, Xcode Command Line Tools; jen Apple Silicon |
+| Podpis | **bez** code signing — SmartScreen může varovat → *Více informací* → *Přesto spustit* | **bez** code signing/notarizace (ad-hoc) — Gatekeeper blokuje dvojklik → pravý klik → *Otevřít*, nebo `xattr -dr com.apple.quarantine /Applications/Minutes.app` |
+| Data uživatele | `%APPDATA%\Minutes` — při odinstalaci se **nemazou** | `~/Library/Application Support/Minutes` — při odinstalaci (smazání `.app`) se **nemazou** |
+| Aktualizace | vypnuté (`updatesEnabled: false`) — stáhněte nový `.exe` z [Releases](https://github.com/zmitko-uni/minutes/releases/latest) a nainstalujte přes existující instalaci | vypnuté (`updatesEnabled: false`) — stáhněte nový `.dmg` z [Releases](https://github.com/zmitko-uni/minutes/releases/latest); aplikace vlastní auto-update otevře `.dmg` a vy přetáhnete do Applications |
 
 Instalátor je vhodný pro interní/ad-hoc distribuci. Pro veřejné šíření by bylo potřeba Windows code signing certifikát.
 
 ## Output locations
 
-| Type | Path |
-|------|------|
-| Call recordings (MP3 + JSON metadata) | `%APPDATA%\Minutes\minutes\recordings\` |
-| Chat summaries (MD + JSON metadata) | `%APPDATA%\Minutes\minutes\summaries\` |
-| AI settings (encrypted API key) | `%APPDATA%\Minutes\minutes\ai-settings.json` |
-| Whisper models | `%APPDATA%\Minutes\minutes\whisper-models\` |
+| Type | Windows | macOS |
+|------|---------|-------|
+| Call recordings (MP3 + JSON metadata) | `%APPDATA%\Minutes\minutes\recordings\` | `~/Library/Application Support/Minutes/minutes/recordings/` |
+| Chat summaries (MD + JSON metadata) | `%APPDATA%\Minutes\minutes\summaries\` | `~/Library/Application Support/Minutes/minutes/summaries/` |
+| AI settings (encrypted API key) | `%APPDATA%\Minutes\minutes\ai-settings.json` | `~/Library/Application Support/Minutes/minutes/ai-settings.json` |
+| Whisper models | `%APPDATA%\Minutes\minutes\whisper-models\` | `~/Library/Application Support/Minutes/minutes/whisper-models/` |
 
 Menu: **Minutes → Open Call Recordings / Open Chat Summaries / AI Settings… / Příručka…**
 
@@ -137,8 +162,15 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
   - **Stop** — uloží MP3 + JSON metadata
 - Při ukončení hovoru se aktivní nahrávka automaticky uloží
 - Používá Signal lame MP3 encoder worklet
+- Systémové (loopback) audio: Windows přes `desktopCapturer` (WASAPI), macOS přes vlastní balíček `packages/mac-audio-tap` (ScreenCaptureKit, macOS 13+)
 
 > Recording laws vary by jurisdiction — ensure participants consent.
+
+### macOS oprávnění pro nahrávání hovoru
+
+- **Screen Recording** (TCC) — nutné pro zachycení systémového zvuku (ScreenCaptureKit). První pokus o nahrávání vyvolá systémový dialog; po jeho povolení je nutné **aplikaci restartovat** — do té doby se nahrává **jen mikrofon**.
+- **Microphone** — standardní oprávnění, vyžádá se stejně jako u ostatních appek.
+- Obě oprávnění lze zkontrolovat/nastavit v **System Settings → Privacy & Security → Screen Recording / Microphone**.
 
 ## Chat summary
 
@@ -160,12 +192,15 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 ```
 ts/minutes/
   callRecorder.dom.ts              # MP3 capture
-  callRecordingService.preload.ts  # lifecycle (onCallEnded)
+  callRecordingService.preload.ts  # lifecycle (onCallEnded), platform branch (Win/mac)
+  macLoopbackAudio.preload.ts      # macOS loopback wrapper nad @minutes/mac-audio-tap
   chatSummaryService.preload.ts    # chat export + AI
   whisperTranscribe.main.ts        # lokální Whisper
   aiSettings*.ts / *Summary.main.ts
   components/                      # UI modaly, recording controls
   index.preload.ts                 # bootstrap
+
+packages/mac-audio-tap/          # native ScreenCaptureKit addon (macOS system audio)
 
 app/minutes_channel.main.ts      # IPC: save files, loopback
 

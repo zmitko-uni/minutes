@@ -6,7 +6,7 @@ import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
 import { get as httpsGet } from 'node:https';
 import { join } from 'node:path';
 
-import { app, BrowserWindow, type WebContents } from 'electron';
+import { app, BrowserWindow, shell, type WebContents } from 'electron';
 
 import { createLogger } from '../logging/log.std.ts';
 import { AI_SETTINGS_DIR_NAME } from './constants.std.ts';
@@ -14,8 +14,8 @@ import {
   MINUTES_GITHUB_RELEASES_LATEST_API_URL,
   MINUTES_GITHUB_RELEASES_LIST_API_URL,
   MINUTES_GITHUB_RELEASES_URL,
-  getMinutesInstallerAssetNameForChannel,
-  MINUTES_INSTALLER_LATEST_DOWNLOAD_URL,
+  getMinutesInstallerAssetNameForPlatform,
+  getMinutesInstallerLatestDownloadUrl,
   type AppUpdateCheckResult,
   type AppUpdateProgress,
   type PendingAppUpdate,
@@ -71,6 +71,9 @@ function getPendingUpdateFilePath(): string {
 
 async function getInstallerDestination(version: string): Promise<string> {
   await mkdir(getUpdatesDir(), { recursive: true });
+  if (process.platform === 'darwin') {
+    return join(getUpdatesDir(), `Minutes-${version}.dmg`);
+  }
   const prefix = getMinutesInstallerFilePrefix();
   return join(getUpdatesDir(), `${prefix}-${version}.exe`);
 }
@@ -126,7 +129,7 @@ function fetchHttpsJson<T>(url: string): Promise<T> {
 }
 
 function resolveInstallerDownloadUrl(release: GitHubLatestRelease): string {
-  const assetName = getMinutesInstallerAssetNameForChannel();
+  const assetName = getMinutesInstallerAssetNameForPlatform(process.platform);
   const asset = release.assets?.find(item => item.name === assetName);
   if (asset?.browser_download_url) {
     return asset.browser_download_url;
@@ -135,7 +138,7 @@ function resolveInstallerDownloadUrl(release: GitHubLatestRelease): string {
     const tag = normalizeVersionTag(release.tag_name);
     return `${MINUTES_GITHUB_RELEASES_URL}/download/v${tag}/${assetName}`;
   }
-  return MINUTES_INSTALLER_LATEST_DOWNLOAD_URL;
+  return getMinutesInstallerLatestDownloadUrl(process.platform);
 }
 
 async function fetchLatestReleaseForChannel(): Promise<GitHubLatestRelease> {
@@ -193,7 +196,7 @@ export async function checkForAppUpdate(
       latestVersion: currentVersion,
       updateAvailable: false,
       releaseUrl: MINUTES_GITHUB_RELEASES_URL,
-      downloadUrl: MINUTES_INSTALLER_LATEST_DOWNLOAD_URL,
+      downloadUrl: getMinutesInstallerLatestDownloadUrl(process.platform),
       checkSkipped: true,
       errorMessage: null,
     };
@@ -232,7 +235,7 @@ export async function checkForAppUpdate(
       latestVersion: null,
       updateAvailable: false,
       releaseUrl: MINUTES_GITHUB_RELEASES_URL,
-      downloadUrl: MINUTES_INSTALLER_LATEST_DOWNLOAD_URL,
+      downloadUrl: getMinutesInstallerLatestDownloadUrl(process.platform),
       checkSkipped: false,
       errorMessage: message,
     };
@@ -387,6 +390,32 @@ export async function installPendingAppUpdate(options: {
   }
 
   const sendProgress = options.sendProgress ?? broadcastAppUpdateProgress;
+
+  if (process.platform === 'darwin') {
+    sendProgress({
+      phase: 'launching',
+      message: 'Otevírám instalační obraz…',
+      percent: 100,
+    });
+
+    const openError = await shell.openPath(pending.installerPath);
+    if (openError) {
+      throw new Error(`Nepodařilo se otevřít instalační obraz: ${openError}`);
+    }
+
+    sendProgress({
+      phase: 'complete',
+      message:
+        'Přetáhněte Minutes do složky Applications. Aplikace se nyní zavře.',
+      percent: 100,
+    });
+
+    setTimeout(() => {
+      app.quit();
+    }, 750);
+
+    return { installerPath: pending.installerPath };
+  }
 
   sendProgress({
     phase: 'launching',
