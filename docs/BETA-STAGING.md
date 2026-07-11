@@ -40,17 +40,30 @@ Použij skill **`minutes-fix-confirmed-issue`** (viz `.cursor/skills/minutes-fix
 
 ### 3. Beta release
 
+Po pushi všech fix commitů na `beta` spusť workflow (verzi bumpne CI):
+
 ```bash
-git checkout beta
-git pull origin beta
-# po merge fix commitů:
+pnpm run release:minutes:beta:trigger
+```
+
+Nebo **Actions → Release Minutes** → branch **`beta`**, **`release_channel: beta`**.
+
+Ruční fallback (verzi bumpne lokálně, push `chore(release):` spustí build):
+
+```bash
 pnpm run release:minutes:beta:metadata
 git add package.json CHANGELOG.md
 git commit -m "chore(release): [beta] Minutes 8.21.0-m1.0.4-beta.1"
 git push origin beta
 ```
 
-Nebo **Actions → Release Minutes → release_channel: beta** (branch `beta`).
+### 3b. Označ issues k retestu
+
+```bash
+pnpm run issues:retest -- 7 8
+```
+
+Label **`to-retest`** = opraveno v beta, čeká ověření testerem. Odebere **`potvrzeno-k-oprave`**.
 
 ### 4. Test beta instalátoru
 

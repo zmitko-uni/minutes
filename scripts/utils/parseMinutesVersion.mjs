@@ -6,6 +6,9 @@ export const MINUTES_SIGNAL_BASE_VERSION = '8.21.0';
 
 export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-oprave';
 
+/** Po beta release — issue čeká retest na pre-release buildu. */
+export const MINUTES_RETEST_LABEL = 'to-retest';
+
 const MINUTES_PRODUCT_VERSION_PATTERN =
   /^(\d+\.\d+\.\d+)-m(\d+\.\d+\.\d+)(?:-beta\.(\d+))?$/i;
 

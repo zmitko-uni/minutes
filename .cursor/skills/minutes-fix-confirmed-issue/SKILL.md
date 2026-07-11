@@ -1,13 +1,14 @@
 ---
 name: minutes-fix-confirmed-issue
 description: >-
-  Fixes GitHub issues labeled potvrzeno-k-oprave for Minutes (Signal fork):
-  list issues, analyze, implement fix in ts/minutes/, update CHANGELOG,
-  commit to beta branch, prepare beta release. Use when the user mentions
-  confirmed issues, potvrzeno k opravě, beta release, or staging fixes.
+  Fixes ALL GitHub issues labeled potvrzeno-k-oprave for Minutes (Signal fork):
+  list issues, analyze, implement fixes in ts/minutes/, update CHANGELOG,
+  commit to beta, trigger Release Minutes (beta), mark issues to-retest.
+  Use when the user mentions confirmed issues, potvrzeno k opravě, beta release,
+  or staging fixes.
 ---
 
-# Minutes — oprava potvrzeného issue (beta flow)
+# Minutes — oprava potvrzených issues (beta flow)
 
 ## Před startem
 
@@ -15,21 +16,24 @@ description: >-
 2. Branch **`beta`** — fix commituj sem, ne na `main`.
 3. Label issue: **`potvrzeno-k-oprave`**.
 
-## Krok 1 — Vyber issue
+## Krok 1 — Načti všechna issues
 
 ```bash
 pnpm run issues:confirmed
 ```
 
-Uživatel může zadat číslo (`#42`). Jinak vezmi **nejstarší** otevřené s labelem.
+**Oprav všechna** otevřená issues s labelem `potvrzeno-k-oprave` (od nejstaršího).
+Uživatel může omezit seznam čísly (`#7 #8`) — jinak ber celý výstup skriptu.
 
-Načti obsah:
+Načti detail každého:
 
 ```bash
 gh issue view <NUMBER> --repo zmitko-uni/minutes
 ```
 
-## Krok 2 — Analýza
+(Pokud `gh` není v PATH, použij GitHub API.)
+
+## Krok 2 — Analýza (pro každé issue)
 
 Do chatu stručně:
 
@@ -44,9 +48,9 @@ Do chatu stručně:
 - issue je nejasné / chybí repro
 - fix by vyžadoval velký zásah upstream
 
-## Krok 3 — Implementace
+## Krok 3 — Implementace (všechna issues)
 
-Checklist:
+Checklist pro každé issue:
 
 - [ ] Logika v `ts/minutes/` (nebo `app/minutes_*.main.ts`)
 - [ ] Upstream max. tenký hook — zapsat do `docs/MINUTES-PATCHES.md` pokud dotčen
@@ -54,32 +58,47 @@ Checklist:
 - [ ] `pnpm run check:types` projde
 - [ ] Žádné secrets v kódu
 
-## Krok 4 — Commit na beta
+Každé issue = **samostatný commit** (traceabilita `closes #N`).
+
+## Krok 4 — Push na beta
 
 ```bash
 git checkout beta
 git pull origin beta
 git add <soubory>
 git commit -m "fix: <stručný popis> (closes #<NUMBER>)"
+# … opakuj pro další issues …
 git push origin beta
 ```
 
-## Krok 5 — Beta release (až po schválení uživatele)
+## Krok 5 — Beta release (automaticky po pushi fixů)
 
-Zeptej se: *„Mám připravit beta release?“*
+**Nepočívej na schválení uživatele** — spusť beta release hned po pushi všech fix commitů.
 
-Pokud ano:
+Workflow **Release Minutes** už má přepínač `release_channel: beta` (`.github/workflows/minutes-release.yml`).
 
 ```bash
-pnpm run release:minutes:beta:metadata
-git add package.json CHANGELOG.md
-git commit -m "chore(release): [beta] Minutes <verze>"
-git push origin beta
+pnpm run release:minutes:beta:trigger
 ```
 
-Push spustí GitHub Actions **Release Minutes** (pre-release).
+Alternativa ručně: GitHub → Actions → **Release Minutes** → Run workflow → branch **`beta`**, **`release_channel: beta`**.
 
-## Krok 6 — Po testu beta → prod (jen na pokyn)
+Workflow sám zvedne `-beta.N` verzi, přesune `[Unreleased]` v CHANGELOG, sestaví instalátor a vytvoří pre-release.
+
+## Krok 6 — Označ issues k retestu
+
+Po spuštění beta release přeštítkuj opravená issues:
+
+```bash
+pnpm run issues:retest -- 7 8
+```
+
+Skript:
+
+- odebere label **`potvrzeno-k-oprave`**
+- přidá label **`to-retest`** (popis: *Opraveno v beta buildu — čeká retest*)
+
+## Krok 7 — Po testu beta → prod (jen na pokyn)
 
 Na **`main`**, ne automaticky:
 
@@ -95,6 +114,7 @@ git push origin main
 ## Co nedělat
 
 - Necommitovat na `main` bez explicitního pokynu k prod release
-- Nestahovat / nespouštět beta release bez potvrzení
-- Neopravovat víc nesouvisících issues v jednom commitu
-- Neměnit verzi v `package.json` ručně — použij release skripty
+- Nezastavovat se u prvního issue — oprav **všechna** s labelem `potvrzeno-k-oprave`
+- Nemíchat nesouvisící issues do jednoho commitu
+- Neměnit verzi v `package.json` ručně — release dělá workflow (nebo `release:minutes:beta:metadata` jen lokálně při ručním fallbacku)
+- Nezapomenout na `issues:retest` po beta release

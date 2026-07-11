@@ -103,6 +103,8 @@
     "release:minutes:metadata": "node scripts/prepare-minutes-release-metadata.mjs",
     "release:minutes:beta:metadata": "cross-env MINUTES_RELEASE_CHANNEL=beta node scripts/prepare-minutes-release-metadata.mjs",
     "issues:confirmed": "node scripts/list-confirmed-github-issues.mjs",
+    "issues:retest": "node scripts/mark-issues-for-retest.mjs",
+    "release:minutes:beta:trigger": "node scripts/trigger-minutes-beta-release.mjs",
     "build:minutes:installer": "node scripts/build-minutes-installer.mjs",
     "build:dev": "run-s --print-label generate build:rolldown:prod",
     "build:rolldown": "rolldown -c",

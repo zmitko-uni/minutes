@@ -48,7 +48,10 @@ try {
 }
 
 /** @type {Array<{ number: number; title: string; url: string; createdAt: string }>} */
-const issues = JSON.parse(json || '[]');
+const issues = JSON.parse(json || '[]').sort(
+  (left, right) =>
+    new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
+);
 
 if (issues.length === 0) {
   console.log(`Žádné otevřené issues s labelem "${MINUTES_CONFIRMED_FIX_LABEL}".`);
@@ -56,7 +59,7 @@ if (issues.length === 0) {
 }
 
 console.log(
-  `Otevřené issues s labelem "${MINUTES_CONFIRMED_FIX_LABEL}" (${issues.length}):\n`
+  `Otevřené issues s labelem "${MINUTES_CONFIRMED_FIX_LABEL}" (${issues.length}) — opravit všechna:\n`
 );
 
 for (const issue of issues) {
@@ -65,5 +68,3 @@ for (const issue of issues) {
   console.log(`    vytvořeno: ${issue.createdAt}`);
   console.log('');
 }
-
-console.log('Nejstarší k opravě: #' + issues[issues.length - 1].number);
