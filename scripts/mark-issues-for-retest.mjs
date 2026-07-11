@@ -7,42 +7,25 @@
 //   pnpm run issues:retest -- 7,8
 // Requires: gh CLI authenticated (gh auth login)
 
-import { execSync } from 'node:child_process';
-
 import {
   MINUTES_CONFIRMED_FIX_LABEL,
   MINUTES_RETEST_LABEL,
 } from './utils/parseMinutesVersion.mjs';
+import { ensureGhAuth, runGh } from './utils/runGh.mjs';
 
 const repo = process.env.MINUTES_GITHUB_REPO ?? 'zmitko-uni/minutes';
 
-function runGh(args) {
-  return execSync(`gh ${args}`, {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
-}
-
-function ensureGhAuth() {
-  try {
-    runGh('auth status');
-  } catch {
-    console.error('GitHub CLI není přihlášené. Spusť: gh auth login');
-    process.exit(1);
-  }
-}
-
 function ensureLabel(name, color, description) {
   try {
-    runGh(
-      `label list --repo ${repo} --json name --jq '.[].name'`
-    );
+    runGh(`label list --repo ${repo} --json name --jq '.[].name'`);
   } catch {
     // list failed — try create below
   }
 
   try {
-    runGh(`label create "${name}" --repo ${repo} --color ${color} --description "${description}" --force`);
+    runGh(
+      `label create "${name}" --repo ${repo} --color ${color} --description "${description}" --force`
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (!message.includes('already exists')) {
@@ -83,7 +66,9 @@ for (const number of issueNumbers) {
   runGh(
     `issue edit ${number} --repo ${repo} --remove-label "${MINUTES_CONFIRMED_FIX_LABEL}" --add-label "${MINUTES_RETEST_LABEL}"`
   );
-  console.log(`#${number} → label "${MINUTES_RETEST_LABEL}" (odebrán "${MINUTES_CONFIRMED_FIX_LABEL}")`);
+  console.log(
+    `#${number} → label "${MINUTES_RETEST_LABEL}" (odebrán "${MINUTES_CONFIRMED_FIX_LABEL}")`
+  );
 }
 
 console.log(`\nHotovo (${issueNumbers.length} issues).`);

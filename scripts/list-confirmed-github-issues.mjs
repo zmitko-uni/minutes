@@ -5,27 +5,13 @@
 // Usage: pnpm run issues:confirmed
 // Requires: gh CLI authenticated (gh auth login)
 
-import { execSync } from 'node:child_process';
-
 import { MINUTES_CONFIRMED_FIX_LABEL } from './utils/parseMinutesVersion.mjs';
+import { ensureGhAuth, runGh } from './utils/runGh.mjs';
 
 const repo = process.env.MINUTES_GITHUB_REPO ?? 'zmitko-uni/minutes';
 
-function runGh(args) {
-  return execSync(`gh ${args}`, {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
-}
+ensureGhAuth();
 
-try {
-  runGh('auth status');
-} catch {
-  console.error('GitHub CLI není přihlášené. Spusť: gh auth login');
-  process.exit(1);
-}
-
-const label = encodeURIComponent(MINUTES_CONFIRMED_FIX_LABEL);
 let json;
 
 try {
