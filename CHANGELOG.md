@@ -16,6 +16,23 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.21.0-m1.0.5] - 2026-07-11
+
+### Added
+- beta/prod staging, confirmed-issue flow, and -beta.N versions
+
+### Changed
+- skill minutes-promote-beta-to-prod — merge, prod release, close issues
+- beta flow skill — všechna issues, release trigger, label to-retest
+
+### Fixed
+- commit verze před buildem, stash před rebase
+- rebase před push verze v Release Minutes workflow
+- gh skripty najdou GitHub CLI i mimo PATH na Windows
+- Perplexity test respektuje min. 16 tokenů API (closes #8)
+- zobrazit výsledek testu AI v patičce dialogu (closes #7)
+- use ASCII GitHub label potvrzeno-k-oprave
+
 ## [8.21.0-m1.0.4-beta.1] - 2026-07-11
 
 ### Added
