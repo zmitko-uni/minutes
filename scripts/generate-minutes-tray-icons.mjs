@@ -1,10 +1,12 @@
 // Generate minutes system tray icons (base + unread badges) from app-icon-source.png.
+// Skips when outputs are newer than the source (no-op on ordinary builds).
 // @ts-check
 import { createCanvas, GlobalFonts, loadImage } from '@napi-rs/canvas';
 import { join } from 'node:path';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 
 import { assert } from './utils/assert.mjs';
+import { areIconOutputsUpToDate } from './utils/iconBuildUpToDate.mjs';
 import {
   applyRoundedSquareAlphaMask,
   MINUTES_ICON_CORNER_RADIUS_RATIO,
@@ -202,6 +204,25 @@ function range(start, end) {
 }
 
 async function main() {
+  const baseOutputs = Object.values(TrayIconSizes).map(size => {
+    const variant = Variants[size];
+    return join(trayIconsBaseDir, `${PREFIX}-${variant.size}x${variant.size}-base.png`);
+  });
+  const alertOutputs = Object.values(TrayIconSizes).flatMap(size => {
+    const variant = Variants[size];
+    return range(1, variant.maxCount + 1).map(value => {
+      const text = trayIconValueToText(value, variant);
+      return join(trayIconsAlertsDir, `${PREFIX}-${size}x${size}-alert-${text}.png`);
+    });
+  });
+
+  if (!(process.argv.includes('--force') || process.env.MINUTES_FORCE_ICON_BUILD === '1')) {
+    if (await areIconOutputsUpToDate(sourcePath, [...baseOutputs, ...alertOutputs])) {
+      console.log('minutes tray icons up to date — skip');
+      return;
+    }
+  }
+
   const sourceImage = await loadImage(sourcePath);
   assert(sourceImage.width > 0, `Invalid icon source: ${sourcePath}`);
 

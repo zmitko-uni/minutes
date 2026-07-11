@@ -51,10 +51,12 @@ Použij skill **`minutes-fix-confirmed-issue`** (viz `.cursor/skills/minutes-fix
 - analýza + fix v `ts/minutes/`
 - CHANGELOG `[Unreleased]`
 - commit na branch **`beta`**
+- skill se **zeptá**, zda udělat beta release, nebo jen lokální test
 
-### 3. Beta release
+### 3. Beta release (až na pokyn)
 
-Po pushi všech fix commitů na `beta` spusť workflow (verzi bumpne CI):
+Po pushi fixů na `beta` skill nabídne volby: lokální test / beta release / promote do prod.
+Beta release spusť jen když chceš instalátor pro testery (verzi bumpne CI):
 
 ```bash
 pnpm run release:minutes:beta:trigger

@@ -21,11 +21,18 @@ import {
   type AiSettingsPublic,
 } from '../aiSettings.std.ts';
 import {
+  AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS,
+} from '../aiUserMessages.std.ts';
+import {
   getAiSettings,
   saveAiSettings,
   testAiSettings,
 } from '../aiSettingsService.preload.ts';
-import { getLocalLlmExtensionState } from '../localLlmExtensionService.preload.ts';
+import {
+  getLocalLlmExtensionState,
+  isLocalLlmExtensionActive,
+} from '../localLlmExtensionService.preload.ts';
+import { localLlmExtensionEvents } from '../localLlmExtensionEvents.std.ts';
 import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
 
 type Props = Readonly<{
@@ -183,6 +190,7 @@ export function MinutesSettingsModal({
   const [removeKeyFlags, setRemoveKeyFlags] = useState<RemoveKeyFlags>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [localLlmState, setLocalLlmState] = useState(getLocalLlmExtensionState());
 
   const providerDef = useMemo(
     () => getAiProviderDefinition(provider),
@@ -208,6 +216,18 @@ export function MinutesSettingsModal({
       })()
     );
   }, [open]);
+
+  useEffect(() => {
+    return localLlmExtensionEvents.on(setLocalLlmState);
+  }, []);
+
+  const localModelReady =
+    localLlmState.activated &&
+    localLlmState.modelReady &&
+    localLlmState.runtimeReady &&
+    localLlmState.modelFileName === model;
+  const cannotEnableAiWithLocal =
+    provider === 'local' && aiEnabled && !localModelReady;
 
   const handleProviderChange = useCallback(
     (nextProvider: AiProvider) => {
@@ -235,6 +255,11 @@ export function MinutesSettingsModal({
   }, [apiKeyDrafts, removeKeyFlags]);
 
   const handleSave = useCallback(() => {
+    if (cannotEnableAiWithLocal) {
+      setStatusMessage(AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS);
+      return;
+    }
+
     setIsBusy(true);
     setStatusMessage(null);
     drop(
@@ -263,6 +288,7 @@ export function MinutesSettingsModal({
   }, [
     aiEnabled,
     buildApiKeysPayload,
+    cannotEnableAiWithLocal,
     model,
     onOpenChange,
     outputLanguage,
@@ -271,6 +297,11 @@ export function MinutesSettingsModal({
   ]);
 
   const handleTest = useCallback(() => {
+    if (provider === 'local' && !isLocalLlmExtensionActive(model)) {
+      setStatusMessage(AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS);
+      return;
+    }
+
     setIsBusy(true);
     setStatusMessage(null);
     drop(
@@ -320,7 +351,17 @@ export function MinutesSettingsModal({
               <span>Povolit AI shrnutí</span>
               <AxoSwitch.Root
                 checked={aiEnabled}
-                onCheckedChange={setAiEnabled}
+                onCheckedChange={checked => {
+                  if (
+                    checked &&
+                    provider === 'local' &&
+                    !isLocalLlmExtensionActive(model)
+                  ) {
+                    setStatusMessage(AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS);
+                    return;
+                  }
+                  setAiEnabled(checked);
+                }}
               />
             </label>
 
@@ -397,11 +438,18 @@ export function MinutesSettingsModal({
               </label>
 
               {provider === 'local' ? (
-                <MinutesLocalLlmPanel
-                  embedded
-                  selectedModelFileName={model}
-                  onSelectedModelChange={setModel}
-                />
+                <>
+                  <MinutesLocalLlmPanel
+                    embedded
+                    selectedModelFileName={model}
+                    onSelectedModelChange={setModel}
+                  />
+                  {aiEnabled && !localModelReady && (
+                    <p className={tw('text-label-small text-label-primary')}>
+                      {AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS}
+                    </p>
+                  )}
+                </>
               ) : (
                 <div className={tw('flex flex-col gap-4')}>
                   <label className={tw('flex flex-col gap-1')}>
@@ -482,7 +530,7 @@ export function MinutesSettingsModal({
             </AxoDialog.Action>
             <AxoDialog.Action
               variant="primary"
-              disabled={isBusy}
+              disabled={isBusy || cannotEnableAiWithLocal}
               onClick={handleSave}
             >
               Uložit

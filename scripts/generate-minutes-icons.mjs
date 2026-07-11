@@ -1,8 +1,9 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 //
-// Generate minutes app + taskbar (.ico) + system tray icons from app-icon-source.png.
-// Run via `pnpm run build:minutes-icons` after every change to the source PNG.
+// Generate minutes app + taskbar (.ico) icons from app-icon-source.png.
+// Run via `pnpm run build:minutes-icons` after changing the source PNG.
+// Skips when outputs are newer than the source (no-op on ordinary builds).
 // @ts-check
 
 import { loadImage } from '@napi-rs/canvas';
@@ -10,6 +11,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { assert } from './utils/assert.mjs';
+import { areIconOutputsUpToDate } from './utils/iconBuildUpToDate.mjs';
 import {
   renderRoundedSquarePng,
   MINUTES_ICON_CORNER_RADIUS_RATIO,
@@ -64,19 +66,21 @@ async function renderSquarePng(image, size) {
 }
 
 async function main() {
-  let image = await loadImage(sourcePath);
-  assert(image.width > 0 && image.height > 0, `Invalid icon source: ${sourcePath}`);
+  const outputPaths = [
+    ...PNG_SIZES.map(size => join(pngDir, `${size}x${size}.png`)),
+    join(winDir, 'icon.ico'),
+  ];
 
-  // Normalize source so HTML/splash favicons also get transparent corners.
-  if (image.width === image.height) {
-    const normalizedSource = await renderRoundedSquarePng(
-      image,
-      image.width,
-      MINUTES_ICON_CORNER_RADIUS_RATIO
-    );
-    await writeFile(sourcePath, normalizedSource);
-    image = await loadImage(sourcePath);
+  if (!(process.argv.includes('--force') || process.env.MINUTES_FORCE_ICON_BUILD === '1')) {
+    if (await areIconOutputsUpToDate(sourcePath, outputPaths)) {
+      // eslint-disable-next-line no-console
+      console.log('minutes app icons up to date — skip');
+      return;
+    }
   }
+
+  const image = await loadImage(sourcePath);
+  assert(image.width > 0 && image.height > 0, `Invalid icon source: ${sourcePath}`);
 
   await mkdir(pngDir, { recursive: true });
   await mkdir(winDir, { recursive: true });

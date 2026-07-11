@@ -17,7 +17,7 @@ import type { SpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
 import {
   getAiSettingsPublic,
   getAiApiKey,
-  isAiSummaryEnabled,
+  assertAiSummaryReady,
   saveAiSettings,
 } from '../ts/minutes/aiSettings.main.ts';
 import type { AiSettingsSaveInput, AiProvider } from '../ts/minutes/aiSettings.std.ts';
@@ -481,12 +481,7 @@ export function initializeMinutesChannel(): void {
         transcript: string;
       }
     ): Promise<string> => {
-      const enabled = await isAiSummaryEnabled();
-      if (!enabled) {
-        throw new Error(
-          'AI sumarizace je vypnutá nebo chybí API klíč / lokální model'
-        );
-      }
+      await assertAiSummaryReady();
 
       const settings = await getAiSettingsPublic();
       const apiKey =
@@ -520,12 +515,7 @@ export function initializeMinutesChannel(): void {
         isNoteToSelf: boolean;
       }
     ): Promise<string> => {
-      const enabled = await isAiSummaryEnabled();
-      if (!enabled) {
-        throw new Error(
-          'AI sumarizace je vypnutá nebo chybí API klíč / lokální model'
-        );
-      }
+      await assertAiSummaryReady();
 
       const settings = await getAiSettingsPublic();
       const apiKey =
@@ -559,12 +549,7 @@ export function initializeMinutesChannel(): void {
         transcript: string;
       }
     ): Promise<string> => {
-      const enabled = await isAiSummaryEnabled();
-      if (!enabled) {
-        throw new Error(
-          'AI sumarizace je vypnutá nebo chybí API klíč / lokální model'
-        );
-      }
+      await assertAiSummaryReady();
 
       const settings = await getAiSettingsPublic();
       const apiKey =

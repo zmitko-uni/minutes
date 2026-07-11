@@ -9,7 +9,9 @@ description: >-
 
 # Minutes — promote beta → prod
 
-Spouštěj **až po ověření beta buildu** (tester potvrdil, že opravy fungují).
+Spouštěj **až po ověření oprav** — beta instalátorem, nebo po **lokálním testu** (`pnpm run start:minutes:beta`), pokud uživatel explicitně řekne, že je připraven na prod.
+
+Často navazuje na skill **`minutes-fix-confirmed-issue`** (volba **C** v kroku 5), nebo na pozdější pokyn uživatele po vlastním testu.
 
 ## Před startem
 
@@ -28,8 +30,9 @@ Uživatel může omezit seznam čísly — jinak uzavři **všechna** s labelem 
 
 **Stop**, pokud:
 
-- beta release neexistuje / nebyl otestován
-- jsou otevřené issues s `potvrzeno-k-oprave` (nejdřív dokonči beta fix flow)
+- opravy nebyly ověřeny (uživatel ještě netestoval a neřekl „promote do prod“)
+- jsou otevřené issues s `potvrzeno-k-oprave` **a** uživatel nechce přeskočit beta release — nejdřív dokonči fix flow nebo spusť beta release (`minutes-fix-confirmed-issue`, volba B)
+- issues nemají `to-retest` — pokud uživatel testoval jen lokálně, nejdřív `pnpm run issues:retest -- <čísla>` (po jeho explicitním potvrzení), pak pokračuj
 - běží nebo selhal poslední Release Minutes workflow
 
 ## Krok 2 — Merge beta → main

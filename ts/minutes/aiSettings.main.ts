@@ -22,6 +22,12 @@ import {
   DEFAULT_AI_SETTINGS,
   getAiProviderDefinition,
 } from './aiSettings.std.ts';
+import {
+  AI_DISABLED_MESSAGE_CS,
+  AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS,
+  AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS,
+  AI_MISSING_API_KEY_MESSAGE_CS,
+} from './aiUserMessages.std.ts';
 import { isLocalLlmExtensionActive } from './localLlmExtension.main.ts';
 
 const log = createLogger('minutes/aiSettings');
@@ -304,6 +310,13 @@ export async function saveAiSettings(
     : providerDef.defaultModel;
   stored.modelsByProvider = models;
 
+  if (input.aiEnabled && provider === 'local') {
+    const active = await isLocalLlmExtensionActive(models[provider]);
+    if (!active) {
+      throw new Error(AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS);
+    }
+  }
+
   const keys = migrateStoredKeys(stored);
   applyApiKeyUpdates(keys, input.apiKeys, input.apiKey, provider);
   stored.encryptedApiKeys = keys;
@@ -353,6 +366,31 @@ export async function isAiSummaryEnabled(): Promise<boolean> {
     return true;
   }
   return Boolean(await readPipelineApiKeyFallback());
+}
+
+/** Vyhodí srozumitelnou chybu, pokud AI funkce (shrnutí, názor…) nelze spustit. */
+export async function assertAiSummaryReady(): Promise<void> {
+  const stored = await readStoredSettings();
+  if (!stored.aiEnabled) {
+    throw new Error(AI_DISABLED_MESSAGE_CS);
+  }
+
+  const provider = normalizeProvider(stored.provider);
+  if (provider === 'local') {
+    const model = resolveModelForProvider(stored, provider);
+    if (!(await isLocalLlmExtensionActive(model))) {
+      throw new Error(AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS);
+    }
+    return;
+  }
+
+  if (getStoredKeyForProvider(stored, provider)) {
+    return;
+  }
+  if (await readPipelineApiKeyFallback()) {
+    return;
+  }
+  throw new Error(AI_MISSING_API_KEY_MESSAGE_CS);
 }
 
 export async function isTranscriptCorrectionEnabled(): Promise<boolean> {

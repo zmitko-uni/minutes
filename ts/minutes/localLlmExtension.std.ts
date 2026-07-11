@@ -1,7 +1,7 @@
 // Copyright 2026 Minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { APP_DISPLAY_NAME } from './branding.std.ts';
+import { AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS } from './aiUserMessages.std.ts';
 import {
   DEFAULT_LOCAL_LLM_MODEL,
   getLocalLlmModelDownloadUrl,
@@ -55,8 +55,7 @@ export const DEFAULT_LOCAL_LLM_EXTENSION: LocalLlmExtensionPublic = {
   availableModels: [],
 };
 
-export const LOCAL_LLM_REQUIRED_TOAST_CS =
-  `Stáhněte a aktivujte lokální model v menu ${APP_DISPLAY_NAME} → Nastavení AI.`;
+export const LOCAL_LLM_REQUIRED_TOAST_CS = AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS;
 
 export {
   getLocalLlmModelMinBytes,

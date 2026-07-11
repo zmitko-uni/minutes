@@ -7,6 +7,12 @@ import { getAuthor, getSource } from '../messages/sources.preload.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
 import * as Errors from '../types/errors.std.ts';
 import { trimAiOpinionResponse } from './aiOpinionPrompts.std.ts';
+import {
+  AI_DISABLED_MESSAGE_CS,
+  AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS,
+  AI_MISSING_API_KEY_MESSAGE_CS,
+  formatAiFeatureError,
+} from './aiUserMessages.std.ts';
 import { generateAiOpinion, getAiSettings } from './aiSettingsService.preload.ts';
 import { formatMenuActionLabel } from './branding.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
@@ -78,8 +84,15 @@ export async function askAiOpinionFromMessage(
   }
 
   if (!settings.aiEnabled) {
+    summaryUi.showError(AI_DISABLED_MESSAGE_CS);
+    return;
+  }
+
+  if (!settings.hasApiKey) {
     summaryUi.showError(
-      'AI je vypnutá — zapněte ji v Minutes → Nastavení AI.'
+      settings.provider === 'local'
+        ? AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS
+        : AI_MISSING_API_KEY_MESSAGE_CS
     );
     return;
   }
@@ -115,8 +128,8 @@ export async function askAiOpinionFromMessage(
       generatedAt: Date.now(),
     });
   } catch (error) {
-    const message = Errors.toLogFormat(error);
+    const message = formatAiFeatureError(error, 'Názor AI');
     log.error(`askAiOpinionFromMessage failed: ${message}`);
-    summaryUi.showError(`Názor AI selhal: ${message}`);
+    summaryUi.showError(message);
   }
 }

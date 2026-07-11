@@ -170,20 +170,28 @@ jobs:
         env:
           MINUTES_SKIP_VERSION_BUMP: '1'
           MINUTES_SKIP_GENERATE: '1'
+          MINUTES_RELEASE_CHANNEL: ${{ steps.channel.outputs.channel }}
           NODE_CONFIG_ENV: minutes
           DISABLE_INSPECT_FUSE: on
 
       - name: Prepare release assets
         shell: bash
         run: |
-          INSTALLER=$(ls release/minutes/Minutes-setup-*.exe | head -n 1)
+          CHANNEL="${{ steps.channel.outputs.channel }}"
+          if [ "${CHANNEL}" = "beta" ]; then
+            INSTALLER=$(ls release/minutes/Minutes-Beta-setup-*.exe | head -n 1)
+            STABLE_NAME="Minutes-Beta-setup-windows-x64.exe"
+          else
+            INSTALLER=$(ls release/minutes/Minutes-setup-*.exe | head -n 1)
+            STABLE_NAME="Minutes-setup-windows-x64.exe"
+          fi
           if [ -z "${INSTALLER}" ]; then
             echo "Installer .exe not found in release/minutes/"
             exit 1
           fi
-          cp "${INSTALLER}" "release/minutes/Minutes-setup-windows-x64.exe"
+          cp "${INSTALLER}" "release/minutes/${STABLE_NAME}"
           echo "INSTALLER=${INSTALLER}" >> "$GITHUB_ENV"
-          echo "ASSET_STABLE=release/minutes/Minutes-setup-windows-x64.exe" >> "$GITHUB_ENV"
+          echo "ASSET_STABLE=release/minutes/${STABLE_NAME}" >> "$GITHUB_ENV"
           ls -la release/minutes/*.exe
 
       - name: Create GitHub Release

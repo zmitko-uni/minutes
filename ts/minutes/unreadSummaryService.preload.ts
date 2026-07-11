@@ -16,6 +16,11 @@ import {
   UNREAD_SUMMARY_PER_CHAT_LIMIT,
 } from './constants.std.ts';
 import { generateUnreadConversationSummary, getAiSettings } from './aiSettingsService.preload.ts';
+import {
+  AI_DISABLED_MESSAGE_CS,
+  AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS,
+  AI_MISSING_API_KEY_MESSAGE_CS,
+} from './aiUserMessages.std.ts';
 import { formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { sendSignalChatMessage } from './sendSignalChatMessage.preload.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
@@ -385,14 +390,14 @@ export async function summarizeUnreadConversations(): Promise<void> {
   try {
     const settings = await getAiSettings();
     if (!settings.aiEnabled) {
-      summaryUi.showError(
-        'AI sumarizace je vypnutá — zapněte ji v menu Minutes → Nastavení AI.'
-      );
+      summaryUi.showError(AI_DISABLED_MESSAGE_CS);
       return;
     }
     if (!settings.hasApiKey) {
       summaryUi.showError(
-        'Chybí API klíč nebo lokální model — nastavte AI v menu Minutes.'
+        settings.provider === 'local'
+          ? AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS
+          : AI_MISSING_API_KEY_MESSAGE_CS
       );
       return;
     }
