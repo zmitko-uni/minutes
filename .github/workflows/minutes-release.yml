@@ -100,19 +100,6 @@ jobs:
         env:
           NPM_CONFIG_LOGLEVEL: verbose
 
-      - name: Generate build artifacts
-        run: pnpm run generate
-        env:
-          NODE_CONFIG_ENV: minutes
-
-      - name: Generate minutes icons
-        run: pnpm run build:minutes-icons
-        env:
-          NODE_CONFIG_ENV: minutes
-
-      - name: Typecheck
-        run: pnpm run check:types
-
       - name: Bump version and prepare CHANGELOG
         if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
         env:
@@ -144,6 +131,40 @@ jobs:
             }
           " "${VERSION}"
 
+      - name: Commit version bump
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
+        shell: bash
+        run: |
+          git add package.json CHANGELOG.md
+          if git diff --staged --quiet; then
+            echo "No release metadata changes to commit"
+          else
+            if [ "${{ steps.channel.outputs.channel }}" = "beta" ]; then
+              MSG="chore(release): [beta] Minutes ${{ steps.version.outputs.version }}"
+            else
+              MSG="chore(release): Minutes ${{ steps.version.outputs.version }}"
+            fi
+            git commit -m "${MSG}"
+            git stash push -u -m "ci-before-rebase" --quiet || true
+            git fetch origin "${{ github.ref_name }}"
+            git rebase "origin/${{ github.ref_name }}"
+            git push origin "HEAD:${{ github.ref_name }}"
+            git stash drop --quiet 2>/dev/null || true
+          fi
+
+      - name: Generate build artifacts
+        run: pnpm run generate
+        env:
+          NODE_CONFIG_ENV: minutes
+
+      - name: Generate minutes icons
+        run: pnpm run build:minutes-icons
+        env:
+          NODE_CONFIG_ENV: minutes
+
+      - name: Typecheck
+        run: pnpm run check:types
+
       - name: Build installer
         run: pnpm run build:minutes:installer
         env:
@@ -164,26 +185,6 @@ jobs:
           echo "INSTALLER=${INSTALLER}" >> "$GITHUB_ENV"
           echo "ASSET_STABLE=release/minutes/Minutes-setup-windows-x64.exe" >> "$GITHUB_ENV"
           ls -la release/minutes/*.exe
-
-      - name: Commit version bump
-        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
-        shell: bash
-        run: |
-          git add package.json CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "No release metadata changes to commit"
-          else
-            if [ "${{ steps.channel.outputs.channel }}" = "beta" ]; then
-              MSG="chore(release): [beta] Minutes ${{ steps.version.outputs.version }}"
-            else
-              MSG="chore(release): Minutes ${{ steps.version.outputs.version }}"
-            fi
-            git commit -m "${MSG}"
-            # Long build may finish after new commits landed on the branch.
-            git fetch origin "${{ github.ref_name }}"
-            git rebase "origin/${{ github.ref_name }}"
-            git push origin "HEAD:${{ github.ref_name }}"
-          fi
 
       - name: Create GitHub Release
         env:
