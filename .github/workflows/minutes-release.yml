@@ -179,7 +179,10 @@ jobs:
               MSG="chore(release): Minutes ${{ steps.version.outputs.version }}"
             fi
             git commit -m "${MSG}"
-            git push origin HEAD:${{ github.ref_name }}
+            # Long build may finish after new commits landed on the branch.
+            git fetch origin "${{ github.ref_name }}"
+            git rebase "origin/${{ github.ref_name }}"
+            git push origin "HEAD:${{ github.ref_name }}"
           fi
 
       - name: Create GitHub Release
