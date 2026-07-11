@@ -87,7 +87,7 @@ Výstup: `release/minutes/Minutes-setup-<verze>.exe`
 2. **Prod:** GitHub → Actions → **Release Minutes** → `release_channel: prod` (branch `main`)
 3. **Beta (testování):** opravy na branchi `beta`, release s `release_channel: beta` → verze `8.21.0-m1.0.x-beta.N`, pre-release na GitHubu
 
-Podrobný flow issue → beta → prod: [`docs/BETA-STAGING.md`](docs/BETA-STAGING.md). Cursor skill: `minutes-fix-confirmed-issue`.
+Podrobný flow issue → beta → prod: [`docs/BETA-STAGING.md`](docs/BETA-STAGING.md). Cursor skills: `minutes-fix-confirmed-issue`, `minutes-promote-beta-to-prod`.
 
 Workflow automaticky:
    - spustí typecheck

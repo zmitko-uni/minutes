@@ -71,15 +71,16 @@ Stáhni pre-release z GitHub Releases (tag `v8.21.0-m1.0.4-beta.1`).
 
 ### 5. Promote do prod
 
+Použij skill **`minutes-promote-beta-to-prod`** (`.cursor/skills/minutes-promote-beta-to-prod/SKILL.md`):
+
 ```bash
-git checkout main
-git pull origin main
+git checkout main && git pull origin main
 git merge beta
-# vyřeš konflikty, pak prod release:
-pnpm run release:minutes:metadata
-git add package.json CHANGELOG.md
-git commit -m "chore(release): Minutes 8.21.0-m1.0.5"
 git push origin main
+pnpm run release:minutes:prod:trigger
+# po úspěchu workflow:
+git pull origin main
+pnpm run issues:close-retest
 ```
 
 Po merge beta→main obvykle **prod bump** zvedne Meetup patch (`-m1.0.4-beta.3` → `8.21.0-m1.0.5`).

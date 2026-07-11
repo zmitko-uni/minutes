@@ -98,18 +98,9 @@ Skript:
 - odebere label **`potvrzeno-k-oprave`**
 - přidá label **`to-retest`** (popis: *Opraveno v beta buildu — čeká retest*)
 
-## Krok 7 — Po testu beta → prod (jen na pokyn)
+## Krok 7 — Po testu beta → prod
 
-Na **`main`**, ne automaticky:
-
-```bash
-git checkout main && git pull
-git merge beta
-pnpm run release:minutes:metadata
-git add package.json CHANGELOG.md
-git commit -m "chore(release): Minutes <verze>"
-git push origin main
-```
+Skill **`minutes-promote-beta-to-prod`** — merge `beta` → `main`, prod release, uzavření issues s `to-retest`.
 
 ## Co nedělat
 
