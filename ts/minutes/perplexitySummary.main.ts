@@ -67,6 +67,6 @@ export async function testPerplexityConnection(options: {
     model: options.model,
     systemPrompt: 'Reply briefly.',
     userPrompt: 'Reply with exactly: OK',
-    maxTokens: 10,
+    maxTokens: 32,
   });
 }
