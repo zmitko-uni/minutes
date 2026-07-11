@@ -49,7 +49,9 @@ jobs:
     name: Build & publish Windows installer
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && contains(github.event.head_commit.message, 'chore(release):'))
+      (github.event_name == 'push' &&
+        contains(github.event.head_commit.message, 'chore(release):') &&
+        !contains(github.event.head_commit.message, '[skip ci]'))
     runs-on: windows-latest
     timeout-minutes: 90
     steps:
@@ -140,9 +142,9 @@ jobs:
             echo "No release metadata changes to commit"
           else
             if [ "${{ steps.channel.outputs.channel }}" = "beta" ]; then
-              MSG="chore(release): [beta] Minutes ${{ steps.version.outputs.version }}"
+              MSG="chore(release): [beta] Minutes ${{ steps.version.outputs.version }} [skip ci]"
             else
-              MSG="chore(release): Minutes ${{ steps.version.outputs.version }}"
+              MSG="chore(release): Minutes ${{ steps.version.outputs.version }} [skip ci]"
             fi
             git commit -m "${MSG}"
             git stash push -u -m "ci-before-rebase" --quiet || true
@@ -170,6 +172,8 @@ jobs:
         env:
           MINUTES_SKIP_VERSION_BUMP: '1'
           MINUTES_SKIP_GENERATE: '1'
+          MINUTES_SKIP_ICONS: '1'
+          MINUTES_SKIP_BUNDLES: '1'
           MINUTES_RELEASE_CHANNEL: ${{ steps.channel.outputs.channel }}
           NODE_CONFIG_ENV: minutes
           DISABLE_INSPECT_FUSE: on

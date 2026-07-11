@@ -29,14 +29,22 @@ if (process.env.MINUTES_SKIP_VERSION_BUMP !== '1') {
   console.log('Skipping version bump (MINUTES_SKIP_VERSION_BUMP=1)\n');
 }
 
-run('Icons', 'pnpm run build:minutes-icons');
+if (process.env.MINUTES_SKIP_ICONS !== '1') {
+  run('Icons', 'pnpm run build:minutes-icons');
+} else {
+  console.log('Skipping icons (MINUTES_SKIP_ICONS=1)\n');
+}
 if (process.env.MINUTES_SKIP_GENERATE !== '1') {
   run('Generate assets (locales, emoji, schema, …)', 'pnpm run generate');
 } else {
   console.log('Skipping generate (MINUTES_SKIP_GENERATE=1)\n');
 }
-run('JavaScript bundles', 'pnpm run build:rolldown:prod');
-run('Styles', 'pnpm run build:styles:prod');
+if (process.env.MINUTES_SKIP_BUNDLES !== '1') {
+  run('JavaScript bundles', 'pnpm run build:rolldown:prod');
+  run('Styles', 'pnpm run build:styles:prod');
+} else {
+  console.log('Skipping bundles (MINUTES_SKIP_BUNDLES=1)\n');
+}
 
 const mainBundle = join(root, 'bundles', 'main.js');
 if (!existsSync(mainBundle)) {
