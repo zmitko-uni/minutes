@@ -16,6 +16,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+### Fixed
+- Nastavení AI: výsledek testu poskytovatele je vidět hned pod tlačítky (bez scrollování v dialogu)
+
 ## [8.21.0-m1.0.4] - 2026-07-11
 
 ### Changed

@@ -462,13 +462,16 @@ export function MinutesSettingsModal({
               poskytovatele výše a doplňte klíč, pokud ho chcete používat
               později. Uložení probíhá šifrovaně přes safeStorage OS.
             </p>
-
-            {statusMessage && (
-              <p className={tw('text-label-small')}>{statusMessage}</p>
-            )}
           </div>
         </AxoDialog.Body>
         <AxoDialog.Footer>
+          {statusMessage && (
+            <AxoDialog.FooterContent>
+              <p className={tw('text-label-small')} role="status">
+                {statusMessage}
+              </p>
+            </AxoDialog.FooterContent>
+          )}
           <AxoDialog.Actions>
             <AxoDialog.Action
               variant="secondary"
