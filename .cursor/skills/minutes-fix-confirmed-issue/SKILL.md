@@ -1,7 +1,7 @@
 ---
 name: minutes-fix-confirmed-issue
 description: >-
-  Fixes GitHub issues labeled potvrzeno-k-opravě for Minutes (Signal fork):
+  Fixes GitHub issues labeled potvrzeno-k-oprave for Minutes (Signal fork):
   list issues, analyze, implement fix in ts/minutes/, update CHANGELOG,
   commit to beta branch, prepare beta release. Use when the user mentions
   confirmed issues, potvrzeno k opravě, beta release, or staging fixes.
@@ -13,7 +13,7 @@ description: >-
 
 1. Přečti [`docs/FORK-MAINTENANCE.md`](../../../docs/FORK-MAINTENANCE.md) a [`docs/BETA-STAGING.md`](../../../docs/BETA-STAGING.md).
 2. Branch **`beta`** — fix commituj sem, ne na `main`.
-3. Label issue: **`potvrzeno-k-opravě`**.
+3. Label issue: **`potvrzeno-k-oprave`**.
 
 ## Krok 1 — Vyber issue
 

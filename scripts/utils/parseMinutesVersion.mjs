@@ -4,7 +4,7 @@ import semver from 'semver';
 
 export const MINUTES_SIGNAL_BASE_VERSION = '8.21.0';
 
-export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-opravě';
+export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-oprave';
 
 const MINUTES_PRODUCT_VERSION_PATTERN =
   /^(\d+\.\d+\.\d+)-m(\d+\.\d+\.\d+)(?:-beta\.(\d+))?$/i;

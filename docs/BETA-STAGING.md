@@ -14,7 +14,7 @@ Beta buildy se **neobjeví** v `/releases/latest` — prod uživatelé je neuvid
 V GitHubu vytvoř label (jednorázově):
 
 ```bash
-gh label create "potvrzeno-k-opravě" --repo zmitko-uni/minutes --color 0E8A16 --description "Schváleno k opravě — beta flow"
+gh label create "potvrzeno-k-oprave" --repo zmitko-uni/minutes --color 0E8A16 --description "Schváleno k opravě — beta flow"
 ```
 
 Seznam otevřených:
@@ -27,7 +27,7 @@ pnpm run issues:confirmed
 
 ### 1. Potvrzení issue
 
-Na GitHubu přidej label **`potvrzeno-k-opravě`**.
+Na GitHubu přidej label **`potvrzeno-k-oprave`**.
 
 ### 2. Oprava v Cursoru
 
