@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.5-beta.1] - 2026-07-11
+
+### Added
 - **Minutes Beta** — samostatný instalátor a aplikace vedle prod (paralelní ladění); data v `%APPDATA%\Minutes-Beta`
 - Beta auto-update kontroluje jen GitHub pre-release buildy (prod a beta se neporovnávají)
 - Kontextové menu zprávy: **Minutes: Zeptat se na názor AI**
