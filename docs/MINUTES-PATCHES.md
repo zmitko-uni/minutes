@@ -20,7 +20,7 @@
 | `ts/background.preload.ts` | init + IPC summarize, build expiration | bootstrap |
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
-| `ts/components/App.dom.tsx` | minutes host komponenty | +TranscriptionQueueHost |
+| `ts/components/App.dom.tsx` | minutes host komponenty | +TranscriptionQueueHost, bez update banneru |
 | `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere` | 2 props + items |
 | `ts/components/conversation/TimelineMessage.dom.tsx` | callback pro záložky + nepřečteno odsud | 2 callbacks |
 | `ts/minutes/bookmarks.std.ts` | typy záložek |

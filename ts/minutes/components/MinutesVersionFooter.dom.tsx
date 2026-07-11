@@ -55,12 +55,13 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
   useEffect(() => subscribeAppUpdateUi(setState), []);
 
   const handleDownload = useCallback(() => {
-    const check =
-      state.kind === 'available' ||
-      state.kind === 'downloading' ||
-      state.kind === 'error'
-        ? state.check
-        : null;
+    if (state.kind !== 'available') {
+      if (!(state.kind === 'error' && state.check?.updateAvailable)) {
+        return;
+      }
+    }
+
+    const check = state.kind === 'available' || state.kind === 'error' ? state.check : null;
 
     if (
       !check?.updateAvailable ||
@@ -132,14 +133,17 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
   const showUpdateActions =
     state.kind === 'available' ||
     state.kind === 'ready' ||
+    state.kind === 'downloading' ||
     (state.kind === 'error' && state.check?.updateAvailable);
 
   const primaryLabel =
     state.kind === 'ready'
       ? 'Restartovat a nainstalovat'
-      : isBusy || state.kind === 'downloading'
+      : state.kind === 'downloading' || isBusy
         ? 'Stahuji…'
         : 'Stáhnout';
+
+  const isPrimaryDisabled = isBusy || state.kind === 'downloading';
 
   return (
     <footer className={tw('MinutesVersionFooter')}>
@@ -157,7 +161,7 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
               'MinutesVersionFooter__button',
               'MinutesVersionFooter__button--primary'
             )}
-            disabled={isBusy}
+            disabled={isPrimaryDisabled}
             onClick={handlePrimaryAction}
           >
             {primaryLabel}
@@ -165,7 +169,7 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
           <button
             type="button"
             className={tw('MinutesVersionFooter__button')}
-            disabled={isBusy}
+            disabled={isPrimaryDisabled}
             onClick={handleOpenRelease}
           >
             Release notes
