@@ -1,12 +1,13 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { ChatSummaryResult } from './types.std.ts';
+import type { AiOpinionResult, ChatSummaryResult } from './types.std.ts';
 
 export type SummaryUiState =
   | Readonly<{ kind: 'idle' }>
   | Readonly<{ kind: 'working'; message: string }>
   | Readonly<{ kind: 'saved'; result: ChatSummaryResult }>
+  | Readonly<{ kind: 'savedOpinion'; result: AiOpinionResult }>
   | Readonly<{ kind: 'error'; message: string }>;
 
 type SummaryUiListener = (state: SummaryUiState) => void;
@@ -37,6 +38,9 @@ export const summaryUi = {
   },
   showSaved(result: ChatSummaryResult): void {
     setState({ kind: 'saved', result });
+  },
+  showSavedOpinion(result: AiOpinionResult): void {
+    setState({ kind: 'savedOpinion', result });
   },
   showError(message: string): void {
     setState({ kind: 'error', message });

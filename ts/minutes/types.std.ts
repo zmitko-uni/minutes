@@ -44,6 +44,14 @@ export type ChatSummaryResult = Readonly<{
   aiError?: string;
 }>;
 
+/** Názor AI připravený k odeslání (banner Odeslat do chatu / Poslat sobě). */
+export type AiOpinionResult = Readonly<{
+  conversationId: string;
+  conversationTitle: string;
+  opinionText: string;
+  generatedAt: number;
+}>;
+
 /** Výstup přepisu hovoru po dokončení fronty Whisperu */
 export type CallRecordingOutput = Readonly<{
   conversationId: string;

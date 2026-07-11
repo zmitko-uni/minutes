@@ -8,14 +8,7 @@ import { ToastType } from '../types/Toast.dom.tsx';
 import * as Errors from '../types/errors.std.ts';
 import { trimAiOpinionResponse } from './aiOpinionPrompts.std.ts';
 import { generateAiOpinion, getAiSettings } from './aiSettingsService.preload.ts';
-import {
-  formatChatMessageHeader,
-  formatMenuActionLabel,
-} from './branding.std.ts';
-import {
-  sendSignalChatMessage,
-  truncateSignalChatMessage,
-} from './sendSignalChatMessage.preload.ts';
+import { formatMenuActionLabel } from './branding.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 
 const log = createLogger('minutes/askAiOpinion');
@@ -115,21 +108,12 @@ export async function askAiOpinionFromMessage(
       return;
     }
 
-    const header = formatChatMessageHeader('ai-opinion', conversationTitle);
-    const messageBody = truncateSignalChatMessage(header, opinion);
-
-    const sent = await sendSignalChatMessage(
+    summaryUi.showSavedOpinion({
       conversationId,
-      messageBody,
-      'askAiOpinionFromMessage'
-    );
-
-    if (sent) {
-      summaryUi.showWorking('Názor AI odeslán do chatu.');
-      setTimeout(() => summaryUi.hide(), 2500);
-    } else {
-      summaryUi.hide();
-    }
+      conversationTitle,
+      opinionText: opinion,
+      generatedAt: Date.now(),
+    });
   } catch (error) {
     const message = Errors.toLogFormat(error);
     log.error(`askAiOpinionFromMessage failed: ${message}`);

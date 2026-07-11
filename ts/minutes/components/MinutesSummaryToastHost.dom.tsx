@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { ipcRenderer } from 'electron';
 
 import { drop } from '../../util/drop.std.ts';
-import type { ChatSummaryResult } from '../types.std.ts';
+import type { AiOpinionResult, ChatSummaryResult } from '../types.std.ts';
 import {
   subscribeSummaryUi,
   summaryUi,
@@ -24,6 +24,11 @@ import {
   sendSummaryToChat,
   sendSummaryToSelf,
 } from '../sendSummaryToChat.preload.ts';
+import {
+  isAiOpinionFromSelfChat,
+  sendAiOpinionToChat,
+  sendAiOpinionToSelf,
+} from '../sendAiOpinionToChat.preload.ts';
 import { openMinutesLog } from '../navigation.preload.ts';
 
 const TOAST_TIMEOUT_MS = 25_000;
@@ -75,6 +80,8 @@ function ActivityBanner({
   onClose,
   onSendToChat,
   onSendToSelf,
+  onSendOpinionToChat,
+  onSendOpinionToSelf,
   onSendCall,
   onShowFile,
 }: Readonly<{
@@ -83,6 +90,8 @@ function ActivityBanner({
   onClose: () => void;
   onSendToChat: (result: ChatSummaryResult) => void;
   onSendToSelf: (result: ChatSummaryResult) => void;
+  onSendOpinionToChat: (result: AiOpinionResult) => void;
+  onSendOpinionToSelf: (result: AiOpinionResult) => void;
   onSendCall: (
     output: CallRecordingOutput,
     kind: 'transcript' | 'summary',
@@ -108,6 +117,40 @@ function ActivityBanner({
           </button>
           <button type="button" onClick={onClose}>
             Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.kind === 'savedOpinion') {
+    const result = state.result;
+    const hideSendToSelf = isAiOpinionFromSelfChat(result);
+
+    return (
+      <div className="MinutesActivityBanner MinutesActivityBanner--saved">
+        <span className="MinutesActivityBanner__text">
+          Názor AI připraven — {result.conversationTitle}
+        </span>
+        <div className="MinutesActivityBanner__actions">
+          <button
+            type="button"
+            disabled={isSending}
+            onClick={() => onSendOpinionToChat(result)}
+          >
+            {isSending ? 'Odesílám…' : 'Odeslat do chatu'}
+          </button>
+          {!hideSendToSelf ? (
+            <button
+              type="button"
+              disabled={isSending}
+              onClick={() => onSendOpinionToSelf(result)}
+            >
+              {isSending ? 'Odesílám…' : 'Poslat sobě'}
+            </button>
+          ) : null}
+          <button type="button" onClick={onClose}>
+            Zavřít
           </button>
         </div>
       </div>
@@ -260,6 +303,27 @@ export function MinutesSummaryToastHost(): JSX.Element | null {
     [handleClose, isSending]
   );
 
+  const handleSendOpinion = useCallback(
+    (send: (result: AiOpinionResult) => Promise<boolean>) =>
+      (result: AiOpinionResult) => {
+        if (isSending) {
+          return;
+        }
+        setIsSending(true);
+        drop(
+          (async () => {
+            const sent = await send(result);
+            if (sent) {
+              handleClose();
+            } else {
+              setIsSending(false);
+            }
+          })()
+        );
+      },
+    [handleClose, isSending]
+  );
+
   const handleSendToChat = useCallback(
     (result: ChatSummaryResult) => handleSend(sendSummaryToChat)(result),
     [handleSend]
@@ -297,6 +361,16 @@ export function MinutesSummaryToastHost(): JSX.Element | null {
     [handleClose, isSending]
   );
 
+  const handleSendOpinionToChat = useCallback(
+    (result: AiOpinionResult) => handleSendOpinion(sendAiOpinionToChat)(result),
+    [handleSendOpinion]
+  );
+
+  const handleSendOpinionToSelf = useCallback(
+    (result: AiOpinionResult) => handleSendOpinion(sendAiOpinionToSelf)(result),
+    [handleSendOpinion]
+  );
+
   if (state.kind === 'idle') {
     return null;
   }
@@ -308,6 +382,8 @@ export function MinutesSummaryToastHost(): JSX.Element | null {
       onClose={handleClose}
       onSendToChat={handleSendToChat}
       onSendToSelf={handleSendToSelf}
+      onSendOpinionToChat={handleSendOpinionToChat}
+      onSendOpinionToSelf={handleSendOpinionToSelf}
       onSendCall={handleSendCall}
       onShowFile={handleShowFile}
     />,

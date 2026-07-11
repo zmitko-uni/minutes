@@ -29,7 +29,8 @@
 | `ts/minutes/bookmarks.std.ts` | typy záložek |
 | `ts/minutes/bookmarks.main.ts` | persist JSON |
 | `ts/minutes/bookmarksService.preload.ts` | add/list/navigate |
-| `ts/minutes/askAiOpinionService.preload.ts` | názor AI na zprávu → odpověď do chatu |
+| `ts/minutes/sendAiOpinionToChat.preload.ts` | odeslání názoru AI do chatu / sobě |
+| `ts/minutes/askAiOpinionService.preload.ts` | názor AI na zprávu → banner |
 | `ts/minutes/aiOpinionPrompts.std.ts` | prompty pro názor AI |
 | `ts/minutes/aiSummaryPrompts.std.ts` | prompty + sanitizace shrnutí chatu |
 | `ts/minutes/releaseChannel.std.ts` | prod/beta kanál, data dir, updaty |
