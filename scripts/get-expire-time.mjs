@@ -5,12 +5,16 @@ import { join } from 'node:path';
 import { writeFileSync } from 'node:fs';
 import { DAY } from './utils/durations.mjs';
 import { parseVersion } from './utils/parseVersion.mjs';
+import { parseMinutesProductVersion } from './utils/parseMinutesVersion.mjs';
 import { getBuildCreationTimestamp } from './utils/getBuildCreationTimestamp.mjs';
 import packageJson from '../package.json' with { type: 'json' };
 
 const buildCreation = getBuildCreationTimestamp();
 
-const isNotUpdatable = !parseVersion(packageJson.version).isUpdatable;
+const appVersion = packageJson.version.trim().replace(/^v/i, '');
+const isNotUpdatable = parseMinutesProductVersion(appVersion)
+  ? false
+  : !parseVersion(appVersion).isUpdatable;
 
 // NB: Build expirations are also determined via users' auto-update settings; see
 // getExpirationTimestamp

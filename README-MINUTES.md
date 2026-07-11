@@ -84,21 +84,25 @@ Výstup: `release/minutes/Minutes-setup-<verze>.exe`
 ### Release přes GitHub Actions (doporučeno)
 
 1. Při vývoji doplňujte **`CHANGELOG.md`** → `[Unreleased]` (Cursor rule u user-facing změn)
-2. **GitHub → Actions → Release Minutes → Run workflow**
-3. Workflow automaticky:
+2. **Prod:** GitHub → Actions → **Release Minutes** → `release_channel: prod` (branch `main`)
+3. **Beta (testování):** opravy na branchi `beta`, release s `release_channel: beta` → verze `8.21.0-m1.0.x-beta.N`, pre-release na GitHubu
+
+Podrobný flow issue → beta → prod: [`docs/BETA-STAGING.md`](docs/BETA-STAGING.md). Cursor skill: `minutes-fix-confirmed-issue`.
+
+Workflow automaticky:
    - spustí typecheck
-   - zvedne verzi Meetup (`8.21.0-m1.0.1` → `8.21.0-m1.0.2` hotfix, volba *minor* / *major* v Actions)
+   - zvedne verzi Meetup (`8.21.0-m1.0.1` → `8.21.0-m1.0.2` hotfix, volba *minor* / *major* v Actions; beta bump přidá `-beta.N`)
    - přesune `[Unreleased]` v CHANGELOG a vytvoří GitHub Release
-   - commitne bump verze do `main`
-4. Stabilní odkaz:  
+   - commitne bump verze do aktuální branch (`main` nebo `beta`)
+4. Stabilní odkaz (prod):  
    `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe`
 
 Volba *Skip version bump* — přestaví stejnou verzi (např. první release nebo oprava buildu).
 
-**Verzování:** `{SignalDesktop}-m{MeetupSemver}` — např. `8.21.0-m1.0.1` (Signal 8.21.0, Meetup 1.0.1).
+**Verzování:** `{SignalDesktop}-m{MeetupSemver}` — např. `8.21.0-m1.0.1` (Signal 8.21.0, Meetup 1.0.1). Beta: `-beta.N` za Meetup částí.
 Bump v Actions mění jen část za `-m`. Po merge upstream Signal aktualizuj base v `ts/minutes/version.std.ts`.
 
-Alternativa: lokálně `pnpm run release:minutes:metadata`, commit `chore(release):`, push → spustí stejný workflow bez dalšího bumpu.
+Alternativa: lokálně `pnpm run release:minutes:metadata` (prod) nebo `release:minutes:beta:metadata` (beta), commit `chore(release):`, push.
 
 ### Lokální build (vývoj)
 

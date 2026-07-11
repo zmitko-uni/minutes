@@ -1,22 +1,34 @@
-# Build Windows installer and publish GitHub Release.
+# Build Windows installer and publish GitHub Release (prod or beta).
 #
-# Manual (workflow_dispatch): bumps version, updates CHANGELOG, builds, commits, publishes.
-# Push with chore(release): version already in package.json — build and publish only.
+# Prod (main): stable release, GitHub --latest
+# Beta (beta): pre-release for testing confirmed fixes
+#
+# Manual: workflow_dispatch with release_channel
+# Auto: push with chore(release): on main or beta
 name: Release Minutes
 
 on:
   push:
     branches:
       - main
+      - beta
   workflow_dispatch:
     inputs:
+      release_channel:
+        description: 'Release channel — beta = pre-release on branch beta, prod = stable on main'
+        required: false
+        default: prod
+        type: choice
+        options:
+          - prod
+          - beta
       skip_version_bump:
         description: 'Skip auto bump (rebuild same version from package.json)'
         required: false
         default: false
         type: boolean
       bump_level:
-        description: 'Semver bump — patch = hotfix, minor = features, major = breaking'
+        description: 'Prod semver bump (patch/minor/major). Beta always increments -beta.N'
         required: false
         default: patch
         type: choice
@@ -29,7 +41,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: minutes-release
+  group: minutes-release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -46,6 +58,20 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve release channel
+        id: channel
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CHANNEL="${{ inputs.release_channel || 'prod' }}"
+          elif [ "${{ github.ref_name }}" = "beta" ]; then
+            CHANNEL="beta"
+          else
+            CHANNEL="prod"
+          fi
+          echo "channel=${CHANNEL}" >> "$GITHUB_OUTPUT"
+          echo "Release channel: ${CHANNEL} (branch ${{ github.ref_name }})"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
@@ -90,6 +116,7 @@ jobs:
       - name: Bump version and prepare CHANGELOG
         if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
         env:
+          MINUTES_RELEASE_CHANNEL: ${{ steps.channel.outputs.channel }}
           MINUTES_BUMP_LEVEL: ${{ inputs.bump_level || 'patch' }}
         run: pnpm run release:minutes:metadata
 
@@ -146,8 +173,13 @@ jobs:
           if git diff --staged --quiet; then
             echo "No release metadata changes to commit"
           else
-            git commit -m "chore(release): Minutes ${{ steps.version.outputs.version }}"
-            git push origin HEAD:main
+            if [ "${{ steps.channel.outputs.channel }}" = "beta" ]; then
+              MSG="chore(release): [beta] Minutes ${{ steps.version.outputs.version }}"
+            else
+              MSG="chore(release): Minutes ${{ steps.version.outputs.version }}"
+            fi
+            git commit -m "${MSG}"
+            git push origin HEAD:${{ github.ref_name }}
           fi
 
       - name: Create GitHub Release
@@ -157,15 +189,25 @@ jobs:
         run: |
           TAG="${{ steps.version.outputs.tag }}"
           VERSION="${{ steps.version.outputs.version }}"
+          CHANNEL="${{ steps.channel.outputs.channel }}"
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
           node scripts/extract-changelog-release.mjs "${VERSION}" > "${NOTES_FILE}"
 
           gh release delete "${TAG}" --yes 2>/dev/null || true
           git push origin ":refs/tags/${TAG}" 2>/dev/null || true
 
-          gh release create "${TAG}" \
-            --title "Minutes ${VERSION}" \
-            --latest \
-            --notes-file "${NOTES_FILE}" \
-            "${INSTALLER}" \
-            "${ASSET_STABLE}"
+          if [ "${CHANNEL}" = "beta" ]; then
+            gh release create "${TAG}" \
+              --title "Minutes ${VERSION} (beta)" \
+              --prerelease \
+              --notes-file "${NOTES_FILE}" \
+              "${INSTALLER}" \
+              "${ASSET_STABLE}"
+          else
+            gh release create "${TAG}" \
+              --title "Minutes ${VERSION}" \
+              --latest \
+              --notes-file "${NOTES_FILE}" \
+              "${INSTALLER}" \
+              "${ASSET_STABLE}"
+          fi

@@ -29,6 +29,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.21.0-m1.0.2] - 2026-07-10
 
 ### Changed
+- Beta/prod staging: branch `beta`, verze `8.21.0-m1.0.x-beta.N`, skill `minutes-fix-confirmed-issue`, workflow Release Minutes (pre-release vs latest)
 - Aktualizace: stav jen ve footeru domovské obrazovky (bez horní modré/zelené lišty); po kontrole tlačítko Stáhnout, ne auto-download
 - Verze produktu: formát `8.21.0-m1.0.1` (Signal base + `-m` + Meetup semver); UI zobrazuje celý tag
 - Migrace z alpha buildů a starého Meetup semver (`1.0.x`): nový formát se správně detekuje jako novější

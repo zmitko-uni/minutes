@@ -4,9 +4,9 @@
 import * as semver from 'semver';
 import { assert } from './assert.mjs';
 
-/** Minutes product version: `{signal}-m{meetup}` e.g. `8.21.0-m1.0.1` */
+/** Minutes product version: `{signal}-m{meetup}` or `{signal}-m{meetup}-beta.{n}` */
 const MINUTES_PRODUCT_VERSION_RE =
-  /^(\d+)\.(\d+)\.(\d+)-m(\d+)\.(\d+)\.(\d+)$/;
+  /^(\d+)\.(\d+)\.(\d+)-m(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?$/;
 
 /**
  * @typedef {'prod' | 'beta' | 'alpha' | 'staging' | 'axolotl' | 'adhoc'} VersionChannel

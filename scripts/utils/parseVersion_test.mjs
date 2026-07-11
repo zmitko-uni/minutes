@@ -16,4 +16,8 @@ describe('parseVersion', () => {
       isNightly: false,
     });
   });
+
+  it('parses Minutes beta versions as prod channel for build scripts', () => {
+    assert.deepEqual(parseVersion('8.21.0-m1.0.4-beta.1').channel, 'prod');
+  });
 });

@@ -6,13 +6,16 @@ import semver from 'semver';
 /** Upstream Signal Desktop release (sync when merging upstream). */
 export const MINUTES_SIGNAL_BASE_VERSION = '8.21.0';
 
-/** `{signalBase}-m{meetupSemver}` e.g. `8.21.0-m1.0.1` */
+export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-opravě';
+
+/** `{signalBase}-m{meetupSemver}` or `{signalBase}-m{meetupSemver}-beta.{n}` */
 export const MINUTES_PRODUCT_VERSION_PATTERN =
-  /^(\d+\.\d+\.\d+)-m(\d+\.\d+\.\d+)$/i;
+  /^(\d+\.\d+\.\d+)-m(\d+\.\d+\.\d+)(?:-beta\.(\d+))?$/i;
 
 export type MinutesProductVersion = Readonly<{
   signalBase: string;
   meetup: string;
+  beta: number | null;
 }>;
 
 export function normalizeVersionTag(tag: string): string {
@@ -31,14 +34,24 @@ export function parseMinutesProductVersion(
   return {
     signalBase: match[1],
     meetup: match[2],
+    beta: match[3] != null ? Number(match[3]) : null,
   };
 }
 
 export function formatMinutesProductVersion(
   signalBase: string,
-  meetup: string
+  meetup: string,
+  beta: number | null = null
 ): string {
-  return `${signalBase}-m${meetup}`;
+  const base = `${signalBase}-m${meetup}`;
+  if (beta != null) {
+    return `${base}-beta.${beta}`;
+  }
+  return base;
+}
+
+export function isMinutesBetaVersion(version: string): boolean {
+  return parseMinutesProductVersion(version)?.beta != null;
 }
 
 /** Legacy alpha builds tied to Signal base (8.21.0-alpha.N). */
@@ -57,7 +70,11 @@ export function normalizeMinutesVersionForCompare(version: string): string {
   const product = parseMinutesProductVersion(normalized);
 
   if (product) {
-    return formatMinutesProductVersion(product.signalBase, product.meetup);
+    return formatMinutesProductVersion(
+      product.signalBase,
+      product.meetup,
+      product.beta
+    );
   }
 
   if (isLegacyMinutesAlphaVersion(normalized)) {
@@ -82,10 +99,50 @@ export function parseMinutesSemverVersion(
 }
 
 export function compareMinutesVersions(left: string, right: string): number {
-  return semver.compare(
-    normalizeMinutesVersionForCompare(left),
-    normalizeMinutesVersionForCompare(right)
-  );
+  const leftNorm = normalizeMinutesVersionForCompare(left);
+  const rightNorm = normalizeMinutesVersionForCompare(right);
+
+  const leftProduct = parseMinutesProductVersion(leftNorm);
+  const rightProduct = parseMinutesProductVersion(rightNorm);
+
+  if (leftProduct && rightProduct) {
+    const signalCmp = semver.compare(
+      leftProduct.signalBase,
+      rightProduct.signalBase
+    );
+    if (signalCmp !== 0) {
+      return Math.sign(signalCmp);
+    }
+
+    const meetupCmp = semver.compare(leftProduct.meetup, rightProduct.meetup);
+    if (meetupCmp !== 0) {
+      return Math.sign(meetupCmp);
+    }
+
+    const { beta: leftBeta } = leftProduct;
+    const { beta: rightBeta } = rightProduct;
+    if (leftBeta == null && rightBeta == null) {
+      return 0;
+    }
+    if (leftBeta == null && rightBeta != null) {
+      return 1;
+    }
+    if (leftBeta != null && rightBeta == null) {
+      return -1;
+    }
+    if (leftBeta != null && rightBeta != null) {
+      if (leftBeta > rightBeta) {
+        return 1;
+      }
+      if (leftBeta < rightBeta) {
+        return -1;
+      }
+      return 0;
+    }
+    return 0;
+  }
+
+  return semver.compare(leftNorm, rightNorm);
 }
 
 export function isMinutesVersionNewer(
