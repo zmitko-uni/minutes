@@ -12,7 +12,7 @@ export const MINUTES_MENU_LABEL = APP_DISPLAY_NAME;
 export const MINUTES_MENU_SUMMARIZE_CURRENT_CHAT =
   'Sumarizovat aktuální chat';
 
-export const MINUTES_MENU_SUMMARIZE_UNREAD = 'Sesumarizovat nepřečtené';
+export const MINUTES_MENU_SUMMARIZE_UNREAD = 'Sumarizovat nepřečtené';
 
 export const MINUTES_MENU_BOOKMARKS = 'Záložky';
 
@@ -45,6 +45,9 @@ export const MINUTES_MENU_MARK_UNREAD_FROM_HERE =
 
 export const MINUTES_MENU_ADD_BOOKMARK =
   formatMenuActionLabel('Přidat do záložek');
+
+export const MINUTES_MENU_ASK_AI_OPINION =
+  formatMenuActionLabel('Zeptat se na názor AI');
 
 export const MINUTES_MENU_TRANSCRIPTION_QUEUE =
   formatMinutesScopedMenuLabel('Přepisy');

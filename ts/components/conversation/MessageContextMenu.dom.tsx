@@ -4,7 +4,7 @@
 import { useRef, type ReactNode, type JSX } from 'react';
 import type { LocalizerType } from '../../types/I18N.std.ts';
 import { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
-import { MINUTES_MENU_ADD_BOOKMARK, MINUTES_MENU_MARK_UNREAD_FROM_HERE, MINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../minutes/menuLabels.std.ts';
+import { MINUTES_MENU_ADD_BOOKMARK, MINUTES_MENU_ASK_AI_OPINION, MINUTES_MENU_MARK_UNREAD_FROM_HERE, MINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../minutes/menuLabels.std.ts';
 import { isInternalFeaturesEnabled } from '../../util/isInternalFeaturesEnabled.dom.ts';
 
 type MessageContextMenuProps = Readonly<{
@@ -28,6 +28,7 @@ type MessageContextMenuProps = Readonly<{
   onUnpinMessage: (() => void) | null;
   onMoreInfo: (() => void) | null;
   onSummarizeFromHere?: (() => void) | null;
+  onAskAiOpinion?: (() => void) | null;
   onMarkUnreadFromHere?: (() => void) | null;
   onBookmarkMessage?: (() => void) | null;
   onSelect: (() => void) | null;
@@ -48,6 +49,7 @@ export function MessageContextMenu({
   onEndPoll,
   onMoreInfo,
   onSummarizeFromHere,
+  onAskAiOpinion,
   onMarkUnreadFromHere,
   onBookmarkMessage,
   onCopy,
@@ -160,6 +162,11 @@ export function MessageContextMenu({
             onSelect={onSummarizeFromHere}
           >
             {MINUTES_MENU_SUMMARIZE_FROM_HERE}
+          </AxoMenuBuilder.Item>
+        )}
+        {onAskAiOpinion && (
+          <AxoMenuBuilder.Item symbol="star" onSelect={onAskAiOpinion}>
+            {MINUTES_MENU_ASK_AI_OPINION}
           </AxoMenuBuilder.Item>
         )}
         {onMarkUnreadFromHere && (

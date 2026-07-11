@@ -9,13 +9,14 @@ import { start } from './base_config.node.ts';
 import config from './config.main.ts';
 import * as Errors from '../ts/types/errors.std.ts';
 import OS from '../ts/util/os/osMain.node.ts';
+import { getMinutesStorageFolderName } from '../ts/minutes/releaseChannel.std.ts';
 
 let userData: string | undefined;
 // Use separate data directory for benchmarks & development
 if (config.has('storagePath')) {
   userData = String(config.get('storagePath'));
 } else if (config.has('storageProfile')) {
-  userData = join(app.getPath('appData'), 'Minutes');
+  userData = join(app.getPath('appData'), getMinutesStorageFolderName(app.getName()));
 } else if (OS.isAppImage()) {
   userData = join(app.getPath('appData'), `${app.getName()} AppImage`);
 }

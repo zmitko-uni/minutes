@@ -5,6 +5,7 @@ import { app } from 'electron';
 
 import './minutes_runtime.main.ts';
 
+import { getMinutesAppUserModelId, getMinutesDisplayName } from '../ts/minutes/releaseChannel.std.ts';
 import { packageJson } from '../ts/util/packageJson.main.ts';
 import { createLogger } from '../ts/logging/log.std.ts';
 import * as GlobalErrors from './global_errors.main.ts';
@@ -18,12 +19,16 @@ GlobalErrors.addHandler();
 process.umask(0o077);
 
 export const AUMID =
-  process.env.NODE_CONFIG_ENV === 'minutes'
-    ? 'org.minutes.desktop'
+  process.env.NODE_CONFIG_ENV === 'minutes' ||
+  process.env.NODE_CONFIG_ENV === 'minutes-beta'
+    ? getMinutesAppUserModelId(packageJson.productName)
     : `org.whispersystems.${packageJson.name}`;
 
-if (process.env.NODE_CONFIG_ENV === 'minutes') {
-  app.setName('Minutes');
+if (
+  process.env.NODE_CONFIG_ENV === 'minutes' ||
+  process.env.NODE_CONFIG_ENV === 'minutes-beta'
+) {
+  app.setName(getMinutesDisplayName(packageJson.productName));
 }
 
 log.info('Set Windows Application User Model ID (AUMID)', {

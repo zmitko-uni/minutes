@@ -21,11 +21,19 @@
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
 | `ts/components/App.dom.tsx` | minutes host komponenty | +TranscriptionQueueHost, bez update banneru |
-| `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere` | 2 props + items |
-| `ts/components/conversation/TimelineMessage.dom.tsx` | callback pro záložky + nepřečteno odsud | 2 callbacks |
+| `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere`, `onAskAiOpinion` | props + items |
+| `ts/components/conversation/TimelineMessage.dom.tsx` | callback záložky, nepřečteno, názor AI | callbacks |
+| `app/startup_config.main.ts` | AUMID + název Minutes / Minutes Beta | releaseChannel |
+| `app/user_config.main.ts` | `%APPDATA%\Minutes` vs `Minutes-Beta` | releaseChannel |
+| `electron-builder.minutes.mjs` | prod vs beta instalátor | MINUTES_RELEASE_CHANNEL |
 | `ts/minutes/bookmarks.std.ts` | typy záložek |
 | `ts/minutes/bookmarks.main.ts` | persist JSON |
 | `ts/minutes/bookmarksService.preload.ts` | add/list/navigate |
+| `ts/minutes/askAiOpinionService.preload.ts` | názor AI na zprávu → odpověď do chatu |
+| `ts/minutes/aiOpinionPrompts.std.ts` | prompty pro názor AI |
+| `ts/minutes/aiSummaryPrompts.std.ts` | prompty + sanitizace shrnutí chatu |
+| `ts/minutes/releaseChannel.std.ts` | prod/beta kanál, data dir, updaty |
+| `config/minutes-beta.json` | konfigurace profilu minutes-beta |
 | `ts/minutes/components/MinutesBookmarksModal.dom.tsx` | dialog Záložky |
 | `stylesheets/components/MinutesBookmarks.scss` | styly záložek |
 | `ts/minutes/buildExpiration.preload.ts` | vypnutí expirace buildu |

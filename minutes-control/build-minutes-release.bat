@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-cd /d "%~dp0"
+call "%~dp0_repo-root.bat"
 
 where pnpm >nul 2>&1
 if errorlevel 1 (
@@ -74,6 +74,7 @@ if errorlevel 1 (
 
 echo [minutes] Build instalatoru - muze trvat 15-30 minut...
 echo Verze v package.json se pred buildem automaticky zvysi o 1.
+echo Pro beta instalator: set MINUTES_RELEASE_CHANNEL=beta pred spustenim.
 echo.
 
 call pnpm run build:minutes:installer
@@ -82,7 +83,7 @@ set EXIT_CODE=%ERRORLEVEL%
 echo.
 if %EXIT_CODE%==0 (
   for /f "delims=" %%v in ('node -p "require('./package.json').version"') do set "VERSION=%%v"
-  echo [minutes] Hotovo. Instalator: release\minutes\Minutes-setup-!VERSION!.exe
+  echo [minutes] Hotovo. Instalator: release\minutes\
 ) else (
   echo [minutes] Build selhal ^(%EXIT_CODE%^).
 )

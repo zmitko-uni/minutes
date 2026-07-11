@@ -46,6 +46,7 @@ import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.t
 import {
   testAiConnectionForProvider,
   generateAiSummaryForProvider,
+  generateAiOpinionForProvider,
   generateUnreadConversationSummaryForProvider,
 } from '../ts/minutes/aiSummaryService.main.ts';
 import { readMinutesReadmeContent } from './minutes_readme.main.ts';
@@ -504,6 +505,46 @@ export function initializeMinutesChannel(): void {
         conversationTitle: options.conversationTitle,
         scopeLabel: options.scopeLabel,
         transcript: options.transcript,
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:generate-ai-opinion',
+    async (
+      _event,
+      options: {
+        conversationTitle: string;
+        messageAuthorLabel: string;
+        messageText: string;
+        isNoteToSelf: boolean;
+      }
+    ): Promise<string> => {
+      const enabled = await isAiSummaryEnabled();
+      if (!enabled) {
+        throw new Error(
+          'AI sumarizace je vypnutá nebo chybí API klíč / lokální model'
+        );
+      }
+
+      const settings = await getAiSettingsPublic();
+      const apiKey =
+        settings.provider === 'local'
+          ? ''
+          : (await getAiApiKey(settings.provider)) ?? undefined;
+      if (settings.provider !== 'local' && !apiKey) {
+        throw new Error('API klíč není nastaven');
+      }
+
+      return generateAiOpinionForProvider({
+        provider: settings.provider,
+        apiKey: apiKey ?? '',
+        model: settings.model,
+        outputLanguage: settings.outputLanguage,
+        conversationTitle: options.conversationTitle,
+        messageAuthorLabel: options.messageAuthorLabel,
+        messageText: options.messageText,
+        isNoteToSelf: options.isNoteToSelf,
       });
     }
   );

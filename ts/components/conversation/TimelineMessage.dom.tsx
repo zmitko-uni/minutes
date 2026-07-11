@@ -39,6 +39,7 @@ import { AxoContextMenu } from '../../axo/AxoContextMenu.dom.tsx';
 import { useDocumentKeyDown } from '../../hooks/useDocumentKeyDown.dom.ts';
 import type { Emoji } from '../../axo/emoji.std.ts';
 import { summarizeFromMessage } from '../../minutes/chatSummaryService.preload.ts';
+import { askAiOpinionFromMessage } from '../../minutes/askAiOpinionService.preload.ts';
 import { addMessageBookmark } from '../../minutes/bookmarksService.preload.ts';
 import { markUnreadFromMessage } from '../../minutes/markUnreadFromMessage.preload.ts';
 import { drop } from '../../util/drop.std.ts';
@@ -377,6 +378,11 @@ export function TimelineMessage(props: Props): JSX.Element {
           onSummarizeFromHere={
             canCopy && text
               ? () => drop(summarizeFromMessage(conversationId, id))
+              : null
+          }
+          onAskAiOpinion={
+            canCopy && text && window.minutes != null
+              ? () => drop(askAiOpinionFromMessage(conversationId, id))
               : null
           }
           onBookmarkMessage={

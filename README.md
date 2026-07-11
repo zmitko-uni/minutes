@@ -61,7 +61,7 @@ Výstupy na disku:
 3. Workflow: typecheck → bump verze → build → GitHub Release → commit verze
 4. Po release přesuňte položky z `[Unreleased]` do nové sekce `## [x.y.z]` v CHANGELOG
 
-Lokálně: `build-minutes-release.bat` (viz [README-MINUTES.md](README-MINUTES.md)).
+Lokálně: `minutes-control\build-minutes-release.bat` (viz [minutes-control/README.md](minutes-control/README.md)).
 
 **CI:** každý push/PR do `main` spouští [Minutes CI](https://github.com/zmitko-uni/minutes/actions/workflows/minutes-ci.yml) (`check:types`).
 
@@ -79,7 +79,7 @@ pnpm run generate
 pnpm run start:minutes
 ```
 
-Nebo `setup-minutes.bat` → `start-minutes.bat` (Windows).
+Nebo Windows skripty ve složce [`minutes-control/`](minutes-control/README.md) — např. `setup-minutes.bat` → `start-minutes.bat`.
 
 **Aktualizace ze Signálu:** Actions → [Merge Signal upstream](https://github.com/zmitko-uni/minutes/actions/workflows/minutes-merge-upstream.yml) → review PR → merge.
 

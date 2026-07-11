@@ -45,3 +45,12 @@ export async function generateUnreadConversationSummary(options: {
     options
   );
 }
+
+export async function generateAiOpinion(options: {
+  conversationTitle: string;
+  messageAuthorLabel: string;
+  messageText: string;
+  isNoteToSelf: boolean;
+}): Promise<string> {
+  return ipcRenderer.invoke('minutes:generate-ai-opinion', options);
+}

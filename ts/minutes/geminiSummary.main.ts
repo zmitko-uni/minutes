@@ -14,6 +14,7 @@ async function callGemini(options: {
   systemPrompt: string;
   userPrompt: string;
   maxOutputTokens: number;
+  temperature?: number;
 }): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(options.model)}:generateContent?key=${encodeURIComponent(options.apiKey)}`;
 
@@ -31,7 +32,7 @@ async function callGemini(options: {
         },
       ],
       generationConfig: {
-        temperature: 0.2,
+        temperature: options.temperature ?? 0.2,
         maxOutputTokens: options.maxOutputTokens,
       },
     }),
@@ -58,8 +59,13 @@ export async function generateGeminiSummary(options: {
   model: string;
   systemPrompt: string;
   userPrompt: string;
+  maxOutputTokens?: number;
+  temperature?: number;
 }): Promise<string> {
-  return callGemini({ ...options, maxOutputTokens: 2000 });
+  return callGemini({
+    ...options,
+    maxOutputTokens: options.maxOutputTokens ?? 2000,
+  });
 }
 
 export async function testGeminiConnection(options: {

@@ -12,6 +12,7 @@ async function callAnthropic(options: {
   systemPrompt: string;
   userPrompt: string;
   maxTokens: number;
+  temperature?: number;
 }): Promise<string> {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -23,6 +24,7 @@ async function callAnthropic(options: {
     body: JSON.stringify({
       model: options.model,
       max_tokens: options.maxTokens,
+      temperature: options.temperature ?? 0.2,
       system: options.systemPrompt,
       messages: [{ role: 'user', content: options.userPrompt }],
     }),
@@ -52,8 +54,10 @@ export async function generateAnthropicSummary(options: {
   model: string;
   systemPrompt: string;
   userPrompt: string;
+  maxTokens?: number;
+  temperature?: number;
 }): Promise<string> {
-  return callAnthropic({ ...options, maxTokens: 2000 });
+  return callAnthropic({ ...options, maxTokens: options.maxTokens ?? 2000 });
 }
 
 export async function testAnthropicConnection(options: {

@@ -12,8 +12,9 @@ import { createLogger } from '../logging/log.std.ts';
 import { AI_SETTINGS_DIR_NAME } from './constants.std.ts';
 import {
   MINUTES_GITHUB_RELEASES_LATEST_API_URL,
+  MINUTES_GITHUB_RELEASES_LIST_API_URL,
   MINUTES_GITHUB_RELEASES_URL,
-  MINUTES_INSTALLER_ASSET_NAME,
+  getMinutesInstallerAssetNameForChannel,
   MINUTES_INSTALLER_LATEST_DOWNLOAD_URL,
   type AppUpdateCheckResult,
   type AppUpdateProgress,
@@ -21,10 +22,12 @@ import {
 } from './appUpdate.std.ts';
 import { downloadHttpsFile } from './httpsDownload.main.ts';
 import {
-  isMinutesVersionNewer,
-  normalizeVersionTag,
-  parseMinutesSemverVersion,
-} from './version.std.ts';
+  getMinutesDisplayName,
+  getMinutesInstallerFilePrefix,
+  getMinutesReleaseChannel,
+  isMinutesVersionNewerInChannel,
+} from './releaseChannel.std.ts';
+import { normalizeVersionTag, parseMinutesSemverVersion } from './version.std.ts';
 
 const log = createLogger('minutes/appUpdate');
 
@@ -41,6 +44,7 @@ type GitHubReleaseAsset = Readonly<{
 type GitHubLatestRelease = Readonly<{
   tag_name?: string;
   html_url?: string;
+  prerelease?: boolean;
   assets?: ReadonlyArray<GitHubReleaseAsset>;
 }>;
 
@@ -54,7 +58,7 @@ function isRemoteVersionNewer(
   ) {
     return false;
   }
-  return isMinutesVersionNewer(latestVersion, currentVersion);
+  return isMinutesVersionNewerInChannel(latestVersion, currentVersion);
 }
 
 function getUpdatesDir(): string {
@@ -67,7 +71,8 @@ function getPendingUpdateFilePath(): string {
 
 async function getInstallerDestination(version: string): Promise<string> {
   await mkdir(getUpdatesDir(), { recursive: true });
-  return join(getUpdatesDir(), `Minutes-setup-${version}.exe`);
+  const prefix = getMinutesInstallerFilePrefix();
+  return join(getUpdatesDir(), `${prefix}-${version}.exe`);
 }
 
 function fetchHttpsJson<T>(url: string): Promise<T> {
@@ -121,12 +126,40 @@ function fetchHttpsJson<T>(url: string): Promise<T> {
 }
 
 function resolveInstallerDownloadUrl(release: GitHubLatestRelease): string {
-  const asset = release.assets?.find(
-    item => item.name === MINUTES_INSTALLER_ASSET_NAME
+  const assetName = getMinutesInstallerAssetNameForChannel();
+  const asset = release.assets?.find(item => item.name === assetName);
+  if (asset?.browser_download_url) {
+    return asset.browser_download_url;
+  }
+  if (release.tag_name) {
+    const tag = normalizeVersionTag(release.tag_name);
+    return `${MINUTES_GITHUB_RELEASES_URL}/download/v${tag}/${assetName}`;
+  }
+  return MINUTES_INSTALLER_LATEST_DOWNLOAD_URL;
+}
+
+async function fetchLatestReleaseForChannel(): Promise<GitHubLatestRelease> {
+  const channel = getMinutesReleaseChannel();
+
+  if (channel === 'prod') {
+    return fetchHttpsJson<GitHubLatestRelease>(
+      MINUTES_GITHUB_RELEASES_LATEST_API_URL
+    );
+  }
+
+  const releases = await fetchHttpsJson<ReadonlyArray<GitHubLatestRelease>>(
+    MINUTES_GITHUB_RELEASES_LIST_API_URL
   );
-  return (
-    asset?.browser_download_url ?? MINUTES_INSTALLER_LATEST_DOWNLOAD_URL
+
+  const latestBeta = releases.find(
+    release => release.prerelease === true && release.tag_name
   );
+
+  if (!latestBeta) {
+    throw new Error('Na GitHubu není žádný beta pre-release.');
+  }
+
+  return latestBeta;
 }
 
 export function broadcastAppUpdateProgress(
@@ -167,9 +200,7 @@ export async function checkForAppUpdate(
   }
 
   try {
-    const release = await fetchHttpsJson<GitHubLatestRelease>(
-      MINUTES_GITHUB_RELEASES_LATEST_API_URL
-    );
+    const release = await fetchLatestReleaseForChannel();
     const latestVersion = release.tag_name
       ? normalizeVersionTag(release.tag_name)
       : null;
@@ -290,7 +321,7 @@ export async function downloadAppUpdate(options: {
 
     sendProgress({
       phase: 'downloading',
-      message: `Stahuji Minutes ${options.latestVersion}…`,
+      message: `Stahuji ${getMinutesDisplayName()} ${options.latestVersion}…`,
       percent: 0,
     });
 
@@ -304,7 +335,7 @@ export async function downloadAppUpdate(options: {
             : undefined;
         sendProgress({
           phase: 'downloading',
-          message: `Stahuji Minutes ${options.latestVersion}…`,
+          message: `Stahuji ${getMinutesDisplayName()} ${options.latestVersion}…`,
           percent,
         });
       }
@@ -329,7 +360,7 @@ export async function downloadAppUpdate(options: {
 
     sendProgress({
       phase: 'ready',
-      message: `Minutes ${options.latestVersion} je připraven k instalaci.`,
+      message: `${getMinutesDisplayName()} ${options.latestVersion} je připraven k instalaci.`,
       percent: 100,
     });
 
@@ -371,7 +402,7 @@ export async function installPendingAppUpdate(options: {
 
   sendProgress({
     phase: 'complete',
-    message: 'Instalátor spuštěn. Minutes se zavře.',
+    message: `Instalátor spuštěn. ${getMinutesDisplayName()} se zavře.`,
     percent: 100,
   });
 

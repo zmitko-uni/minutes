@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-cd /d "%~dp0"
+call "%~dp0_repo-root.bat"
 
 where pnpm >nul 2>&1
 if errorlevel 1 (
@@ -33,7 +33,7 @@ if not %EXIT_CODE%==0 (
   echo [minutes] generate skoncilo s chybou (%EXIT_CODE%).
 ) else (
   echo.
-  echo [minutes] Hotovo. Spustte aplikaci: start-minutes.bat
+  echo [minutes] Hotovo. Spustte aplikaci: minutes-control\start-minutes.bat
 )
 
 pause

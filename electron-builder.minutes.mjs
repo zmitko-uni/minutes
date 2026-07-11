@@ -1,10 +1,13 @@
 // minutes electron-builder profile — merges with package.json#build (keeps files/bundles).
 import pkg from './package.json' with { type: 'json' };
 
+const isBeta = process.env.MINUTES_RELEASE_CHANNEL === 'beta';
+
 /** @type {import('electron-builder').Configuration} */
 export default {
   ...pkg.build,
-  appId: 'org.minutes.desktop',
+  productName: isBeta ? 'Minutes Beta' : 'Minutes',
+  appId: isBeta ? 'org.minutes.desktop.beta' : 'org.minutes.desktop',
   directories: {
     ...pkg.build.directories,
     output: 'release/minutes',
@@ -12,7 +15,9 @@ export default {
   win: {
     ...pkg.build.win,
     icon: 'build/icons/minutes/win/icon.ico',
-    artifactName: 'Minutes-setup-${version}.${ext}',
+    artifactName: isBeta
+      ? 'Minutes-Beta-setup-${version}.${ext}'
+      : 'Minutes-setup-${version}.${ext}',
     publish: null,
     signtoolOptions: {},
     asarUnpack: ['build/icons/minutes/win/icon.ico'],
@@ -23,10 +28,11 @@ export default {
     allowToChangeInstallationDirectory: true,
     installerIcon: 'build/icons/minutes/win/icon.ico',
     uninstallerIcon: 'build/icons/minutes/win/icon.ico',
-    shortcutName: 'Minutes',
+    shortcutName: isBeta ? 'Minutes Beta' : 'Minutes',
     deleteAppDataOnUninstall: false,
   },
   extraMetadata: {
     environment: 'production',
+    minutesChannel: isBeta ? 'beta' : 'prod',
   },
 };

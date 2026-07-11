@@ -58,6 +58,7 @@ run(
     CSC_IDENTITY_AUTO_DISCOVERY: 'false',
     SIGNAL_ENV: 'production',
     NODE_CONFIG_ENV: 'minutes',
+    MINUTES_RELEASE_CHANNEL: process.env.MINUTES_RELEASE_CHANNEL ?? 'prod',
   }
 );
 
@@ -79,5 +80,5 @@ console.log(`
 Notes:
   • Installer is NOT code-signed — Windows SmartScreen may warn on first run.
   • Recipient can click "More info" → "Run anyway".
-  • User data stays in %APPDATA%\\Minutes (not removed on uninstall).
+  • Prod data: %APPDATA%\\Minutes — beta: %APPDATA%\\Minutes-Beta (parallel install).
 `);

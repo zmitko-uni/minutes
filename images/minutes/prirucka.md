@@ -231,6 +231,18 @@ Instalátor se stáhne do `%APPDATA%\Minutes\minutes\updates\` a spustí se po k
 
 Auto-update Signalu zůstává vypnuté — Minutes používá vlastní kontrolu přes [GitHub Releases](https://github.com/zmitko-uni/minutes/releases).
 
+### Minutes Beta (testovací build)
+
+Pro testování oprav před vydáním do prod existuje **Minutes Beta** — jde nainstalovat **vedle** běžných Minutes:
+
+| | Minutes (prod) | Minutes Beta |
+|---|----------------|--------------|
+| Zástupce | Minutes | Minutes Beta |
+| Data | `%APPDATA%\Minutes` | `%APPDATA%\Minutes-Beta` |
+| Release | [Latest](https://github.com/zmitko-uni/minutes/releases/latest) | pre-release na GitHubu |
+
+Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a neprepíše prod instalaci.
+
 ---
 
 ## Řešení problémů
@@ -282,4 +294,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Autor:** Ing. Martin Zmítko, Ph.D. — na Signalu `@martinzmitko.01`
 
-*Poslední aktualizace příručky: 2026-07-10*
+*Poslední aktualizace příručky: 2026-07-11*

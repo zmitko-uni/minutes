@@ -9,6 +9,20 @@
 
 Beta buildy se **neobjeví** v `/releases/latest` — prod uživatelé je neuvidí v auto-update.
 
+## Paralelní instalace prod + beta
+
+Beta je **samostatná aplikace** (jako Signal / Signal Beta):
+
+| | Prod | Beta |
+|---|------|------|
+| Název | Minutes | Minutes Beta |
+| Instalační složka | `%LOCALAPPDATA%\Programs\Minutes` | `%LOCALAPPDATA%\Programs\Minutes Beta` |
+| Data | `%APPDATA%\Minutes` | `%APPDATA%\Minutes-Beta` |
+| Instalátor | `Minutes-setup-windows-x64.exe` | `Minutes-Beta-setup-windows-x64.exe` |
+| Auto-update | `/releases/latest` | nejnovější GitHub pre-release |
+
+Aktualizace se **neporovnávají mezi kanály** — beta nevidí prod verzi jako novější a naopak.
+
 ## Label pro issues
 
 V GitHubu vytvoř label (jednorázově):

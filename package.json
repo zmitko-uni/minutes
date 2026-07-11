@@ -19,6 +19,7 @@
     "postuninstall": "pnpm run build:acknowledgments",
     "start": "electron .",
     "start:minutes": "cross-env NODE_CONFIG_ENV=minutes pnpm run start:minutes:build && cross-env NODE_CONFIG_ENV=minutes electron .",
+    "start:minutes:beta": "cross-env NODE_CONFIG_ENV=minutes-beta MINUTES_DEV_CHANNEL=beta pnpm run start:minutes:build && cross-env NODE_CONFIG_ENV=minutes-beta MINUTES_DEV_CHANNEL=beta electron .",
     "start:minutes:build": "run-s build:minutes-icons build:rolldown:prod build:styles:prod",
     "start:minutes:quick": "cross-env NODE_CONFIG_ENV=minutes pnpm run build:minutes-icons && cross-env NODE_CONFIG_ENV=minutes electron .",
     "test:call-pipeline": "cross-env NODE_CONFIG_ENV=minutes MINUTES_TEST_PIPELINE=1 electron .",

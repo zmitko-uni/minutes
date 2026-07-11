@@ -1,8 +1,10 @@
 // Copyright 2026 Minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { getMinutesDisplayName } from './releaseChannel.std.ts';
+
 /** Zobrazovaný název aplikace (menu, dialogy, tray, instalátor). */
-export const APP_DISPLAY_NAME = 'Minutes';
+export const APP_DISPLAY_NAME = getMinutesDisplayName();
 
 /** Prefix pro položky kontextového menu (např. „Minutes: Sumarizovat odtud"). */
 export const APP_MENU_PREFIX = APP_DISPLAY_NAME;
@@ -34,16 +36,24 @@ export function formatUnreadDigestHeader(): string {
 }
 
 export function formatChatMessageHeader(
-  kind: 'chat-summary' | 'call-transcript' | 'call-summary',
+  kind: 'chat-summary' | 'call-transcript' | 'call-summary' | 'ai-opinion',
   conversationTitle: string
 ): string {
   const emoji =
-    kind === 'call-transcript' ? '🎙️' : kind === 'call-summary' ? '📝' : '📋';
+    kind === 'call-transcript'
+      ? '🎙️'
+      : kind === 'call-summary'
+        ? '📝'
+        : kind === 'ai-opinion'
+          ? '🤖'
+          : '📋';
   const label =
     kind === 'call-transcript'
       ? `${APP_DISPLAY_NAME} — přepis hovoru`
       : kind === 'call-summary'
         ? `${APP_DISPLAY_NAME} — shrnutí hovoru`
-        : `${APP_DISPLAY_NAME} — shrnutí chatu`;
+        : kind === 'ai-opinion'
+          ? `${APP_DISPLAY_NAME} — názor AI`
+          : `${APP_DISPLAY_NAME} — shrnutí chatu`;
   return `${emoji} ${label}\n${conversationTitle}\n\n`;
 }

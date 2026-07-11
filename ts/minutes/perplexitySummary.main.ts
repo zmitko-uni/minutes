@@ -14,6 +14,7 @@ async function callPerplexity(options: {
   systemPrompt: string;
   userPrompt: string;
   maxTokens: number;
+  temperature?: number;
 }): Promise<string> {
   const response = await fetch('https://api.perplexity.ai/chat/completions', {
     method: 'POST',
@@ -28,7 +29,7 @@ async function callPerplexity(options: {
         { role: 'user', content: options.userPrompt },
       ],
       disable_search: true,
-      temperature: 0.2,
+      temperature: options.temperature ?? 0.2,
       max_tokens: options.maxTokens,
     }),
   });
@@ -54,8 +55,10 @@ export async function generatePerplexitySummary(options: {
   model: string;
   systemPrompt: string;
   userPrompt: string;
+  maxTokens?: number;
+  temperature?: number;
 }): Promise<string> {
-  return callPerplexity({ ...options, maxTokens: 2000 });
+  return callPerplexity({ ...options, maxTokens: options.maxTokens ?? 2000 });
 }
 
 export async function testPerplexityConnection(options: {

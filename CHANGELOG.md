@@ -14,7 +14,17 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- **Minutes Beta** — samostatný instalátor a aplikace vedle prod (paralelní ladění); data v `%APPDATA%\Minutes-Beta`
+- Beta auto-update kontroluje jen GitHub pre-release buildy (prod a beta se neporovnávají)
+- Kontextové menu zprávy: **Minutes: Zeptat se na názor AI** — odpověď do stejného chatu
+
+### Changed
+- Beta release asset: `Minutes-Beta-setup-windows-x64.exe`, zástupce **Minutes Beta**
+- Dev: `pnpm run start:minutes:beta` spouští **Minutes Beta** s vlastním userData
+
+### Fixed
+- Menu: **Sumarizovat nepřečtené** (dříve „Sesumarizovat nepřečtené“)
+- Shrnutí chatu: sjednocené prompty pro všechny AI, max 6 úkolů, bez halucinovaných „Zajistit, že…“
 
 ## [8.21.0-m1.0.5] - 2026-07-11
 

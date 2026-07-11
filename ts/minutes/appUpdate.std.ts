@@ -1,13 +1,27 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import {
+  getMinutesInstallerAssetName,
+  getMinutesReleaseChannel,
+  type MinutesReleaseChannel,
+} from './releaseChannel.std.ts';
+
 export const MINUTES_GITHUB_REPO = 'zmitko-uni/minutes';
 
 export const MINUTES_GITHUB_RELEASES_URL = `https://github.com/${MINUTES_GITHUB_REPO}/releases`;
 
 export const MINUTES_GITHUB_RELEASES_LATEST_API_URL = `https://api.github.com/repos/${MINUTES_GITHUB_REPO}/releases/latest`;
 
-export const MINUTES_INSTALLER_ASSET_NAME = 'Minutes-setup-windows-x64.exe';
+export const MINUTES_GITHUB_RELEASES_LIST_API_URL = `https://api.github.com/repos/${MINUTES_GITHUB_REPO}/releases?per_page=30`;
+
+export function getMinutesInstallerAssetNameForChannel(
+  channel: MinutesReleaseChannel = getMinutesReleaseChannel()
+): string {
+  return getMinutesInstallerAssetName(channel);
+}
+
+export const MINUTES_INSTALLER_ASSET_NAME = getMinutesInstallerAssetName('prod');
 
 export const MINUTES_INSTALLER_LATEST_DOWNLOAD_URL = `${MINUTES_GITHUB_RELEASES_URL}/latest/download/${MINUTES_INSTALLER_ASSET_NAME}`;
 

@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-cd /d "%~dp0"
+call "%~dp0_repo-root.bat"
 
 where pnpm >nul 2>&1
 if errorlevel 1 (
@@ -33,7 +33,7 @@ if errorlevel 1 (
   echo.
   echo [minutes] pnpm install selhalo.
   echo   Pokud jde o native moduly, zkuste x64 Native Tools Command Prompt for VS 2022
-  echo   nebo spustte build-minutes-release.bat ^(nacte VS C++ prostredi^).
+  echo   nebo spustte minutes-control\build-minutes-release.bat ^(nacte VS C++ prostredi^).
   pause
   exit /b 1
 )
@@ -60,9 +60,9 @@ echo.
 echo [minutes] Priprava release !VERSION! dokoncena.
 echo.
 echo Dalsi kroky:
-echo   1. Otestujte aplikaci:  start-minutes-quick.bat
-echo   2. Sestavte instalator:  build-minutes-release.bat
-echo      ^(vystup: release\minutes\Minutes-setup-!VERSION!.exe^)
+echo   1. Otestujte aplikaci:  minutes-control\start-minutes-quick.bat
+echo   2. Sestavte instalator:  minutes-control\build-minutes-release.bat
+echo      ^(vystup: release\minutes\^)
 echo.
 pause
 exit /b 0
