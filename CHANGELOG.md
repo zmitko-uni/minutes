@@ -16,6 +16,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.21.0-m1.0.3] - 2026-07-11
+
+### Changed
+- Show app update UI only in home footer, remove top banner.
+
 ## [8.21.0-m1.0.2] - 2026-07-10
 
 ### Changed
