@@ -57,4 +57,10 @@ export const MINUTES_AUTHOR = 'Ing. Martin Zmítko, Ph.D.';
 /** Signal username — pro přidání kontaktu v aplikaci Signal. */
 export const MINUTES_AUTHOR_SIGNAL_USERNAME = 'martinzmitko.01';
 
+/** Veřejná Signal skupina Minutes — odkaz pro připojení. */
+export const MINUTES_PUBLIC_SIGNAL_GROUP_URL =
+  'https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn';
+
+export const MINUTES_PUBLIC_SIGNAL_GROUP_LINK_LABEL = 'Připojit se do skupiny';
+
 export const MINUTES_README_LABEL = APP_README_LABEL;

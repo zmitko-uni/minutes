@@ -8,6 +8,8 @@ import { APP_DISPLAY_NAME } from '../branding.std.ts';
 import {
   MINUTES_AUTHOR,
   MINUTES_AUTHOR_SIGNAL_USERNAME,
+  MINUTES_PUBLIC_SIGNAL_GROUP_LINK_LABEL,
+  MINUTES_PUBLIC_SIGNAL_GROUP_URL,
   MINUTES_README_LABEL,
   MINUTES_WELCOME_FEATURES_HEADING,
   MINUTES_WELCOME_TAGLINE,
@@ -69,6 +71,19 @@ export function MinutesWelcomeSplash({
                   <div>
                     <dt>Signal</dt>
                     <dd>@{MINUTES_AUTHOR_SIGNAL_USERNAME}</dd>
+                  </div>
+                  <div>
+                    <dt>Skupina</dt>
+                    <dd>
+                      <a
+                        className="MinutesWelcomeSplash__externalLink"
+                        href={MINUTES_PUBLIC_SIGNAL_GROUP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {MINUTES_PUBLIC_SIGNAL_GROUP_LINK_LABEL}
+                      </a>
+                    </dd>
                   </div>
                 </dl>
                 <a

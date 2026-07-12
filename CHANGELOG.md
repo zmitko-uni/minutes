@@ -15,6 +15,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ### Added
 - Nastavení přepisů: indikátor **Akcelerace přepisu** (GPU / CPU) podle dostupné grafiky
+- Domovská stránka **O Minutes**: odkaz **Připojit se do skupiny** (veřejná Signal skupina)
 
 ### Changed
 - Whisper: doporučený model **Large v3 Turbo** místo Medium
