@@ -29,6 +29,7 @@ import {
   resetWhisperRuntimeCheck,
   transcribePcm,
   isVadModelReady,
+  getWhisperGpuAccelerationPublic,
   type TranscribePcmResult,
   type WhisperTranscribeRuntimeOptions,
 } from './whisperTranscribe.main.ts';
@@ -209,6 +210,9 @@ export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtens
     stored?.transcribeSettings
   );
   const cpuCount = cpus().length;
+  const gpuAcceleration = getWhisperGpuAccelerationPublic(
+    transcribeSettings.useGpu
+  );
 
   if (!stored) {
     return {
@@ -217,6 +221,7 @@ export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtens
       recommendedModelFileName: DEFAULT_WHISPER_MODEL.fileName,
       availableModels,
       transcribeSettings,
+      gpuAcceleration,
       cpuCount,
     };
   }
@@ -233,6 +238,7 @@ export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtens
     recommendedModelFileName: DEFAULT_WHISPER_MODEL.fileName,
     availableModels,
     transcribeSettings,
+    gpuAcceleration,
     cpuCount,
   };
 }

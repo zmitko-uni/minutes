@@ -47,15 +47,25 @@ const HF_BASE =
 /** Modely ke stažení — doporučený první, pořadí v UI. */
 export const WHISPER_MODEL_CATALOG: ReadonlyArray<WhisperModelDefinition> = [
   {
+    id: 'large-v3-turbo',
+    fileName: 'ggml-large-v3-turbo.bin',
+    label: 'Large v3 Turbo',
+    description:
+      'Doporučeno pro české hovory — nejlepší poměr přesnosti a rychlosti, zejména s GPU.',
+    downloadUrl: `${HF_BASE}/ggml-large-v3-turbo.bin`,
+    minBytes: 1_400_000_000,
+    downloadLabel: 'cca 1,5 GB',
+    recommended: true,
+  },
+  {
     id: 'medium',
     fileName: 'ggml-medium.bin',
     label: 'Medium',
     description:
-      'Doporučeno pro české hovory — dobrá přesnost a rozumná rychlost i u nahrávek nad 1 hodinu.',
+      'Menší a rychlejší než Turbo na slabším PC bez GPU; u češtiny občas horší než Turbo.',
     downloadUrl: `${HF_BASE}/ggml-medium.bin`,
     minBytes: 1_400_000_000,
     downloadLabel: 'cca 1,5 GB',
-    recommended: true,
   },
   {
     id: 'small',
@@ -75,15 +85,6 @@ export const WHISPER_MODEL_CATALOG: ReadonlyArray<WhisperModelDefinition> = [
     downloadUrl: `${HF_BASE}/ggml-base.bin`,
     minBytes: 100_000_000,
     downloadLabel: 'cca 150 MB',
-  },
-  {
-    id: 'large-v3-turbo',
-    fileName: 'ggml-large-v3-turbo.bin',
-    label: 'Large v3 Turbo',
-    description: 'Velmi dobrá přesnost; u dlouhých nahrávek výrazně pomalejší než Medium.',
-    downloadUrl: `${HF_BASE}/ggml-large-v3-turbo.bin`,
-    minBytes: 1_400_000_000,
-    downloadLabel: 'cca 1,5 GB',
   },
   {
     id: 'large-v3',

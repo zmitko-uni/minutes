@@ -37,9 +37,9 @@ export const WHISPER_DECODE_PROFILES_BALANCED: ReadonlyArray<WhisperDecodeParams
 export const WHISPER_DECODE_PROFILES_FAST: ReadonlyArray<WhisperDecodeParams> =
   [{ temperature: 0, beam_size: 3, best_of: 1 }];
 
-export const WHISPER_LONG_RECORDING_MS = 45 * 60 * 1000;
+export const WHISPER_LONG_RECORDING_MS = 25 * 60 * 1000;
 
-export const WHISPER_MEDIUM_RECORDING_MS = 20 * 60 * 1000;
+export const WHISPER_MEDIUM_RECORDING_MS = 10 * 60 * 1000;
 
 export const WHISPER_DECODE_MODE_OPTIONS: ReadonlyArray<
   Readonly<{ id: WhisperDecodeMode; label: string; description: string }>
@@ -48,7 +48,7 @@ export const WHISPER_DECODE_MODE_OPTIONS: ReadonlyArray<
     id: 'smart',
     label: 'Smart (doporučeno)',
     description:
-      'Podle délky nahrávky: krátké hovory pečlivěji, dlouhé rychleji (1 profil, méně opakování).',
+      'Podle délky nahrávky: do 25 min vyvážený profil, delší hovory rychlý (1 profil).',
   },
   {
     id: 'quality',
@@ -120,10 +120,7 @@ export function resolveWhisperDecodeProfiles(options: {
   if (pcmDurationMs >= WHISPER_LONG_RECORDING_MS) {
     return WHISPER_DECODE_PROFILES_FAST;
   }
-  if (pcmDurationMs >= WHISPER_MEDIUM_RECORDING_MS) {
-    return WHISPER_DECODE_PROFILES_BALANCED;
-  }
-  return WHISPER_DECODE_PROFILES_QUALITY;
+  return WHISPER_DECODE_PROFILES_BALANCED;
 }
 
 export function shouldUseLenientWeakTranscriptCheck(options: {
@@ -134,7 +131,7 @@ export function shouldUseLenientWeakTranscriptCheck(options: {
     return true;
   }
   if (options.decodeMode === 'smart') {
-    return options.pcmDurationMs >= WHISPER_MEDIUM_RECORDING_MS;
+    return options.pcmDurationMs >= WHISPER_LONG_RECORDING_MS;
   }
   return false;
 }

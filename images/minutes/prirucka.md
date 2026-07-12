@@ -30,7 +30,7 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 
 1. Během hovoru stiskněte **Record** (vedle mute)
 2. Po skončení se nahrávka uloží automaticky
-3. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Medium** (doporučeno)
+3. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
 4. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ---
@@ -129,10 +129,11 @@ Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u 
 ### Přepis (Whisper)
 
 1. **Menu → Minutes → Nastavení Přepisů (Minutes)**
-2. Stáhněte model **Medium** *(doporučeno)* — u češtiny dává nejlepší poměr kvalita/rychlost
-3. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**)
+2. Stáhněte model **Large v3 Turbo** *(doporučeno)* — u češtiny nejlepší poměr přesnosti a rychlosti, zejména s GPU
+3. Zkontrolujte řádek **Akcelerace přepisu** — měl by ukázat `GPU — …` (ne CPU), pokud máte zapnuté GPU v nastavení
+4. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**)
 
-**Tip:** Model **Small** je rychlejší, ale u češtiny často dělá chyby. **Large** je nejpřesnější, ale pomalý.
+**Tip:** Model **Medium** je menší alternativa pro slabší PC bez grafiky. **Small** je rychlejší, ale u češtiny často dělá chyby. **Large v3** je nejpřesnější, ale nejpomalejší.
 
 Přepis probíhá **lokálně** — audio se do cloudu neposílá. Do cloudu jde až text, pokud zapnete **AI shrnutí** nebo **AI korekci přepisu**.
 
@@ -294,4 +295,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Autor:** Ing. Martin Zmítko, Ph.D. — na Signalu `@martinzmitko.01`
 
-*Poslední aktualizace příručky: 2026-07-11*
+*Poslední aktualizace příručky: 2026-07-12*

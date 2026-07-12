@@ -14,7 +14,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- Nastavení přepisů: indikátor **Akcelerace přepisu** (GPU / CPU) podle dostupné grafiky
+
+### Changed
+- Whisper: doporučený model **Large v3 Turbo** místo Medium
+- Whisper: při zapnutém GPU se používá Flash Attention pro rychlejší přepis
+- Whisper: režim Smart rychlejší — vyvážený profil do 25 min, pak rychlý (bez pomalého „kvalitního“ profilu)
 
 ## [8.21.0-m1.0.6] - 2026-07-11
 

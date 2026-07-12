@@ -277,6 +277,16 @@ export function MinutesCallSummaryExtensionModal({
               }
             />
             <StatusRow
+              label="Akcelerace přepisu"
+              value={state.gpuAcceleration.statusLabel}
+              valueClassName={
+                state.gpuAcceleration.gpuDeviceCount > 0 &&
+                state.gpuAcceleration.useGpuRequested
+                  ? 'MinutesCallSummaryExtensionModal__rowValue--ok'
+                  : undefined
+              }
+            />
+            <StatusRow
               label="Nahrávání hovorů"
               value={isActive ? 'Povoleno' : 'Zakázáno'}
               valueClassName={
@@ -292,9 +302,9 @@ export function MinutesCallSummaryExtensionModal({
               Whisper model pro přepis
             </legend>
             <p className={tw('mb-2 text-label-small text-label-secondary')}>
-              Doporučujeme <strong>Medium</strong> — u češtiny dobrá přesnost a
-              rozumná rychlost i pro nahrávky nad 1 hodinu. Large modely jsou
-              spíš pro krátké hovory nebo výkonné PC s GPU.
+              Doporučujeme <strong>Large v3 Turbo</strong> — u češtiny nejlepší
+              poměr přesnosti a rychlosti, zejména s GPU (Vulkan na Windows,
+              Metal na Macu). Medium je vhodné pro slabší PC bez grafiky.
             </p>
             <label className="MinutesCallSummaryExtensionModal__modelLabel">
               <span>Model</span>
@@ -348,6 +358,10 @@ export function MinutesCallSummaryExtensionModal({
                 }}
               />
             </label>
+            <p className={tw('text-label-small opacity-70 -mt-2')}>
+              Po změně se aktualizuje indikátor akcelerace výše. Při zapnutém GPU
+              se použije Flash Attention pro rychlejší přepis.
+            </p>
 
             <label className={tw('flex flex-col gap-1')}>
               <span>Počet vláken CPU</span>

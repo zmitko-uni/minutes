@@ -9,6 +9,7 @@ import { app } from 'electron';
 
 import { createLogger } from '../logging/log.std.ts';
 import { MODELS_DIR_NAME } from './constants.std.ts';
+import type { WhisperGpuAccelerationPublic } from './callSummaryExtension.std.ts';
 import { normalizePcmForWhisper } from './whisperAudioPrep.std.ts';
 import {
   DEFAULT_WHISPER_LANGUAGE,
@@ -104,6 +105,59 @@ export async function checkWhisperRuntime(): Promise<WhisperRuntimeStatus> {
   }
 }
 
+export function getWhisperGpuAccelerationPublic(
+  useGpuRequested: boolean
+): WhisperGpuAccelerationPublic {
+  if (!useGpuRequested) {
+    return {
+      useGpuRequested: false,
+      gpuDeviceCount: 0,
+      primaryGpuDescription: null,
+      statusLabel: 'CPU (GPU vypnuto v nastavení)',
+    };
+  }
+
+  try {
+    const mod = loadWhisperCppNode();
+    if (typeof mod.getGpuDevices !== 'function') {
+      return {
+        useGpuRequested: true,
+        gpuDeviceCount: 0,
+        primaryGpuDescription: null,
+        statusLabel: 'GPU (stav nelze ověřit)',
+      };
+    }
+
+    const devices = mod.getGpuDevices();
+    if (devices.length === 0) {
+      return {
+        useGpuRequested: true,
+        gpuDeviceCount: 0,
+        primaryGpuDescription: null,
+        statusLabel: 'CPU (GPU nenalezena — zkontrolujte ovladač)',
+      };
+    }
+
+    const primary = devices[0];
+    const description =
+      primary?.description?.trim() || primary?.name?.trim() || 'Grafická karta';
+    return {
+      useGpuRequested: true,
+      gpuDeviceCount: devices.length,
+      primaryGpuDescription: description,
+      statusLabel: `GPU — ${description}`,
+    };
+  } catch (error) {
+    log.warn('getGpuDevices failed', error);
+    return {
+      useGpuRequested: true,
+      gpuDeviceCount: 0,
+      primaryGpuDescription: null,
+      statusLabel: 'GPU (stav nelze ověřit)',
+    };
+  }
+}
+
 export function getVadModelPath(): string {
   return join(app.getPath('userData'), MODELS_DIR_NAME, WHISPER_VAD_MODEL_FILE);
 }
@@ -173,6 +227,7 @@ async function transcribeOnce(
   const ctx = createWhisperContext({
     model: options.modelPath,
     use_gpu: options.runtime.useGpu,
+    flash_attn: options.runtime.useGpu,
     no_prints: true,
   });
 

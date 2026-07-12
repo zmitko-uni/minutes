@@ -28,6 +28,13 @@ export type WhisperModelPublic = Readonly<{
   ready: boolean;
 }>;
 
+export type WhisperGpuAccelerationPublic = Readonly<{
+  useGpuRequested: boolean;
+  gpuDeviceCount: number;
+  primaryGpuDescription: string | null;
+  statusLabel: string;
+}>;
+
 export type CallSummaryExtensionPublic = Readonly<{
   activated: boolean;
   modelReady: boolean;
@@ -38,6 +45,7 @@ export type CallSummaryExtensionPublic = Readonly<{
   recommendedModelFileName: string;
   availableModels: ReadonlyArray<WhisperModelPublic>;
   transcribeSettings: WhisperTranscribeSettingsPublic;
+  gpuAcceleration: WhisperGpuAccelerationPublic;
   cpuCount: number;
 }>;
 
@@ -57,6 +65,12 @@ export const DEFAULT_CALL_SUMMARY_EXTENSION: CallSummaryExtensionPublic = {
   recommendedModelFileName: DEFAULT_WHISPER_MODEL.fileName,
   availableModels: [],
   transcribeSettings: DEFAULT_WHISPER_TRANSCRIBE_SETTINGS,
+  gpuAcceleration: {
+    useGpuRequested: true,
+    gpuDeviceCount: 0,
+    primaryGpuDescription: null,
+    statusLabel: '—',
+  },
   cpuCount: 1,
 };
 
