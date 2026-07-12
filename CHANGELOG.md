@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.7] - 2026-07-12
+
+### Added
 - Nastavení přepisů: indikátor **Akcelerace přepisu** (GPU / CPU) podle dostupné grafiky
 - Domovská stránka **O Minutes**: odkaz **Připojit se do skupiny** (veřejná Signal skupina)
 
