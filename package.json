@@ -574,7 +574,10 @@
       "smartUnpack": false
     },
     "asarUnpack": [
-      "**/*.node"
+      "**/*.node",
+      "node_modules/node-llama-cpp/bins",
+      "node_modules/node-llama-cpp/llama/localBuilds",
+      "node_modules/@node-llama-cpp/**"
     ],
     "files": [
       "package.json",
@@ -647,6 +650,13 @@
       "node_modules/@indutny/simple-windows-notifications/prebuilds/${platform}-${arch}/*.node",
       "node_modules/@indutny/mac-screen-share/prebuilds/${platform}-${arch}/*.node",
       "node_modules/fs-xattr/build/Release/*.node",
+      "**/node_modules/sleep-promise/build/**",
+      "!node_modules/node-llama-cpp/bins/**/*",
+      "node_modules/node-llama-cpp/bins/${os}-${arch}*/**/*",
+      "!node_modules/node-llama-cpp/llama/localBuilds/**/*",
+      "node_modules/node-llama-cpp/llama/localBuilds/${os}-${arch}*/**/*",
+      "!node_modules/@node-llama-cpp/*/bins/**/*",
+      "node_modules/@node-llama-cpp/${os}-${arch}*/bins/**/*",
       "!node_modules/tar",
       "sticker-creator/dist/**"
     ]

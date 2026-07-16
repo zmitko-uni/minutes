@@ -13,6 +13,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Fixed
+- Lokální LLM (Gemma): stažení modelu v instalované aplikaci znovu funguje (do balíčku se znovu zahrnuje závislost `sleep-promise` a binárky `node-llama-cpp`)
+
 ### Added
 - (doplňte před příštím release)
 
