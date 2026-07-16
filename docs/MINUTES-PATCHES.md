@@ -67,7 +67,7 @@
 | `ts/minutes/localLlmExtension.*` | stažení + inference lokálního LLM |
 | `ts/minutes/localLlmInference.main.ts` | node-llama-cpp chat session |
 | `ts/minutes/components/MinutesLocalLlmPanel.dom.tsx` | panel instalace v Nastavení AI |
-| `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external) |
+| `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external); `asarUnpack` + `sleep-promise/build` v `files` |
 | `ts/minutes/perplexitySummary.main.ts` | Perplexity API (bez web search) |
 | `ts/minutes/anthropicSummary.main.ts` | Anthropic Claude API |
 | `ts/minutes/aiSettingsService.preload.ts` | preload IPC wrapper |

@@ -264,6 +264,11 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 - Restartujte aplikaci a zkuste znovu — jde o dočasný stav načteného modelu
 
+### Runtime „Chybí node-llama-cpp“ / chyba `sleep-promise`
+
+- Aktualizujte Minutes na nejnovější verzi (starší instalátory vynechávaly závislost potřebnou pro lokální model)
+- Po aktualizaci znovu otevřete **Nastavení AI** a použijte **Stáhnout a aktivovat**
+
 ### Přepis hovoru nejde
 
 - Dokončete instalaci Whisperu v **Nastavení Přepisů (Minutes)**
@@ -297,4 +302,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-07-12*
+*Poslední aktualizace příručky: 2026-07-16*
