@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.9] - 2026-07-16
+
 ### Fixed
 - Instalátor znovu obsahuje `build/available-locales.json` a další build assety (oprava pádu při startu po 1.0.8)
 
