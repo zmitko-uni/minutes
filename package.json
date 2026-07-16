@@ -602,6 +602,23 @@
           "keys.json"
         ]
       },
+      {
+        "from": "build",
+        "to": "build",
+        "filter": [
+          "available-locales.json",
+          "locale-display-names.json",
+          "country-display-names.json",
+          "dns-fallback.json",
+          "optional-resources.json",
+          "jumbomoji.json",
+          "emoji-data.json",
+          "icons/png/512x512.png",
+          "icons/win/icon.ico",
+          "icons/minutes/win/icon.ico",
+          "icons/minutes/png/**"
+        ]
+      },
       "js/**",
       "!ts/**",
       "!build",
@@ -623,17 +640,6 @@
       "images/**",
       "fonts/**",
       "sounds/*",
-      "build/icons/png/512x512.png",
-      "build/icons/win/icon.ico",
-      "build/icons/minutes/win/icon.ico",
-      "build/icons/minutes/png/**",
-      "build/available-locales.json",
-      "build/locale-display-names.json",
-      "build/country-display-names.json",
-      "build/dns-fallback.json",
-      "build/optional-resources.json",
-      "build/jumbomoji.json",
-      "build/emoji-data.json",
       "node_modules/**",
       "!node_modules/.cache",
       "!**/node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts,*.d.ts.map,*.js.map,*.gypi,.snyk-*.flag,benchmark}",

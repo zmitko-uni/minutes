@@ -269,6 +269,10 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 - Aktualizujte Minutes na nejnovější verzi (starší instalátory vynechávaly závislost potřebnou pro lokální model)
 - Po aktualizaci znovu otevřete **Nastavení AI** a použijte **Stáhnout a aktivovat**
 
+### Chyba „available-locales.json not found“ při startu
+
+- Jde o vadný instalátor — nainstalujte novější verzi z GitHub Releases (nebo přejděte zpět na předchozí funkční verzi)
+
 ### Přepis hovoru nejde
 
 - Dokončete instalaci Whisperu v **Nastavení Přepisů (Minutes)**
