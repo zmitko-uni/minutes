@@ -19,6 +19,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Auto-update je platform-aware — na macOS stáhne `Minutes-mac-arm64.dmg` a po instalaci otevře image (drag-and-drop do Applications) místo spuštění `.exe`
 - Shell skripty (`setup-minutes.sh`, `start-minutes.sh`, `start-minutes-quick.sh`, `minutes-quality-gate.sh`, `test-call-pipeline.sh`, `prepare-minutes-release.sh`, `build-minutes-release.sh`) jako macOS obdoba stávajících `.bat` skriptů
 
+### Fixed
+- macOS `.dmg` nešel spustit (macOS ho zabil při startu — „Code Signature Invalid“): po přehození Electron fuses se nepodepsaný build znovu ad-hoc podepíše (`scripts/minutes-after-pack.mjs`), `hardenedRuntime` vypnut
+- macOS build nezabaloval nativní modul `@minutes/mac-audio-tap` (systémový zvuk tiše chyběl — nahrával se jen mikrofon); `.node` doplněn do `build.files`
+
 ## [8.21.0-m1.0.10] - 2026-07-19
 
 ### Changed

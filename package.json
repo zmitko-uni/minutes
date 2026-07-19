@@ -654,6 +654,7 @@
       "node_modules/@signalapp/ringrtc/build/${platform}/*${arch}*.node",
       "node_modules/@signalapp/windows-ucv/build/Release/*.node",
       "node_modules/@signalapp/mute-state-change/build/Release/*.node",
+      "node_modules/@minutes/mac-audio-tap/build/Release/*.node",
       "node_modules/@indutny/simple-windows-notifications/prebuilds/${platform}-${arch}/*.node",
       "node_modules/@indutny/mac-screen-share/prebuilds/${platform}-${arch}/*.node",
       "node_modules/fs-xattr/build/Release/*.node",

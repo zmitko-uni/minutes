@@ -6,7 +6,7 @@
 
 | Soubor | Co | Hook |
 |--------|-----|------|
-| `package.json` | productName, skripty, závislost `@minutes/mac-audio-tap` | branding + 1 řádek |
+| `package.json` | productName, skripty, závislost `@minutes/mac-audio-tap` + její `.node` v `build.files` | branding + 2 řádky |
 | `scripts/utils/parseVersion.mjs` | Minutes `-m` verze pro build skripty | regex větev |
 | `pnpm-workspace.yaml` | `allowBuilds` pro `@minutes/mac-audio-tap` | 1 řádek |
 | `rolldown.config.ts` | `@minutes/mac-audio-tap` v `external` (native modul) | 1 řádek |
@@ -58,7 +58,8 @@
 | `ts/minutes/**` | business logika, UI komponenty |
 | `app/minutes_channel.main.ts` | main-process IPC |
 | `app/minutes_runtime.main.ts` | výchozí `NODE_CONFIG_ENV=minutes` pro balíček |
-| `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build); `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`) |
+| `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build); `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`, `hardenedRuntime: false`), `afterPack` → ad-hoc podpis |
+| `scripts/minutes-after-pack.mjs` | wrapper nad Signal `after-pack.mjs` — po přehození fuses ad-hoc podepíše `.app` (`codesign --force --deep --sign -`), jinak macOS zabije nepodepsaný build při startu (Code Signature Invalid) |
 | `scripts/build-minutes-installer.mjs` | build instalátoru — Windows NSIS (`.exe`), macOS DMG arm64 (`.dmg`) podle `process.platform` |
 | `scripts/patch-electron-icon.mjs` | ikona electron.exe pro dev na Windows |
 | `ts/minutes/aiSettings.std.ts` | typy + výchozí model |

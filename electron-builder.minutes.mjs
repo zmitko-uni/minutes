@@ -12,6 +12,10 @@ export default {
     ...pkg.build.directories,
     output: 'release/minutes',
   },
+  // Signal's afterPack flips Electron fuses (rewriting the binary); the
+  // unsigned Minutes build must re-sign ad-hoc afterwards or macOS kills the
+  // app on launch ("Code Signature Invalid"). See scripts/minutes-after-pack.mjs.
+  afterPack: 'scripts/minutes-after-pack.mjs',
   win: {
     ...pkg.build.win,
     icon: 'build/icons/minutes/win/icon.ico',
@@ -38,7 +42,13 @@ export default {
     artifactName: 'Minutes-${version}-mac-${arch}.${ext}',
     publish: null,
     // Minutes has no Apple Developer ID — build unsigned (ad-hoc), like the Windows build.
+    // electron-builder skips its signing step with identity:null; the ad-hoc
+    // signature is applied in the afterPack hook instead.
     identity: null,
+    // Hardened runtime only matters with notarization (which needs a Developer
+    // ID). Without it, it merely restricts capabilities, so disable it for the
+    // ad-hoc build — TCC still gates mic/screen via the Info.plist usage strings.
+    hardenedRuntime: false,
     // Drop Signal's release-only signing hooks and update feed metadata.
     sign: undefined,
     signInstaller: undefined,
