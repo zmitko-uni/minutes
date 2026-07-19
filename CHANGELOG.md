@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.11] - 2026-07-19
+
+### Added
 - Podpora macOS (Apple Silicon): nahrávání hovoru včetně systémového zvuku přes nový nativní balíček `@minutes/mac-audio-tap` (ScreenCaptureKit, macOS 13+) — vyžaduje oprávnění Screen Recording (po prvním povolení nutný restart aplikace) a Microphone; do té doby se nahrává jen mikrofon
 - Build a distribuce na macOS: `.dmg` instalátor (arm64, unsigned), `pnpm run build:minutes:installer` na macOS spouští `electron-builder --mac dmg --arm64`; nový CI job `release-macos` publikuje `Minutes-mac-arm64.dmg` k releasu
 - Auto-update je platform-aware — na macOS stáhne `Minutes-mac-arm64.dmg` a po instalaci otevře image (drag-and-drop do Applications) místo spuštění `.exe`
