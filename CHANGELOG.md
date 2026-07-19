@@ -13,6 +13,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Changed
+- Tlačítko Přepisy je výš, aby nepřekrývalo ovládání chatu
+- Během přepisu se místo délky nahrávky zobrazují procenta dokončení a odhad zbývajícího času
+
 ### Added
 - (doplňte před příštím release)
 

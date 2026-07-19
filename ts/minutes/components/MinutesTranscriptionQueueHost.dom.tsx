@@ -113,12 +113,16 @@ function formatQueuedPosition(
 }
 
 function formatProcessingSummary(job: TranscriptionJob): string {
+  const eta = formatEta(job);
   if (job.kind === 'summary') {
-    return `Generování shrnutí · ${job.progress} %`;
+    return eta
+      ? `Generování shrnutí · ${job.progress} % · ${eta}`
+      : `Generování shrnutí · ${job.progress} %`;
   }
-  const duration = formatRecordingDuration(job.metadata.durationMs);
   const phase = formatPhaseLabel(job.progressPhase);
-  return `Nahrávka ${duration} · ${phase} ${job.progress} %`;
+  return eta
+    ? `${phase} · ${job.progress} % · ${eta}`
+    : `${phase} · ${job.progress} %`;
 }
 
 function formatQueuedLabel(job: TranscriptionJob): string {
@@ -475,6 +479,7 @@ function TranscriptionQueuePanel({
   showHistory,
   historyEntries,
   historyLoading,
+  etaTick,
   onShowHistory,
   onRefreshHistory,
   onEnqueueTranscription,
@@ -492,6 +497,7 @@ function TranscriptionQueuePanel({
   showHistory: boolean;
   historyEntries: ReadonlyArray<CallRecordingCatalogEntry>;
   historyLoading: boolean;
+  etaTick: number;
   onShowHistory: (show: boolean) => void;
   onRefreshHistory: () => void;
   onEnqueueTranscription: (entry: CallRecordingCatalogEntry) => void;
@@ -514,14 +520,16 @@ function TranscriptionQueuePanel({
   const pillLabel = useMemo(() => {
     const processing = snapshot.jobs.find(job => job.status === 'processing');
     if (processing) {
-      const duration = formatRecordingDuration(processing.metadata.durationMs);
-      return `Přepis ${processing.progress}% · ${duration}`;
+      const eta = formatEta(processing);
+      return eta
+        ? `Přepis ${processing.progress}% · ${eta}`
+        : `Přepis ${processing.progress}%`;
     }
     if (activeCount > 0) {
       return `Fronta ${activeCount}`;
     }
     return 'Přepisy';
-  }, [activeCount, snapshot.jobs]);
+  }, [activeCount, snapshot.jobs, etaTick]);
 
   if (!snapshot.panelOpen && activeCount === 0) {
     return null;
@@ -636,10 +644,26 @@ function TranscriptionQueuePanel({
                   {job.metadata.conversationTitle}
                 </div>
                 <div className="MinutesTranscriptionQueue__job-meta">
-                  Délka nahrávky:{' '}
-                  <strong>{formatRecordingDuration(job.metadata.durationMs)}</strong>
-                  {' · '}
-                  {new Date(job.metadata.endedAt).toLocaleString('cs-CZ')}
+                  {job.status === 'processing' ? (
+                    <>
+                      Dokončeno: <strong>{job.progress} %</strong>
+                      {eta ? (
+                        <>
+                          {' · '}
+                          {eta}
+                        </>
+                      ) : null}
+                    </>
+                  ) : (
+                    <>
+                      Délka nahrávky:{' '}
+                      <strong>
+                        {formatRecordingDuration(job.metadata.durationMs)}
+                      </strong>
+                      {' · '}
+                      {new Date(job.metadata.endedAt).toLocaleString('cs-CZ')}
+                    </>
+                  )}
                 </div>
                 <div
                   className={`MinutesTranscriptionQueue__job-status MinutesTranscriptionQueue__job-status--${job.status}`}
@@ -786,7 +810,7 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
     Array<CallRecordingCatalogEntry>
   >([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [, setTick] = useState(0);
+  const [etaTick, setEtaTick] = useState(0);
   const [activeWhisperModelLabel, setActiveWhisperModelLabel] = useState(() => {
     const state = getCallSummaryExtensionState();
     return state.modelFileName
@@ -847,7 +871,7 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
     }
 
     const timer = window.setInterval(() => {
-      setTick(value => value + 1);
+      setEtaTick(value => value + 1);
     }, 5_000);
 
     return () => {
@@ -964,6 +988,7 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
       showHistory={showHistory}
       historyEntries={historyEntries}
       historyLoading={historyLoading}
+      etaTick={etaTick}
       onShowHistory={setShowHistory}
       onRefreshHistory={() => {
         drop(loadHistory());
