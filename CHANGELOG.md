@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.10] - 2026-07-19
+
 ### Changed
 - Tlačítko Přepisy je výš, aby nepřekrývalo ovládání chatu
 - Během přepisu se místo délky nahrávky zobrazují procenta dokončení a odhad zbývajícího času
