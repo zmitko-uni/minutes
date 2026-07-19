@@ -22,6 +22,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Fixed
 - macOS `.dmg` nešel spustit (macOS ho zabil při startu — „Code Signature Invalid“): po přehození Electron fuses se nepodepsaný build znovu ad-hoc podepíše (`scripts/minutes-after-pack.mjs`), `hardenedRuntime` vypnut
 - macOS build nezabaloval nativní modul `@minutes/mac-audio-tap` (systémový zvuk tiše chyběl — nahrával se jen mikrofon); `.node` doplněn do `build.files`
+- Lokální AI model: stahování končilo HTTP 404 a model nešel spustit — přechod na Gemma 4 (node-llama-cpp 3.19.0 / llama.cpp b9842 s podporou architektury `gemma4`). Katalog nabízí **Gemma 4 12B** (doporučený) a **Gemma 4 E4B** (menší) z distribuce unsloth (Q4_K_M)
 
 ## [8.21.0-m1.0.10] - 2026-07-19
 

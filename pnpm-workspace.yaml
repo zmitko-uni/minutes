@@ -100,9 +100,10 @@ allowBuilds:
   'esbuild': false
   'utf-8-validate': false
   '@signalapp/ringrtc': true
-  'node-llama-cpp@3.18.1': true
+  'node-llama-cpp@3.19.0': true
   'whisper-cpp-node@0.2.12': true
   'electron@43.0.0': true
+  node-llama-cpp: set this to true or false
 
 dedupePeers: true
 dedupePeerDependents: true
