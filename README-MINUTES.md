@@ -83,7 +83,7 @@ pnpm run start:minutes
 
 ## CI
 
-**GitHub Actions → Minutes CI** běží na push/PR do `main`: `pnpm install` → `generate` → `check:types`.
+**GitHub Actions → Minutes CI** běží na PR do `main` (ne na každém pushi): `pnpm install` → `generate` → `check:types`.
 
 Lokálně před commitem:
 

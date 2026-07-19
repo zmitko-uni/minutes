@@ -105,7 +105,7 @@
 | `images/tray-icons/base/minutes-tray-icon-*` | vygenerované tray ikony |
 | `images/tray-icons/alert/minutes-tray-icon-*` | tray ikony s počtem nepřečtených |
 | `build/icons/minutes/**` | vygenerované ikony (gitignore volitelně) |
-| `.github/workflows/minutes-ci.yml` | CI: generate + check:types |
+| `.github/workflows/minutes-ci.yml` | CI: generate + check:types (jen PR / ruční spuštění) |
 | `.github/workflows/minutes-release.yml` | release instalátoru + GitHub Release; job `release-macos` (po `release-windows`, `macos-latest`) přidá `Minutes-<verze>-mac-arm64.dmg` + stabilní `Minutes-mac-arm64.dmg` |
 | `.github/workflows/minutes-merge-upstream.yml` | merge Signal upstream → PR |
 | `scripts/extract-changelog-release.mjs` | release notes z CHANGELOG.md |

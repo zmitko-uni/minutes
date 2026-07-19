@@ -1,10 +1,9 @@
 # Lightweight CI for Minutes — typecheck after generate (fast feedback on PRs).
+# Runs on PRs only (not every push to main) to save GitHub Actions minutes;
+# Release Minutes already typechecks before packaging.
 name: Minutes CI
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
