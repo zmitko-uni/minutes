@@ -1,0 +1,25 @@
+---
+description: Minutes musí vždy zůstat funkční na Windows i macOS (Apple Silicon)
+alwaysApply: true
+---
+
+# Windows + macOS — stejná zodpovědnost
+
+Od macOS podpory (Apple Silicon) jsme zodpovědní za **oba** systémy. Každá změna musí počítat s Mac kompatibilitou — ne jen s Windows.
+
+## Povinný checklist u feature / fixu
+
+1. **Funguje to na Windows i na macOS?** Pokud ne, doplň platformovou větev nebo graceful fallback.
+2. **Native / OS API** (loopback audio, paths, installer, updater, permissions) → `process.platform` / `window.platform` (`darwin` vs `win32`), logika v `ts/minutes/` (příp. `packages/` pro native addon).
+3. **Cesty k datům** — Windows `%APPDATA%\Minutes\…`, macOS `~/Library/Application Support/Minutes/…` (v UI/příručce uvádět obě, kde je to relevantní).
+4. **Release / update** — prod release musí umět dodat **oba** instalátory (`.exe` + `.dmg`); updater stahuje asset podle platformy (`Minutes-setup-windows-x64.exe` / `Minutes-mac-arm64.dmg`).
+5. **Nepřidávej Windows-only předpoklady** (`.bat` bez `.sh`, `desktopCapturer` loopback bez Mac alternativy, pevné `\` cesty, jen `.exe` v updateru).
+
+## Co je oficiálně podporované
+
+- **Windows** x64
+- **macOS** Apple Silicon (arm64); Intel Mac není podporovaný (`whisper-cpp-node` bez darwin-x64)
+
+## Při návrhu se ptej
+
+„Rozbiju tím Mac, nebo je to platformově ošetřené?“ — pokud nevíš, ověř proti `ts/minutes/macLoopbackAudio.preload.ts`, `appUpdate.*`, `electron-builder.minutes.mjs` a `release-macos` v `minutes-release.yml`.
