@@ -1,0 +1,37 @@
+---
+description: Nové Minutes-only npm závislosti musí jít do Dependabot allow-listu
+alwaysApply: true
+---
+
+# Dependabot — jen Minutes závislosti
+
+Dependabot **nesmí** hlídat Signal upstream balíčky (`electron`, `@signalapp/*`, RingRTC, …). Ty přijdou přes **Merge Signal upstream**.
+
+Hlídá jen **Minutes-owned** npm závislosti v [`.github/dependabot.yml`](.github/dependabot.yml) (`allow:`).
+
+## Aktuální allow-list
+
+- `node-llama-cpp` — lokální LLM
+- `whisper-cpp-node` — přepis
+- `resedit` — patch Windows ikony
+
+(+ monthly `github-actions`)
+
+## Kdy přidat do Dependabotu
+
+Po **každé nové Minutes implementaci**, která přidá npm závislost **mimo Signal** (nový řádek v `package.json` / `dependencies` nebo `devDependencies`, který Signál nemá):
+
+1. Přidej balíček do `allow:` v `.github/dependabot.yml`
+2. Workspace balíčky (`workspace:*`, např. `@minutes/mac-audio-tap`) **nepatří** do Dependabotu
+3. Nesleduj znovu `electron` ani jiné Signal verze „pro jistotu“
+
+## Checklist
+
+- [ ] Nová Minutes feature má nový npm package?
+- [ ] Je to Minutes-only (ne součást Signal Desktop)?
+- [ ] Je v `dependabot.yml` → `allow:`?
+- [ ] Není to `workspace:*`?
+
+## Při návrhu se ptej
+
+„Je tahle závislost naše (Minutes), nebo Signálova?“ — Signál → upstream merge; Minutes → Dependabot allow-list.

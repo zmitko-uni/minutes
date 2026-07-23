@@ -1,21 +1,28 @@
-# Copyright 2024 Signal Messenger, LLC
+# Copyright 2026 minutes contributors
 # SPDX-License-Identifier: AGPL-3.0-only
+#
+# Dependabot tracks ONLY Minutes-owned npm deps (not Signal upstream).
+# Electron / RingRTC / libsignal / … arrive via Merge Signal upstream.
+# When adding a new Minutes-only dependency, also add it under allow: below
+# (see .cursor/rules/minutes-dependabot.mdc).
 
 version: 2
 updates:
-- package-ecosystem: github-actions
-  directory: /
-  schedule:
-    interval: monthly
-  groups:
-    minor-actions-dependencies:
-      # GitHub Actions: Only group minor and patch updates (we want to carefully review major updates)
-      update-types: [ minor, patch ]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      minor-actions-dependencies:
+        # Only group minor and patch updates (review majors carefully)
+        update-types: [minor, patch]
 
-- package-ecosystem: npm
-  directories:
-    - "/"
-  schedule:
-    interval: daily
-  allow:
-    - dependency-name: electron
+  - package-ecosystem: npm
+    directories:
+      - '/'
+    schedule:
+      interval: weekly
+    allow:
+      - dependency-name: node-llama-cpp
+      - dependency-name: whisper-cpp-node
+      - dependency-name: resedit
