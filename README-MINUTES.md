@@ -216,7 +216,7 @@ Hooks (keep small for upstream merges):
 Toto repo sleduje jen **[github.com/zmitko-uni/minutes](https://github.com/zmitko-uni/minutes)**.  
 Upstream [signalapp/Signal-Desktop](https://github.com/signalapp/Signal-Desktop) se mergeuje **v GitHub Actions** (Actions → *Merge Signal upstream* → PR do `main`).
 
-**Automaticky:** každý týden (pondělí) workflow zkontroluje nejnovější **stabilní** tag Signálu proti `MINUTES_SIGNAL_BASE_VERSION`. Pokud je novější a ještě není otevřený sync PR, spustí merge a otevře PR. Dependabot (např. Electron) to nenahrazuje — to jsou jen npm závislosti.
+**Automaticky:** každý týden (pondělí) workflow zkontroluje nejnovější **stabilní** tag Signálu proti `MINUTES_SIGNAL_BASE_VERSION`. Pokud je novější a ještě není otevřený sync PR, spustí merge a otevře PR. Ručně jde spustit i s checkboxem **dry_run** (jen check, bez PR). Dependabot (např. Electron) to nenahrazuje — to jsou jen npm závislosti.
 
 Podrobně: [docs/FORK-MAINTENANCE.md](docs/FORK-MAINTENANCE.md)
 

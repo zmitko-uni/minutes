@@ -77,8 +77,9 @@ Oficiální [Signal Desktop](https://github.com/signalapp/Signal-Desktop) drží
 
 1. Repo → **Actions** → **Merge Signal upstream**
 2. Zvol ref (např. `main` nebo tag `v8.21.0-alpha.1`) — nebo nech běžet **týdenní cron** (pondělí 08:00 UTC), který porovná nejnovější **stabilní** tag Signálu s `MINUTES_SIGNAL_BASE_VERSION` a při novější verzi sám otevře sync PR
-3. Workflow vytvoří větev `sync/signal-<run>` a **pull request** do `main` (u cronu jen pokud je nový stabilní tag a ještě neexistuje otevřený sync PR)
-4. Po review PR merge — zkontroluj hooky v `docs/MINUTES-PATCHES.md` a bump `MINUTES_SIGNAL_BASE_VERSION` v `ts/minutes/version.std.ts`
+3. Volitelně zaškrtni **dry_run** — jen vypíše, jestli je novější stabilní tag (bez merge / PR)
+4. Bez dry_run workflow vytvoří větev `sync/signal-<run>` a **pull request** do `main` (u cronu jen pokud je nový stabilní tag a ještě neexistuje otevřený sync PR)
+5. Po review PR merge — zkontroluj hooky v `docs/MINUTES-PATCHES.md` a bump `MINUTES_SIGNAL_BASE_VERSION` v `ts/minutes/version.std.ts`
 
 Lokální kontrola „je nový stabilní Signál?“ (bez merge):
 

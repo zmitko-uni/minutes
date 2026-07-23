@@ -9,10 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       signal_ref:
-        description: 'Signal Desktop branch or tag (e.g. main, v8.21.0-alpha.1). Ignored on schedule — schedule uses latest stable tag.'
+        description: 'Signal Desktop branch or tag (e.g. main, v8.21.0-alpha.1). Ignored on schedule / dry_run — those use latest stable tag.'
         required: true
         default: main
         type: string
+      dry_run:
+        description: 'Dry run — only check for a newer stable Signal tag (no merge, no PR)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -41,13 +46,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" != "true" ]; then
             REF="${{ inputs.signal_ref }}"
             echo "Manual dispatch — syncing ref: ${REF}"
             echo "should_sync=true" >> "$GITHUB_OUTPUT"
             echo "signal_ref=${REF}" >> "$GITHUB_OUTPUT"
           else
             node scripts/check-signal-upstream.mjs
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "Dry run — merge/PR skipped"
+              echo "should_sync=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
   merge-upstream:
