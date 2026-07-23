@@ -1,12 +1,15 @@
-# Merge Signal Desktop upstream into Minutes (manual trigger).
+# Check for a newer stable Signal Desktop tag (weekly) and/or merge upstream (manual).
 # Signal upstream is NOT a git remote in this repo — fetched only in CI.
 name: Merge Signal upstream
 
 on:
+  schedule:
+    # Monday 08:00 UTC — cheap tag check; merge job runs only when a new stable tag exists.
+    - cron: '0 8 * * 1'
   workflow_dispatch:
     inputs:
       signal_ref:
-        description: 'Signal Desktop branch or tag (e.g. main, v8.21.0-alpha.1)'
+        description: 'Signal Desktop branch or tag (e.g. main, v8.21.0-alpha.1). Ignored on schedule — schedule uses latest stable tag.'
         required: true
         default: main
         type: string
@@ -16,7 +19,41 @@ permissions:
   pull-requests: write
 
 jobs:
+  check:
+    name: Check Signal version
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      should_sync: ${{ steps.resolve.outputs.should_sync }}
+      signal_ref: ${{ steps.resolve.outputs.signal_ref }}
+    steps:
+      - name: Checkout Minutes
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Resolve whether to sync
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            REF="${{ inputs.signal_ref }}"
+            echo "Manual dispatch — syncing ref: ${REF}"
+            echo "should_sync=true" >> "$GITHUB_OUTPUT"
+            echo "signal_ref=${REF}" >> "$GITHUB_OUTPUT"
+          else
+            node scripts/check-signal-upstream.mjs
+          fi
+
   merge-upstream:
+    name: Merge Signal upstream
+    needs: check
+    if: needs.check.outputs.should_sync == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -46,7 +83,7 @@ jobs:
           git checkout -b "${BRANCH}"
 
       - name: Merge Signal Desktop
-        run: node scripts/merge-upstream.mjs "${{ inputs.signal_ref }}"
+        run: node scripts/merge-upstream.mjs "${{ needs.check.outputs.signal_ref }}"
 
       - name: Install libpulse0
         run: sudo apt-get install -y libpulse0 || (sudo apt-get update && sudo apt-get install -y libpulse0)
@@ -76,22 +113,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          REF="${{ needs.check.outputs.signal_ref }}"
           gh pr create \
             --base main \
             --head "${SYNC_BRANCH}" \
-            --title "Sync Signal Desktop (${{ inputs.signal_ref }})" \
-            --body "$(cat <<'EOF'
+            --title "Sync Signal Desktop (${REF})" \
+            --body "$(cat <<EOF
           Automated upstream merge from [signalapp/Signal-Desktop](https://github.com/signalapp/Signal-Desktop).
 
-          **Signal ref:** `${{ inputs.signal_ref }}`
+          **Signal ref:** \`${REF}\`
 
           ## Review checklist
           - [ ] Konflikty vyřešeny (workflow selže, pokud merge neprojde)
-          - [ ] `docs/MINUTES-PATCHES.md` — hooky v upstream souborech stále na místě
-          - [ ] Minutes CI / `pnpm run check:types` prošlo (workflow to spouští automaticky)
-          - [ ] `pnpm run start:minutes:quick` — aplikace startuje lokálně
-          - [ ] `CHANGELOG.md` — doplnit změny ze Signálu pokud relevantní
+          - [ ] \`docs/MINUTES-PATCHES.md\` — hooky v upstream souborech stále na místě
+          - [ ] Minutes CI / \`pnpm run check:types\` prošlo (workflow to spouští automaticky)
+          - [ ] \`pnpm run start:minutes:quick\` — aplikace startuje lokálně
+          - [ ] \`CHANGELOG.md\` — doplnit změny ze Signálu pokud relevantní
 
-          Po merge zkontroluj `ts/minutes/version.std.ts` (`MINUTES_SIGNAL_BASE_VERSION`).
+          Po merge zkontroluj \`ts/minutes/version.std.ts\` (\`MINUTES_SIGNAL_BASE_VERSION\`).
           EOF
           )"
