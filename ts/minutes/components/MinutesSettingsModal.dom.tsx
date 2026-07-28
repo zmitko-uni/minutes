@@ -32,6 +32,7 @@ import {
   isLocalLlmExtensionActive,
 } from '../localLlmExtensionService.preload.ts';
 import { localLlmExtensionEvents } from '../localLlmExtensionEvents.std.ts';
+import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
 
 type Props = Readonly<{
@@ -426,12 +427,12 @@ export function MinutesSettingsModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
-        <AxoDialog.Header>
+        <MinutesDraggableDialogHeader positionKey="ai-settings">
           <AxoDialog.Title>
             {formatAppDialogTitle('Nastavení AI')}
           </AxoDialog.Title>
           <AxoDialog.Close />
-        </AxoDialog.Header>
+        </MinutesDraggableDialogHeader>
         <AxoDialog.Body>
           <AxoDialog.Description>
             <p className={tw('text-label-medium mb-4 opacity-90')}>
