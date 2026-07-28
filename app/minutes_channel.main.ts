@@ -52,6 +52,8 @@ import {
   createLocalLlmProgressSender,
   getLocalLlmExtensionPublic,
   installLocalLlmExtension,
+  saveLocalLlmContextSize,
+  saveLocalLlmReasoningEnabled,
 } from '../ts/minutes/localLlmExtension.main.ts';
 import {
   listCallRecordings,
@@ -423,6 +425,20 @@ export async function initializeMinutesChannel(automationOptions?: {
   ipcMain.handle('minutes:get-local-llm-extension', async () => {
     return getLocalLlmExtensionPublic();
   });
+
+  ipcMain.handle(
+    'minutes:save-local-llm-context-size',
+    async (_event, contextSize: unknown) => {
+      return saveLocalLlmContextSize(contextSize);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:save-local-llm-reasoning-enabled',
+    async (_event, reasoningEnabled: unknown) => {
+      return saveLocalLlmReasoningEnabled(reasoningEnabled);
+    }
+  );
 
   ipcMain.handle(
     'minutes:install-local-llm-extension',
