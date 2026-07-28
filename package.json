@@ -144,6 +144,7 @@
   "dependencies": {
     "@indutny/mac-screen-share": "1.2.5",
     "@indutny/simple-windows-notifications": "2.0.21",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@signalapp/libsignal-client": "0.99.2",
     "@signalapp/mute-state-change": "workspace:*",
     "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz",

@@ -14,7 +14,8 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+
+- Lokální MCP server a webhooková automatizace se samostatným nastavením, řízením dostupných nástrojů a bezpečným tokenem
 
 ## [8.23.0-m1.3.0-beta.2] - 2026-08-20
 
@@ -31,6 +32,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 - Samostatné nahrávání sdíleného videa hovoru do WebM: ukládá pouze prezentaci přenášenou přes Signal (nikdy kamery ani UI); vlastní sdílení čte přímo z odchozího RingRTC video streamu bez dalšího snímání obrazovky, při absenci sdílení používá černý obraz a zvuk přímo z RingRTC; podporuje pause/resume a automatické uložení při konci hovoru
 - Přepis a volitelné AI shrnutí videonahrávek: WebM používá průběžně ukládaný RingRTC PCM sidecar a stejné přiřazení řečníků, frontu, Whisper a sumarizační pipeline jako MP3
+- MCP zprávy obsahují reakce včetně emoji, autora a času; nový nástroj `set_message_reaction` umí reakci přidat, nahradit i odstranit přes standardní Signal frontu
 
 ### Fixed
 
