@@ -42,6 +42,8 @@ import {
 import { isAiSummaryEnabled, getAiSettingsPublic, getAiApiKey, isTranscriptCorrectionEnabled } from './aiSettings.main.ts';
 import { formatAiModelDisplayLabel, formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { generateAiSummaryForProvider } from './aiSummaryService.main.ts';
+import { resolveCallSummaryCredential } from './callSummaryCredentials.std.ts';
+import { requireNonEmptySummaryText } from './generatedTextValidation.std.ts';
 import { correctTranscriptWithAi } from './transcriptCorrection.main.ts';
 import { DEFAULT_WHISPER_LANGUAGE, WHISPER_VAD_MODEL_FILE, WHISPER_VAD_MODEL_MIN_BYTES, WHISPER_VAD_MODEL_URL } from './whisperSettings.std.ts';
 import {
@@ -741,8 +743,11 @@ export async function transcribeCallRecording(options: {
       phase: 'ai-correction',
       detail: `AI korekce přepisu… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
     });
-    const apiKey = await getAiApiKey(settings.provider);
-    if (apiKey && transcriptForAi.length > 0) {
+    const apiKey = await resolveCallSummaryCredential(
+      settings.provider,
+      getAiApiKey
+    );
+    if (apiKey != null && transcriptForAi.length > 0) {
       try {
         const corrected = await correctTranscriptWithAi({
           provider: settings.provider,
@@ -818,17 +823,22 @@ export async function transcribeCallRecording(options: {
       phase: 'ai-correction',
       detail: `AI shrnutí hovoru… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
     });
-    const apiKey = await getAiApiKey(settings.provider);
-    if (apiKey && correctedTranscriptForAi.length > 0) {
-      const summaryText = await generateAiSummaryForProvider({
-        provider: settings.provider,
-        apiKey,
-        model: settings.model,
-        outputLanguage: settings.outputLanguage,
-        conversationTitle: options.conversationTitle,
-        scopeLabel: 'Přepis hovoru',
-        transcript: correctedTranscriptForAi,
-      });
+    const apiKey = await resolveCallSummaryCredential(
+      settings.provider,
+      getAiApiKey
+    );
+    if (apiKey != null && correctedTranscriptForAi.length > 0) {
+      const summaryText = requireNonEmptySummaryText(
+        await generateAiSummaryForProvider({
+          provider: settings.provider,
+          apiKey,
+          model: settings.model,
+          outputLanguage: settings.outputLanguage,
+          conversationTitle: options.conversationTitle,
+          scopeLabel: 'Přepis hovoru',
+          transcript: correctedTranscriptForAi,
+        })
+      );
       summaryPath = `${basePath}.summary.md`;
       await writeFile(summaryPath, summaryText, 'utf8');
     }
@@ -871,8 +881,11 @@ export async function generateCallRecordingSummary(options: {
     }
 
     const settings = await getAiSettingsPublic();
-    const apiKey = await getAiApiKey(settings.provider);
-    if (!apiKey) {
+    const apiKey = await resolveCallSummaryCredential(
+      settings.provider,
+      getAiApiKey
+    );
+    if (apiKey == null) {
       throw new Error('Chybí API klíč pro AI shrnutí.');
     }
 
@@ -903,15 +916,17 @@ export async function generateCallRecordingSummary(options: {
     });
     throwIfTranscriptionCancelled(options.jobId);
 
-    const summaryText = await generateAiSummaryForProvider({
-      provider: settings.provider,
-      apiKey,
-      model: settings.model,
-      outputLanguage: settings.outputLanguage,
-      conversationTitle: options.conversationTitle,
-      scopeLabel: 'Přepis hovoru',
-      transcript,
-    });
+    const summaryText = requireNonEmptySummaryText(
+      await generateAiSummaryForProvider({
+        provider: settings.provider,
+        apiKey,
+        model: settings.model,
+        outputLanguage: settings.outputLanguage,
+        conversationTitle: options.conversationTitle,
+        scopeLabel: 'Přepis hovoru',
+        transcript,
+      })
+    );
 
     throwIfTranscriptionCancelled(options.jobId);
 
