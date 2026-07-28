@@ -1,10 +1,16 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { mkdir, open, stat, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, stat, writeFile } from 'node:fs/promises';
 
-import { app, ipcMain, shell } from 'electron';
+import {
+  app,
+  ipcMain,
+  shell,
+  type BrowserWindow,
+} from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
 import * as Errors from '../ts/types/errors.std.ts';
@@ -75,6 +81,12 @@ import {
   resolveStartupAppUpdateState,
 } from '../ts/minutes/appUpdate.main.ts';
 import { initializeMinutesVideoRecordingChannel } from './minutes_video_recording_channel.main.ts';
+import {
+  emitMinutesAutomationEvent,
+  initializeMinutesAutomationRuntime,
+} from '../ts/minutes/automation/automationRuntime.main.ts';
+import { MeetingAutomationService } from '../ts/minutes/automation/meetingAutomationService.node.ts';
+import type { StoredCallRecordingMetadata } from '../ts/minutes/recordingsCatalog.std.ts';
 
 const log = createLogger('minutes/main');
 
@@ -97,7 +109,9 @@ async function ensureDir(path: string): Promise<void> {
   await mkdir(path, { recursive: true });
 }
 
-export async function initializeMinutesChannel(): Promise<void> {
+export async function initializeMinutesChannel(automationOptions?: {
+  getMainWindow: () => BrowserWindow | undefined;
+}): Promise<void> {
   const preferredRecordingsDir = resolveMinutesRecordingsDir(
     app.getPath('documents')
   );
@@ -131,7 +145,31 @@ export async function initializeMinutesChannel(): Promise<void> {
     ipcMain,
     recordingsDir,
     pcmStorageDir,
+    onFinalized: async value => {
+      const metadata = JSON.parse(
+        await readFile(value.metadataPath, 'utf8')
+      ) as StoredCallRecordingMetadata;
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'recording.completed',
+        occurredAt: new Date().toISOString(),
+        data: {
+          recordingId: MeetingAutomationService.getRecordingId({
+            recordingPath: value.filePath,
+          }),
+          conversationId: metadata.conversationId,
+          mediaKind: 'screen-share-video',
+        },
+      });
+    },
   });
+
+  if (automationOptions != null) {
+    await initializeMinutesAutomationRuntime({
+      recordingsDir,
+      getMainWindow: automationOptions.getMainWindow,
+    });
+  }
 
   ipcMain.handle(
     'minutes:save-recording',
@@ -211,6 +249,19 @@ export async function initializeMinutesChannel(): Promise<void> {
           'utf8'
         );
       }
+
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'recording.completed',
+        occurredAt: new Date().toISOString(),
+        data: {
+          recordingId: MeetingAutomationService.getRecordingId({
+            recordingPath: filePath,
+          }),
+          conversationId: options.conversationId,
+          mediaKind: 'audio',
+        },
+      });
 
       return filePath;
     }
@@ -408,7 +459,7 @@ export async function initializeMinutesChannel(): Promise<void> {
         background?: boolean;
       }
     ) => {
-      return transcribeCallRecording({
+      const result = await transcribeCallRecording({
         ...options,
         onProgress: update => {
           if (!event.sender.isDestroyed()) {
@@ -421,6 +472,24 @@ export async function initializeMinutesChannel(): Promise<void> {
           }
         },
       });
+      const recordingId = MeetingAutomationService.getRecordingId({
+        recordingPath: options.recordingPath,
+      });
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'transcript.completed',
+        occurredAt: new Date().toISOString(),
+        data: { recordingId, transcriptId: recordingId },
+      });
+      if (result.summaryPath) {
+        await emitMinutesAutomationEvent({
+          id: randomUUID(),
+          type: 'summary.completed',
+          occurredAt: new Date().toISOString(),
+          data: { recordingId, summaryId: recordingId },
+        });
+      }
+      return result;
     }
   );
 
@@ -444,7 +513,7 @@ export async function initializeMinutesChannel(): Promise<void> {
         localSpeakerDisplayName?: string;
       }
     ) => {
-      return generateCallRecordingSummary({
+      const result = await generateCallRecordingSummary({
         ...options,
         onProgress: update => {
           if (!event.sender.isDestroyed()) {
@@ -457,6 +526,16 @@ export async function initializeMinutesChannel(): Promise<void> {
           }
         },
       });
+      const recordingId = MeetingAutomationService.getRecordingId({
+        recordingPath: options.recordingPath,
+      });
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'summary.completed',
+        occurredAt: new Date().toISOString(),
+        data: { recordingId, summaryId: recordingId },
+      });
+      return result;
     }
   );
 
