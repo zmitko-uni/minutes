@@ -27,7 +27,7 @@
 | `ts/components/conversation/TimelineMessage.dom.tsx` | callback záložky, nepřečteno, názor AI | callbacks |
 | `app/startup_config.main.ts` | AUMID + název Minutes / Minutes Beta | releaseChannel |
 | `app/user_config.main.ts` | `%APPDATA%\Minutes` vs `Minutes-Beta` | releaseChannel |
-| `electron-builder.minutes.mjs` | prod vs beta instalátor | MINUTES_RELEASE_CHANNEL |
+| `electron-builder.minutes.mjs` | prod vs beta instalátor a Linux AppImage branding | MINUTES_RELEASE_CHANNEL |
 | `ts/minutes/bookmarks.std.ts` | typy záložek |
 | `ts/minutes/bookmarks.main.ts` | persist JSON |
 | `ts/minutes/bookmarksService.preload.ts` | add/list/navigate |
@@ -58,9 +58,10 @@
 | `ts/minutes/**` | business logika, UI komponenty |
 | `app/minutes_channel.main.ts` | main-process IPC |
 | `app/minutes_runtime.main.ts` | výchozí `NODE_CONFIG_ENV=minutes` pro balíček |
-| `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build); `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`, `hardenedRuntime: false`), `afterPack` → ad-hoc podpis |
+| `electron-builder.minutes.mjs` | NSIS/AppImage profil (sloučení s package.json#build); `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`, `hardenedRuntime: false`), `afterPack` → ad-hoc podpis |
 | `scripts/minutes-after-pack.mjs` | wrapper nad Signal `after-pack.mjs` — po přehození fuses ad-hoc podepíše `.app` (`codesign --force --deep --sign -`), jinak macOS zabije nepodepsaný build při startu (Code Signature Invalid) |
 | `scripts/build-minutes-installer.mjs` | build instalátoru — Windows NSIS (`.exe`), macOS DMG arm64 (`.dmg`) podle `process.platform` |
+| `scripts/build-minutes-appimage.mjs` | Linux x64 AppImage pro lokální test a GitHub Release asset |
 | `scripts/patch-electron-icon.mjs` | ikona electron.exe pro dev na Windows |
 | `ts/minutes/aiSettings.std.ts` | typy + výchozí model |
 | `ts/minutes/aiSettings.main.ts` | uložení klíče (safeStorage) |
@@ -106,7 +107,7 @@
 | `images/tray-icons/alert/minutes-tray-icon-*` | tray ikony s počtem nepřečtených |
 | `build/icons/minutes/**` | vygenerované ikony (gitignore volitelně) |
 | `.github/workflows/minutes-ci.yml` | CI: generate + check:types (jen PR / ruční spuštění) |
-| `.github/workflows/minutes-release.yml` | release instalátoru + GitHub Release; job `release-macos` (po `release-windows`, `macos-latest`) přidá `Minutes-<verze>-mac-arm64.dmg` + stabilní `Minutes-mac-arm64.dmg` |
+| `.github/workflows/minutes-release.yml` | release instalátorů + GitHub Release; `release-macos` přidá `.dmg`, `release-linux` (po `release-windows`, `ubuntu-latest`) přidá AppImage, SHA-256 a stabilní Linux asset |
 | `.github/workflows/minutes-merge-upstream.yml` | merge Signal upstream → PR; týdenní check nového stabilního tagu (`scripts/check-signal-upstream.mjs`) |
 | `scripts/extract-changelog-release.mjs` | release notes z CHANGELOG.md |
 | `CHANGELOG.md` | uživatelský changelog verzí |
