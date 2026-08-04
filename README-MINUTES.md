@@ -50,6 +50,13 @@ Změny verzí: **[CHANGELOG.md](CHANGELOG.md)**
 4. **Xcode Command Line Tools** — `xcode-select --install` (potřeba pro native moduly, `iconutil`)
 5. Pouze **Apple Silicon (arm64)** — `whisper-cpp-node` nemá prebuild pro darwin-x64, Intel Mac není podporovaný
 
+### Linux (AppImage, x64)
+
+1. **Node.js** — verze z `.nvmrc`; doporučené je `nvm install`.
+2. **pnpm** — po instalaci Node spusťte `corepack enable`.
+3. **Build tools** — C/C++ toolchain, Python 3 a `make` (na Archu: `sudo pacman -S --needed base-devel python`).
+4. **FUSE 2** — potřebné pro přímé spuštění AppImage (na Archu: `sudo pacman -S --needed fuse2`); alternativou je `--appimage-extract-and-run`.
+
 ## First-time build
 
 ```powershell
@@ -63,6 +70,14 @@ pnpm run start:minutes
 ```bash
 # macOS
 cd ~/dev/minutes
+pnpm install
+pnpm run generate
+pnpm run start:minutes
+```
+
+```bash
+# Linux (x64)
+cd ~/work/tools/minutes
 pnpm install
 pnpm run generate
 pnpm run start:minutes
@@ -105,6 +120,25 @@ Výstup: `release/minutes/Minutes-setup-<verze>.exe` (Windows) / `release/minute
 
 Na macOS build automaticky detekuje `darwin` a spustí `electron-builder --mac dmg --arm64` (viz `scripts/build-minutes-installer.mjs`). Instalátor je **nepodepsaný** (ad-hoc, bez Apple Developer ID) — po instalaci Gatekeeper zablokuje normální dvojklik: klikněte pravým tlačítkem na `Minutes.app` → **Otevřít**, nebo spusťte `xattr -dr com.apple.quarantine /Applications/Minutes.app`.
 
+### Linux AppImage (x64)
+
+Na x64 Linuxu sestavíte lokální AppImage bez změny verze a changelogu:
+
+```bash
+pnpm install
+pnpm run build:minutes:appimage
+```
+
+Výstup je `release/minutes/Minutes-<verze>-linux-x86_64.AppImage`. Build nemění
+verzi ani `CHANGELOG.md`. Soubor spusťte přímo:
+
+```bash
+./release/minutes/Minutes-<verze>-linux-x86_64.AppImage
+```
+
+Pro AUR balíček `minutes-bin` se AppImage publikuje jako asset GitHub Release;
+do AUR se ukládá pouze `PKGBUILD` s URL a SHA-256 tohoto assetu.
+
 ### Release přes GitHub Actions (doporučeno)
 
 1. Při vývoji doplňujte **`CHANGELOG.md`** → `[Unreleased]` (Cursor rule u user-facing změn)
@@ -120,10 +154,12 @@ Workflow automaticky:
 - přesune `[Unreleased]` v CHANGELOG a vytvoří GitHub Release
 - commitne bump verze do aktuální branch (`main` nebo `beta`)
 - job `release-macos` (běží po `release-windows` na `macos-latest`, jen pro prod) sestaví `.dmg` a přidá ho k Release jako `Minutes-<verze>-mac-arm64.dmg` a stabilní `Minutes-mac-arm64.dmg`
+- job `release-linux` (běží po `release-windows` na `ubuntu-latest`) sestaví x64 AppImage, přidá verzovaný soubor, jeho `.sha256` a stabilní `Minutes-linux-x86_64.AppImage` (beta varianta používá `Minutes-Beta-`)
 
 4. Stabilní odkazy:  
    `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-setup-windows-x64.exe` (Windows)  
    `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-mac-arm64.dmg` (macOS, Apple Silicon)
+   `https://github.com/zmitko-uni/minutes/releases/latest/download/Minutes-linux-x86_64.AppImage` (Linux x64)
 
 Volba _Skip version bump_ — přestaví stejnou verzi (např. první release nebo oprava buildu).
 
