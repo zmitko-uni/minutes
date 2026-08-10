@@ -302,6 +302,12 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 - Dokončete instalaci Whisperu v **Nastavení Přepisů (Minutes)**
 - Sledujte frontu v **Přepisy (Minutes)**
 
+### AI „Opravit přepis“ nic nezměnila / text vypadá stejně
+
+- Pokud model vrátí odmítnutí, shrnutí nebo moc krátký výstup, Minutes **ponechá původní Whisper přepis** (nesmaže ho)
+- Zkontrolujte v logu hlášku `discarding AI transcript correction`
+- Zkuste jiný model nebo vypněte **Opravit přepis hovoru** v Nastavení AI
+
 ### Nahrávání nejde
 
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
