@@ -9,7 +9,10 @@ import { app } from 'electron';
 
 import { createLogger } from '../logging/log.std.ts';
 import { MODELS_DIR_NAME } from './constants.std.ts';
-import type { WhisperGpuAccelerationPublic } from './callSummaryExtension.std.ts';
+import type {
+  WhisperGpuAccelerationPublic,
+  WhisperGpuDevicePublic,
+} from './callSummaryExtension.std.ts';
 import { normalizePcmForWhisper } from './whisperAudioPrep.std.ts';
 import {
   DEFAULT_WHISPER_LANGUAGE,
@@ -35,6 +38,7 @@ export type WhisperRuntimeStatus = Readonly<{
 export type WhisperTranscribeRuntimeOptions = Readonly<{
   threadCount: number;
   useGpu: boolean;
+  gpuDeviceIndex: number;
   decodeProfiles: ReadonlyArray<WhisperDecodeParams>;
   lenientWeakTranscriptCheck?: boolean;
 }>;
@@ -42,6 +46,7 @@ export type WhisperTranscribeRuntimeOptions = Readonly<{
 type ResolvedWhisperTranscribeRuntimeOptions = Readonly<{
   threadCount: number;
   useGpu: boolean;
+  gpuDeviceIndex: number;
   decodeProfiles: ReadonlyArray<WhisperDecodeParams>;
   lenientWeakTranscriptCheck: boolean;
 }>;
@@ -105,56 +110,118 @@ export async function checkWhisperRuntime(): Promise<WhisperRuntimeStatus> {
   }
 }
 
-export function getWhisperGpuAccelerationPublic(
-  useGpuRequested: boolean
+function formatGpuMemoryGb(bytes: number): string | null {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return null;
+  }
+  return `${(bytes / 1e9).toFixed(1)} GB`;
+}
+
+function toGpuDevicePublic(device: {
+  index: number;
+  name?: string;
+  description?: string;
+  type?: string;
+  memory_total?: number;
+}): WhisperGpuDevicePublic {
+  const description =
+    device.description?.trim() || device.name?.trim() || 'Grafická karta';
+  const type =
+    device.type === 'gpu' || device.type === 'igpu' ? device.type : 'unknown';
+  const memoryTotalBytes =
+    typeof device.memory_total === 'number' && Number.isFinite(device.memory_total)
+      ? device.memory_total
+      : 0;
+  const typeLabel =
+    type === 'igpu' ? 'iGPU' : type === 'gpu' ? 'GPU' : 'adapter';
+  const memoryLabel = formatGpuMemoryGb(memoryTotalBytes);
+  const label = memoryLabel
+    ? `${description} (${typeLabel}, ${memoryLabel})`
+    : `${description} (${typeLabel})`;
+
+  return {
+    index: device.index,
+    name: device.name?.trim() || `GPU${device.index}`,
+    description,
+    type,
+    memoryTotalBytes,
+    label,
+  };
+}
+
+function emptyGpuAcceleration(
+  useGpuRequested: boolean,
+  statusLabel: string,
+  selectedGpuDeviceIndex = 0
 ): WhisperGpuAccelerationPublic {
+  return {
+    useGpuRequested,
+    gpuDeviceCount: 0,
+    primaryGpuDescription: null,
+    selectedGpuDeviceIndex,
+    selectedGpuDescription: null,
+    devices: [],
+    statusLabel,
+  };
+}
+
+export function getWhisperGpuAccelerationPublic(
+  useGpuRequested: boolean,
+  selectedGpuDeviceIndex = 0
+): WhisperGpuAccelerationPublic {
+  const requestedIndex = Math.max(0, Math.round(selectedGpuDeviceIndex));
+
   if (!useGpuRequested) {
-    return {
-      useGpuRequested: false,
-      gpuDeviceCount: 0,
-      primaryGpuDescription: null,
-      statusLabel: 'CPU (GPU vypnuto v nastavení)',
-    };
+    return emptyGpuAcceleration(
+      false,
+      'CPU (GPU vypnuto v nastavení)',
+      requestedIndex
+    );
   }
 
   try {
     const mod = loadWhisperCppNode();
     if (typeof mod.getGpuDevices !== 'function') {
-      return {
-        useGpuRequested: true,
-        gpuDeviceCount: 0,
-        primaryGpuDescription: null,
-        statusLabel: 'GPU (stav nelze ověřit)',
-      };
+      return emptyGpuAcceleration(
+        true,
+        'GPU (stav nelze ověřit)',
+        requestedIndex
+      );
     }
 
-    const devices = mod.getGpuDevices();
+    const devices = mod.getGpuDevices().map(toGpuDevicePublic);
     if (devices.length === 0) {
-      return {
-        useGpuRequested: true,
-        gpuDeviceCount: 0,
-        primaryGpuDescription: null,
-        statusLabel: 'CPU (GPU nenalezena — zkontrolujte ovladač)',
-      };
+      return emptyGpuAcceleration(
+        true,
+        'CPU (GPU nenalezena — zkontrolujte ovladač)',
+        requestedIndex
+      );
     }
 
-    const primary = devices[0];
-    const description =
-      primary?.description?.trim() || primary?.name?.trim() || 'Grafická karta';
+    const selected =
+      devices.find(device => device.index === requestedIndex) ?? devices[0]!;
+    const primary = devices[0]!;
+    const statusLabel =
+      devices.length > 1
+        ? `GPU — ${selected.description} (${devices.indexOf(selected) + 1}/${devices.length})`
+        : `GPU — ${selected.description}`;
+
     return {
       useGpuRequested: true,
       gpuDeviceCount: devices.length,
-      primaryGpuDescription: description,
-      statusLabel: `GPU — ${description}`,
+      primaryGpuDescription: primary.description,
+      selectedGpuDeviceIndex: selected.index,
+      selectedGpuDescription: selected.description,
+      devices,
+      statusLabel,
     };
   } catch (error) {
     log.warn('getGpuDevices failed', error);
-    return {
-      useGpuRequested: true,
-      gpuDeviceCount: 0,
-      primaryGpuDescription: null,
-      statusLabel: 'GPU (stav nelze ověřit)',
-    };
+    return emptyGpuAcceleration(
+      true,
+      'GPU (stav nelze ověřit)',
+      requestedIndex
+    );
   }
 }
 
@@ -207,6 +274,7 @@ function resolveRuntimeOptions(
   return {
     threadCount,
     useGpu: runtime?.useGpu ?? true,
+    gpuDeviceIndex: Math.max(0, Math.round(runtime?.gpuDeviceIndex ?? 0)),
     decodeProfiles: runtime?.decodeProfiles ?? [
       { temperature: 0, beam_size: 5, best_of: 2 },
     ],
@@ -228,6 +296,9 @@ async function transcribeOnce(
     model: options.modelPath,
     use_gpu: options.runtime.useGpu,
     flash_attn: options.runtime.useGpu,
+    gpu_device: options.runtime.useGpu
+      ? options.runtime.gpuDeviceIndex
+      : undefined,
     no_prints: true,
   });
 

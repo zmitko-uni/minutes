@@ -305,9 +305,15 @@ export async function saveAiSettings(
   stored.transcriptCorrectionEnabled = input.transcriptCorrectionEnabled;
 
   const resolvedModel = input.model.trim() || providerDef.defaultModel;
-  models[provider] = providerDef.models.includes(resolvedModel)
-    ? resolvedModel
-    : providerDef.defaultModel;
+  // Cloud providers may use dynamically discovered model IDs (e.g. Gemini API list).
+  // Local models stay constrained to the known Gemma catalog.
+  if (provider === 'local') {
+    models[provider] = providerDef.models.includes(resolvedModel)
+      ? resolvedModel
+      : providerDef.defaultModel;
+  } else {
+    models[provider] = resolvedModel;
+  }
   stored.modelsByProvider = models;
 
   if (input.aiEnabled && provider === 'local') {

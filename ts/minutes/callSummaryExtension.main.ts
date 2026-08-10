@@ -140,6 +140,7 @@ function buildWhisperRuntimeOptions(
   return {
     threadCount: settings.threadCount,
     useGpu: settings.useGpu,
+    gpuDeviceIndex: settings.gpuDeviceIndex,
     decodeProfiles: resolveWhisperDecodeProfiles({
       decodeMode: settings.decodeMode,
       pcmDurationMs,
@@ -211,7 +212,8 @@ export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtens
   );
   const cpuCount = cpus().length;
   const gpuAcceleration = getWhisperGpuAccelerationPublic(
-    transcribeSettings.useGpu
+    transcribeSettings.useGpu,
+    transcribeSettings.gpuDeviceIndex
   );
 
   if (!stored) {

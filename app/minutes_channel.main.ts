@@ -45,6 +45,7 @@ import { listCallRecordings, loadCallRecordingOutput } from '../ts/minutes/recor
 import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
+  listAiModelsForProvider,
   generateAiSummaryForProvider,
   generateAiOpinionForProvider,
   generateUnreadConversationSummaryForProvider,
@@ -325,6 +326,7 @@ export function initializeMinutesChannel(): void {
       settings: Partial<{
         threadCount: number;
         useGpu: boolean;
+        gpuDeviceIndex: number;
         decodeMode: 'smart' | 'quality' | 'balanced' | 'fast';
       }>
     ) => {
@@ -468,6 +470,22 @@ export function initializeMinutesChannel(): void {
         model,
       });
       return { ok: true, message };
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:list-ai-models',
+    async (
+      _event,
+      options: { provider: AiProvider; apiKey?: string }
+    ): Promise<ReadonlyArray<string>> => {
+      const provider = options.provider;
+      if (provider === 'local') {
+        return listAiModelsForProvider({ provider });
+      }
+      const apiKey =
+        options.apiKey?.trim() || (await getAiApiKey(provider)) || null;
+      return listAiModelsForProvider({ provider, apiKey });
     }
   );
 

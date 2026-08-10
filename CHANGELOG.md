@@ -13,8 +13,13 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- Nastavení AI: u Google Gemini nové modely **gemini-3.5-flash-lite** a **gemini-3.6-flash**; seznam modelů lze **obnovit z API** podle dostupného klíče
+- Nastavení přepisů: při více grafických kartách lze **zvolit GPU** pro akceleraci Whisperu (dříve se používala jen první)
+
 ### Changed
 - Skupinové hovory: Minutes povoluje zvonění i ve skupinách s více než 15 členy (Signal to standardně vypíná od 16). Funguje spolehlivě, pokud mají Minutes i příjemci.
+- Doporučený levný Gemini model: `gemini-3.5-flash-lite` (místo `gemini-3.1-flash-lite`)
 
 ## [8.21.0-m1.0.11] - 2026-07-19
 

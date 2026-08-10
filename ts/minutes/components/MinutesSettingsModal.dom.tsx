@@ -25,6 +25,7 @@ import {
 } from '../aiUserMessages.std.ts';
 import {
   getAiSettings,
+  listAiModels,
   saveAiSettings,
   testAiSettings,
 } from '../aiSettingsService.preload.ts';
@@ -57,7 +58,7 @@ function formatUserFacingError(error: unknown): string {
     return `${message} Zkontrolujte API klíč u zvoleného poskytovatele.`;
   }
   if (/no longer available to new users|is deprecated|has been shut down/i.test(message)) {
-    return `${message} Zvolte novější model Gemini (např. gemini-3.1-flash-lite nebo gemini-3.5-flash) a uložte nastavení.`;
+    return `${message} Zvolte novější model Gemini (např. gemini-3.5-flash-lite nebo gemini-3.6-flash) a uložte nastavení.`;
   }
 
   return message;
@@ -65,11 +66,16 @@ function formatUserFacingError(error: unknown): string {
 
 function resolveModelForProvider(
   settings: AiSettingsPublic,
-  nextProvider: AiProvider
+  nextProvider: AiProvider,
+  availableModels?: ReadonlyArray<string>
 ): string {
   const def = getAiProviderDefinition(nextProvider);
   const saved = settings.modelsByProvider[nextProvider];
-  if (saved && def.models.includes(saved)) {
+  const known = availableModels ?? def.models;
+  if (saved && (known.includes(saved) || nextProvider !== 'local')) {
+    if (nextProvider === 'local' && !known.includes(saved)) {
+      return def.defaultModel;
+    }
     return saved;
   }
   return def.defaultModel;
@@ -191,10 +197,62 @@ export function MinutesSettingsModal({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [localLlmState, setLocalLlmState] = useState(getLocalLlmExtensionState());
+  const [availableModels, setAvailableModels] = useState<ReadonlyArray<string>>(
+    () => getAiProviderDefinition(DEFAULT_AI_SETTINGS.provider).models
+  );
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   const providerDef = useMemo(
     () => getAiProviderDefinition(provider),
     [provider]
+  );
+
+  const refreshAvailableModels = useCallback(
+    async (options: {
+      nextProvider: AiProvider;
+      draftApiKey?: string;
+      preferSavedModel?: boolean;
+      loadedSettings: AiSettingsPublic;
+    }) => {
+      const {
+        nextProvider,
+        draftApiKey,
+        preferSavedModel = true,
+        loadedSettings,
+      } = options;
+      if (nextProvider === 'local') {
+        const models = getAiProviderDefinition(nextProvider).models;
+        setAvailableModels(models);
+        return models;
+      }
+
+      setIsLoadingModels(true);
+      try {
+        const models = await listAiModels({
+          provider: nextProvider,
+          apiKey:
+            draftApiKey && draftApiKey.trim().length > 0
+              ? draftApiKey.trim()
+              : undefined,
+        });
+        setAvailableModels(models);
+        if (preferSavedModel) {
+          setModel(
+            resolveModelForProvider(loadedSettings, nextProvider, models)
+          );
+        } else {
+          setModel(prev => (models.includes(prev) ? prev : models[0] ?? prev));
+        }
+        return models;
+      } catch {
+        const fallback = getAiProviderDefinition(nextProvider).models;
+        setAvailableModels(fallback);
+        return fallback;
+      } finally {
+        setIsLoadingModels(false);
+      }
+    },
+    []
   );
 
   useEffect(() => {
@@ -213,9 +271,13 @@ export function MinutesSettingsModal({
         setApiKeyDrafts({});
         setRemoveKeyFlags({});
         setStatusMessage(null);
+        await refreshAvailableModels({
+          nextProvider: settings.provider,
+          loadedSettings: settings,
+        });
       })()
     );
-  }, [open]);
+  }, [open, refreshAvailableModels]);
 
   useEffect(() => {
     return localLlmExtensionEvents.on(setLocalLlmState);
@@ -232,10 +294,35 @@ export function MinutesSettingsModal({
   const handleProviderChange = useCallback(
     (nextProvider: AiProvider) => {
       setProvider(nextProvider);
-      setModel(resolveModelForProvider(loaded, nextProvider));
+      drop(
+        refreshAvailableModels({
+          nextProvider,
+          draftApiKey: apiKeyDrafts[nextProvider],
+          loadedSettings: loaded,
+        })
+      );
     },
-    [loaded]
+    [apiKeyDrafts, loaded, refreshAvailableModels]
   );
+
+  const handleRefreshModels = useCallback(() => {
+    setStatusMessage(null);
+    drop(
+      (async () => {
+        const models = await refreshAvailableModels({
+          nextProvider: provider,
+          draftApiKey: apiKeyDrafts[provider],
+          preferSavedModel: false,
+          loadedSettings: loaded,
+        });
+        setStatusMessage(
+          provider === 'google'
+            ? `Seznam modelů obnoven (${models.length}).`
+            : `Seznam modelů: ${models.length}.`
+        );
+      })()
+    );
+  }, [apiKeyDrafts, loaded, provider, refreshAvailableModels]);
 
   const buildApiKeysPayload = useCallback((): Partial<
     Record<AiProvider, string | undefined>
@@ -459,15 +546,43 @@ export function MinutesSettingsModal({
                         'rounded-md border border-solid px-3 py-2',
                         'border-label-disabled bg-background-primary'
                       )}
-                      value={model}
+                      value={
+                        availableModels.includes(model)
+                          ? model
+                          : (availableModels[0] ?? model)
+                      }
                       onChange={event => setModel(event.target.value)}
+                      disabled={isLoadingModels}
                     >
-                      {providerDef.models.map(option => (
+                      {(availableModels.includes(model)
+                        ? availableModels
+                        : [model, ...availableModels]
+                      ).map(option => (
                         <option key={option} value={option}>
                           {option}
                         </option>
                       ))}
                     </select>
+                    <span className={tw('text-label-small opacity-70')}>
+                      {provider === 'google' ? (
+                        <>
+                          U Gemini lze seznam modelů obnovit z API (klíč musí být
+                          vyplněný nebo už uložený).{' '}
+                          <button
+                            type="button"
+                            className={tw('underline')}
+                            disabled={isBusy || isLoadingModels}
+                            onClick={handleRefreshModels}
+                          >
+                            {isLoadingModels
+                              ? 'Načítám…'
+                              : 'Obnovit seznam modelů'}
+                          </button>
+                        </>
+                      ) : (
+                        'Levnější modely jsou v seznamu výše.'
+                      )}
+                    </span>
                   </label>
 
                   <ProviderApiKeyField
