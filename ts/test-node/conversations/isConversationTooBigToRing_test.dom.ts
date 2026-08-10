@@ -6,6 +6,7 @@ import lodash from 'lodash';
 import { updateRemoteConfig } from '../../test-helpers/RemoteConfigStub.dom.ts';
 
 import { isConversationTooBigToRing } from '../../conversations/isConversationTooBigToRing.dom.ts';
+import { minutesIgnoresGroupCallRingSizeLimit } from '../../minutes/groupCallRing.std.ts';
 import { generateAci } from '../../test-helpers/serviceIdUtils.std.ts';
 
 const { times } = lodash;
@@ -27,29 +28,14 @@ describe('isConversationTooBigToRing', () => {
     assert.isFalse(isConversationTooBigToRing({ memberships: [] }));
   });
 
-  const textMaximum = (max: number): void => {
-    for (let count = 1; count < max; count += 1) {
-      const memberships = fakeMemberships(count);
-      assert.isFalse(isConversationTooBigToRing({ memberships }));
-    }
-    for (let count = max; count < max + 5; count += 1) {
-      const memberships = fakeMemberships(count);
-      assert.isTrue(isConversationTooBigToRing({ memberships }));
-    }
-  };
+  it('minutes: never treats a group as too big to ring (ignores Signal maxGroupCallRingSize)', async () => {
+    assert.isTrue(minutesIgnoresGroupCallRingSizeLimit());
 
-  it('returns whether there are 16 or more people in the group, if there is nothing in remote config', async () => {
     await updateRemoteConfig([]);
-    textMaximum(16);
-  });
+    assert.isFalse(isConversationTooBigToRing({ memberships: fakeMemberships(16) }));
+    assert.isFalse(isConversationTooBigToRing({ memberships: fakeMemberships(50) }));
 
-  it('returns whether there are 16 or more people in the group, if the remote config value is bogus', async () => {
-    await updateRemoteConfig([{ name: CONFIG_KEY, value: 'uh oh' }]);
-    textMaximum(16);
-  });
-
-  it('returns whether there are 9 or more people in the group, if the remote config value is 9', async () => {
     await updateRemoteConfig([{ name: CONFIG_KEY, value: '9' }]);
-    textMaximum(9);
+    assert.isFalse(isConversationTooBigToRing({ memberships: fakeMemberships(20) }));
   });
 });

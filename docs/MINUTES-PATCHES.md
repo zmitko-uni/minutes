@@ -19,6 +19,7 @@
 | `app/menu.std.ts` | submenu minutes + Příručka | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
 | `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru | 2 volání |
+| `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
 | `ts/background.preload.ts` | init + IPC summarize, build expiration | bootstrap |
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
@@ -56,6 +57,7 @@
 | Cesta | Účel |
 |-------|------|
 | `ts/minutes/**` | business logika, UI komponenty |
+| `ts/minutes/groupCallRing.std.ts` | override limitu zvonění skupinového hovoru |
 | `app/minutes_channel.main.ts` | main-process IPC |
 | `app/minutes_runtime.main.ts` | výchozí `NODE_CONFIG_ENV=minutes` pro balíček |
 | `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build); `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`, `hardenedRuntime: false`), `afterPack` → ad-hoc podpis |
