@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.2.1] - 2026-08-10
+
 ### Fixed
 - Oprava přepisu AI: když model vrátí odmítnutí, shrnutí nebo moc krátký text, Minutes ponechá původní Whisper přepis (nesmaže ho)
 
