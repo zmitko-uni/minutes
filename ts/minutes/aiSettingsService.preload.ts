@@ -27,6 +27,13 @@ export async function testAiSettings(options: {
   return ipcRenderer.invoke('minutes:test-ai-settings', options);
 }
 
+export async function listAiModels(options: {
+  provider: AiProvider;
+  apiKey?: string;
+}): Promise<ReadonlyArray<string>> {
+  return ipcRenderer.invoke('minutes:list-ai-models', options);
+}
+
 export async function generateAiSummary(options: {
   conversationTitle: string;
   scopeLabel: string;

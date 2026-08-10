@@ -2,8 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { AiProvider } from './aiSettings.std.ts';
+import { getAiProviderDefinition } from './aiSettings.std.ts';
 import { generateAnthropicSummary, testAnthropicConnection } from './anthropicSummary.main.ts';
-import { generateGeminiSummary, testGeminiConnection } from './geminiSummary.main.ts';
+import {
+  generateGeminiSummary,
+  listGeminiModels,
+  testGeminiConnection,
+} from './geminiSummary.main.ts';
 import {
   generateLocalLlmSummary,
   testLocalLlmConnection,
@@ -191,4 +196,18 @@ export async function testAiConnectionForProvider(options: {
     default:
       return testOpenAiConnection(options);
   }
+}
+
+/**
+ * Vrátí seznam modelů pro UI. U Google Gemini se při dostupném klíči
+ * doplní živý výpis z API; jinak kurátorovaný fallback.
+ */
+export async function listAiModelsForProvider(options: {
+  provider: AiProvider;
+  apiKey?: string | null;
+}): Promise<ReadonlyArray<string>> {
+  if (options.provider === 'google') {
+    return listGeminiModels({ apiKey: options.apiKey });
+  }
+  return getAiProviderDefinition(options.provider).models;
 }

@@ -13,6 +13,11 @@ export type WhisperTranscribeSettingsPublic = Readonly<{
   /** 0 = auto (počet jader − 1). */
   threadCount: number;
   useGpu: boolean;
+  /**
+   * Index GPU z getGpuDevices() / whisper-cpp-node `gpu_device`.
+   * 0 = první (výchozí). Při jedné kartě se ignoruje.
+   */
+  gpuDeviceIndex: number;
   decodeMode: WhisperDecodeMode;
 }>;
 
@@ -20,6 +25,7 @@ export const DEFAULT_WHISPER_TRANSCRIBE_SETTINGS: WhisperTranscribeSettingsPubli
   {
     threadCount: 0,
     useGpu: true,
+    gpuDeviceIndex: 0,
     decodeMode: 'smart',
   };
 
@@ -86,6 +92,11 @@ export function normalizeWhisperTranscribeSettings(
   return {
     threadCount,
     useGpu: input?.useGpu ?? DEFAULT_WHISPER_TRANSCRIBE_SETTINGS.useGpu,
+    gpuDeviceIndex:
+      typeof input?.gpuDeviceIndex === 'number' &&
+      Number.isFinite(input.gpuDeviceIndex)
+        ? Math.max(0, Math.round(input.gpuDeviceIndex))
+        : DEFAULT_WHISPER_TRANSCRIBE_SETTINGS.gpuDeviceIndex,
     decodeMode,
   };
 }

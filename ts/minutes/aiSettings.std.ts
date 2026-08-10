@@ -50,13 +50,15 @@ export const AI_PROVIDER_DEFINITIONS: ReadonlyArray<AiProviderDefinition> = [
     keyHelpUrl: 'https://aistudio.google.com/apikey',
     keyHelpLabel: 'aistudio.google.com/apikey',
     models: [
-      'gemini-3.1-flash-lite',
+      'gemini-3.5-flash-lite',
+      'gemini-3.6-flash',
       'gemini-3.5-flash',
+      'gemini-3.1-flash-lite',
       'gemini-2.5-pro',
     ],
-    defaultModel: 'gemini-3.1-flash-lite',
+    defaultModel: 'gemini-3.5-flash-lite',
     billingNote:
-      'Fakturace v Google AI Studio. Pro nízké náklady doporučujeme gemini-3.1-flash-lite.',
+      'Fakturace v Google AI Studio. Pro nízké náklady doporučujeme gemini-3.5-flash-lite. Seznam modelů lze obnovit z API klíče.',
     requiresApiKey: true,
   },
   {

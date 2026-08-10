@@ -56,7 +56,7 @@ Dialog **Minutes → Nastavení AI** je uspořádaný shora dolů:
 ### Cloud poskytovatel (OpenAI, Gemini, Claude, Perplexity)
 
 1. Zvolte poskytovatele
-2. Vyberte **model** (levnější modely jsou v seznamu první)
+2. Vyberte **model** (levnější modely jsou v seznamu první). U **Google Gemini** lze seznam obnovit z API tlačítkem **Obnovit seznam modelů** (vyžaduje vyplněný nebo již uložený API klíč) — objeví se i novější Flash modely (např. `gemini-3.6-flash`, `gemini-3.5-flash-lite`).
 3. Vložte **API klíč** — odkaz „kde klíč získat“ je přímo pod polem
 4. **Otestovat aktivního** → **Uložit**
 
@@ -65,7 +65,7 @@ Klíče u ostatních poskytovatelů zůstávají uložené. Chcete-li později p
 | Poskytovatel | Kde získat klíč | Levný model pro start |
 |--------------|-----------------|------------------------|
 | OpenAI (ChatGPT) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | `gpt-4o-mini` |
-| Google Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | `gemini-3.1-flash-lite` |
+| Google Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | `gemini-3.5-flash-lite` |
 | Anthropic (Claude) | [console.anthropic.com](https://console.anthropic.com/settings/keys) | `claude-3-5-haiku-latest` |
 | Perplexity | [perplexity.ai → API](https://www.perplexity.ai/settings/api) | `sonar` |
 
@@ -137,7 +137,8 @@ Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u 
 1. **Menu → Minutes → Nastavení Přepisů (Minutes)**
 2. Stáhněte model **Large v3 Turbo** *(doporučeno)* — u češtiny nejlepší poměr přesnosti a rychlosti, zejména s GPU
 3. Zkontrolujte řádek **Akcelerace přepisu** — měl by ukázat `GPU — …` (ne CPU), pokud máte zapnuté GPU v nastavení
-4. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**)
+4. Máte-li **více grafických karet**, v sekci **Výkon přepisu** zvolte **Grafická karta pro akceleraci** (typicky diskrétní NVIDIA/AMD místo integrované)
+5. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**)
 
 **Tip:** Model **Medium** je menší alternativa pro slabší PC bez grafiky. **Small** je rychlejší, ale u češtiny často dělá chyby. **Large v3** je nejpřesnější, ale nejpomalejší.
 
@@ -269,6 +270,7 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 - Otevřete **Nastavení AI** → **Otestovat aktivního**
 - U cloudu: zkontrolujte API klíč, kredit u poskytovatele a internet
+- U Gemini: pokud model hlásí deprecaci, klikněte **Obnovit seznam modelů** a zvolte novější Flash (např. `gemini-3.5-flash-lite`)
 - U lokálního Gemma: stáhněte a aktivujte model (**Stáhnout a aktivovat**)
 - Ujistěte se, že je zapnuté **Povolit AI shrnutí**
 
@@ -285,6 +287,11 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 - Aktualizujte Minutes na nejnovější verzi (starší instalátory vynechávaly závislost potřebnou pro lokální model)
 - Po aktualizaci znovu otevřete **Nastavení AI** a použijte **Stáhnout a aktivovat**
+
+### Přepis běží na pomalé integrované grafice
+
+- **Nastavení Přepisů (Minutes)** → **Výkon přepisu** → **Grafická karta pro akceleraci** — vyberte diskrétní GPU
+- Ověřte indikátor **Akcelerace přepisu** (mělo by ukazovat zvolenou kartu)
 
 ### Chyba „available-locales.json not found“ při startu
 

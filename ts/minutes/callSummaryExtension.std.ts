@@ -28,10 +28,22 @@ export type WhisperModelPublic = Readonly<{
   ready: boolean;
 }>;
 
+export type WhisperGpuDevicePublic = Readonly<{
+  index: number;
+  name: string;
+  description: string;
+  type: 'gpu' | 'igpu' | 'unknown';
+  memoryTotalBytes: number;
+  label: string;
+}>;
+
 export type WhisperGpuAccelerationPublic = Readonly<{
   useGpuRequested: boolean;
   gpuDeviceCount: number;
   primaryGpuDescription: string | null;
+  selectedGpuDeviceIndex: number;
+  selectedGpuDescription: string | null;
+  devices: ReadonlyArray<WhisperGpuDevicePublic>;
   statusLabel: string;
 }>;
 
@@ -69,6 +81,9 @@ export const DEFAULT_CALL_SUMMARY_EXTENSION: CallSummaryExtensionPublic = {
     useGpuRequested: true,
     gpuDeviceCount: 0,
     primaryGpuDescription: null,
+    selectedGpuDeviceIndex: 0,
+    selectedGpuDescription: null,
+    devices: [],
     statusLabel: '—',
   },
   cpuCount: 1,

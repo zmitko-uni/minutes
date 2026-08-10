@@ -363,6 +363,50 @@ export function MinutesCallSummaryExtensionModal({
               se použije Flash Attention pro rychlejší přepis.
             </p>
 
+            {transcribeSettings.useGpu &&
+              state.gpuAcceleration.devices.length > 0 && (
+                <label className={tw('flex flex-col gap-1')}>
+                  <span>Grafická karta pro akceleraci</span>
+                  <select
+                    className={tw(
+                      'rounded-md border border-solid px-3 py-2',
+                      'border-label-disabled bg-background-primary'
+                    )}
+                    value={String(
+                      state.gpuAcceleration.selectedGpuDeviceIndex
+                    )}
+                    disabled={
+                      isBusy || state.gpuAcceleration.devices.length <= 1
+                    }
+                    onChange={event => {
+                      const gpuDeviceIndex = Number.parseInt(
+                        event.target.value,
+                        10
+                      );
+                      if (!Number.isFinite(gpuDeviceIndex)) {
+                        return;
+                      }
+                      setTranscribeSettings(prev => ({
+                        ...prev,
+                        gpuDeviceIndex,
+                      }));
+                      persistTranscribeSettings({ gpuDeviceIndex });
+                    }}
+                  >
+                    {state.gpuAcceleration.devices.map(device => (
+                      <option key={device.index} value={String(device.index)}>
+                        {device.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className={tw('text-label-small opacity-70')}>
+                    {state.gpuAcceleration.devices.length > 1
+                      ? 'Vyberte diskrétní GPU, pokud máte i integrovanou grafiku (např. notebook).'
+                      : 'Nalezena jedna grafická karta — použije se automaticky.'}
+                  </span>
+                </label>
+              )}
+
             <label className={tw('flex flex-col gap-1')}>
               <span>Počet vláken CPU</span>
               <input
