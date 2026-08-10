@@ -16,6 +16,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.21.0-m1.2.0] - 2026-08-10
+
+### Fixed
+- pin Python 3.12 for macOS release native rebuilds
+
 ## [8.21.0-m1.1.0] - 2026-08-10
 
 ### Added
