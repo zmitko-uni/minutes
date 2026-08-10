@@ -256,6 +256,14 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
+      # macos-latest ships Homebrew python@3.14; node-gyp/gyp then emits broken
+      # Makefiles ("missing separator") when rebuilding mute-state-change etc.
+      - name: Setup Python for node-gyp
+        id: python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+
       - name: Cache electron-gyp
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
@@ -266,6 +274,9 @@ jobs:
         run: pnpm install
         env:
           NPM_CONFIG_LOGLEVEL: verbose
+          # Force node-gyp away from Homebrew python@3.14 on the runner PATH
+          PYTHON: ${{ steps.python.outputs.python-path }}
+          npm_config_python: ${{ steps.python.outputs.python-path }}
 
       - name: Generate build artifacts
         run: pnpm run generate
@@ -311,6 +322,8 @@ jobs:
           MINUTES_SKIP_GENERATE: '1'
           NODE_CONFIG_ENV: minutes
           DISABLE_INSPECT_FUSE: on
+          PYTHON: ${{ steps.python.outputs.python-path }}
+          npm_config_python: ${{ steps.python.outputs.python-path }}
 
       - name: Prepare release assets
         shell: bash
