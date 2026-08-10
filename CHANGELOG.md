@@ -13,8 +13,8 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
-### Added
-- (doplňte před příštím release)
+### Changed
+- Skupinové hovory: Minutes povoluje zvonění i ve skupinách s více než 15 členy (Signal to standardně vypíná od 16). Funguje spolehlivě, pokud mají Minutes i příjemci.
 
 ## [8.21.0-m1.0.11] - 2026-07-19
 

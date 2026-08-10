@@ -33,6 +33,12 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 3. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
 4. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
+### Zvonění ve velké skupině
+
+V běžném Signálu se u skupin **od 16 členů** zvonění vypíná (hovor jde spustit, ale ostatní nezvoní). **Minutes zvonění ve velkých skupinách ponechává** — v lobby zůstane tlačítko zvonění aktivní.
+
+Aby ostatní opravdu slyšeli vyzvánění, musí mít také **Minutes** (stock Signal zvonění u velké skupiny potlačí).
+
 ---
 
 ## Nastavení AI — podrobný návod
@@ -293,6 +299,12 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
 
+### Skupinový hovor ve velké skupině nezvoní
+
+- Ověřte, že máte zapnuté zvonění v lobby před připojením (ikona zvonku)
+- Příjemci se stock Signálem ve skupině ≥ 16 členů nezvoní — potřebují Minutes
+- Hovor lze i bez zvonění připojit tlačítkem **Připojit se k hovoru** ve skupině
+
 ### Log pro podporu
 
 **Menu → Minutes → Zobrazit log**
@@ -317,4 +329,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-07-16*
+*Poslední aktualizace příručky: 2026-08-10*
