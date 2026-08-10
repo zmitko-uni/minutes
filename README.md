@@ -7,7 +7,8 @@ Fork [Signal Desktop](https://github.com/signalapp/Signal-Desktop) pro **nahráv
 
 Signal zůstává komunikační klient; Minutes přidává nástroje pro zápisy, přepisy a shrnutí.
 
-O čem je minutes? 
+O čem je minutes?
+(kliknutím přehrajte video)
 [![YouTube video](https://img.youtube.com/vi/9G3wmatkltw/maxresdefault.jpg)](https://www.youtube.com/watch?v=9G3wmatkltw)
 
 ---
