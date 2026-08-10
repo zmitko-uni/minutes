@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.1.0] - 2026-08-10
+
+### Added
 - Nastavení AI: u Google Gemini nové modely **gemini-3.5-flash-lite** a **gemini-3.6-flash**; seznam modelů lze **obnovit z API** podle dostupného klíče
 - Nastavení přepisů: při více grafických kartách lze **zvolit GPU** pro akceleraci Whisperu (dříve se používala jen první)
 
