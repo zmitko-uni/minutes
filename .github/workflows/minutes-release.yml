@@ -209,13 +209,19 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           CHANNEL="${{ steps.channel.outputs.channel }}"
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
+          TARGET_SHA="$(git rev-parse HEAD)"
           node scripts/extract-changelog-release.mjs "${VERSION}" > "${NOTES_FILE}"
 
+          # Re-runs / failed prior attempts may leave a local tag after the remote
+          # tag was deleted. gh release create then errors:
+          # "tag exists locally but has not been pushed".
           gh release delete "${TAG}" --yes 2>/dev/null || true
           git push origin ":refs/tags/${TAG}" 2>/dev/null || true
+          git tag -d "${TAG}" 2>/dev/null || true
 
           if [ "${CHANNEL}" = "beta" ]; then
             gh release create "${TAG}" \
+              --target "${TARGET_SHA}" \
               --title "Minutes ${VERSION} (beta)" \
               --prerelease \
               --notes-file "${NOTES_FILE}" \
@@ -223,6 +229,7 @@ jobs:
               "${ASSET_STABLE}"
           else
             gh release create "${TAG}" \
+              --target "${TARGET_SHA}" \
               --title "Minutes ${VERSION}" \
               --latest \
               --notes-file "${NOTES_FILE}" \
