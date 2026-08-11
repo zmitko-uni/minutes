@@ -1,6 +1,6 @@
-# Lightweight CI for Minutes — typecheck after generate (fast feedback on PRs).
+# Minutes CI — typecheck (Ubuntu) + macOS native install smoke.
 # Runs on PRs only (not every push to main) to save GitHub Actions minutes;
-# Release Minutes already typechecks before packaging.
+# Release Minutes still typechecks and packages installers.
 name: Minutes CI
 
 on:
@@ -48,6 +48,7 @@ jobs:
         run: pnpm install
         env:
           NPM_CONFIG_LOGLEVEL: verbose
+          # Skip native compile on Linux CI — typecheck only needs JS deps.
           NPM_CONFIG_NODE_GYP: echo
 
       - name: Generate build artifacts
@@ -55,3 +56,53 @@ jobs:
 
       - name: Typecheck
         run: pnpm run check:types
+
+  # Catches macOS-only postinstall failures (Python/gyp, electron-rebuild races,
+  # invalid install-app-deps flags) before Release Minutes burns a Windows build.
+  macos-native-smoke:
+    name: macOS native install (smoke)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Setup Python for node-gyp
+        id: python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+
+      - name: Cache electron-gyp
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        with:
+          path: ~/.electron-gyp
+          key: electron-gyp-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-v2
+
+      - name: Install dependencies (real native rebuild)
+        run: pnpm install
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose
+          PYTHON: ${{ steps.python.outputs.python-path }}
+          npm_config_python: ${{ steps.python.outputs.python-path }}
+          # Fail the job if electron:install-app-deps fails (same as release).
+          MINUTES_STRICT_NATIVE_BUILD: '1'
+
+      - name: Verify macOS native addons
+        run: |
+          set -euo pipefail
+          test -f packages/mute-state-change/build/Release/mute-state-change.node
+          test -f packages/mac-audio-tap/build/Release/mac-audio-tap.node
+          echo "Native addons OK:"
+          ls -la packages/mute-state-change/build/Release/*.node
+          ls -la packages/mac-audio-tap/build/Release/*.node
