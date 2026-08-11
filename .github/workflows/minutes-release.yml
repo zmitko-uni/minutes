@@ -268,7 +268,9 @@ jobs:
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: ~/.electron-gyp
-          key: electron-gyp-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          # v2: bust caches that may contain partial/corrupt Electron header trees
+          # from failed parallel native rebuilds.
+          key: electron-gyp-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-v2
 
       - name: Install dependencies
         run: pnpm install

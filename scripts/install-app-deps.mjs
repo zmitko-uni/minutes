@@ -3,8 +3,18 @@
 
 import { execSync } from 'node:child_process';
 
+// Signal's package.json sets build.nativeRebuilder=parallel. On macOS + pnpm,
+// mute-state-change and mac-audio-tap both depend on the same node-addon-api
+// path (…/node-addon-api@8.5.0/…) and parallel electron-rebuild races on
+// shared .target.mk files → make "missing separator". Force sequential.
+const installArgs = [
+  'electron-builder',
+  'install-app-deps',
+  '-c.nativeRebuilder=sequential',
+];
+
 try {
-  execSync('electron-builder install-app-deps', { stdio: 'inherit' });
+  execSync(installArgs.join(' '), { stdio: 'inherit' });
 } catch (error) {
   const strict =
     process.env.CI === 'true' ||
@@ -23,13 +33,10 @@ try {
     );
   } else if (process.platform === 'darwin') {
     console.warn(
-      '[minutes] On macOS, node-gyp needs a supported Python (3.12 recommended).'
+      '[minutes] On macOS, rebuild uses sequential mode to avoid node-addon-api makefile races.'
     );
     console.warn(
-      '[minutes] Avoid Homebrew python@3.14 — it can break gyp Makefiles ("missing separator").'
-    );
-    console.warn(
-      '[minutes] Tip: export PYTHON=$(which python3.12) before pnpm install.'
+      '[minutes] Also use Python 3.12 (not Homebrew python@3.14) — see minutes-release.yml.'
     );
   } else {
     console.warn(
