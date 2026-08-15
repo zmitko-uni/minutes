@@ -20,7 +20,9 @@ import type {
 import {
   AI_PROVIDER_DEFINITIONS,
   DEFAULT_AI_SETTINGS,
+  clampCustomSummaryInstructions,
   getAiProviderDefinition,
+  normalizeAiSummaryStyle,
 } from './aiSettings.std.ts';
 import {
   AI_DISABLED_MESSAGE_CS,
@@ -62,6 +64,8 @@ type StoredAiSettings = {
   modelsByProvider?: Partial<Record<AiProvider, string>>;
   outputLanguage: string;
   transcriptCorrectionEnabled?: boolean;
+  summaryStyle?: string;
+  customSummaryInstructions?: string;
   encryptedApiKeys?: Partial<Record<AiProvider, string>>;
   /** @deprecated migrated to encryptedApiKeys.openai */
   encryptedApiKey?: string;
@@ -206,6 +210,10 @@ async function toPublicSettings(
     transcriptCorrectionEnabled:
       stored.transcriptCorrectionEnabled ??
       DEFAULT_AI_SETTINGS.transcriptCorrectionEnabled,
+    summaryStyle: normalizeAiSummaryStyle(stored.summaryStyle),
+    customSummaryInstructions: clampCustomSummaryInstructions(
+      stored.customSummaryInstructions
+    ),
   };
 }
 
@@ -222,6 +230,8 @@ async function readStoredSettings(): Promise<StoredAiSettings> {
       outputLanguage:
         parsed.outputLanguage ?? DEFAULT_AI_SETTINGS.outputLanguage,
       transcriptCorrectionEnabled: parsed.transcriptCorrectionEnabled,
+      summaryStyle: parsed.summaryStyle,
+      customSummaryInstructions: parsed.customSummaryInstructions,
       encryptedApiKeys: migrateStoredKeys(parsed),
     };
   } catch {
@@ -230,6 +240,8 @@ async function readStoredSettings(): Promise<StoredAiSettings> {
       provider: DEFAULT_AI_SETTINGS.provider,
       outputLanguage: DEFAULT_AI_SETTINGS.outputLanguage,
       transcriptCorrectionEnabled: DEFAULT_AI_SETTINGS.transcriptCorrectionEnabled,
+      summaryStyle: DEFAULT_AI_SETTINGS.summaryStyle,
+      customSummaryInstructions: DEFAULT_AI_SETTINGS.customSummaryInstructions,
       encryptedApiKeys: {},
       modelsByProvider: {},
     };
@@ -247,6 +259,8 @@ async function writeStoredSettings(stored: StoredAiSettings): Promise<void> {
     modelsByProvider: migrateModelsByProvider(stored),
     outputLanguage: stored.outputLanguage,
     transcriptCorrectionEnabled: stored.transcriptCorrectionEnabled,
+    summaryStyle: stored.summaryStyle,
+    customSummaryInstructions: stored.customSummaryInstructions,
     encryptedApiKeys: migrateStoredKeys(stored),
   };
   await writeFile(path, JSON.stringify(toWrite, null, 2), 'utf8');
@@ -303,6 +317,10 @@ export async function saveAiSettings(
   stored.outputLanguage =
     input.outputLanguage.trim() || DEFAULT_AI_SETTINGS.outputLanguage;
   stored.transcriptCorrectionEnabled = input.transcriptCorrectionEnabled;
+  stored.summaryStyle = normalizeAiSummaryStyle(input.summaryStyle);
+  stored.customSummaryInstructions = clampCustomSummaryInstructions(
+    input.customSummaryInstructions
+  );
 
   const resolvedModel = input.model.trim() || providerDef.defaultModel;
   // Cloud providers may use dynamically discovered model IDs (e.g. Gemini API list).

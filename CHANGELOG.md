@@ -14,7 +14,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- Nastavení AI: **styl shrnutí** — Stručný (výchozí), Detailní, Smart nebo Vlastní instrukce; lze zobrazit náhled system promptu. Platí pro chaty i hovory. Ve **Přepisy** lze hotové shrnutí **přegenerovat** aktuálním stylem.
 
 ## [8.21.0-m1.2.1] - 2026-08-10
 
