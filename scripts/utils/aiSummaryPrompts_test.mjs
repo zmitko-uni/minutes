@@ -3,7 +3,12 @@
 
 import { assert } from 'chai';
 
-import { sanitizeAiChatSummary } from '../../ts/minutes/aiSummaryPrompts.std.ts';
+import {
+  buildChatSummaryPrompts,
+  buildChatSummarySystemPrompt,
+  getAiChatSummaryLimits,
+  sanitizeAiChatSummary,
+} from '../../ts/minutes/aiSummaryPrompts.std.ts';
 
 describe('sanitizeAiChatSummary', () => {
   it('removes hallucinated Zajistit že action items and dedupes', () => {
@@ -32,5 +37,87 @@ Rozhodnutí a úkoly:
       line.includes('Odladit Whisper')
     ).length;
     assert.equal(whisperCount, 1);
+  });
+
+  it('keeps more action items in detailed style', () => {
+    const bullets = Array.from(
+      { length: 12 },
+      (_, index) => `- Osoba ${index}: Úkol ${index}.`
+    ).join('\n');
+    const input = `Shrnutí:\nDlouhý meeting.\n\nRozhodnutí a úkoly:\n${bullets}`;
+    const brief = sanitizeAiChatSummary(input);
+    const detailed = sanitizeAiChatSummary(
+      input,
+      getAiChatSummaryLimits('detailed')
+    );
+    const briefCount = brief.split('\n').filter(line => line.startsWith('-'))
+      .length;
+    const detailedCount = detailed
+      .split('\n')
+      .filter(line => line.startsWith('-')).length;
+    assert.equal(briefCount, 6);
+    assert.equal(detailedCount, 12);
+  });
+});
+
+describe('buildChatSummarySystemPrompt', () => {
+  it('uses Czech brief rules by default', () => {
+    const prompt = buildChatSummarySystemPrompt({ outputLanguage: 'cs' });
+    assert.include(prompt, 'výhradně v češtině');
+    assert.include(prompt, 'maximálně 2800 znaků');
+    assert.include(prompt, 'nepoužívej markdown');
+    assert.notInclude(prompt, 'Instrukce uživatele');
+  });
+
+  it('uses detailed rules and English when requested', () => {
+    const prompt = buildChatSummarySystemPrompt({
+      outputLanguage: 'en',
+      style: 'detailed',
+    });
+    assert.include(prompt, 'only in English');
+    assert.include(prompt, '1–3 paragraphs');
+    assert.include(prompt, 'at most 15 bullets');
+  });
+
+  it('appends custom instructions only in custom style', () => {
+    const custom = buildChatSummarySystemPrompt({
+      outputLanguage: 'cs',
+      style: 'custom',
+      customInstructions: 'Tykej a ignoruj small talk.',
+    });
+    assert.include(custom, '--- Instrukce uživatele ---');
+    assert.include(custom, 'Tykej a ignoruj small talk.');
+    assert.include(custom, 'formát má přednost');
+
+    const brief = buildChatSummarySystemPrompt({
+      outputLanguage: 'cs',
+      style: 'brief',
+      customInstructions: 'Tykej a ignoruj small talk.',
+    });
+    assert.notInclude(brief, 'Tykej a ignoruj small talk.');
+  });
+
+  it('smart prompt asks the model to scale length', () => {
+    const prompt = buildChatSummarySystemPrompt({
+      outputLanguage: 'cs',
+      style: 'smart',
+    });
+    assert.include(prompt, 'odhadni rozsah');
+    assert.include(prompt, 'délka podle rozsahu přepisu');
+  });
+});
+
+describe('buildChatSummaryPrompts', () => {
+  it('does not put the transcript into the system prompt', () => {
+    const { systemPrompt, userPrompt } = buildChatSummaryPrompts({
+      outputLanguage: 'cs',
+      conversationTitle: 'Test chat',
+      scopeLabel: 'Celý chat',
+      transcript: 'TAJNY_PREPIS_XYZ',
+      style: 'brief',
+    });
+    assert.notInclude(systemPrompt, 'TAJNY_PREPIS_XYZ');
+    assert.include(userPrompt, 'TAJNY_PREPIS_XYZ');
+    assert.include(userPrompt, 'Test chat');
   });
 });
