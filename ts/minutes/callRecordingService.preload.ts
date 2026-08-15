@@ -24,6 +24,8 @@ import {
 import { enqueueRecordingTranscription } from './callTranscriptionService.preload.ts';
 import { speakerActivityLogger } from './speakerActivityLogger.preload.ts';
 import { clampSpeakerActivityLogToPcmDuration } from './speakerActivity.std.ts';
+import { getRecordingChatNotice } from './recordingChatNotice.std.ts';
+import { sendSignalChatMessage } from './sendSignalChatMessage.preload.ts';
 
 const log = createLogger('minutes/callRecording');
 
@@ -31,6 +33,7 @@ class CallRecordingService {
   #recorder = new CallRecorder();
   #state: MinutesRecordingState = { status: 'idle' };
   #finalizing = false;
+  #chatNoticeChain: Promise<void> = Promise.resolve();
 
   getState(): MinutesRecordingState {
     return this.#state;
@@ -127,6 +130,7 @@ class CallRecordingService {
     });
 
     log.info(`recording started: ${conversationTitle}`);
+    this.#announceRecording(options.conversationId, 'started');
     return true;
   } catch (error) {
     log.error('startRecording failed', error);
@@ -220,6 +224,7 @@ class CallRecordingService {
     try {
       const { conversationId, conversationTitle, callMode, eraId, startedAt } =
         active;
+      this.#announceRecording(conversationId, 'stopped');
       const endedAt = Date.now();
 
       const recording = await this.#recorder.stop();
@@ -279,6 +284,25 @@ class CallRecordingService {
       this.#finalizing = false;
       this.#setState({ status: 'idle' });
     }
+  }
+
+  #announceRecording(
+    conversationId: string,
+    phase: 'started' | 'stopped'
+  ): void {
+    const text = getRecordingChatNotice(phase);
+    this.#chatNoticeChain = this.#chatNoticeChain
+      .then(async () => {
+        await sendSignalChatMessage(
+          conversationId,
+          text,
+          `recording-notice-${phase}`,
+          { silent: true }
+        );
+      })
+      .catch(error => {
+        log.error(`recording chat notice (${phase}) failed`, error);
+      });
   }
 }
 

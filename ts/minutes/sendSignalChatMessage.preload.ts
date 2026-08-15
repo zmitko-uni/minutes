@@ -13,27 +13,35 @@ const MAX_MESSAGE_BODY_LENGTH = 64 * 1024;
 export async function sendSignalChatMessage(
   conversationId: string,
   text: string,
-  logLabel: string
+  logLabel: string,
+  options?: { silent?: boolean }
 ): Promise<boolean> {
+  const silent = options?.silent === true;
   const conversation = window.ConversationController.get(conversationId);
   if (!conversation) {
     log.warn(`${logLabel}: conversation not found (${conversationId})`);
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.InvalidConversation,
-    });
+    if (!silent) {
+      window.reduxActions.toast.showToast({
+        toastType: ToastType.InvalidConversation,
+      });
+    }
     return false;
   }
 
   const formatted = formatMarkdownForSignalMessage(text);
   if (!formatted.body) {
-    window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+    if (!silent) {
+      window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+    }
     return false;
   }
 
   if (formatted.body.length > MAX_MESSAGE_BODY_LENGTH) {
-    window.reduxActions.toast.showToast({
-      toastType: ToastType.MessageBodyTooLong,
-    });
+    if (!silent) {
+      window.reduxActions.toast.showToast({
+        toastType: ToastType.MessageBodyTooLong,
+      });
+    }
     return false;
   }
 
@@ -52,7 +60,9 @@ export async function sendSignalChatMessage(
     return true;
   } catch (error) {
     log.error(`${logLabel} failed: ${Errors.toLogFormat(error)}`);
-    window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+    if (!silent) {
+      window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+    }
     return false;
   }
 }

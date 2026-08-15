@@ -28,8 +28,8 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 
 ### 3. Nahrajte a přepište hovor
 
-1. Během hovoru stiskněte **Record** (vedle mute)
-2. Po skončení se nahrávka uloží automaticky
+1. Během hovoru stiskněte **Record** (vedle mute) — do chatu odejde **🔴 This meeting is being recorded.**
+2. Po skončení se nahrávka uloží automaticky a do chatu odejde **⏹️ The recording has stopped.**
 3. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
 4. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
@@ -124,11 +124,13 @@ Export proběhne vždy — uloží se přepis zpráv. Lišta upozorní, že AI s
 
 V obrazovce hovoru (vedle mute):
 
-- **Record** — začne nahrávání (funguje i bez Whisperu — uloží se MP3)
-- **Pause / Resume** — pozastaví / obnoví nahrávku i log řečníků
-- **Stop** — ukončí a uloží
+- **Record** — začne nahrávání (funguje i bez Whisperu — uloží se MP3). Do chatu hovoru odejde zpráva **🔴 This meeting is being recorded.**
+- **Pause / Resume** — pozastaví / obnoví nahrávku i log řečníků (do chatu se nic neposílá)
+- **Stop** — ukončí a uloží. Do chatu odejde **⏹️ The recording has stopped.**
 
-Po **skončení hovoru** se aktivní nahrávka uloží automaticky.
+Po **skončení hovoru** se aktivní nahrávka uloží automaticky (stejná zpráva o zastavení jako u **Stop**).
+
+Zprávu uvidí **všichni v konverzaci** (skupina i hovor 1:1), včetně lidí na mobilu a v běžném Signálu. Odesílá ji ten, kdo nahrávání spustil.
 
 Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u vás). To pomáhá u přepisu a shrnutí přiřadit věty správným lidem.
 
@@ -156,7 +158,7 @@ Soubory: `.mp3`, `.json` (metadata), `.transcript.md`, volitelně `.summary.md`.
 
 ### Právní upozornění
 
-Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba.
+Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba. Minutes po **Record** / **Stop** samo napíše do chatu anglické upozornění (🔴 / ⏹️), ale to nenahrazuje souhlas tam, kde ho zákon vyžaduje.
 
 ### Nahrávání na macOS
 
@@ -312,6 +314,12 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
 
+### Do chatu nedorazilo upozornění o nahrávání
+
+- Zpráva jde z účtu toho, kdo klikl na **Record** / **Stop**, do stejného chatu jako hovor
+- Pause a Resume zprávu neposílají
+- Pokud hovor spadl dřív, než se nahrávka stihla spustit, zpráva o startu neodejde
+
 ### Skupinový hovor ve velké skupině nezvoní
 
 - Ověřte, že máte zapnuté zvonění v lobby před připojením (ikona zvonku)
@@ -342,4 +350,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-08-10*
+*Poslední aktualizace příručky: 2026-08-15*

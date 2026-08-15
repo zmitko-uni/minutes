@@ -14,7 +14,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- Po spuštění a ukončení nahrávání hovoru Minutes automaticky napíše do chatu **🔴 This meeting is being recorded.** a **⏹️ The recording has stopped.** (skupina i hovor 1:1; Pause/Resume zprávu neposílá)
 
 ## [8.21.0-m1.2.1] - 2026-08-10
 

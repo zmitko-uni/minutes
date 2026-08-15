@@ -78,7 +78,8 @@
 | `ts/minutes/aiSettingsService.preload.ts` | preload IPC wrapper |
 | `ts/minutes/components/MinutesSettingsModal.dom.tsx` | dialog AI nastavení |
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
-| `ts/minutes/callRecordingService.preload.ts` | větev podle platformy — macOS loopback přes `macLoopbackAudio.preload.ts`, jinak Windows `desktopCapturer` |
+| `ts/minutes/callRecordingService.preload.ts` | větev podle platformy — macOS loopback přes `macLoopbackAudio.preload.ts`, jinak Windows `desktopCapturer`; po start/stop nahrávání zpráva do chatu |
+| `ts/minutes/recordingChatNotice.std.ts` | texty upozornění o nahrávání (🔴 start / ⏹️ stop) |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/minutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |
 | `ts/sql/Server.node.ts` | `markMessagesUnreadFromAnchor` — SQL UPDATE readStatus/seenStatus |
