@@ -81,6 +81,7 @@
 | `ts/minutes/anthropicSummary.main.ts` | Anthropic Claude API |
 | `ts/minutes/aiSettingsService.preload.ts` | preload IPC wrapper |
 | `ts/minutes/components/MinutesSettingsModal.dom.tsx` | dialog AI nastavení |
+| `ts/minutes/components/MinutesSummaryStyleFields.dom.tsx` | styl shrnutí (Stručný / Detailní / Smart / Vlastní) + náhled promptu |
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
 | `ts/minutes/callRecordingService.preload.ts`, `callRecordingServiceCore.std.ts` | MP3 lifecycle nad jediným RingRTC audio trackem; žádný samostatný mikrofon ani systémový loopback |
 | `ts/minutes/captureCoordinator.std.ts` | vzájemné vyloučení audio/video nahrávání a společná finalizace |
@@ -116,6 +117,7 @@
 | `images/minutes/app-icon-source.png` | zdrojová ikona Minutes (M + skupina) |
 | `scripts/generate-minutes-icons.mjs` | generuje .ico + PNG velikosti; na macOS navíc `.icns` přes `iconutil` (`build/icons/minutes/mac/icon.icns`) |
 | `setup-minutes.sh`, `start-minutes.sh`, `start-minutes-quick.sh`, `minutes-quality-gate.sh`, `test-call-pipeline.sh`, `prepare-minutes-release.sh`, `build-minutes-release.sh` | macOS obdoby `.bat` skriptů (Xcode Command Line Tools místo Visual Studio) |
+| `scripts/minutes-ensure-pnpm.sh`, `minutes-control/_ensure-pnpm.bat` | kontrola pinu pnpm (`packageManager`, teď 11.5.2) — novější globální pnpm v tomto repo spadne |
 | `scripts/generate-minutes-tray-icons.mjs` | tray ikony (base + badge) |
 | `images/tray-icons/base/minutes-tray-icon-*` | vygenerované tray ikony |
 | `images/tray-icons/alert/minutes-tray-icon-*` | tray ikony s počtem nepřečtených |

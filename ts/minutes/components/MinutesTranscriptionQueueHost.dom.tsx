@@ -410,16 +410,17 @@ function HistoryRecordingCard({
             Spustit přepis
           </button>
         ) : null}
-        {entry.hasTranscript && !entry.hasSummary ? (
+        {entry.hasTranscript ? (
           <button
             type="button"
             disabled={Boolean(activeJob)}
+            title="Použije aktuální styl z Nastavení AI"
             onClick={() => {
               onEnqueueSummary(entry);
               onRefresh();
             }}
           >
-            Vygenerovat shrnutí
+            {entry.hasSummary ? 'Přegenerovat shrnutí' : 'Vygenerovat shrnutí'}
           </button>
         ) : null}
         {entry.hasTranscript ? (

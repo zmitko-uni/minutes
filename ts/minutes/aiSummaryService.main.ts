@@ -1,8 +1,12 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { AiProvider } from './aiSettings.std.ts';
-import { getAiProviderDefinition } from './aiSettings.std.ts';
+import {
+  DEFAULT_AI_SUMMARY_STYLE,
+  getAiProviderDefinition,
+  type AiProvider,
+  type AiSummaryStyle,
+} from './aiSettings.std.ts';
 import { generateAnthropicSummary, testAnthropicConnection } from './anthropicSummary.main.ts';
 import {
   generateGeminiSummary,
@@ -26,9 +30,9 @@ import {
   buildAiOpinionPrompts,
 } from './aiOpinionPrompts.std.ts';
 import {
-  AI_CHAT_SUMMARY_MAX_TOKENS,
   buildChatSummaryPrompts,
   buildUnreadConversationPrompts,
+  getAiChatSummaryLimits,
   sanitizeAiChatSummary,
 } from './aiSummaryPrompts.std.ts';
 
@@ -64,16 +68,27 @@ export async function generateAiSummaryForProvider(options: {
   conversationTitle: string;
   scopeLabel: string;
   transcript: string;
+  style?: AiSummaryStyle;
+  customInstructions?: string;
   systemPromptOverride?: string;
   userPromptOverride?: string;
 }): Promise<string> {
+  const style = options.style ?? DEFAULT_AI_SUMMARY_STYLE;
+  const limits = getAiChatSummaryLimits(style);
   const { systemPrompt, userPrompt } =
     options.systemPromptOverride && options.userPromptOverride
       ? {
           systemPrompt: options.systemPromptOverride,
           userPrompt: options.userPromptOverride,
         }
-      : buildChatSummaryPrompts(options);
+      : buildChatSummaryPrompts({
+          outputLanguage: options.outputLanguage,
+          conversationTitle: options.conversationTitle,
+          scopeLabel: options.scopeLabel,
+          transcript: options.transcript,
+          style,
+          customInstructions: options.customInstructions,
+        });
 
   const raw = await generateAiTextForProvider({
     provider: options.provider,
@@ -82,10 +97,10 @@ export async function generateAiSummaryForProvider(options: {
     systemPrompt,
     userPrompt,
     temperature: 0.2,
-    maxTokens: AI_CHAT_SUMMARY_MAX_TOKENS,
+    maxTokens: limits.maxTokens,
   });
 
-  return sanitizeAiChatSummary(raw);
+  return sanitizeAiChatSummary(raw, limits);
 }
 
 export async function generateAiOpinionForProvider(options: {
