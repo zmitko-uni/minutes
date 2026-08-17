@@ -3,10 +3,7 @@
 
 import packageJson from '../../package.json' with { type: 'json' };
 
-import {
-  compareMinutesVersions,
-  isMinutesBetaVersion,
-} from './version.std.ts';
+import { compareMinutesVersions, isMinutesBetaVersion } from './version.std.ts';
 
 export type MinutesReleaseChannel = 'prod' | 'beta';
 
@@ -20,7 +17,10 @@ export const MINUTES_PROD_APP_ID = 'org.minutes.desktop';
 export const MINUTES_BETA_APP_ID = 'org.minutes.desktop.beta';
 
 export const MINUTES_PROD_INSTALLER_ASSET = 'Minutes-setup-windows-x64.exe';
-export const MINUTES_BETA_INSTALLER_ASSET = 'Minutes-Beta-setup-windows-x64.exe';
+export const MINUTES_BETA_INSTALLER_ASSET =
+  'Minutes-Beta-setup-windows-x64.exe';
+export const MINUTES_PROD_INSTALLER_ASSET_MACOS = 'Minutes-mac-arm64.dmg';
+export const MINUTES_BETA_INSTALLER_ASSET_MACOS = 'Minutes-Beta-mac-arm64.dmg';
 
 export function isMinutesBetaProductName(
   productName: string | undefined
@@ -29,13 +29,22 @@ export function isMinutesBetaProductName(
 }
 
 export function getMinutesReleaseChannel(
-  productName: string | undefined = packageJson.productName
+  productName: string | undefined = packageJson.productName,
+  packagedChannel: MinutesReleaseChannel | undefined = (
+    packageJson as typeof packageJson & {
+      readonly minutesChannel?: MinutesReleaseChannel;
+    }
+  ).minutesChannel
 ): MinutesReleaseChannel {
   if (
     typeof process !== 'undefined' &&
     process.env?.MINUTES_DEV_CHANNEL === 'beta'
   ) {
     return 'beta';
+  }
+
+  if (packagedChannel === 'beta' || packagedChannel === 'prod') {
+    return packagedChannel;
   }
 
   return isMinutesBetaProductName(productName) ? 'beta' : 'prod';

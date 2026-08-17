@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import {
+  MINUTES_BETA_INSTALLER_ASSET_MACOS,
+  MINUTES_PROD_INSTALLER_ASSET_MACOS,
   getMinutesInstallerAssetName,
   getMinutesReleaseChannel,
   type MinutesReleaseChannel,
@@ -15,13 +17,9 @@ export const MINUTES_GITHUB_RELEASES_LATEST_API_URL = `https://api.github.com/re
 
 export const MINUTES_GITHUB_RELEASES_LIST_API_URL = `https://api.github.com/repos/${MINUTES_GITHUB_REPO}/releases?per_page=30`;
 
-const MINUTES_INSTALLER_ASSET_NAME_MACOS = 'Minutes-mac-arm64.dmg';
-
 /**
- * GitHub release asset name for the given platform + release channel. macOS
- * ships a single arm64 dmg (no per-channel variant), so on 'darwin' the channel
- * is ignored; every other platform uses the channel-specific Windows installer
- * name from releaseChannel.std. `platform` mirrors the values of
+ * GitHub release asset name for the given platform + release channel. `platform`
+ * mirrors the values of
  * `process.platform` ('darwin', 'win32', …); pass `window.platform` from
  * renderer/DOM contexts.
  */
@@ -29,9 +27,13 @@ export function getMinutesInstallerAssetNameForPlatform(
   platform: string,
   channel: MinutesReleaseChannel = getMinutesReleaseChannel()
 ): string {
-  return platform === 'darwin'
-    ? MINUTES_INSTALLER_ASSET_NAME_MACOS
-    : getMinutesInstallerAssetName(channel);
+  if (platform === 'darwin') {
+    return channel === 'beta'
+      ? MINUTES_BETA_INSTALLER_ASSET_MACOS
+      : MINUTES_PROD_INSTALLER_ASSET_MACOS;
+  }
+
+  return getMinutesInstallerAssetName(channel);
 }
 
 /** Builds the "latest release" download URL for the given platform's asset. */
