@@ -77,6 +77,7 @@
 | `ts/minutes/anthropicSummary.main.ts` | Anthropic Claude API |
 | `ts/minutes/aiSettingsService.preload.ts` | preload IPC wrapper |
 | `ts/minutes/components/MinutesSettingsModal.dom.tsx` | dialog AI nastavení |
+| `ts/minutes/components/MinutesSummaryStyleFields.dom.tsx` | styl shrnutí (Stručný / Detailní / Smart / Vlastní) + náhled promptu |
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
 | `ts/minutes/callRecordingService.preload.ts` | větev podle platformy — macOS loopback přes `macLoopbackAudio.preload.ts`, jinak Windows `desktopCapturer` |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
@@ -103,6 +104,7 @@
 | `packages/mac-audio-tap/**` | native workspace balíček — ScreenCaptureKit binding pro systémové audio na macOS (13+) |
 | `ts/minutes/macLoopbackAudio.preload.ts` | renderer wrapper nad `@minutes/mac-audio-tap` (loopback MediaStream) |
 | `setup-minutes.sh`, `start-minutes.sh`, `start-minutes-quick.sh`, `minutes-quality-gate.sh`, `test-call-pipeline.sh`, `prepare-minutes-release.sh`, `build-minutes-release.sh` | macOS obdoby `.bat` skriptů (Xcode Command Line Tools místo Visual Studio) |
+| `scripts/minutes-ensure-pnpm.sh`, `minutes-control/_ensure-pnpm.bat` | kontrola pinu pnpm (`packageManager`, teď 11.5.2) — novější globální pnpm v tomto repo spadne |
 | `scripts/generate-minutes-tray-icons.mjs` | tray ikony (base + badge) |
 | `images/tray-icons/base/minutes-tray-icon-*` | vygenerované tray ikony |
 | `images/tray-icons/alert/minutes-tray-icon-*` | tray ikony s počtem nepřečtených |

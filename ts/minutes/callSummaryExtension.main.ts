@@ -815,6 +815,8 @@ export async function transcribeCallRecording(options: {
         conversationTitle: options.conversationTitle,
         scopeLabel: 'Přepis hovoru',
         transcript: correctedTranscriptForAi,
+        style: settings.summaryStyle,
+        customInstructions: settings.customSummaryInstructions,
       });
       summaryPath = `${basePath}.summary.md`;
       await writeFile(summaryPath, summaryText, 'utf8');
@@ -898,6 +900,8 @@ export async function generateCallRecordingSummary(options: {
       conversationTitle: options.conversationTitle,
       scopeLabel: 'Přepis hovoru',
       transcript,
+      style: settings.summaryStyle,
+      customInstructions: settings.customSummaryInstructions,
     });
 
     throwIfTranscriptionCancelled(options.jobId);

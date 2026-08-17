@@ -518,6 +518,8 @@ export function initializeMinutesChannel(): void {
         conversationTitle: options.conversationTitle,
         scopeLabel: options.scopeLabel,
         transcript: options.transcript,
+        style: settings.summaryStyle,
+        customInstructions: settings.customSummaryInstructions,
       });
     }
   );

@@ -14,6 +14,7 @@ Vaše data (nahrávky, exporty, modely) zůstávají **primárně u vás na disk
 2. Zapněte **Povolit AI shrnutí**
 3. Nastavte v tomto pořadí:
    - **Jazyk shrnutí** — nechte `cs` pro češtinu
+   - **Styl shrnutí** — nechte **Stručný**, nebo zvolte Detailní / Smart / Vlastní
    - **Poskytovatel** — vyberte, kdo bude tvořit shrnutí
    - Podle poskytovatele doplňte **model** a **API klíč**, nebo u lokálního Gemma **stáhněte model**
 4. Klikněte **Otestovat aktivního**, pak **Uložit**
@@ -50,8 +51,24 @@ Dialog **Minutes → Nastavení AI** je uspořádaný shora dolů:
 | 1 | Povolit AI shrnutí | Zapne/vypne AI u chatů a hovorů |
 | 2 | Opravit přepis hovoru | Po Whisperu opraví zjevné chyby v textu |
 | 3 | **Jazyk shrnutí** | `cs` = čeština, `en` = angličtina |
-| 4 | **Poskytovatel** | Kdo shrnutí vytvoří |
-| 5 | Model + klíč / stažení | Zobrazí se podle zvoleného poskytovatele |
+| 4 | **Styl shrnutí** | Stručný / Detailní / Smart / Vlastní |
+| 5 | **Poskytovatel** | Kdo shrnutí vytvoří |
+| 6 | Model + klíč / stažení | Zobrazí se podle zvoleného poskytovatele |
+
+### Styl shrnutí
+
+Platí pro **sumarizaci chatů** i **AI shrnutí hovorů**. Nepřečtené zprávy mají vlastní krátký formát (TÉMA / TYP) a tento výběr je neovlivní.
+
+| Styl | Co dostanete |
+|------|----------------|
+| **Stručný** *(výchozí)* | Pár vět, jen úkoly, které někdo opravdu převzal |
+| **Detailní** | Delší průběh, u úkolů kdo / co / termín pokud zazněl |
+| **Smart** | Délku zvolí model podle rozsahu přepisu |
+| **Vlastní** | Doplníte vlastní instrukce (tón, důraz). Formát zprávy v Signalu zůstane stejný |
+
+U každého stylu lze **zobrazit prompt** — co model vždy dostane. Tuto část nelze přepsat (drží prostý text pro Signal). U **Vlastní** se vaše instrukce přidají na konec.
+
+Po přepisu hovoru se použije aktuálně uložený styl. V **Přepisy (Minutes)** u hotového přepisu můžete **Přegenerovat shrnutí** — stačí předtím v Nastavení AI změnit styl a uložit.
 
 ### Cloud poskytovatel (OpenAI, Gemini, Claude, Perplexity)
 
@@ -94,7 +111,7 @@ Shrnutí proběhne **jen na vašem počítači** — nic se neposílá do cloudu
 ### Co dostanete
 
 - Soubor **Markdown** (`.md`) s přepisem zpráv
-- Volitelně sekci **AI Summary** (pokud je AI zapnuté a nastavené)
+- Volitelně sekci **AI Summary** (pokud je AI zapnuté a nastavené) — podle **stylu shrnutí** v Nastavení AI
 - Metadata v `.json` souboru
 
 ### Jak spustit
@@ -146,7 +163,7 @@ Přepis probíhá **lokálně** — audio se do cloudu neposílá. Do cloudu jde
 
 ### AI shrnutí hovoru
 
-Stejné nastavení jako u chatů (**Nastavení AI**). Shrnutí vznikne nad hotovým přepisem a může obsahovat jména řečníků.
+Stejné nastavení jako u chatů (**Nastavení AI** včetně **stylu shrnutí**). Shrnutí vznikne nad hotovým přepisem a může obsahovat jména řečníků. Chcete-li jiný styl, změňte ho v Nastavení AI a v **Přepisy** klikněte **Přegenerovat shrnutí**.
 
 ### Kam se ukládá
 
@@ -187,7 +204,7 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 | Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
 | Záložky | Seznam záložek (Ctrl+Shift+B) |
 | Přepisy (Minutes) | Fronta přepisů, historie nahrávek (Ctrl+Shift+M) |
-| Nastavení AI | Jazyk, poskytovatel, model, API klíč / lokální Gemma |
+| Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Příručka | Tato nápověda |
 | O Minutes | Úvodní obrazovka s přehledem funkcí |
@@ -278,6 +295,12 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 - V **Nastavení AI** nastavte **Jazyk shrnutí** na `cs` a uložte
 - U lokálního Gemma zkuste větší model (Gemma 4 12B)
+
+### Shrnutí je moc krátké nebo naopak rozvláčné
+
+- V **Nastavení AI** zvolte **Styl shrnutí**: Stručný, Detailní nebo Smart
+- U **Vlastní** doplňte instrukce (např. „rozepiš každý úkol“) a uložte
+- U hovoru pak v **Přepisy** použijte **Přegenerovat shrnutí**
 
 ### Chyba „No sequences left“ (lokální model)
 
