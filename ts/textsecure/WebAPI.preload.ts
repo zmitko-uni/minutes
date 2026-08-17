@@ -21,6 +21,8 @@ import {
 } from '@signalapp/libsignal-client';
 import { AccountAttributes } from '@signalapp/libsignal-client/dist/net.js';
 import type {
+  BackupAuth,
+  LinkedDevice,
   ProvisioningConnection,
   ProvisioningConnectionListener,
   RegisterAccountResponse,
@@ -72,12 +74,7 @@ import {
 import type { BackupPresentationHeadersType } from '../types/backups.node.ts';
 import { HTTPError } from '../types/HTTPError.std.ts';
 import * as Bytes from '../Bytes.std.ts';
-import {
-  decryptHmacSIV,
-  encryptHmacSIV,
-  getRandomBytes,
-  randomInt,
-} from '../Crypto.node.ts';
+import { getRandomBytes, randomInt } from '../Crypto.node.ts';
 import * as linkPreviewFetch from '../linkPreviews/linkPreviewFetch.preload.ts';
 import { isBadgeImageFileUrlValid } from '../badges/isBadgeImageFileUrlValid.std.ts';
 
@@ -103,11 +100,7 @@ import { HOUR, MINUTE, SECOND } from '../util/durations/index.std.ts';
 import { safeParseNumber } from '../util/numbers.std.ts';
 import { getLibsignalNet } from './preconnect.preload.ts';
 import type { GroupSendToken } from '../types/GroupSendEndorsements.std.ts';
-import {
-  parseUnknown,
-  parseLoose,
-  safeParseUnknown,
-} from '../util/schemas.std.ts';
+import { parseUnknown, safeParseUnknown } from '../util/schemas.std.ts';
 import type {
   ProfileFetchAuthRequestOptions,
   ProfileFetchUnauthRequestOptions,
@@ -148,7 +141,6 @@ import {
   SessionNotVerifiedError,
 } from './Errors.std.ts';
 import { PhoneNumberDiscoverability } from '../util/phoneNumberDiscoverability.std.ts';
-import { PinHash } from '@signalapp/libsignal-client/dist/AccountKeys';
 import { sleep } from '../util/sleep.std.ts';
 import { exponentialBackoffSleepTime } from '../util/exponentialBackoff.std.ts';
 
@@ -804,8 +796,6 @@ const CHAT_CALLS = {
   getIceServers: 'v2/calling/relays',
   getStickerPackUpload: 'v1/sticker/pack/form',
   getBackupCredentials: 'v1/archives/auth',
-  getBackupCDNCredentials: 'v1/archives/auth/read',
-  getBackupUploadForm: 'v1/archives/upload/form',
   getBackupMediaUploadForm: 'v1/archives/media/upload/form',
   keys: 'v2/keys',
   linkDevice: 'v1/devices/link',
@@ -821,17 +811,15 @@ const CHAT_CALLS = {
   callLinkCreateAuth: 'v1/call-link/create-auth',
   callQualitySurvey: 'v1/call_quality_survey',
   redeemReceipt: 'v1/donation/redeem-receipt',
-  registration: 'v1/registration',
+  registrationLock: 'v1/accounts/registration_lock',
   registerCapabilities: 'v1/devices/capabilities',
   reportMessage: 'v1/messages/report',
   setBackupId: 'v1/archives/backupid',
-  setBackupSignatureKey: 'v1/archives/keys',
   signed: 'v2/keys/signed',
   storageToken: 'v1/storage/auth',
   subscriptions: 'v1/subscription',
   subscriptionConfiguration: 'v1/subscription/configuration',
   transferArchive: 'v1/devices/transfer_archive',
-  updateDeviceName: 'v1/accounts/name',
   username: 'v1/accounts/username_hash',
   reserveUsername: 'v1/accounts/username_hash/reserve',
   confirmUsername: 'v1/accounts/username_hash/confirm',
@@ -1016,19 +1004,6 @@ export type GetAccountForUsernameOptionsType = Readonly<{
 
 export type GetAccountForUsernameResultType = AciString | null;
 
-const getDevicesResultZod = z.object({
-  devices: z.array(
-    z.object({
-      id: z.number(),
-      name: z.string().nullish(), // primary devices may not have a name
-      lastSeen: z.number().nullish(),
-      createdAtCiphertext: z.string(),
-    })
-  ),
-});
-
-export type GetDevicesResultType = z.infer<typeof getDevicesResultZod>;
-
 export type GetIceServersResultType = Readonly<{
   relays?: ReadonlyArray<IceServerGroupType>;
 }>;
@@ -1186,9 +1161,12 @@ const attachmentUploadFormResponse = z.object({
   signedUploadLocation: z.string(),
 });
 
-export type AttachmentUploadFormResponseType = z.infer<
-  typeof attachmentUploadFormResponse
->;
+export type AttachmentUploadFormType = {
+  cdn: number;
+  key: string;
+  headers: Record<string, string>;
+  signedUploadLocation: string;
+};
 
 const ServerKeyCountSchema = z.object({
   count: z.number(),
@@ -1334,11 +1312,6 @@ export type SetBackupIdOptionsType = Readonly<{
   mediaBackupAuthCredentialRequest: Uint8Array<ArrayBuffer>;
 }>;
 
-export type SetBackupSignatureKeyOptionsType = Readonly<{
-  headers: BackupPresentationHeadersType;
-  backupIdPublicKey: Uint8Array<ArrayBuffer>;
-}>;
-
 export type UploadBackupOptionsType = Readonly<{
   headers: BackupPresentationHeadersType;
   stream: Readable;
@@ -1437,18 +1410,9 @@ export type GetBackupCredentialsResponseType = z.infer<
   typeof getBackupCredentialsResponseSchema
 >;
 
-export type GetBackupCDNCredentialsOptionsType = Readonly<{
-  headers: BackupPresentationHeadersType;
-  cdnNumber: number;
+export type GetBackupCDNCredentialsResponseType = Readonly<{
+  headers: Record<string, string>;
 }>;
-
-export const getBackupCDNCredentialsResponseSchema = z.object({
-  headers: z.record(z.string(), z.string()),
-});
-
-export type GetBackupCDNCredentialsResponseType = z.infer<
-  typeof getBackupCDNCredentialsResponseSchema
->;
 
 export type GetBackupStreamOptionsType = Readonly<{
   cdn: number;
@@ -1766,7 +1730,6 @@ const {
   serverUrl: chatServiceUrl,
   storageUrl,
   stripePublishableKey,
-  svr2Config,
   updatesUrl,
   version,
 } = window.SignalContext.config;
@@ -2870,7 +2833,12 @@ export async function submitCodeForVerificationSession(options: {
     sessionId: options.verificationSessionId,
   });
 
-  await session.verifySession(options.code);
+  const success = await session.verifySession(options.code);
+  if (!success) {
+    throw new SessionNotVerifiedError(
+      'submitCodeForVerificationSession: verifySession returned false!'
+    );
+  }
 
   // Verify that the code worked to make the session ready for account creation
   if (!session.sessionState.verified) {
@@ -3093,24 +3061,43 @@ export async function unlink(): Promise<void> {
   });
 }
 
-export async function getDevices(): Promise<GetDevicesResultType> {
-  return _ajax({
+export async function setupRegistrationLock(
+  registrationLock: string
+): Promise<void> {
+  await _ajax({
     host: 'chatService',
-    call: 'devices',
-    httpType: 'GET',
-    responseType: 'json',
-    zodSchema: getDevicesResultZod,
+    call: 'registrationLock',
+    httpType: 'PUT',
+    jsonData: {
+      registrationLock,
+    },
+  });
+}
+export async function disableRegistrationLock(): Promise<void> {
+  await _ajax({
+    host: 'chatService',
+    call: 'registrationLock',
+    httpType: 'DELETE',
   });
 }
 
-export async function updateDeviceName(deviceName: string): Promise<void> {
-  await _ajax({
-    host: 'chatService',
-    call: 'updateDeviceName',
-    httpType: 'PUT',
-    jsonData: {
-      deviceName,
-    },
+export async function getDevices(): Promise<ReadonlyArray<LinkedDevice>> {
+  return _retry(async () => {
+    const chat = await socketManager.getAuthenticatedApi();
+    return chat.getDevices();
+  });
+}
+
+export async function updateDeviceName({
+  deviceId,
+  encryptedName,
+}: {
+  deviceId: number;
+  encryptedName: Uint8Array<ArrayBuffer>;
+}): Promise<void> {
+  await _retry(async () => {
+    const chat = await socketManager.getAuthenticatedApi();
+    await chat.setDeviceName({ deviceId, encryptedName });
   });
 }
 
@@ -3273,7 +3260,7 @@ export async function getEphemeralBackupStream({
 
 export async function getBackupMediaUploadForm(
   headers: BackupPresentationHeadersType
-): Promise<AttachmentUploadFormResponseType> {
+): Promise<AttachmentUploadFormType> {
   return _ajax({
     host: 'chatService',
     call: 'getBackupMediaUploadForm',
@@ -3291,7 +3278,7 @@ export function createFetchForAttachmentUpload({
   signedUploadLocation,
   headers: uploadHeaders,
   cdn,
-}: AttachmentUploadFormResponseType): FetchFunctionType {
+}: AttachmentUploadFormType): FetchFunctionType {
   strictAssert(cdn === 3, 'Fetch can only be created for CDN 3');
   const { origin: expectedOrigin } = new URL(signedUploadLocation);
 
@@ -3327,33 +3314,38 @@ export function createFetchForAttachmentUpload({
   };
 }
 
-export async function getBackupUploadForm(
-  headers: BackupPresentationHeadersType
-): Promise<AttachmentUploadFormResponseType> {
-  return _ajax({
-    host: 'chatService',
-    call: 'getBackupUploadForm',
-    httpType: 'GET',
-    unauthenticated: true,
-    accessKey: undefined,
-    groupSendToken: undefined,
-    headers,
-    responseType: 'json',
-    zodSchema: attachmentUploadFormResponse,
+export async function getBackupUploadForm({
+  auth,
+  uploadSize,
+}: {
+  auth: BackupAuth;
+  uploadSize: number;
+}): Promise<AttachmentUploadFormType> {
+  return _retry(async () => {
+    const unauthChat = await socketManager.getUnauthenticatedApi();
+    const { cdn, key, headers, signedUploadUrl } =
+      await unauthChat.getUploadForm({
+        auth,
+        uploadSize,
+      });
+
+    return {
+      cdn,
+      key,
+      headers: Object.fromEntries(headers.entries()),
+      signedUploadLocation: signedUploadUrl.toString(),
+    };
   });
 }
 
-export async function refreshBackup(
-  headers: BackupPresentationHeadersType
-): Promise<void> {
-  await _ajax({
-    host: 'chatService',
-    call: 'backup',
-    httpType: 'POST',
-    unauthenticated: true,
-    accessKey: undefined,
-    groupSendToken: undefined,
-    headers,
+export async function refreshBackup({
+  auth,
+}: {
+  auth: BackupAuth;
+}): Promise<void> {
+  return _retry(async () => {
+    const unauthChat = await socketManager.getUnauthenticatedApi();
+    return unauthChat.refreshBackup({ auth });
   });
 }
 
@@ -3376,20 +3368,19 @@ export async function getBackupCredentials({
 }
 
 export async function getBackupCDNCredentials({
-  headers,
+  auth,
   cdnNumber,
-}: GetBackupCDNCredentialsOptionsType): Promise<GetBackupCDNCredentialsResponseType> {
-  return _ajax({
-    host: 'chatService',
-    call: 'getBackupCDNCredentials',
-    httpType: 'GET',
-    unauthenticated: true,
-    accessKey: undefined,
-    groupSendToken: undefined,
-    headers,
-    urlParameters: `?cdn=${cdnNumber}`,
-    responseType: 'json',
-    zodSchema: getBackupCDNCredentialsResponseSchema,
+}: {
+  auth: BackupAuth;
+  cdnNumber: number;
+}): Promise<GetBackupCDNCredentialsResponseType> {
+  return _retry(async () => {
+    const unauthChat = await socketManager.getUnauthenticatedApi();
+    const { headers: headersMap } = await unauthChat.getBackupCdnCredentials({
+      auth,
+      cdn: cdnNumber,
+    });
+    return { headers: Object.fromEntries(headersMap) };
   });
 }
 
@@ -3413,20 +3404,13 @@ export async function setBackupId({
 }
 
 export async function setBackupSignatureKey({
-  headers,
-  backupIdPublicKey,
-}: SetBackupSignatureKeyOptionsType): Promise<void> {
-  await _ajax({
-    host: 'chatService',
-    call: 'setBackupSignatureKey',
-    httpType: 'PUT',
-    unauthenticated: true,
-    accessKey: undefined,
-    groupSendToken: undefined,
-    headers,
-    jsonData: {
-      backupIdPublicKey: Bytes.toBase64(backupIdPublicKey),
-    },
+  auth,
+}: {
+  auth: BackupAuth;
+}): Promise<void> {
+  return _retry(async () => {
+    const unauthChat = await socketManager.getUnauthenticatedApi();
+    return unauthChat.setBackupPublicKey({ auth });
   });
 }
 
@@ -4378,26 +4362,26 @@ export type GetAttachmentUploadFormOptionsType = Readonly<{
 
 export async function getAttachmentUploadForm({
   uploadSize,
-}: GetAttachmentUploadFormOptionsType): Promise<AttachmentUploadFormResponseType> {
+}: GetAttachmentUploadFormOptionsType): Promise<AttachmentUploadFormType> {
   return _retry(async () => {
     const chat = await socketManager.getAuthenticatedApi();
     const { cdn, key, headers, signedUploadUrl } = await chat.getUploadForm({
       uploadSize: BigInt(uploadSize),
     });
 
-    return parseLoose(attachmentUploadFormResponse, {
+    return {
       cdn,
       key,
       headers: Object.fromEntries(headers.entries()),
       signedUploadLocation: signedUploadUrl.toString(),
-    });
+    };
   });
 }
 
 export async function putEncryptedAttachment(
   encryptedBin: (start: number, end?: number) => Readable,
   encryptedSize: number,
-  uploadForm: AttachmentUploadFormResponseType
+  uploadForm: AttachmentUploadFormType
 ): Promise<void> {
   const { signedUploadLocation, headers } = uploadForm;
 
@@ -5175,38 +5159,6 @@ async function getBackupAuth(): Promise<AuthType> {
   });
 }
 
-function getPinHash(options: { pin: string; username: string }): PinHash {
-  const pinBytes = Bytes.fromString(options.pin);
-  const mrenclaveBytes = Bytes.fromHex(svr2Config.svr2MRENCLAVE.id);
-
-  return PinHash.fromUsernameMrenclave(
-    pinBytes,
-    options.username,
-    mrenclaveBytes
-  );
-}
-
-function encryptSVRPayload({
-  pinHash,
-  data,
-}: {
-  pinHash: PinHash;
-  data: Uint8Array<ArrayBuffer>;
-}): Uint8Array<ArrayBuffer> {
-  const key = pinHash.encryptionKey;
-  return encryptHmacSIV(key, data);
-}
-function decryptSVRPayload({
-  pinHash,
-  data,
-}: {
-  pinHash: PinHash;
-  data: Uint8Array<ArrayBuffer>;
-}): Uint8Array<ArrayBuffer> {
-  const key = pinHash.encryptionKey;
-  return decryptHmacSIV(key, data);
-}
-
 export type RestoreResponseType = Readonly<
   | {
       success: false;
@@ -5241,14 +5193,15 @@ export async function restoreFromSVR2(
 
   const auth = await getAuth();
   const svr2 = libsignalNet.svr2(auth);
-
-  const pinHash = getPinHash({ pin: options.pin, username: auth.username });
+  const pinData = Bytes.fromString(options.pin);
 
   try {
-    const { data, triesRemaining } = await svr2.restore(pinHash.accessKey);
+    const { masterKey, triesRemaining } = await svr2.restore({
+      normalizedPin: pinData,
+    });
     return {
       success: true,
-      data: decryptSVRPayload({ pinHash, data }),
+      data: masterKey,
       triesRemaining,
     };
   } catch (error) {
@@ -5307,12 +5260,12 @@ export async function storeWithSVR2(
   const auth = await getAuth();
   const svr2 = libsignalNet.svr2(auth);
 
-  const pinHash = getPinHash({ pin: options.pin, username: auth.username });
-  const data = encryptSVRPayload({ pinHash, data: options.data });
+  const { pin, data } = options;
+  const pinData = Bytes.fromString(pin);
 
   log.info(`${logId}: startBackup...`);
   const session = await svr2.startBackup(
-    pinHash.accessKey,
+    { normalizedPin: pinData },
     data,
     MAX_SVR2_TRIES
   );

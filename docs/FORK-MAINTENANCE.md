@@ -103,6 +103,12 @@ node scripts/merge-upstream.mjs main
 node scripts/merge-upstream.mjs v8.21.0-alpha.1
 ```
 
+Skript automaticky řeší pouze známé konflikty v `package.json`,
+`pnpm-lock.yaml` a `ts/components/ChatsTab.dom.tsx`. Pro `package.json` používá
+sémantický třícestný merge, lockfile nechá znovu vygenerovat a uvítací obrazovku
+zachová jen tehdy, pokud stále obsahuje `MinutesWelcomeSplash`. Jakýkoli jiný
+konflikt nebo neznámá kolize hodnot běh bezpečně zastaví k ručnímu review.
+
 Po merge konflikty řeš takto:
 
 1. Upstream verze má přednost v Signal logice

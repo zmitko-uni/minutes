@@ -22,11 +22,9 @@ import {
   type AiSettingsPublic,
   type AiSummaryStyle,
 } from '../aiSettings.std.ts';
+import { AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS } from '../aiUserMessages.std.ts';
 import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
 import { MinutesSummaryStyleFields } from './MinutesSummaryStyleFields.dom.tsx';
-import {
-  AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS,
-} from '../aiUserMessages.std.ts';
 import {
   getAiSettings,
   listAiModels,
@@ -60,7 +58,11 @@ function formatUserFacingError(error: unknown): string {
   if (/invalid_api_key|incorrect api key|API key not valid/i.test(message)) {
     return `${message} Zkontrolujte API klíč u zvoleného poskytovatele.`;
   }
-  if (/no longer available to new users|is deprecated|has been shut down/i.test(message)) {
+  if (
+    /no longer available to new users|is deprecated|has been shut down/i.test(
+      message
+    )
+  ) {
     return `${message} Zvolte novější model Gemini (např. gemini-3.5-flash-lite nebo gemini-3.6-flash) a uložte nastavení.`;
   }
 
@@ -132,7 +134,7 @@ function ProviderApiKeyField({
         className={tw(
           'w-full rounded-md border border-solid px-3 py-2',
           'border-label-disabled bg-background-primary text-label-primary',
-          'not-forced-colors:outline-none focus:border-label-primary'
+          'focus:border-label-primary not-forced-colors:outline-none'
         )}
         placeholder={placeholder}
         value={draft}
@@ -205,7 +207,9 @@ export function MinutesSettingsModal({
   const [removeKeyFlags, setRemoveKeyFlags] = useState<RemoveKeyFlags>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
-  const [localLlmState, setLocalLlmState] = useState(getLocalLlmExtensionState());
+  const [localLlmState, setLocalLlmState] = useState(
+    getLocalLlmExtensionState()
+  );
   const [availableModels, setAvailableModels] = useState<ReadonlyArray<string>>(
     () => getAiProviderDefinition(DEFAULT_AI_SETTINGS.provider).models
   );
@@ -250,7 +254,9 @@ export function MinutesSettingsModal({
             resolveModelForProvider(loadedSettings, nextProvider, models)
           );
         } else {
-          setModel(prev => (models.includes(prev) ? prev : models[0] ?? prev));
+          setModel(prev =>
+            models.includes(prev) ? prev : (models[0] ?? prev)
+          );
         }
         return models;
       } catch {
@@ -436,12 +442,14 @@ export function MinutesSettingsModal({
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
         <AxoDialog.Header>
-          <AxoDialog.Title>{formatAppDialogTitle('Nastavení AI')}</AxoDialog.Title>
+          <AxoDialog.Title>
+            {formatAppDialogTitle('Nastavení AI')}
+          </AxoDialog.Title>
           <AxoDialog.Close />
         </AxoDialog.Header>
         <AxoDialog.Body>
           <AxoDialog.Description>
-            <p className={tw('mb-4 text-label-medium opacity-90')}>
+            <p className={tw('text-label-medium mb-4 opacity-90')}>
               Nastavte, jak Minutes vytváří AI shrnutí chatů a hovorů. Cloud
               poskytovatelé vyžadují API klíč; lokální Gemma běží jen na vašem
               počítači.
@@ -475,9 +483,9 @@ export function MinutesSettingsModal({
                 onCheckedChange={setTranscriptCorrectionEnabled}
               />
             </label>
-            <p className={tw('-mt-2 text-label-small opacity-70')}>
-              Po lokálním Whisper přepisu opraví zjevné chyby rozpoznání řeči. Použije stejného
-              poskytovatele jako shrnutí níže.
+            <p className={tw('text-label-small -mt-2 opacity-70')}>
+              Po lokálním Whisper přepisu opraví zjevné chyby rozpoznání řeči.
+              Použije stejného poskytovatele jako shrnutí níže.
             </p>
 
             <fieldset
@@ -486,7 +494,7 @@ export function MinutesSettingsModal({
                 'border-label-disabled'
               )}
             >
-              <legend className={tw('px-1 text-label-medium font-medium')}>
+              <legend className={tw('text-label-medium px-1 font-medium')}>
                 Aktivní poskytovatel pro sumarizaci
               </legend>
 
@@ -589,8 +597,8 @@ export function MinutesSettingsModal({
                     <span className={tw('text-label-small opacity-70')}>
                       {provider === 'google' ? (
                         <>
-                          U Gemini lze seznam modelů obnovit z API (klíč musí být
-                          vyplněný nebo už uložený).{' '}
+                          U Gemini lze seznam modelů obnovit z API (klíč musí
+                          být vyplněný nebo už uložený).{' '}
                           <button
                             type="button"
                             className={tw('underline')}
@@ -660,14 +668,14 @@ export function MinutesSettingsModal({
           )}
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="secondary"
+              variant="strong-secondary"
               disabled={isBusy}
               onClick={handleTest}
             >
               Otestovat aktivního
             </AxoDialog.Action>
             <AxoDialog.Action
-              variant="primary"
+              variant="strong-primary"
               disabled={isBusy || cannotEnableAiWithLocal}
               onClick={handleSave}
             >

@@ -3431,6 +3431,11 @@ class CallingClass {
       return;
     }
 
+    if (!conversation.getAccepted({ ignoreEmptyConvo: true })) {
+      log.warn(`${logId}: conversation has not been accepted`);
+      return;
+    }
+
     const ourAci = itemStorage.user.getCheckedAci();
 
     if (conversation.get('left') || !conversation.hasMember(ourAci)) {

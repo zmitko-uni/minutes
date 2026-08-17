@@ -24,7 +24,9 @@ const renderNonNewLine: RenderTextCallbackType = ({ key, text }) => (
 export function GroupDescriptionText({ text }: PropsType): JSX.Element {
   return (
     <span
-      className={tw('select-text [&_a]:text-label-primary [&_a]:underline')}
+      className={tw(
+        'wrap-break-word select-text [&_a]:text-primary [&_a]:underline'
+      )}
     >
       <AddNewLines text={text} renderNonNewLine={renderNonNewLine} />
     </span>

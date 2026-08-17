@@ -8,6 +8,7 @@ import { FlexWrapDetector } from './_internal/FlexWrapDetector.dom.tsx';
 import { variants } from './_internal/variants.dom.tsx';
 import { useAxoIntl } from './_internal/AxoIntl.dom.tsx';
 import { SpinnerV2 } from '../components/SpinnerV2.dom.tsx';
+import { forwardExtraPropsForRadix } from './_internal/props.dom.tsx';
 
 /**
  * An icon-button + text displayed as a stack, and can be placed in a row.
@@ -98,24 +99,21 @@ export namespace AxoStackedButton {
           className={tw(
             'group relative',
             'inline-flex max-w-full flex-col items-center-safe justify-center-safe gap-1.5',
-            'outline-none select-none'
+            'outline-none'
           )}
           aria-disabled={(pending || disabled) ?? undefined}
           aria-label={pending ? intl.get('AxoButton.Pending') : undefined}
           onClick={handleClick}
-          {...rest}
+          {...forwardExtraPropsForRadix(rest)}
         >
           <span
             className={tw(
               'relative mx-1 px-3.75 py-2.25',
               'leading-none font-regular',
-              'rounded-full bg-fill-secondary',
-              !(disabled || pending) &&
-                'group-active:bg-fill-secondary-pressed',
-              disabled || discouraged
-                ? 'text-label-disabled'
-                : 'text-label-primary',
-              'keyboard-mode:group-focus:outline-focus-ring',
+              'rounded-full bg-primary',
+              !(disabled || pending) && 'group-active:bg-primary-pressed',
+              disabled || discouraged ? 'text-disabled' : 'text-primary',
+              'keyboard-mode:group-focus:axo-focus-ring',
               'forced-colors:border forced-colors:border-[ButtonBorder] forced-colors:bg-[ButtonFace]',
               disabled || discouraged
                 ? 'forced-colors:text-[GrayText]'
@@ -133,8 +131,8 @@ export namespace AxoStackedButton {
               'text-center type-caption font-medium',
               'text-pretty wrap-break-word [word-break:auto-phrase] hyphens-auto',
               disabled
-                ? 'text-label-disabled forced-colors:text-[GrayText]'
-                : 'text-label-primary'
+                ? 'text-disabled forced-colors:text-[GrayText]'
+                : 'text-primary'
             )}
           >
             {label}

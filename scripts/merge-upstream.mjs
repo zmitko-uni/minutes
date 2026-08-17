@@ -21,6 +21,13 @@ function run(command, args) {
   }
 }
 
+function tryRun(command, args) {
+  return spawnSync(command, args, {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
+}
+
 function getOriginUrl() {
   const result = spawnSync('git', ['remote', 'get-url', 'origin'], {
     encoding: 'utf8',
@@ -41,13 +48,28 @@ if (originUrl && !originUrl.includes('zmitko-uni/minutes')) {
   );
 }
 
-console.log(`Fetching Signal Desktop (${SIGNAL_REF}) from ${SIGNAL_REPO_URL}...`);
+console.log(
+  `Fetching Signal Desktop (${SIGNAL_REF}) from ${SIGNAL_REPO_URL}...`
+);
 run('git', ['fetch', SIGNAL_REPO_URL, SIGNAL_REF]);
 
 console.log(`Merging FETCH_HEAD (${SIGNAL_REF}) into current branch...`);
-run('git', ['merge', 'FETCH_HEAD', '--no-edit']);
+const mergeResult = tryRun('git', ['merge', 'FETCH_HEAD', '--no-edit']);
+if (mergeResult.status !== 0) {
+  console.log(
+    'Merge has conflicts; attempting conservative known resolutions...'
+  );
+  run(process.execPath, ['scripts/resolve-upstream-conflicts.mjs']);
+  run('git', ['commit', '--no-edit']);
+}
+
+run(process.execPath, ['scripts/update-minutes-signal-base.mjs', 'FETCH_HEAD']);
 
 console.log('');
 console.log('Upstream merge complete.');
-console.log('Review conflicts in hook files listed in docs/MINUTES-PATCHES.md if any.');
-console.log('Update MINUTES_SIGNAL_BASE_VERSION in ts/minutes/version.std.ts if needed.');
+console.log(
+  'Known conflicts were resolved conservatively; unknown conflicts stop the run.'
+);
+console.log(
+  'Review hook files listed in docs/MINUTES-PATCHES.md in the generated PR.'
+);

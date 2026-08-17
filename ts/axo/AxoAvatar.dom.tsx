@@ -51,6 +51,7 @@ export namespace AxoAvatar {
     | 30
     | 32
     | 36
+    | 38
     | 40
     | 48
     | 52
@@ -70,6 +71,7 @@ export namespace AxoAvatar {
     30: tw('size-[30px]'),
     32: tw('size-[32px]'),
     36: tw('size-[36px]'),
+    38: tw('size-[38px]'),
     40: tw('size-[40px]'),
     48: tw('size-[48px]'),
     52: tw('size-[52px]'),
@@ -87,6 +89,7 @@ export namespace AxoAvatar {
     30: tw('border-[1.5px] p-[2px]'),
     32: tw('border-[1.5px] p-[2px]'),
     36: tw('border-[1.5px] p-[2px]'),
+    38: tw('border-[1.5px] p-[2px]'),
     40: tw('border-[1.5px] p-[2px]'),
     48: tw('border-2 p-[3px]'),
     52: tw('border-2 p-[3px]'),
@@ -102,7 +105,7 @@ export namespace AxoAvatar {
     return RootSizes.keys().map(size => Number(size) as Size);
   }
 
-  const DefaultColor = tw('bg-fill-secondary text-label-primary');
+  const DefaultColor = tw('bg-primary text-primary');
 
   /**
    * <AxoAvatar.Root>
@@ -147,11 +150,11 @@ export namespace AxoAvatar {
       <SizeContext.Provider value={props.size}>
         <div
           className={tw(
-            'relative shrink-0 rounded-full contain-layout select-none',
+            'relative shrink-0 rounded-full contain-layout',
             RootSizes.get(props.size),
             props.ring != null && RingSizes.get(props.size),
-            props.ring === 'unread' && 'border-border-selected',
-            props.ring === 'read' && 'border-label-secondary'
+            props.ring === 'unread' && 'border-selected',
+            props.ring === 'read' && 'border-(--axo-color-label-secondary)'
           )}
         >
           {props.children}
@@ -255,7 +258,7 @@ export namespace AxoAvatar {
         aria-label={props.label ?? undefined}
         className={tw(
           baseContentStyles,
-          'outline-none keyboard-mode:focus:outline-focus-ring'
+          'outline-none keyboard-mode:focus:axo-focus-ring'
         )}
         onClick={handleClick}
       >
@@ -465,7 +468,7 @@ export namespace AxoAvatar {
           'flex flex-col items-center-safe justify-center-safe gap-2',
           // oxlint-disable-next-line better-tailwindcss/no-restricted-classes
           'bg-[#000]/20 text-[#fff] hover:bg-[#000]/40',
-          'outline-none keyboard-mode:focus:outline-focus-ring'
+          'outline-none keyboard-mode:focus:axo-focus-ring'
         )}
       >
         <AxoSymbol.Icon size={24} symbol="press" label={null} />
@@ -602,6 +605,7 @@ export namespace AxoAvatar {
     30: 16,
     32: 16,
     36: 16,
+    38: 16,
     40: 24,
     48: 24,
     52: 24,
@@ -721,7 +725,7 @@ export namespace AxoAvatar {
         onClick={handleClick}
         className={tw(
           baseBadgeStyles,
-          'outline-focus-ring-inset outline-none keyboard-mode:focus:outline-focus-ring'
+          'outline-none keyboard-mode:focus:axo-focus-ring'
         )}
       >
         {props.children}

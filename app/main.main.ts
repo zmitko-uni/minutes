@@ -54,14 +54,8 @@ import { explodePromise } from '../ts/util/explodePromise.std.ts';
 
 import './startup_config.main.ts';
 
-import type {
-  RendererConfigType,
-  SVR2EnclaveType,
-} from '../ts/types/RendererConfig.std.ts';
-import {
-  rendererConfigSchema,
-  svr2ConfigSchema,
-} from '../ts/types/RendererConfig.std.ts';
+import type { RendererConfigType } from '../ts/types/RendererConfig.std.ts';
+import { rendererConfigSchema } from '../ts/types/RendererConfig.std.ts';
 import config from './config.main.ts';
 import {
   Environment,
@@ -369,6 +363,8 @@ async function getResolvedThemeSetting(
   if (theme === 'system') {
     return nativeTheme.shouldUseDarkColors ? ThemeType.dark : ThemeType.light;
   }
+  // Set window theme from setting as early as possible
+  nativeTheme.themeSource = theme;
   return ThemeType[theme];
 }
 
@@ -377,17 +373,23 @@ type GetBackgroundColorOptionsType = GetThemeSettingOptionsType &
     signalColors?: boolean;
   }>;
 
+const AXO_COLOR_BRAND_LOGO = '#3b45fd';
+const AXO_COLOR_SURFACE_PRIMARY_LIGHT = '#fafafa';
+const AXO_COLOR_SURFACE_PRIMARY_DARK = '#191919';
+
 async function getBackgroundColor(
   options?: GetBackgroundColorOptionsType
 ): Promise<string> {
   const theme = await getResolvedThemeSetting(options);
 
   if (theme === 'light') {
-    return options?.signalColors ? '#3a76f0' : '#ffffff';
+    return options?.signalColors
+      ? AXO_COLOR_BRAND_LOGO
+      : AXO_COLOR_SURFACE_PRIMARY_LIGHT;
   }
 
   if (theme === 'dark') {
-    return '#121212';
+    return AXO_COLOR_SURFACE_PRIMARY_DARK;
   }
 
   throw missingCaseError(theme);
@@ -2986,19 +2988,6 @@ function removeDarkOverlay() {
 ipc.on('get-config', async event => {
   const theme = await getResolvedThemeSetting();
 
-  const svr2Config = safeParseLoose(svr2ConfigSchema, {
-    svr2Url: config.get<string | null>('svr2Url') || undefined,
-    svr2MRENCLAVE:
-      config.get<Array<SVR2EnclaveType> | null>('svr2MRENCLAVE') || undefined,
-  });
-  if (!svr2Config.success) {
-    throw new Error(
-      `prepareUrl: Failed to parse renderer svr2 config ${JSON.stringify(
-        svr2Config.error.flatten()
-      )}`
-    );
-  }
-
   const parsed = safeParseLoose(rendererConfigSchema, {
     name: packageJson.productName,
     availableLocales: getResolvedMessagesLocale().availableLocales,
@@ -3054,8 +3043,6 @@ ipc.on('get-config', async event => {
     homePath: app.getPath('home'),
     installPath: rootDir,
     userDataPath: app.getPath('userData'),
-
-    svr2Config: svr2Config.data,
 
     // Only used by the main window
     isMainWindowFullScreen: Boolean(mainWindow?.isFullScreen()),
@@ -3395,7 +3382,6 @@ ipc.handle(
       ({ canceled, filePaths: selectedDirPaths } = await dialog.showOpenDialog(
         mainWindow,
         {
-          defaultPath: app.getPath('downloads'),
           properties: ['openDirectory', 'createDirectory'],
           buttonLabel,
           title,
@@ -3403,7 +3389,6 @@ ipc.handle(
       ));
     } else {
       ({ canceled, filePaths: selectedDirPaths } = await dialog.showOpenDialog({
-        defaultPath: app.getPath('downloads'),
         properties: ['openDirectory', 'createDirectory'],
         buttonLabel,
         title,

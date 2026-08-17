@@ -49,7 +49,7 @@ import {
 } from '../util/avatarUtils.preload.ts';
 import { getDraftPreview } from '../util/getDraftPreview.preload.ts';
 import { hasDraft } from '../util/hasDraft.std.ts';
-import { hydrateStoryContext } from '../util/hydrateStoryContext.preload.ts';
+import { getStoryReplyContext } from '../util/getStoryReplyContext.std.ts';
 import { normalizeProfileName } from '../util/normalizeProfileName.std.ts';
 import type {
   StickerType,
@@ -237,7 +237,14 @@ import { migrateLegacyReadStatus } from '../messages/migrateLegacyReadStatus.std
 import { migrateLegacySendAttributes } from '../messages/migrateLegacySendAttributes.preload.ts';
 import { getIsInitialContactSync } from '../services/contactSync.preload.ts';
 import { queueAttachmentDownloadsAndMaybeSaveMessage } from '../util/queueAttachmentDownloads.preload.ts';
-import { cleanupMessages } from '../util/cleanup.preload.ts';
+import {
+  safeCleanupAvatarDraftFiles,
+  safeCleanupAvatarFiles,
+  safeCleanupDraftFiles,
+  cleanupMessages,
+  GENERIC_CLEANUP_FIELDS,
+  GROUP_CLEANUP_FIELDS,
+} from '../util/cleanup.preload.ts';
 import { MessageModel } from './messages.preload.ts';
 import {
   applyNewAvatar,
@@ -278,6 +285,7 @@ import type { Emoji } from '../axo/emoji.std.ts';
 import { canConversationOnlyBeMutedAlways } from '../conversations/canConversationOnlyBeMutedAlways.dom.ts';
 import { keyTransparency } from '../services/keyTransparency.preload.ts';
 import type { PollSource } from '../messageModifiers/Polls.preload.ts';
+import { isSignalServiceId } from '../types/SignalConversation.std.ts';
 
 const { compact, isNumber, throttle, debounce } = lodash;
 
@@ -1004,7 +1012,10 @@ export class ConversationModel {
     const wasBlocked = this.isBlocked();
 
     const serviceId = this.getServiceId();
-    if (serviceId && isAciString(serviceId)) {
+    if (isSignalConversation(this)) {
+      drop(itemStorage.blocked.setReleaseNotesChatBlocked(true));
+      blocked = true;
+    } else if (serviceId && isAciString(serviceId)) {
       drop(itemStorage.blocked.addBlockedServiceId(serviceId));
       blocked = true;
     }
@@ -1035,7 +1046,10 @@ export class ConversationModel {
     const wasBlocked = this.isBlocked();
 
     const serviceId = this.getServiceId();
-    if (serviceId && isAciString(serviceId)) {
+    if (serviceId && isSignalServiceId(serviceId)) {
+      drop(itemStorage.blocked.setReleaseNotesChatBlocked(false));
+      unblocked = true;
+    } else if (serviceId && isAciString(serviceId)) {
       drop(itemStorage.blocked.removeBlockedServiceId(serviceId));
       unblocked = true;
     }
@@ -1585,14 +1599,12 @@ export class ConversationModel {
     message: MessageAttributesType,
     { isJustSent }: { isJustSent: boolean } = { isJustSent: false }
   ): Promise<void> {
-    await this.#beforeAddSingleMessage(message);
+    await this.#beforeAddSingleMessage();
     this.#doAddSingleMessage(message, { isJustSent });
     this.debouncedUpdateLastMessage();
   }
 
-  async #beforeAddSingleMessage(message: MessageAttributesType): Promise<void> {
-    await hydrateStoryContext(message.id, undefined, { shouldSave: true });
-
+  async #beforeAddSingleMessage(): Promise<void> {
     if (!this.newMessageQueue) {
       this.newMessageQueue = new PQueue({
         concurrency: 1,
@@ -2122,14 +2134,6 @@ export class ConversationModel {
         );
         if (startingAttributes !== model.attributes) {
           updated = true;
-        }
-
-        const patch = await hydrateStoryContext(message.id, undefined, {
-          shouldSave: true,
-        });
-        if (patch) {
-          updated = true;
-          model.set(patch);
         }
 
         if (updated) {
@@ -4265,8 +4269,9 @@ export class ConversationModel {
       expireTimer = this.get('expireTimer');
     }
 
+    const story = storyId ? await getMessageById(storyId) : undefined;
+
     if (storyId && isGroup(this.attributes)) {
-      const story = await getMessageById(storyId);
       strictAssert(story, 'story being replied to must exist');
       strictAssert(
         story.expireTimer != null && story.expireTimer > 0,
@@ -4281,6 +4286,8 @@ export class ConversationModel {
       expireTimer = story.expireTimer;
       expirationStartTimestamp = story.expirationStartTimestamp;
     }
+
+    const storyReplyContext = story ? getStoryReplyContext(story) : undefined;
 
     const recipientMaybeConversations = map(
       this.getRecipients({
@@ -4364,6 +4371,7 @@ export class ConversationModel {
         })
       ),
       storyId,
+      storyReplyContext,
       poll,
     });
 
@@ -4410,7 +4418,7 @@ export class ConversationModel {
     const renderStart = Date.now();
 
     // Perform asynchronous tasks before entering the batching mode
-    await this.#beforeAddSingleMessage(model.attributes);
+    await this.#beforeAddSingleMessage();
 
     if (sticker) {
       await addStickerPackReference({
@@ -5110,7 +5118,6 @@ export class ConversationModel {
   ): Promise<void> {
     await markConversationRead(this.attributes, readMessage, options);
     this.throttledUpdateUnread();
-    window.reduxActions.callHistory.updateCallHistoryUnreadCount([]);
   }
 
   async #updateUnread(): Promise<void> {
@@ -5521,15 +5528,18 @@ export class ConversationModel {
     source: 'message-request' | 'local-delete-sync' | 'local-delete';
   }): Promise<void> {
     const logId = `${providedLogId}/destroyMessagesInner`;
-    this.set({
-      lastMessage: null,
-      lastMessageAuthor: null,
-      lastMessageAuthorAci: undefined,
-      timestamp: null,
-      active_at: null,
-      pendingUniversalTimer: undefined,
-      messagesDeleted: true,
-    });
+    await safeCleanupDraftFiles(this.attributes);
+    await safeCleanupAvatarDraftFiles(this.attributes);
+    this.set(GENERIC_CLEANUP_FIELDS);
+
+    if (
+      isGroup(this.attributes) &&
+      (this.get('left') || this.get('terminated'))
+    ) {
+      await safeCleanupAvatarFiles(this.attributes);
+      this.set(GROUP_CLEANUP_FIELDS);
+    }
+
     await DataWriter.updateConversation(this.attributes);
 
     if (

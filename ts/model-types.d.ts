@@ -70,6 +70,7 @@ export type SenderKeyInfoType = {
 };
 
 export type CustomError = Error & {
+  identifier?: string;
   serviceId?: ServiceIdString;
   number?: string;
   data?: object;
@@ -113,10 +114,8 @@ export type QuotedMessageType = {
   messageId?: string;
 };
 
-type StoryReplyContextType = {
-  attachment?: AttachmentType;
+export type StoryReplyContextType = {
   authorAci?: AciString;
-  messageId: string;
 };
 
 export type GroupV1Update = {
@@ -499,6 +498,9 @@ export type ConversationAttributesType = {
   publicParams?: string;
   revision?: number;
   senderKeyInfo?: SenderKeyInfoType;
+  needsGroupUpdate?: boolean; // `true` only for groups we learned about through
+  // an incoming message. Reset when we update the
+  // group or fail.
 
   // GroupV2 other fields
   accessControl?: {

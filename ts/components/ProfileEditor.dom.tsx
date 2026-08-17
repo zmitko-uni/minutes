@@ -50,7 +50,7 @@ import { useConfirmDiscard } from '../hooks/useConfirmDiscard.dom.tsx';
 import { AxoButton } from '../axo/AxoButton.dom.tsx';
 import { normalizeProfileName } from '../util/normalizeProfileName.std.ts';
 import { Emoji } from '../axo/emoji.std.ts';
-import { AxoTextField } from '../axo/AxoTextField.dom.tsx';
+import { AxoTextField } from '../axo/fields/AxoTextField.dom.tsx';
 import { tw } from '../axo/tw.dom.tsx';
 import { AxoConfirmDialog } from '../axo/AxoConfirmDialog.dom.tsx';
 
@@ -402,11 +402,15 @@ export function ProfileEditor({
         </div>
 
         <div className="ProfileEditor__button-footer">
-          <AxoButton.Root variant="secondary" size="lg" onClick={handleBack}>
+          <AxoButton.Root
+            variant="strong-secondary"
+            size="lg"
+            onClick={handleBack}
+          >
             {i18n('icu:cancel')}
           </AxoButton.Root>
           <AxoButton.Root
-            variant="primary"
+            variant="strong-primary"
             size="lg"
             disabled={shouldDisableSave}
             onClick={() => {
@@ -517,11 +521,15 @@ export function ProfileEditor({
         })}
 
         <div className="ProfileEditor__button-footer">
-          <AxoButton.Root variant="secondary" size="lg" onClick={handleBack}>
+          <AxoButton.Root
+            variant="strong-secondary"
+            size="lg"
+            onClick={handleBack}
+          >
             {i18n('icu:cancel')}
           </AxoButton.Root>
           <AxoButton.Root
-            variant="primary"
+            variant="strong-primary"
             size="lg"
             disabled={shouldDisableSave}
             onClick={() => {
@@ -724,7 +732,7 @@ export function ProfileEditor({
             onClick={() => {
               setEditState(ProfileEditorPage.BetterAvatar);
             }}
-            variant="secondary"
+            variant="strong-secondary"
             size="sm"
           >
             {i18n('icu:ProfileEditor--edit-photo')}
@@ -797,7 +805,10 @@ export function ProfileEditor({
         )}
       >
         <AxoConfirmDialog.Cancel />
-        <AxoConfirmDialog.Action variant="destructive" onClick={deleteUsername}>
+        <AxoConfirmDialog.Action
+          variant="strong-destructive"
+          onClick={deleteUsername}
+        >
           {i18n('icu:ProfileEditor--username--confirm-delete-button')}
         </AxoConfirmDialog.Action>
       </AxoConfirmDialog.Root>
@@ -813,7 +824,7 @@ export function ProfileEditor({
       >
         <AxoConfirmDialog.Cancel />
         <AxoConfirmDialog.Action
-          variant="secondary"
+          variant="strong-secondary"
           onClick={() => {
             setIsResettingUsernameLink(false);
             setEditState(ProfileEditorPage.UsernameLink);
@@ -832,7 +843,7 @@ export function ProfileEditor({
       >
         <AxoConfirmDialog.Cancel />
         <AxoConfirmDialog.Action
-          variant="primary"
+          variant="strong-primary"
           onClick={() => {
             openUsernameReservationModal();
             setEditState(ProfileEditorPage.Username);

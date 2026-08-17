@@ -3344,6 +3344,10 @@ async function updateGroup(
   conversation.set({
     ...omit(newAttributes, FIELDS_UNRELATED_TO_GROUP_STATE),
     active_at: activeAt,
+
+    // Reset `needsGroupUpdate` so that group can be synced to storage service
+    // after the first fetch.
+    needsGroupUpdate: undefined,
   });
 
   if (idChanged) {
@@ -6051,8 +6055,8 @@ async function applyGroupState({
   const ourAci = itemStorage.user.getCheckedAci();
 
   // members
-  const wasPreviouslyAMember = (result.membersV2 || []).some(
-    item => item.aci !== ourAci
+  const wasPreviouslyAMember = (group.membersV2 || []).some(
+    item => item.aci === ourAci
   );
   if (groupState.members) {
     result.membersV2 = groupState.members.map(member => {
