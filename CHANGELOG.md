@@ -13,10 +13,17 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.23.0-m1.2.1-beta.1] - 2026-08-17
+
 ### Changed
 
 - merge Signal Desktop v8.23.0 while preserving Minutes branding and features
 - make the upstream sync workflow resolve known conflicts and update the Signal base automatically
+- publish Minutes Beta for both Windows and macOS with an explicit, isolated beta runtime and update channel
+- use a dedicated `Minutes-Beta-mac-arm64.dmg` asset so beta updates cannot overwrite or install the stable macOS build
 
 ### Added
 - (doplňte před příštím release)
