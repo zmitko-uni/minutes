@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.23.0-m1.3.0] - 2026-08-17
+
 ### Changed
 - Základ aplikace: Signal Desktop **8.23.0** (opravy a vylepšení Signálu). Produktová verze je `8.23.0-m1.2.1`.
 
