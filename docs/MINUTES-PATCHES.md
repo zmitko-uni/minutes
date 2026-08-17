@@ -18,7 +18,7 @@
 | `app/SystemTrayService.main.ts` | tray ikona + tooltip minutes | 2 volání |
 | `app/menu.std.ts` | submenu minutes + Příručka | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
-| `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru | 2 volání |
+| `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes) | 3 volání |
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
 | `ts/background.preload.ts` | init + IPC summarize, build expiration | bootstrap |
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
@@ -80,6 +80,7 @@
 | `ts/minutes/components/MinutesSummaryStyleFields.dom.tsx` | styl shrnutí (Stručný / Detailní / Smart / Vlastní) + náhled promptu |
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
 | `ts/minutes/callRecordingService.preload.ts` | větev podle platformy — macOS loopback přes `macLoopbackAudio.preload.ts`, jinak Windows `desktopCapturer` |
+| `ts/minutes/macCallVoiceProcessing.preload.ts` | macOS: zapne RingRTC VoiceProcessingIO, aby šly během hovoru měnit Mic Modes |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/minutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |
 | `ts/sql/Server.node.ts` | `markMessagesUnreadFromAnchor` — SQL UPDATE readStatus/seenStatus |

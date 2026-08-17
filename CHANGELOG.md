@@ -21,6 +21,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ### Fixed
 - Lokální AI (Gemma): aktualizace `node-llama-cpp` 3.19.0 → 3.19.1 — oprava pádu při uvolnění kontextu modelu a okrajových případů při posunu kontextu.
+- macOS: během hovoru jde v Control Center měnit režim mikrofonu (Standard / Izolace hlasu / Široké spektrum). Dříve byly volby zablokované, což zhoršovalo kvalitu hovoru.
 
 ## [8.21.0-m1.2.1] - 2026-08-10
 

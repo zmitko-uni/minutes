@@ -97,6 +97,7 @@ import * as Bytes from '../Bytes.std.ts';
 import { uuidToBytes, bytesToUuid } from '../util/uuidToBytes.std.ts';
 import { drop } from '../util/drop.std.ts';
 import { callRecordingService } from '../minutes/index.preload.ts';
+import { enableMacCallVoiceProcessing } from '../minutes/macCallVoiceProcessing.preload.ts';
 import { dropNull } from '../util/dropNull.std.ts';
 import { getOwn } from '../util/getOwn.std.ts';
 import * as durations from '../util/durations/index.std.ts';
@@ -620,6 +621,7 @@ class CallingClass {
     RingRTC.setConfig({
       field_trials: undefined,
     });
+    enableMacCallVoiceProcessing();
 
     RingRTC.handleOutgoingSignaling = this.#handleOutgoingSignaling.bind(this);
     RingRTC.handleIncomingCall = this.#handleIncomingCall.bind(this);

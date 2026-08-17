@@ -184,6 +184,16 @@ Nahrávání systémového zvuku (co slyšíte od ostatních) vyžaduje na macOS
 
 > **Po povolení Screen Recording je nutné aplikaci restartovat** — do restartu se nahrává **jen mikrofon** (bez zvuku ostatních účastníků).
 
+### Režim mikrofonu na macOS (Izolace hlasu)
+
+Během hovoru klikněte v řádku nabídek na **oranžovou ikonu mikrofonu** (nebo **Control Center → Mic Mode**) a zvolte:
+
+- **Standard** — běžné zpracování hlasu
+- **Izolace hlasu** (Voice Isolation) — potlačí okolní hluk; vhodné v kanceláři nebo kavárně
+- **Široké spektrum** (Wide Spectrum) — zachytí i zvuky v místnosti
+
+Režim lze změnit i uprostřed hovoru. Platí pro to, co slyší ostatní účastníci (nejen nahrávka).
+
 ---
 
 ## Záložky
@@ -335,6 +345,12 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
 
+### Na Macu nejde během hovoru zapnout Izolaci hlasu
+
+- Režim se volí v **Control Center** (oranžová ikona mikrofonu v řádku nabídek), ne v nastavení Minutes
+- Ověřte, že máte aktuální Minutes — starší verze režimy během hovoru blokovaly
+- Pokud volby zůstanou šedé, zkuste hovor ukončit a znovu připojit
+
 ### Skupinový hovor ve velké skupině nezvoní
 
 - Ověřte, že máte zapnuté zvonění v lobby před připojením (ikona zvonku)
@@ -365,4 +381,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-08-10*
+*Poslední aktualizace příručky: 2026-08-17*
