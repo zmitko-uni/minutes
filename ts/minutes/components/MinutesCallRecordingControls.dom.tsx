@@ -17,6 +17,7 @@ import { isCallSummaryExtensionActive } from '../callSummaryExtensionService.pre
 import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
 import { formatMenuActionLabel } from '../branding.std.ts';
 import type { MinutesRecordingState } from '../types.std.ts';
+import { MinutesRecordingStartConfirmModal } from './MinutesRecordingStartConfirmModal.dom.tsx';
 
 type PropsType = Readonly<{
   conversationId: string;
@@ -83,6 +84,7 @@ export function MinutesCallRecordingControls({
   const [extensionActive, setExtensionActive] = useState(
     isCallSummaryExtensionActive()
   );
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     const handler = (next: MinutesRecordingState) => setState(next);
@@ -100,7 +102,12 @@ export function MinutesCallRecordingControls({
     });
   }, []);
 
-  const start = useCallback(() => {
+  const requestStart = useCallback(() => {
+    setConfirmOpen(true);
+  }, []);
+
+  const confirmStart = useCallback(() => {
+    setConfirmOpen(false);
     void callRecordingService.startRecording({ conversationId, callMode });
   }, [callMode, conversationId]);
 
@@ -135,13 +142,20 @@ export function MinutesCallRecordingControls({
         );
 
     return (
-      <MinutesCallControlButton
-        className="MinutesCallRecordingControls__button MinutesCallRecordingControls__button--record"
-        label={recordLabel}
-        onClick={start}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-      />
+      <>
+        <MinutesCallControlButton
+          className="MinutesCallRecordingControls__button MinutesCallRecordingControls__button--record"
+          label={recordLabel}
+          onClick={requestStart}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+        />
+        <MinutesRecordingStartConfirmModal
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          onConfirm={confirmStart}
+        />
+      </>
     );
   }
 

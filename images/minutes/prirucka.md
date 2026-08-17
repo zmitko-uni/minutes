@@ -30,9 +30,10 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 ### 3. Nahrajte a přepište hovor
 
 1. Během hovoru stiskněte **Record** (vedle mute)
-2. Po skončení se nahrávka uloží automaticky
-3. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
-4. Přepis a shrnutí najdete v **Přepisy (Minutes)**
+2. V potvrzení **Nahrávání se chystá spustit** klikněte **Spustit nahrávání** (nebo **Zrušit**, pokud nahrávat nechcete)
+3. Po skončení se nahrávka uloží automaticky
+4. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
+5. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ### Zvonění ve velké skupině
 
@@ -141,8 +142,8 @@ Export proběhne vždy — uloží se přepis zpráv. Lišta upozorní, že AI s
 
 V obrazovce hovoru (vedle mute):
 
-- **Record** — začne nahrávání (funguje i bez Whisperu — uloží se MP3)
-- **Pause / Resume** — pozastaví / obnoví nahrávku i log řečníků
+- **Record** — nejdřív zobrazí potvrzení **Nahrávání se chystá spustit**. **Spustit nahrávání** začne nahrávat (funguje i bez Whisperu — uloží se MP3), **Zrušit** dialog zavře bez nahrávání
+- **Pause / Resume** — pozastaví / obnoví nahrávku i log řečníků. Při obnovení se potvrzení nezobrazí
 - **Stop** — ukončí a uloží
 
 Po **skončení hovoru** se aktivní nahrávka uloží automaticky.
@@ -173,7 +174,7 @@ Soubory: `.mp3`, `.json` (metadata), `.transcript.md`, volitelně `.summary.md`.
 
 ### Právní upozornění
 
-Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba.
+Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba. Minutes na to upozorní v potvrzení před každým novým nahráváním.
 
 ### Nahrávání na macOS
 
