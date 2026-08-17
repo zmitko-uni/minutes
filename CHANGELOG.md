@@ -17,6 +17,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Základ aplikace: Signal Desktop **8.23.0** (opravy a vylepšení Signálu). Produktová verze je `8.23.0-m1.2.1`.
 
 ### Added
+- Před spuštěním nahrávání hovoru se zobrazí potvrzení s výzvou informovat účastníky (**Zrušit** / **Spustit nahrávání**). Při obnovení pozastavené nahrávky se dialog nezobrazí.
 - Nastavení AI: **styl shrnutí** — Stručný (výchozí), Detailní, Smart nebo Vlastní instrukce; lze zobrazit náhled system promptu. Platí pro chaty i hovory. Ve **Přepisy** lze hotové shrnutí **přegenerovat** aktuálním stylem.
 
 ### Fixed
