@@ -2,7 +2,7 @@
 // e.g. 8.21.0-m1.0.1 (prod) or 8.21.0-m1.0.1-beta.2 (beta)
 import semver from 'semver';
 
-export const MINUTES_SIGNAL_BASE_VERSION = '8.21.0';
+export const MINUTES_SIGNAL_BASE_VERSION = '8.23.0';
 
 export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-oprave';
 

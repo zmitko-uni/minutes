@@ -202,6 +202,7 @@ import type {
   MaybeStaleCallHistory,
   ExistingAttachmentData,
   ExistingAttachmentUploadData,
+  GetUnreadCallMessagesAndMarkReadResult,
 } from './Interface.std.ts';
 import {
   AttachmentDownloadSource,
@@ -311,9 +312,12 @@ import { createMessagesOnInsertTrigger } from './migrations/1500-search-polls.st
 import { isValidPlaintextHash } from '../types/Crypto.std.ts';
 import { Emoji } from '../axo/emoji.std.ts';
 import { WalCheckpoints } from './WalCheckpoints.std.ts';
+import {
+  getExternalDraftFilesForConversation,
+  getExternalAvatarFilesForConversation,
+} from '../util/conversationFilePaths.std.ts';
 
 const {
-  forEach,
   fromPairs,
   groupBy,
   isBoolean,
@@ -673,9 +677,9 @@ export const DataWriter: ServerWritableInterface = {
   _removeAllCallHistory,
   markCallHistoryDeleted,
   cleanupCallHistoryMessages,
-  markCallHistoryRead,
-  markAllCallHistoryRead,
-  markAllCallHistoryReadInConversation,
+  getUnreadCallMessageAndMarkRead,
+  getUnreadCallMessagesAndMarkRead,
+  getUnreadCallMessagesInConversationAndMarkRead,
   saveCallHistory,
   markCallHistoryMissed,
   insertCallLink,
@@ -734,6 +738,7 @@ export const DataWriter: ServerWritableInterface = {
   createOrUpdateStickerPacks,
   updateStickerPackStatusAndPosition,
   updateStickerPackInfo,
+  updateStickerPacksPositions,
   createOrUpdateSticker,
   createOrUpdateStickers,
   updateStickerLastUsed,
@@ -1032,7 +1037,7 @@ export function initialize({
 
     // Only the first worker gets to upgrade the schema. The rest just folow.
     if (isPrimary) {
-      updateSchema(db, logger);
+      updateSchema(db, logger, { userDataPath: configDir });
       WalCheckpoints.setupDeleteTriggers(db, logger);
     }
 
@@ -1048,7 +1053,10 @@ export function initialize({
 }
 
 /** @testexport */
-export function setupTests(db: WritableDB): void {
+export function setupTests(
+  db: WritableDB,
+  data: { userDataPath: string }
+): void {
   const silentLogger = {
     ...consoleLogger,
     info: noop,
@@ -1058,7 +1066,7 @@ export function setupTests(db: WritableDB): void {
   };
   logger = silentLogger;
 
-  updateSchema(db, logger);
+  updateSchema(db, logger, data);
 }
 
 function closeReadable(db: ReadableDB): void {
@@ -4949,22 +4957,6 @@ function getCallHistoryUnreadCount(db: ReadableDB): number {
   return row ?? 0;
 }
 
-function markCallHistoryRead(db: WritableDB, callId: string): void {
-  const jsonPatch = JSON.stringify({
-    seenStatus: SeenStatus.Seen,
-  });
-
-  const [query, params] = sql`
-    UPDATE messages
-    SET
-      seenStatus = ${SEEN_STATUS_SEEN},
-      json = json_patch(json, ${jsonPatch})
-    WHERE type IS 'call-history'
-    AND callId IS ${callId}
-  `;
-  db.prepare(query).run(params);
-}
-
 function getCallHistoryForCallLogEventTarget(
   db: ReadableDB,
   target: CallLogEventTarget
@@ -5104,18 +5096,59 @@ function getMessageReceivedAtForCall(
   return receivedAt;
 }
 
-export function markAllCallHistoryRead(
+function getUnreadCallMessageAndMarkRead(
+  db: WritableDB,
+  callId: string,
+  readAt: number
+): GetUnreadCallMessagesAndMarkReadResult | null {
+  const jsonPatch = JSON.stringify({
+    readStatus: ReadStatus.Read,
+    seenStatus: SeenStatus.Seen,
+  });
+
+  const [query, params] = sql`
+    UPDATE messages
+    SET
+      readStatus = ${READ_STATUS_READ},
+      seenStatus = ${SEEN_STATUS_SEEN},
+      json = json_patch(json, ${jsonPatch}),
+      expirationStartTimestamp = CASE
+        WHEN messages.hasExpireTimer IS 1
+          AND messages.expirationStartTimestamp IS NULL
+        THEN
+          ${readAt}
+        ELSE
+          expirationStartTimestamp
+      END
+    WHERE messages.type IS 'call-history'
+    AND messages.callId IS ${callId}
+    RETURNING
+      messages.id,
+      messages.conversationId,
+      messages.readStatus,
+      messages.seenStatus,
+      messages.expirationStartTimestamp
+  `;
+
+  const result = db
+    .prepare(query)
+    .get<GetUnreadCallMessagesAndMarkReadResult>(params);
+
+  return result ?? null;
+}
+
+export function getUnreadCallMessagesAndMarkRead(
   db: WritableDB,
   target: CallLogEventTarget,
   readAt: number,
   activeCallIds: Set<string>,
   inConversation = false
-): number {
+): ReadonlyArray<GetUnreadCallMessagesAndMarkReadResult> {
   return db.transaction(() => {
     const callHistory = getCallHistoryForCallLogEventTarget(db, target);
     if (callHistory == null) {
       logger.warn('markAllCallHistoryRead: Target call not found');
-      return 0;
+      return [];
     }
 
     const { callId } = callHistory;
@@ -5141,7 +5174,7 @@ export function markAllCallHistoryRead(
       const conversationId = getConversationIdForCallHistory(db, callHistory);
       if (conversationId == null) {
         logger.warn('markAllCallHistoryRead: Conversation not found for call');
-        return 0;
+        return [];
       }
 
       logger.info(
@@ -5156,7 +5189,7 @@ export function markAllCallHistoryRead(
 
     if (receivedAt == null) {
       logger.warn('markAllCallHistoryRead: Message not found for call');
-      return 0;
+      return [];
     }
 
     const jsonPatch = JSON.stringify({
@@ -5168,6 +5201,15 @@ export function markAllCallHistoryRead(
       `markAllCallHistoryRead: Marking calls before ${receivedAt} read`
     );
 
+    const returning = sqlFragment`
+      RETURNING
+        messages.id,
+        messages.conversationId,
+        messages.readStatus,
+        messages.seenStatus,
+        messages.expirationStartTimestamp
+    `;
+
     const [updateQuery, updateParams] = sql`
       UPDATE messages
       SET
@@ -5177,10 +5219,13 @@ export function markAllCallHistoryRead(
       WHERE messages.type IS 'call-history'
         AND ${predicate}
         AND messages.seenStatus IS ${SEEN_STATUS_UNSEEN}
-        AND messages.received_at <= ${receivedAt};
+        AND messages.received_at <= ${receivedAt}
+      ${returning}
     `;
 
-    const result = db.prepare(updateQuery).run(updateParams);
+    const updateResult = db
+      .prepare(updateQuery)
+      .all<GetUnreadCallMessagesAndMarkReadResult>(updateParams);
 
     const [updateExpirationQuery, updateExpirationParams] = sql`
       UPDATE messages
@@ -5193,20 +5238,44 @@ export function markAllCallHistoryRead(
         AND hasExpireTimer IS 1
         AND expirationStartTimestamp IS NULL
         AND messages.callId NOT IN (${sqlJoin(Array.from(activeCallIds))})
+      ${returning}
     `;
-    db.prepare(updateExpirationQuery).run(updateExpirationParams);
+    const updateExpirationResult = db
+      .prepare(updateExpirationQuery)
+      .all<GetUnreadCallMessagesAndMarkReadResult>(updateExpirationParams);
 
-    return result.changes;
+    const seen = new Set<string>();
+    const merged: Array<GetUnreadCallMessagesAndMarkReadResult> = [];
+
+    for (const item of updateExpirationResult) {
+      seen.add(item.id);
+      merged.push(item);
+    }
+
+    for (const item of updateResult) {
+      if (seen.has(item.id)) {
+        continue; // prefer data from the second update
+      }
+      merged.push(item);
+    }
+
+    return merged;
   })();
 }
 
-function markAllCallHistoryReadInConversation(
+function getUnreadCallMessagesInConversationAndMarkRead(
   db: WritableDB,
   target: CallLogEventTarget,
   readAt: number,
   activeCallIds: Set<string>
-): number {
-  return markAllCallHistoryRead(db, target, readAt, activeCallIds, true);
+): ReadonlyArray<GetUnreadCallMessagesAndMarkReadResult> {
+  return getUnreadCallMessagesAndMarkRead(
+    db,
+    target,
+    readAt,
+    activeCallIds,
+    true
+  );
 }
 
 function getCallHistoryGroupData(
@@ -7215,6 +7284,25 @@ function updateStickerPackInfo(
     });
   }
 }
+
+function updateStickerPacksPositions(
+  db: WritableDB,
+  packIdsAndPositions: ReadonlyArray<{ id: string; position: number }>
+): void {
+  return db.transaction(() => {
+    for (const packIdsAndPosition of packIdsAndPositions) {
+      const [query, params] = sql`
+        UPDATE sticker_packs
+        SET
+          position = ${packIdsAndPosition.position},
+          storageNeedsSync = 1
+        WHERE id = ${packIdsAndPosition.id}
+      `;
+      db.prepare(query).run(params);
+    }
+  })();
+}
+
 function clearAllErrorStickerPackAttempts(db: WritableDB): void {
   db.prepare(
     `
@@ -8978,47 +9066,6 @@ function getMessageServerGuidsForSpam(
     .all({ conversationId, limit });
 }
 
-function getExternalFilesForConversation(
-  conversation: Pick<ConversationType, 'avatar' | 'profileAvatar'>
-): Array<string> {
-  const { avatar, profileAvatar } = conversation;
-  const files: Array<string> = [];
-
-  if (avatar && avatar.path) {
-    files.push(avatar.path);
-  }
-
-  if (profileAvatar && profileAvatar.path) {
-    files.push(profileAvatar.path);
-  }
-
-  return files;
-}
-
-function getExternalDraftFilesForConversation(
-  conversation: Pick<ConversationType, 'draftAttachments'>
-): Array<string> {
-  const draftAttachments = conversation.draftAttachments || [];
-  const files: Array<string> = [];
-
-  forEach(draftAttachments, attachment => {
-    if (attachment.pending) {
-      return;
-    }
-
-    const { path: file, screenshotPath } = attachment;
-    if (file) {
-      files.push(file);
-    }
-
-    if (screenshotPath) {
-      files.push(screenshotPath);
-    }
-  });
-
-  return files;
-}
-
 function getKnownMessageAttachments(
   db: ReadableDB,
   cursor?: MessageAttachmentsCursorType
@@ -9242,7 +9289,7 @@ function getKnownConversationAttachments(db: ReadableDB): Array<string> {
       jsonToObject(row.json)
     );
     conversations.forEach(conversation => {
-      const externalFiles = getExternalFilesForConversation(conversation);
+      const externalFiles = getExternalAvatarFilesForConversation(conversation);
       externalFiles.forEach(file => result.add(file));
     });
 

@@ -117,6 +117,7 @@ import {
   getCachedConversationMemberColorsSelector,
   getContactNameColor,
   getPinnedMessagesMessageIds,
+  getStoriesState,
 } from './conversations.dom.ts';
 import {
   getIntl,
@@ -225,6 +226,9 @@ export type GetPropsForBubbleOptions = Readonly<{
   contactNameColors: Map<string, ContactNameColorType>;
   defaultConversationColor: DefaultConversationColorType;
   hasMediaBackups: boolean;
+  getStoryReplyAttachment: (
+    storyMessageId: string
+  ) => AttachmentType | undefined;
 }>;
 
 export function hasErrors(
@@ -615,9 +619,10 @@ const getPollForMessage = (
       profileName: voter.profileName,
       title: voter.title,
     };
+    const uniqueOptionIndexes = [...new Set(vote.optionIndexes)];
 
     return {
-      optionIndexes: vote.optionIndexes,
+      optionIndexes: uniqueOptionIndexes,
       timestamp: vote.timestamp,
       isMe: voter.id === ourConversationId,
       from,
@@ -650,22 +655,42 @@ const getPollForMessage = (
   };
 };
 
+export const getStoryReplyAttachmentSelector = createSelector(
+  getStoriesState,
+  ({ stories }) =>
+    (storyMessageId: string): AttachmentType | undefined => {
+      if (!storyMessageId) {
+        return undefined;
+      }
+      const story = stories.find(item => item.messageId === storyMessageId);
+      return story?.attachment;
+    }
+);
+
 const getPropsForStoryReplyContext = (
   message: Pick<
     MessageWithUIFieldsType,
-    'body' | 'conversationId' | 'storyReaction' | 'storyReplyContext'
+    | 'body'
+    | 'conversationId'
+    | 'storyReaction'
+    | 'storyId'
+    | 'storyReplyContext'
   >,
   {
     conversationSelector,
     ourConversationId,
     defaultConversationColor,
+    getStoryReplyAttachment,
   }: {
     conversationSelector: GetConversationByIdType;
     ourConversationId?: string;
     defaultConversationColor: DefaultConversationColorType;
+    getStoryReplyAttachment: (
+      storyMessageId: string
+    ) => AttachmentType | undefined;
   }
 ): PropsData['storyReplyContext'] => {
-  const { storyReaction, storyReplyContext } = message;
+  const { storyReaction, storyId, storyReplyContext } = message;
   if (!storyReplyContext) {
     return undefined;
   }
@@ -681,6 +706,9 @@ const getPropsForStoryReplyContext = (
     conversation,
     defaultConversationColor
   );
+  const storyAttachment = storyId
+    ? getStoryReplyAttachment(storyId)
+    : undefined;
 
   return {
     authorTitle,
@@ -688,14 +716,12 @@ const getPropsForStoryReplyContext = (
     customColor,
     emoji: storyReaction?.emoji,
     isFromMe,
-    rawAttachment: storyReplyContext.attachment
-      ? processQuoteAttachment(storyReplyContext.attachment)
+    rawAttachment: storyAttachment
+      ? processQuoteAttachment(storyAttachment)
       : undefined,
-    storyId: storyReplyContext.messageId,
-    text: getStoryReplyText(
-      window.SignalContext.i18n,
-      storyReplyContext.attachment
-    ),
+    // Only expose the storyId (making the quote clickable) when the story is found.
+    storyId: storyAttachment ? storyId : undefined,
+    text: getStoryReplyText(window.SignalContext.i18n, storyAttachment),
   };
 };
 
@@ -799,6 +825,7 @@ export type GetPropsForMessageOptions = Pick<
   | 'contactNameColors'
   | 'defaultConversationColor'
   | 'hasMediaBackups'
+  | 'getStoryReplyAttachment'
 >;
 
 function getTextAttachment(
@@ -1064,6 +1091,7 @@ export const getMessagePropsSelector = createSelector(
   getSelectedMessageIds,
   getDefaultConversationColor,
   getHasMediaBackups,
+  getStoryReplyAttachmentSelector,
   (
     conversationSelector,
     ourConversationId,
@@ -1077,7 +1105,8 @@ export const getMessagePropsSelector = createSelector(
     pinnedMessagesMessageIds,
     selectedMessageIds,
     defaultConversationColor,
-    hasMediaBackups
+    hasMediaBackups,
+    getStoryReplyAttachment
   ) =>
     (message: MessageWithUIFieldsType) => {
       const contactNameColors = cachedConversationMemberColorsSelector(
@@ -1098,6 +1127,7 @@ export const getMessagePropsSelector = createSelector(
         selectedMessageIds,
         defaultConversationColor,
         hasMediaBackups,
+        getStoryReplyAttachment,
       });
     }
 );
@@ -1545,10 +1575,9 @@ function getPropsForSafetyNumberNotification(
     );
   }
 
-  const contact = identifier ? conversationSelector(identifier) : conversation;
+  const contact = isGroup ? conversationSelector(identifier) : conversation;
 
   return {
-    isGroup,
     contact,
   };
 }
@@ -2894,6 +2923,7 @@ export const getMessageDetailsSelector = createSelector(
   getDefaultConversationColor,
   getHasUnidentifiedDeliveryIndicators,
   getHasMediaBackups,
+  getStoryReplyAttachmentSelector,
   (
     accountSelector,
     cachedConversationMemberColorsSelector,
@@ -2909,7 +2939,8 @@ export const getMessageDetailsSelector = createSelector(
     selectedMessageIds,
     defaultConversationColor,
     hasUnidentifiedDeliveryIndicators,
-    hasMediaBackups
+    hasMediaBackups,
+    getStoryReplyAttachment
   ): ((messageId: string) => SmartMessageDetailPropsType | undefined) =>
     (messageId: string) => {
       if (!messageLookup || !ourConversationId) {
@@ -2963,6 +2994,7 @@ export const getMessageDetailsSelector = createSelector(
           selectedMessageIds,
           defaultConversationColor,
           hasMediaBackups,
+          getStoryReplyAttachment,
         }),
         receivedAt: message.received_at_ms ?? message.received_at ?? 0,
       };

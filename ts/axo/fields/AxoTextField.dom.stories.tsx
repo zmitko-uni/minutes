@@ -4,12 +4,12 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { Meta } from '@storybook/react';
 import { AxoTextField } from './AxoTextField.dom.tsx';
-import { tw } from './tw.dom.tsx';
-import type { AxoSymbol } from './AxoSymbol.dom.tsx';
-import { assert } from './_internal/assert.std.tsx';
+import { tw } from '../tw.dom.tsx';
+import type { AxoSymbol } from '../AxoSymbol.dom.tsx';
+import { assert } from '../_internal/assert.std.tsx';
 
 export default {
-  title: 'Axo/AxoTextField',
+  title: 'Axo/Fields/AxoTextField',
 } satisfies Meta;
 
 function Stack(props: { children: ReactNode }) {
@@ -23,7 +23,7 @@ function Heading(props: { children: ReactNode }) {
     <h2
       className={tw(
         'mt-4 first:mt-0',
-        'type-title-small font-semibold text-label-primary'
+        'type-title-small font-semibold text-primary'
       )}
     >
       {props.children}
@@ -33,15 +33,13 @@ function Heading(props: { children: ReactNode }) {
 
 function Hint(props: { children: ReactNode }) {
   return (
-    <p className={tw('type-body-medium text-label-secondary')}>
-      {props.children}
-    </p>
+    <p className={tw('type-body-medium text-secondary')}>{props.children}</p>
   );
 }
 
 function Warn(props: { children: ReactNode }) {
   return (
-    <p className={tw('type-body-medium text-color-label-destructive italic')}>
+    <p className={tw('type-body-medium text-destructive italic')}>
       Warning: {props.children}
     </p>
   );
@@ -51,7 +49,7 @@ function Code(props: { children: ReactNode }) {
   return (
     <code
       className={tw(
-        'inline-block rounded-xs bg-background-secondary px-0.5 font-mono'
+        'inline-block rounded-xs bg-surface-secondary px-0.5 font-mono'
       )}
     >
       {props.children}
@@ -77,7 +75,7 @@ type TemplateInputProps = Readonly<{
   placeholder?: string;
   showCount?: boolean;
   showClear?: boolean;
-  sizing?: AxoTextField.Sizing;
+  sizing?: AxoTextField.InputSizing;
   disabled?: boolean;
 }>;
 
@@ -113,7 +111,7 @@ type TemplateProps = Readonly<{
   showClear?: boolean;
   leading?: ReactNode;
   trailing?: ReactNode;
-  sizing?: AxoTextField.Sizing;
+  sizing?: AxoTextField.InputSizing;
   disabled?: boolean;
 }>;
 

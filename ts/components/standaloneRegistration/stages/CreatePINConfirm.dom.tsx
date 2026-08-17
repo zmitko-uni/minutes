@@ -7,7 +7,7 @@ import type { JSX } from 'react';
 
 import { tw } from '../../../axo/tw.dom.tsx';
 import { AxoButton } from '../../../axo/AxoButton.dom.tsx';
-import { AxoTextField } from '../../../axo/AxoTextField.dom.tsx';
+import { AxoPasswordField } from '../../../axo/fields/AxoPasswordField.dom.tsx';
 import {
   Buttons,
   Container,
@@ -62,23 +62,24 @@ export function CreatePINConfirmScreen({
         {i18n('icu:StandaloneRegistration--CreatePIN--confirming--description')}
       </Description>
       <Spacer className={tw('h-8')} />
-      <InputContainer>
-        <AxoTextField.Root width="md" disabled={pending}>
-          <AxoTextField.Input
-            maxBytes={10}
-            maxGraphemes={10}
-            onValueChange={onChangePIN}
-            placeholder={i18n(
-              'icu:StandaloneRegistration--CreatePIN--confirming--placeholder'
-            )}
-            value={pin}
-          />
-        </AxoTextField.Root>
+      <InputContainer className={tw('w-81')}>
+        <AxoPasswordField.Root
+          disabled={pending}
+          autoFocus
+          maxBytes={10}
+          maxGraphemes={10}
+          onValueChange={onChangePIN}
+          placeholder={i18n(
+            'icu:StandaloneRegistration--CreatePIN--confirming--placeholder'
+          )}
+          value={pin}
+          autoComplete="new-password"
+        />
       </InputContainer>
       <Spacer className={tw('h-8 grow')} />
       <Buttons>
         <AxoButton.Root
-          variant="primary"
+          variant="strong-primary"
           size="md"
           disabled={!isValidPIN || pending}
           pending={pending}

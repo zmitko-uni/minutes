@@ -15,7 +15,6 @@ import type {
 import type { PreferredBadgeSelectorType } from '../../../state/selectors/badges.preload.ts';
 import type { SmartChooseGroupMembersModalPropsType } from '../../../state/smart/ChooseGroupMembersModal.preload.tsx';
 import type { SmartConfirmAdditionsModalPropsType } from '../../../state/smart/ConfirmAdditionsModal.dom.tsx';
-import { assertDev } from '../../../util/assert.std.ts';
 import { getMutedUntilText } from '../../../util/getMutedUntilText.std.ts';
 
 import type { LocalizerType, ThemeType } from '../../../types/Util.std.ts';
@@ -262,6 +261,8 @@ export function ConversationDetails({
   const canTerminateGroup =
     isTerminateGroupEnabled && !isGroupTerminated && isAdmin;
 
+  const areWeMember = memberships.some(({ member }) => member.isMe);
+
   const onCloseModal = useCallback(() => {
     setModalState(ModalState.NothingOpen);
     setEditGroupAttributesRequestState(RequestState.Inactive);
@@ -321,12 +322,12 @@ export function ConversationDetails({
           renderChooseGroupMembersModal={renderChooseGroupMembersModal}
           renderConfirmAdditionsModal={renderConfirmAdditionsModal}
           clearRequestError={() => {
+            // This is called on close of the dialog, both on 'add member' and 'cancel'
             setAddGroupMembersRequestState(oldRequestState => {
-              assertDev(
-                oldRequestState !== RequestState.Active,
-                'Should not be clearing an active request state'
-              );
-              return RequestState.Inactive;
+              if (oldRequestState === RequestState.InactiveWithError) {
+                return RequestState.Inactive;
+              }
+              return oldRequestState;
             });
           }}
           conversationIdsAlreadyInGroup={
@@ -368,7 +369,7 @@ export function ConversationDetails({
         >
           <AxoConfirmDialog.Cancel />
           <AxoConfirmDialog.Action
-            variant="destructive"
+            variant="strong-destructive"
             onClick={onDeleteNicknameAndNote}
           >
             {i18n('icu:delete')}
@@ -400,7 +401,7 @@ export function ConversationDetails({
         >
           <AxoConfirmDialog.Cancel />
           <AxoConfirmDialog.Action
-            variant="primary"
+            variant="strong-primary"
             onClick={() => setMuteDuration(conversation.id, 0)}
           >
             {i18n('icu:unmute')}
@@ -797,7 +798,7 @@ export function ConversationDetails({
               right={hasGroupLink ? i18n('icu:on') : i18n('icu:off')}
             />
           ) : null}
-          {isEditMemberLabelEnabled ? (
+          {isEditMemberLabelEnabled && areWeMember ? (
             <PanelRow
               icon={
                 <ConversationDetailsIcon

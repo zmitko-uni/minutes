@@ -16,6 +16,7 @@ import { artAddStickersRoute } from '../../util/signalRoutes.std.ts';
 import { drop } from '../../util/drop.std.ts';
 import { ToastType } from '../../types/Toast.dom.tsx';
 import { fromBase64PackKeyToHex } from '../../util/Stickers.std.ts';
+import { useRestoreFocus } from '../../hooks/useRestoreFocus.dom.ts';
 
 export type Props = Readonly<{
   onClose?: () => void;
@@ -55,9 +56,7 @@ function renderBody({
 
   if (pack.status === 'error') {
     return (
-      <div
-        className={tw('px-12 py-6 text-center text-color-label-destructive')}
-      >
+      <div className={tw('px-12 py-6 text-center text-destructive')}>
         {i18n('icu:stickers--StickerPreview--Error')}
       </div>
     );
@@ -99,7 +98,7 @@ function renderBody({
       </h2>
       <div
         className={tw(
-          'mb-3 justify-items-center type-body-medium text-label-secondary'
+          'mb-3 justify-items-center type-body-medium text-secondary'
         )}
       >
         <div>{pack.author}</div>
@@ -146,7 +145,7 @@ function renderBody({
             <div
               key={index}
               className={tw(
-                'aspect-square max-h-18 w-full max-w-18 rounded-md bg-fill-secondary'
+                'aspect-square max-h-18 w-full max-w-18 rounded-md bg-primary'
               )}
             />
           );
@@ -179,6 +178,9 @@ export const StickerPreviewModal = memo(function StickerPreviewModalInner({
 }: Props) {
   const [confirmingUninstall, setConfirmingUninstall] = useState(false);
 
+  // Restore focus on teardown
+  const [focusRef] = useRestoreFocus();
+
   useEffect(() => {
     if (pack && pack.status === 'known') {
       downloadStickerPack(pack.id, pack.key, { actionSource: 'ui' });
@@ -198,21 +200,24 @@ export const StickerPreviewModal = memo(function StickerPreviewModalInner({
     // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        closeStickerPackPreview();
+        onClose?.();
+      }
+    },
+    [closeStickerPackPreview, onClose]
+  );
+
   useEffect(() => {
     if (pack) {
       return;
     }
 
     // Pack fully uninstalled, don't keep the modal open
-    closeStickerPackPreview();
-  }, [pack, closeStickerPackPreview]);
-
-  const handleClose = useCallback(() => {
-    if (pack) {
-      closeStickerPackPreview();
-    }
-    onClose?.();
-  }, [closeStickerPackPreview, onClose, pack]);
+    handleOpenChange(false);
+  }, [handleOpenChange, pack]);
 
   const handleInstall = useCallback(() => {
     if (!pack) {
@@ -258,7 +263,7 @@ export const StickerPreviewModal = memo(function StickerPreviewModalInner({
 
   return (
     <>
-      <AxoDialog.Root open onOpenChange={handleClose}>
+      <AxoDialog.Root open onOpenChange={handleOpenChange}>
         <AxoDialog.Content size="md" escape="cancel-is-noop">
           <AxoDialog.Header>
             <AxoDialog.Title screenReaderOnly>
@@ -267,12 +272,13 @@ export const StickerPreviewModal = memo(function StickerPreviewModalInner({
             <AxoDialog.Close />
           </AxoDialog.Header>
           <AxoDialog.Body>
+            <div ref={focusRef} />
             {renderBody({ pack, i18n, handleCopyLink, handleStartUninstall })}
           </AxoDialog.Body>
           <AxoDialog.Footer>
             {isInstallFooterVisible(pack) && (
               <AxoDialog.Action
-                variant="primary"
+                variant="strong-primary"
                 onClick={handleInstall}
                 pending={pack.status === 'pending'}
               >
@@ -292,7 +298,7 @@ export const StickerPreviewModal = memo(function StickerPreviewModalInner({
       >
         <AxoConfirmDialog.Cancel />
         <AxoConfirmDialog.Action
-          variant="destructive"
+          variant="strong-destructive"
           onClick={handleUninstall}
         >
           {i18n('icu:stickers--StickerManager--Uninstall')}

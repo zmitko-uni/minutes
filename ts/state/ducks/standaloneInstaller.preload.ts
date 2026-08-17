@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { isNumber } from 'lodash';
+import { unicodeNumber } from 'unicode-number';
+import { SvrKey } from '@signalapp/libsignal-client/dist/AccountKeys';
 
 import type { ReadonlyDeep } from 'type-fest';
 import type { ThunkAction } from 'redux-thunk';
@@ -37,14 +39,17 @@ import {
   ValidStepsBeforeComplete,
 } from '../../types/StandaloneRegistration.std.ts';
 import { ErrorCode, LibSignalErrorBase } from '@signalapp/libsignal-client';
-import { SessionNotAllowedToRequestCodeError } from '../../textsecure/Errors.std.ts';
+import {
+  SessionNotAllowedToRequestCodeError,
+  SessionNotVerifiedError,
+} from '../../textsecure/Errors.std.ts';
 import { openInbox } from './app.preload.ts';
 import { PhoneNumberDiscoverability } from '../../util/phoneNumberDiscoverability.std.ts';
 import { itemStorage } from '../../textsecure/Storage.preload.ts';
 import { updateWithNewKey } from '../../services/storage.preload.ts';
-import { deriveRegistrationLockToken } from '../../Crypto.node.ts';
 import { assertDev } from '../../util/assert.std.ts';
 import { FatalErrorType } from '../../types/StandaloneRegistration.std.ts';
+import { getSegmenter } from '../../util/grapheme.std.ts';
 
 import type {
   AccountLockedStage,
@@ -564,25 +569,26 @@ export function submitVerificationCode({
     } catch (error) {
       log.error(`${logId}: error submitting code`, toLogFormat(error));
 
+      if (error instanceof SessionNotVerifiedError) {
+        workflow = {
+          ...workflow,
+          failedSubmitCodeCount: workflow.failedSubmitCodeCount + 1,
+          status: {
+            type: 'failed',
+            error: 'incorrect-code',
+          },
+        };
+        dispatch(updateWorkflow(workflow));
+        return;
+      }
+
       if (error instanceof LibSignalErrorBase) {
         if (
           error.is(ErrorCode.RegistrationRequestInvalid) ||
           error.is(ErrorCode.RegistrationRequestRejected) ||
-          error.is(ErrorCode.RegistrationSessionIdInvalid)
+          error.is(ErrorCode.RegistrationSessionIdInvalid) ||
+          error.is(ErrorCode.RegistrationSessionNotReadyForVerification)
         ) {
-          workflow = {
-            ...workflow,
-            failedSubmitCodeCount: workflow.failedSubmitCodeCount + 1,
-            status: {
-              type: 'failed',
-              error: 'incorrect-code',
-            },
-          };
-          dispatch(updateWorkflow(workflow));
-          return;
-        }
-
-        if (error.is(ErrorCode.RegistrationSessionNotReadyForVerification)) {
           workflow = {
             ...workflow,
             failedSubmitCodeCount: workflow.failedSubmitCodeCount + 1,
@@ -628,7 +634,10 @@ export function submitVerificationCode({
         error instanceof LibSignalErrorBase &&
         error.is(ErrorCode.RegistrationLock)
       ) {
-        if (error.timeRemainingSeconds > 0) {
+        if (!error.svr2Username || !error.svr2Password) {
+          log.error(
+            `${logId}: SVR credentials not returned with 423; cannot proceed`
+          );
           const newWorkflow: AccountLockedStage = {
             stage: RegistrationStage.ACCOUNT_LOCKED,
           };
@@ -795,21 +804,14 @@ export function verifyPIN({
           };
           dispatch(updateWorkflow(workflow));
         } else if (error === 'missing') {
-          log.warn(`${logId}: Nothing in SVR for this user!`);
+          log.error(`${logId}: Nothing in SVR for this user!`);
 
           if (dataForReglockAccountCreate) {
             // Something has really gone wrong - we're in reglock, but SVR has nothing for us
             dispatch(updateWorkflow(workflow, FatalErrorType.UNEXPECTED));
           } else {
             // No reglock and nothing in SVR - let's allow the user to create a new PIN
-            workflow = {
-              ...workflow,
-              status: {
-                type: 'failed',
-                error: 'nothing-in-svr',
-              },
-            };
-            dispatch(updateWorkflow(workflow));
+            dispatch(goToCreatePINStage());
           }
         } else {
           const unknownError: never = error;
@@ -865,8 +867,9 @@ export function verifyPIN({
     const { phoneNumber, verificationSessionId, profileData } =
       dataForReglockAccountCreate;
 
-    const regLockData = deriveRegistrationLockToken(masterKey);
-    const registrationLockToken = toHex(regLockData);
+    const svrKey = new SvrKey(masterKey);
+    const registrationLockData = svrKey.deriveRegistrationLock();
+    const registrationLockToken = toHex(registrationLockData);
 
     try {
       await accountManager.registerAsPrimaryDevice({
@@ -891,6 +894,7 @@ export function verifyPIN({
           fatalError: analyzeError(error),
         },
       });
+      return;
     }
 
     try {
@@ -1116,8 +1120,30 @@ async function uploadInitialProfile({
   });
 }
 
-function normalizePin(pin: string): string {
-  return pin.trim();
+const IS_ALL_DIGITS = /^\p{Nd}+$/u;
+const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+export function normalizePin(pin: string): string {
+  let result = pin.trim();
+
+  if (IS_ALL_DIGITS.test(result)) {
+    const segmenter = getSegmenter();
+    const segments = segmenter.segment(result);
+
+    let updated = '';
+    for (const segment of segments) {
+      const parsedValue = unicodeNumber(segment.segment);
+      if (isNumber(parsedValue) && DIGITS.includes(parsedValue)) {
+        updated += parsedValue.toString();
+      } else {
+        updated += segment.segment;
+      }
+    }
+
+    result = updated;
+  }
+
+  return result.normalize('NFKD');
 }
 
 // Reducer

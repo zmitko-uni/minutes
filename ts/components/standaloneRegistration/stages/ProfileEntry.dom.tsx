@@ -15,7 +15,7 @@ import { AxoSymbol } from '../../../axo/AxoSymbol.dom.tsx';
 import { AxoButton } from '../../../axo/AxoButton.dom.tsx';
 import { AxoDialog } from '../../../axo/AxoDialog.dom.tsx';
 import { AxoRadioGroup } from '../../../axo/AxoRadioGroup.dom.tsx';
-import { AxoTextField } from '../../../axo/AxoTextField.dom.tsx';
+import { AxoTextField } from '../../../axo/fields/AxoTextField.dom.tsx';
 
 import type { LocalizerType } from '../../../types/I18N.std.ts';
 import type { ActionCreator } from '../../../state/types.std.ts';
@@ -96,7 +96,10 @@ export function ProfileEntryScreen({
           {i18n('icu:StandaloneRegistration--ProfileEntry--description')}
         </div>
         <div>
-          <a href="https://support.signal.org">
+          <a
+            className={tw('text-primary')}
+            href="https://support.signal.org/hc/articles/360007459591-Signal-Profiles-and-Message-Requests"
+          >
             {i18n('icu:StandaloneRegistration--ProfileEntry--learn-more')}
           </a>
         </div>
@@ -126,7 +129,7 @@ export function ProfileEntryScreen({
         />
       </div>
       <AxoButton.Root
-        variant="secondary"
+        variant="strong-secondary"
         size="md"
         disabled={pending}
         onClick={() => setIsEditingAvatar(true)}
@@ -134,8 +137,8 @@ export function ProfileEntryScreen({
         {i18n('icu:StandaloneRegistration--ProfileEntry--add-photo')}
       </AxoButton.Root>
       <Spacer className={tw('h-7')} />
-      <InputContainer>
-        <AxoTextField.Root width="md" disabled={pending}>
+      <InputContainer className={tw('w-100')}>
+        <AxoTextField.Root disabled={pending}>
           <AxoTextField.Input
             placeholder={i18n(
               'icu:StandaloneRegistration--ProfileEntry--first-name'
@@ -148,8 +151,8 @@ export function ProfileEntryScreen({
         </AxoTextField.Root>
       </InputContainer>
       <Spacer />
-      <InputContainer>
-        <AxoTextField.Root width="md" disabled={pending}>
+      <InputContainer className={tw('w-100')}>
+        <AxoTextField.Root disabled={pending}>
           <AxoTextField.Input
             placeholder={i18n(
               'icu:StandaloneRegistration--ProfileEntry--last-name'
@@ -164,7 +167,7 @@ export function ProfileEntryScreen({
       <Spacer className={tw('h-4')} />
       <div
         className={tw(
-          'group flex min-h-fit w-[calc-size(fit-content,min(max(400px,size),100%))] gap-3 overflow-hidden curved-lg border-[0.5px] border-border-primary px-4 py-2.5 shadow-elevation-0 outline-offset-[-1.5px] shadow-no-outline'
+          'group flex min-h-fit w-[calc-size(fit-content,min(max(400px,size),100%))] gap-3 overflow-hidden curved-lg border-[0.5px] border-primary px-4 py-2.5 shadow-elevation-0 outline-offset-[-1.5px] shadow-no-outline'
         )}
       >
         <AxoSymbol.Icon symbol="group" size={18} label={null} />
@@ -172,7 +175,7 @@ export function ProfileEntryScreen({
           <div className={tw('type-body-medium')}>
             {i18n('icu:StandaloneRegistration--ProfileEntry--discoverability')}
           </div>
-          <div className={tw('type-body-small text-label-secondary')}>
+          <div className={tw('type-body-small text-secondary')}>
             {phoneNumberDiscoverability ===
             PhoneNumberDiscoverability.Discoverable
               ? i18n('icu:Preferences__pnp__discoverability__everyone')
@@ -181,7 +184,7 @@ export function ProfileEntryScreen({
         </div>
         <div className={tw('self-center')}>
           <AxoButton.Root
-            variant="secondary"
+            variant="strong-secondary"
             size="md"
             disabled={pending}
             onClick={() => setIsEditingPhoneNumberDiscoverability(true)}
@@ -195,7 +198,7 @@ export function ProfileEntryScreen({
       <Spacer className={tw('grow')} />
       <Buttons>
         <AxoButton.Root
-          variant="primary"
+          variant="strong-primary"
           size="md"
           pending={pending}
           disabled={!normalizeProfileName(firstName) || pending}
@@ -342,7 +345,7 @@ function PhoneNumberDiscoverabilityDialog({
               </AxoRadioGroup.Label>
             </AxoRadioGroup.Item>
           </AxoRadioGroup.Root>
-          <div className={tw('mt-3 mb-8 type-body-small text-label-secondary')}>
+          <div className={tw('mt-3 mb-8 type-body-small text-secondary')}>
             {phoneNumberDiscoverability ===
             PhoneNumberDiscoverability.Discoverable
               ? i18n(
@@ -355,7 +358,10 @@ function PhoneNumberDiscoverabilityDialog({
         </AxoDialog.Body>
         <AxoDialog.Footer>
           <AxoDialog.Actions>
-            <AxoDialog.Action variant="primary" onClick={() => setOpen(false)}>
+            <AxoDialog.Action
+              variant="strong-primary"
+              onClick={() => setOpen(false)}
+            >
               {i18n(
                 'icu:StandaloneRegistration--ProfileEntry--discoverability--done-button'
               )}

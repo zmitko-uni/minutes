@@ -44,7 +44,9 @@ export function MinutesBookmarksModal({
           setBookmarks(await listBookmarks());
         } catch (error) {
           setErrorMessage(
-            error instanceof Error ? error.message : 'Nepodařilo se načíst záložky.'
+            error instanceof Error
+              ? error.message
+              : 'Nepodařilo se načíst záložky.'
           );
         } finally {
           setIsLoading(false);
@@ -93,15 +95,13 @@ export function MinutesBookmarksModal({
 
         <AxoDialog.Body>
           <AxoDialog.Description>
-            <p className={tw('mb-4 text-label-medium leading-relaxed')}>
-              Uložené zprávy z libovolného chatu. Přidejte je pravým tlačítkem na
-              zprávu → <strong>Přidat do záložek</strong>.
+            <p className={tw('text-label-medium leading-relaxed mb-4')}>
+              Uložené zprávy z libovolného chatu. Přidejte je pravým tlačítkem
+              na zprávu → <strong>Přidat do záložek</strong>.
             </p>
           </AxoDialog.Description>
 
-          {isLoading && (
-            <p className={tw('text-label-secondary')}>Načítám…</p>
-          )}
+          {isLoading && <p className={tw('text-label-secondary')}>Načítám…</p>}
 
           {errorMessage && (
             <p className="MinutesBookmarksModal__error">{errorMessage}</p>
@@ -148,10 +148,13 @@ export function MinutesBookmarksModal({
 
         <AxoDialog.Footer>
           <AxoDialog.Actions>
-            <AxoDialog.Action variant="secondary" onClick={refresh}>
+            <AxoDialog.Action variant="strong-secondary" onClick={refresh}>
               Obnovit
             </AxoDialog.Action>
-            <AxoDialog.Action variant="primary" onClick={() => onOpenChange(false)}>
+            <AxoDialog.Action
+              variant="strong-primary"
+              onClick={() => onOpenChange(false)}
+            >
               Zavřít
             </AxoDialog.Action>
           </AxoDialog.Actions>

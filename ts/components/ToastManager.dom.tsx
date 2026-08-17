@@ -601,7 +601,7 @@ function renderToast({
   if (toastType === ToastType.FileSize) {
     return (
       <Toast onClose={hideToast}>
-        {i18n('icu:fileSizeWarning', {
+        {i18n('icu:fileTooLargeWarning', {
           limit: toast.parameters.limit,
           units: toast.parameters.units,
         })}
@@ -611,7 +611,7 @@ function renderToast({
   if (toastType === ToastType.VideoFileSize) {
     return (
       <Toast onClose={hideToast}>
-        {i18n('icu:videoFileSizeWarning', {
+        {i18n('icu:videoFileTooLargeWarning', {
           limit: toast.parameters.limit,
           units: toast.parameters.units,
         })}
@@ -832,7 +832,7 @@ function renderToast({
       >
         <div>
           <strong>
-            <span className={tw('text-color-fill-warning')}>
+            <span className={tw('text-warning')}>
               <AxoSymbol.InlineGlyph symbol="error-triangle" label="Change" />
             </span>
             &nbsp;Remote Config changed:

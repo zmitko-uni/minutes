@@ -50,6 +50,7 @@ export const ValidNextStages: Record<
   [RegistrationStage.CAPTCHA]: new Set([RegistrationStage.VERIFICATION_CODE]),
   [RegistrationStage.VERIFICATION_CODE]: new Set([
     RegistrationStage.PROFILE_ENTRY,
+    RegistrationStage.ACCOUNT_LOCKED, // if 423 from account create contains no credentials
   ]),
   [RegistrationStage.PROFILE_ENTRY]: new Set([
     RegistrationStage.VERIFY_PIN,
@@ -312,7 +313,7 @@ export type VerifyPINStage = {
     | {
         type: 'in-progress';
       }
-    | { type: 'failed'; error: 'nothing-in-svr' };
+    | { type: 'failed'; error: 'incorrect-pin' };
 
   // After VERIFY_PIN:
   //  - save PIN in local storage

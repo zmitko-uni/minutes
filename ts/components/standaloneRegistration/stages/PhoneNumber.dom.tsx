@@ -11,11 +11,12 @@ import { tw } from '../../../axo/tw.dom.tsx';
 import { AxoButton } from '../../../axo/AxoButton.dom.tsx';
 import { ConfirmPhoneNumberDialog } from '../util/ConfirmPhoneNumberDialog.dom.tsx';
 import { ChooseCountryCodeModal } from '../../CountryCodeSelect.dom.tsx';
-import { AxoTextField } from '../../../axo/AxoTextField.dom.tsx';
+import { AxoTextField } from '../../../axo/fields/AxoTextField.dom.tsx';
 import {
   Buttons,
   Container,
   Description,
+  InputContainer,
   Spacer,
   Title,
   TopMatter,
@@ -99,12 +100,10 @@ export function PhoneNumberScreen({
         </div>
       </Description>
       <Spacer className={tw('h-9')} />
-      <div className={tw('w-81 max-w-[calc(100%-48px)]')}>
-        <AxoTextField.Root width="lg">
+      <InputContainer className={tw('w-81')}>
+        <AxoTextField.Root>
           {regionCode ? (
-            <div
-              className={tw('p-1.5 ps-3 type-body-large text-label-primary')}
-            >
+            <div className={tw('p-1.5 ps-3 type-body-large text-primary')}>
               {codeByRegion.get(regionCode)}
             </div>
           ) : undefined}
@@ -127,7 +126,7 @@ export function PhoneNumberScreen({
             value={phoneNumber ?? ''}
           />
         </AxoTextField.Root>
-      </div>
+      </InputContainer>
       <Spacer className={tw('grow')} />
       {status.type === 'waiting' && duration ? (
         <div>
@@ -138,7 +137,7 @@ export function PhoneNumberScreen({
       ) : undefined}
       <Buttons>
         <AxoButton.Root
-          variant="primary"
+          variant="strong-primary"
           size="md"
           disabled={!isValidNumber || Boolean(duration)}
           pending={status.type === 'in-progress'}

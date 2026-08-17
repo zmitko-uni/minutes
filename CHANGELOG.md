@@ -13,6 +13,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Changed
+
+- merge Signal Desktop v8.23.0 while preserving Minutes branding and features
+
 ### Added
 - (doplňte před příštím release)
 

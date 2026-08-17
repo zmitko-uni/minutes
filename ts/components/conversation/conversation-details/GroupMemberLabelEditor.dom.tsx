@@ -155,6 +155,8 @@ export function GroupMemberLabelEditor({
     }
   }, [isDirty, isSaving, popPanelForConversation, previousIsSaving]);
 
+  const shouldShowClearButton = Boolean(labelEmoji || labelString);
+
   return (
     <div className={tw('flex size-full flex-col')}>
       <div className={tw('grow flex-col overflow-y-scroll')}>
@@ -188,23 +190,22 @@ export function GroupMemberLabelEditor({
               // Replace all whitespace with basic space
               setLabelString(value.replace(/\s/g, ' '));
             }}
-            ref={undefined}
             placeholder={i18n(
               'icu:ConversationDetails--member-label--placeholder'
             )}
+            ref={undefined}
+            shouldShowClearButton={shouldShowClearButton}
             value={labelString}
             whenToShowRemainingCount={20}
           />
-          <div className={tw('type-body-small text-label-secondary')}>
+          <div className={tw('type-body-small text-secondary')}>
             {i18n('icu:ConversationDetails--member-label--description')}
           </div>
           <div className={tw('mt-[30px] type-body-medium font-semibold')}>
             {i18n('icu:ConversationDetails--member-label--preview')}
           </div>
           <div
-            className={tw(
-              'mt-2.5 rounded-[27px] bg-fill-primary-pressed px-2 py-6'
-            )}
+            className={tw('mt-2.5 rounded-[27px] bg-control-pressed px-2 py-6')}
             ref={messageContainer}
           >
             <Message
@@ -286,7 +287,7 @@ export function GroupMemberLabelEditor({
           </div>
           <div>
             {membersWithLabel.length === 0 && (
-              <div className={tw('type-body-medium text-label-secondary')}>
+              <div className={tw('type-body-medium text-secondary')}>
                 {i18n('icu:ConversationDetails--member-label--no-members')}
               </div>
             )}
@@ -344,7 +345,7 @@ export function GroupMemberLabelEditor({
                     )}
                   </div>
                   {isAdmin && (
-                    <div className={tw('ms-2 text-label-secondary')}>
+                    <div className={tw('ms-2 text-secondary')}>
                       {i18n('icu:GroupV2--admin')}
                     </div>
                   )}
@@ -360,7 +361,7 @@ export function GroupMemberLabelEditor({
         )}
       >
         <AxoButton.Root
-          variant="secondary"
+          variant="strong-secondary"
           size="md"
           onClick={() => {
             popPanelForConversation();
@@ -370,7 +371,7 @@ export function GroupMemberLabelEditor({
         </AxoButton.Root>
 
         <AxoButton.Root
-          variant="primary"
+          variant="strong-primary"
           size="md"
           pending={isSaving}
           disabled={!canSave}
@@ -417,7 +418,7 @@ export function GroupMemberLabelEditor({
           </AxoAlertDialog.Body>
           <AxoAlertDialog.Footer>
             <AxoAlertDialog.Action
-              variant="primary"
+              variant="strong-primary"
               onClick={() => {
                 setIsShowingGeneralError(false);
               }}
@@ -447,7 +448,7 @@ export function GroupMemberLabelEditor({
           </AxoAlertDialog.Body>
           <AxoAlertDialog.Footer>
             <AxoAlertDialog.Action
-              variant="primary"
+              variant="strong-primary"
               onClick={() => {
                 setIsShowingPermissionsError(false);
                 popPanelForConversation();

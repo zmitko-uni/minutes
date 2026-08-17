@@ -83,7 +83,10 @@ export function MinutesReadmeModal({
 
         <AxoDialog.Footer>
           <AxoDialog.Actions>
-            <AxoDialog.Action variant="primary" onClick={() => onOpenChange(false)}>
+            <AxoDialog.Action
+              variant="strong-primary"
+              onClick={() => onOpenChange(false)}
+            >
               Zavřít
             </AxoDialog.Action>
           </AxoDialog.Actions>

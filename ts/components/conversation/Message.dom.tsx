@@ -1714,19 +1714,17 @@ export class Message extends PureComponent<Props, State> {
             <div>
               <div
                 className={tw(
-                  'mbs-1 mbe-0.5 type-body-medium font-semibold text-label-primary'
+                  'mbs-1 mbe-0.5 type-body-medium font-semibold text-primary'
                 )}
               >
                 {title}
               </div>
               {description && (
-                <div
-                  className={tw('mbe-0.5 type-body-medium text-label-primary')}
-                >
+                <div className={tw('mbe-0.5 type-body-medium text-primary')}>
                   {unescape(description)}
                 </div>
               )}
-              <div className={tw('type-body-small text-label-secondary')}>
+              <div className={tw('type-body-small text-secondary')}>
                 {first.domain}
               </div>
             </div>
@@ -2413,13 +2411,7 @@ export class Message extends PureComponent<Props, State> {
             id="icu:message--deletedForEveryone--incoming"
             i18n={i18n}
             components={{
-              name: (
-                <ContactName
-                  preferFirstName
-                  title={author.title}
-                  firstName={author.firstName}
-                />
-              ),
+              name: <ContactName title={author.title} />,
             }}
           />
         );
@@ -2600,8 +2592,8 @@ export class Message extends PureComponent<Props, State> {
           <AxoButton.Root
             variant={
               direction === 'outgoing'
-                ? 'message-outgoing-secondary'
-                : 'message-incoming-secondary'
+                ? 'message-outgoing-primary'
+                : 'message-incoming-primary'
             }
             size="lg"
             width="full"
@@ -3393,7 +3385,7 @@ export class Message extends PureComponent<Props, State> {
       this.props.isSignalConversation
         ? tw(
             // oxlint-disable-next-line better-tailwindcss/no-restricted-classes
-            'bg-legacy-signal-chat-message-bg! **:text-label-primary-on-color!'
+            'bg-(--axo-color-legacy-signal-chat-message-bg)! **:text-primary-oncolor!'
           )
         : null
     );

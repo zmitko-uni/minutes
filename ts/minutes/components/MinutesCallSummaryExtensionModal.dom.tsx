@@ -65,7 +65,9 @@ function StatusRow({
 }>): JSX.Element {
   return (
     <div className="MinutesCallSummaryExtensionModal__row">
-      <span className="MinutesCallSummaryExtensionModal__rowLabel">{label}</span>
+      <span className="MinutesCallSummaryExtensionModal__rowLabel">
+        {label}
+      </span>
       <span
         className={tw(
           'MinutesCallSummaryExtensionModal__rowValue',
@@ -105,9 +107,9 @@ export function MinutesCallSummaryExtensionModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transcribeSettings, setTranscribeSettings] =
     useState<WhisperTranscribeSettingsPublic>(state.transcribeSettings);
-  const [settingsSavedMessage, setSettingsSavedMessage] = useState<string | null>(
-    null
-  );
+  const [settingsSavedMessage, setSettingsSavedMessage] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (!open) {
@@ -173,7 +175,9 @@ export function MinutesCallSummaryExtensionModal({
           try {
             const next = await installCallSummaryExtension(options);
             setState(next);
-            setSelectedModelFileName(next.modelFileName ?? options.modelFileName);
+            setSelectedModelFileName(
+              next.modelFileName ?? options.modelFileName
+            );
             setProgress({
               phase: 'complete',
               message: options.forceRedownload
@@ -234,11 +238,10 @@ export function MinutesCallSummaryExtensionModal({
 
         <AxoDialog.Body>
           <AxoDialog.Description>
-            <p className={tw('mb-5 text-label-medium leading-relaxed')}>
+            <p className={tw('text-label-medium leading-relaxed mb-5')}>
               Přepis probíhá lokálně: nejdřív Whisper přes celé audio, pak
-              párování se speaker logem (včetně „více hlasů“ při souběžné
-              řeči) a volitelně AI korekce v{' '}
-              <strong>Nastavení AI</strong>.
+              párování se speaker logem (včetně „více hlasů“ při souběžné řeči)
+              a volitelně AI korekce v <strong>Nastavení AI</strong>.
             </p>
           </AxoDialog.Description>
 
@@ -301,7 +304,7 @@ export function MinutesCallSummaryExtensionModal({
             <legend className="MinutesCallSummaryExtensionModal__modelLegend">
               Whisper model pro přepis
             </legend>
-            <p className={tw('mb-2 text-label-small text-label-secondary')}>
+            <p className={tw('text-label-small text-label-secondary mb-2')}>
               Doporučujeme <strong>Large v3 Turbo</strong> — u češtiny nejlepší
               poměr přesnosti a rychlosti, zejména s GPU (Vulkan na Windows,
               Metal na Macu). Medium je vhodné pro slabší PC bez grafiky.
@@ -358,9 +361,9 @@ export function MinutesCallSummaryExtensionModal({
                 }}
               />
             </label>
-            <p className={tw('text-label-small opacity-70 -mt-2')}>
-              Po změně se aktualizuje indikátor akcelerace výše. Při zapnutém GPU
-              se použije Flash Attention pro rychlejší přepis.
+            <p className={tw('text-label-small -mt-2 opacity-70')}>
+              Po změně se aktualizuje indikátor akcelerace výše. Při zapnutém
+              GPU se použije Flash Attention pro rychlejší přepis.
             </p>
 
             {transcribeSettings.useGpu &&
@@ -372,9 +375,7 @@ export function MinutesCallSummaryExtensionModal({
                       'rounded-md border border-solid px-3 py-2',
                       'border-label-disabled bg-background-primary'
                     )}
-                    value={String(
-                      state.gpuAcceleration.selectedGpuDeviceIndex
-                    )}
+                    value={String(state.gpuAcceleration.selectedGpuDeviceIndex)}
                     disabled={
                       isBusy || state.gpuAcceleration.devices.length <= 1
                     }
@@ -473,9 +474,9 @@ export function MinutesCallSummaryExtensionModal({
           </fieldset>
 
           {!isActive && (
-            <p className={tw('mt-4 text-label-small text-label-secondary')}>
-              Při první aktivaci se stáhne zvolený jazykový model Whisperu.
-              Bez něj nelze hovory přepisovat.
+            <p className={tw('text-label-small text-label-secondary mt-4')}>
+              Při první aktivaci se stáhne zvolený jazykový model Whisperu. Bez
+              něj nelze hovory přepisovat.
             </p>
           )}
 
@@ -512,14 +513,14 @@ export function MinutesCallSummaryExtensionModal({
         <AxoDialog.Footer>
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="secondary"
+              variant="strong-secondary"
               onClick={() => onOpenChange(false)}
             >
               Zavřít
             </AxoDialog.Action>
             {canReinstall && (
               <AxoDialog.Action
-                variant="secondary"
+                variant="strong-secondary"
                 disabled={isBusy}
                 onClick={() =>
                   runInstall({
@@ -533,7 +534,7 @@ export function MinutesCallSummaryExtensionModal({
             )}
             {(!isActive || isModelChange) && (
               <AxoDialog.Action
-                variant="primary"
+                variant="strong-primary"
                 disabled={isBusy}
                 onClick={() =>
                   runInstall({ modelFileName: selectedModelFileName })

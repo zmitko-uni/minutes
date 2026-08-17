@@ -4,7 +4,7 @@
 import semver from 'semver';
 
 /** Upstream Signal Desktop release (sync when merging upstream). */
-export const MINUTES_SIGNAL_BASE_VERSION = '8.21.0';
+export const MINUTES_SIGNAL_BASE_VERSION = '8.23.0';
 
 export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-oprave';
 

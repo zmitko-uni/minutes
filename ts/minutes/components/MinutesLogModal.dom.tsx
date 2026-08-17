@@ -77,7 +77,7 @@ export function MinutesLogModal({
         </AxoDialog.Header>
         <AxoDialog.Body>
           <AxoDialog.Description>
-            <p className={tw('mb-3 text-label-medium')}>
+            <p className={tw('text-label-medium mb-3')}>
               Nedávné řádky logu {APP_DISPLAY_NAME} a konec souboru{' '}
               <code>logs/app.log</code>. Copy and share for debugging.
             </p>
@@ -85,40 +85,40 @@ export function MinutesLogModal({
           <textarea
             className={tw(
               'h-80 w-full resize-y rounded-md border border-solid p-3',
-              'border-label-disabled bg-background-primary font-mono text-label-small'
+              'border-label-disabled bg-background-primary text-label-small font-mono'
             )}
             readOnly
             value={isLoading ? 'Loading…' : logText}
           />
           {statusMessage && (
-            <p className={tw('mt-2 text-label-small')}>{statusMessage}</p>
+            <p className={tw('text-label-small mt-2')}>{statusMessage}</p>
           )}
         </AxoDialog.Body>
         <AxoDialog.Footer>
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="secondary"
+              variant="strong-secondary"
               disabled={isLoading}
               onClick={handleClearBuffer}
             >
               Clear buffer
             </AxoDialog.Action>
             <AxoDialog.Action
-              variant="secondary"
+              variant="strong-secondary"
               disabled={isLoading}
               onClick={refresh}
             >
               Refresh
             </AxoDialog.Action>
             <AxoDialog.Action
-              variant="secondary"
+              variant="strong-secondary"
               disabled={isLoading || logText.length === 0}
               onClick={() => drop(handleCopy())}
             >
               Copy
             </AxoDialog.Action>
             <AxoDialog.Action
-              variant="primary"
+              variant="strong-primary"
               onClick={() => onOpenChange(false)}
             >
               Close

@@ -174,7 +174,7 @@ import {
   isTestOrMockEnvironment,
 } from '../../environment.std.ts';
 import { calculateLightness } from '../../util/getHSL.std.ts';
-import { isSignalServiceId } from '../../util/isSignalConversation.dom.ts';
+import { isSignalServiceId } from '../../types/SignalConversation.std.ts';
 import { isValidE164 } from '../../util/isValidE164.std.ts';
 import { toDayOfWeekArray } from '../../types/NotificationProfile.std.ts';
 import {
@@ -735,6 +735,26 @@ export class BackupExportStream extends Readable {
       this.#stats.adHocCalls += 1;
     }
 
+    const callHistory = await DataReader.getAllCallHistory();
+    const callHistoryByCallId = makeLookup(callHistory, 'callId');
+
+    const pinnedMessages = await DataReader.getAllPinnedMessages();
+    const pinnedMessagesByMessageId = makeLookup(pinnedMessages, 'messageId');
+
+    const me = window.ConversationController.getOurConversationOrThrow();
+    const serviceId = me.get('serviceId');
+    const aci = isAciString(serviceId) ? serviceId : undefined;
+    strictAssert(aci, 'We must have our own ACI');
+    const aboutMe = {
+      aci,
+      pni: me.get('pni'),
+    };
+
+    const selfRecipientId = this.#getRecipientByServiceId(
+      aboutMe.aci,
+      'getting self'
+    );
+
     const allNotificationProfiles =
       await DataReader.getAllNotificationProfiles();
 
@@ -761,7 +781,14 @@ export class BackupExportStream extends Readable {
             'notificationProfile.allowedMembers'
           )
         )
-        .filter(isNotNil);
+        .filter(isNotNil)
+        .filter(recipientId => {
+          if (recipientId === selfRecipientId) {
+            log.warn('Excluding self from notification profile');
+            return false;
+          }
+          return true;
+        });
 
       this.#pushFrame({
         notificationProfile: {
@@ -830,21 +857,6 @@ export class BackupExportStream extends Readable {
       await this.#flush();
       this.#stats.chatFolders += 1;
     }
-
-    const callHistory = await DataReader.getAllCallHistory();
-    const callHistoryByCallId = makeLookup(callHistory, 'callId');
-
-    const pinnedMessages = await DataReader.getAllPinnedMessages();
-    const pinnedMessagesByMessageId = makeLookup(pinnedMessages, 'messageId');
-
-    const me = window.ConversationController.getOurConversationOrThrow();
-    const serviceId = me.get('serviceId');
-    const aci = isAciString(serviceId) ? serviceId : undefined;
-    strictAssert(aci, 'We must have our own ACI');
-    const aboutMe = {
-      aci,
-      pni: me.get('pni'),
-    };
 
     const FLUSH_EVERY = 10000;
 
@@ -2458,6 +2470,20 @@ export class BackupExportStream extends Readable {
         throw new Error(
           `${logId}: Message was verifiedChange, but missing verifiedChange!`
         );
+      }
+
+      const verifiedChangedContact = window.ConversationController.get(
+        message.verifiedChanged
+      );
+      if (
+        verifiedChangedContact &&
+        !isAciString(verifiedChangedContact.get('serviceId')) &&
+        !verifiedChangedContact.get('e164')
+      ) {
+        log.warn(
+          `${logId}: Dropping verified change for contact without ACI or E164`
+        );
+        return { kind: NonBubbleResultKind.Drop };
       }
 
       updateMessage.update = {
