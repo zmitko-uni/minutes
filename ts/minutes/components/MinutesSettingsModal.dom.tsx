@@ -16,11 +16,15 @@ import {
   DEFAULT_AI_SETTINGS,
   getAiProviderDefinition,
   normalizeAiOutputLanguage,
+  normalizeAiSummaryStyle,
   type AiProvider,
   type AiProviderDefinition,
   type AiSettingsPublic,
+  type AiSummaryStyle,
 } from '../aiSettings.std.ts';
 import { AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS } from '../aiUserMessages.std.ts';
+import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
+import { MinutesSummaryStyleFields } from './MinutesSummaryStyleFields.dom.tsx';
 import {
   getAiSettings,
   listAiModels,
@@ -32,7 +36,6 @@ import {
   isLocalLlmExtensionActive,
 } from '../localLlmExtensionService.preload.ts';
 import { localLlmExtensionEvents } from '../localLlmExtensionEvents.std.ts';
-import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
 
 type Props = Readonly<{
   open: boolean;
@@ -194,6 +197,12 @@ export function MinutesSettingsModal({
   );
   const [transcriptCorrectionEnabled, setTranscriptCorrectionEnabled] =
     useState(DEFAULT_AI_SETTINGS.transcriptCorrectionEnabled);
+  const [summaryStyle, setSummaryStyle] = useState<AiSummaryStyle>(
+    DEFAULT_AI_SETTINGS.summaryStyle
+  );
+  const [customSummaryInstructions, setCustomSummaryInstructions] = useState(
+    DEFAULT_AI_SETTINGS.customSummaryInstructions
+  );
   const [apiKeyDrafts, setApiKeyDrafts] = useState<ApiKeyDrafts>({});
   const [removeKeyFlags, setRemoveKeyFlags] = useState<RemoveKeyFlags>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -274,6 +283,8 @@ export function MinutesSettingsModal({
         setModel(settings.model);
         setOutputLanguage(normalizeAiOutputLanguage(settings.outputLanguage));
         setTranscriptCorrectionEnabled(settings.transcriptCorrectionEnabled);
+        setSummaryStyle(normalizeAiSummaryStyle(settings.summaryStyle));
+        setCustomSummaryInstructions(settings.customSummaryInstructions);
         setApiKeyDrafts({});
         setRemoveKeyFlags({});
         setStatusMessage(null);
@@ -364,6 +375,8 @@ export function MinutesSettingsModal({
             model,
             outputLanguage,
             transcriptCorrectionEnabled,
+            summaryStyle,
+            customSummaryInstructions,
             apiKeys: buildApiKeysPayload(),
           });
           setLoaded(saved);
@@ -386,6 +399,8 @@ export function MinutesSettingsModal({
     onOpenChange,
     outputLanguage,
     provider,
+    summaryStyle,
+    customSummaryInstructions,
     transcriptCorrectionEnabled,
   ]);
 
@@ -507,6 +522,14 @@ export function MinutesSettingsModal({
                   Jazyk, ve kterém AI sepíše shrnutí chatů a hovorů.
                 </span>
               </label>
+
+              <MinutesSummaryStyleFields
+                outputLanguage={outputLanguage}
+                summaryStyle={summaryStyle}
+                customInstructions={customSummaryInstructions}
+                onSummaryStyleChange={setSummaryStyle}
+                onCustomInstructionsChange={setCustomSummaryInstructions}
+              />
 
               <label className={tw('flex flex-col gap-1')}>
                 <span>Poskytovatel</span>

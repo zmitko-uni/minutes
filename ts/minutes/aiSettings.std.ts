@@ -156,6 +156,64 @@ export function isCzechAiOutputLanguage(code: string): boolean {
   return normalizeAiOutputLanguage(code) === 'cs';
 }
 
+export type AiSummaryStyle = 'brief' | 'detailed' | 'smart' | 'custom';
+
+export const DEFAULT_AI_SUMMARY_STYLE: AiSummaryStyle = 'brief';
+
+export const AI_CUSTOM_SUMMARY_INSTRUCTIONS_MAX_CHARS = 4000;
+
+export type AiSummaryStyleOption = Readonly<{
+  id: AiSummaryStyle;
+  label: string;
+  description: string;
+}>;
+
+export const AI_SUMMARY_STYLE_OPTIONS: ReadonlyArray<AiSummaryStyleOption> = [
+  {
+    id: 'brief',
+    label: 'Stručný',
+    description:
+      'Krátké shrnutí (pár vět) a jen explicitní úkoly — výchozí chování.',
+  },
+  {
+    id: 'detailed',
+    label: 'Detailní',
+    description:
+      'Pokryje průběh diskuze a u každého úkolu kdo, co a termín, pokud zazněl.',
+  },
+  {
+    id: 'smart',
+    label: 'Smart',
+    description:
+      'Délku a podrobnost zvolí podle rozsahu přepisu (krátký stand-up vs. dlouhý meeting).',
+  },
+  {
+    id: 'custom',
+    label: 'Vlastní',
+    description:
+      'Doplníte vlastní instrukce. Formát zprávy v Signalu zůstane stejný.',
+  },
+];
+
+export function normalizeAiSummaryStyle(value: unknown): AiSummaryStyle {
+  if (
+    value === 'brief' ||
+    value === 'detailed' ||
+    value === 'smart' ||
+    value === 'custom'
+  ) {
+    return value;
+  }
+  return DEFAULT_AI_SUMMARY_STYLE;
+}
+
+export function clampCustomSummaryInstructions(value: unknown): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  return value.slice(0, AI_CUSTOM_SUMMARY_INSTRUCTIONS_MAX_CHARS);
+}
+
 export function getAiProviderDefinition(
   provider: AiProvider
 ): AiProviderDefinition {
@@ -202,6 +260,10 @@ export type AiSettingsPublic = Readonly<{
   modelsByProvider: Readonly<Partial<Record<AiProvider, string>>>;
   /** Po přepisu Whisperem opravit zjevné chyby rozpoznání pomocí AI */
   transcriptCorrectionEnabled: boolean;
+  /** Výchozí režim AI shrnutí chatů a hovorů */
+  summaryStyle: AiSummaryStyle;
+  /** Doplňující instrukce pro režim Vlastní */
+  customSummaryInstructions: string;
 }>;
 
 export type AiSettingsSaveInput = Readonly<{
@@ -210,6 +272,8 @@ export type AiSettingsSaveInput = Readonly<{
   model: string;
   outputLanguage: string;
   transcriptCorrectionEnabled: boolean;
+  summaryStyle: AiSummaryStyle;
+  customSummaryInstructions: string;
   /**
    * Per-provider API keys.
    * - non-empty string = uložit nový klíč
@@ -231,6 +295,8 @@ export const DEFAULT_AI_SETTINGS: AiSettingsPublic = {
   keyStatusByProvider: {},
   modelsByProvider: {},
   transcriptCorrectionEnabled: true,
+  summaryStyle: DEFAULT_AI_SUMMARY_STYLE,
+  customSummaryInstructions: '',
 };
 
 /** @deprecated use AI_PROVIDER_DEFINITIONS */

@@ -77,7 +77,7 @@ class TranscriptionQueueService {
     }
 
     this.#jobs.push({
-      id: `${kind}-${metadata.startedAt}-${metadata.conversationId}`,
+      id: `${kind}-${metadata.startedAt}-${metadata.conversationId}-${Date.now()}`,
       kind,
       metadata,
       status: 'queued',

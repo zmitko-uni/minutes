@@ -151,7 +151,7 @@
     "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
     "google-libphonenumber": "3.2.44",
-    "node-llama-cpp": "3.19.0",
+    "node-llama-cpp": "3.19.1",
     "whisper-cpp-node": "0.2.12"
   },
   "devDependencies": {

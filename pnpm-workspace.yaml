@@ -120,7 +120,7 @@ allowBuilds:
   'esbuild': false
   'utf-8-validate': false
   '@signalapp/ringrtc': true
-  'node-llama-cpp@3.19.0': true
+  'node-llama-cpp@3.19.1': true
   'whisper-cpp-node@0.2.12': true
   '@parcel/watcher': set this to true or false
   '@swc/core': set this to true or false
