@@ -42,7 +42,9 @@ export default {
     ...pkg.build.mac,
     target: [{ target: 'dmg', arch: ['arm64'] }],
     icon: 'build/icons/minutes/mac/icon.icns',
-    artifactName: 'Minutes-${version}-mac-${arch}.${ext}',
+    artifactName: isBeta
+      ? 'Minutes-Beta-${version}-mac-${arch}.${ext}'
+      : 'Minutes-${version}-mac-${arch}.${ext}',
     publish: null,
     // Minutes has no Apple Developer ID — build unsigned (ad-hoc), like the Windows build.
     // electron-builder skips its signing step with identity:null; the ad-hoc
@@ -70,7 +72,7 @@ export default {
   },
   dmg: {
     ...pkg.build.dmg,
-    title: 'Minutes ${version}',
+    title: isBeta ? 'Minutes Beta ${version}' : 'Minutes ${version}',
     // Drop Signal-branded artwork; use electron-builder defaults.
     background: null,
     icon: null,
