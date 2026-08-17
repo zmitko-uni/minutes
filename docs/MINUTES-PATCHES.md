@@ -110,6 +110,8 @@
 | `.github/workflows/minutes-ci.yml` | CI: generate + check:types (jen PR / ruční spuštění) |
 | `.github/workflows/minutes-release.yml` | release instalátoru + GitHub Release; job `release-macos` (po `release-windows`, `macos-latest`) přidá `Minutes-<verze>-mac-arm64.dmg` + stabilní `Minutes-mac-arm64.dmg` |
 | `.github/workflows/minutes-merge-upstream.yml` | merge Signal upstream → PR; týdenní check nového stabilního tagu (`scripts/check-signal-upstream.mjs`) |
+| `scripts/resolve-upstream-conflicts.mjs` + `scripts/utils/mergePackageJson.mjs` | konzervativní automatické řešení pouze známých upstream konfliktů |
+| `scripts/update-minutes-signal-base.mjs` | aktualizace package verze a obou konstant Signal base po merge |
 | `scripts/extract-changelog-release.mjs` | release notes z CHANGELOG.md |
 | `CHANGELOG.md` | uživatelský changelog verzí |
 | `CONTRIBUTING-MINUTES.md` | pravidla pro PR do Minutes |
