@@ -16,6 +16,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - Nastavení AI: **styl shrnutí** — Stručný (výchozí), Detailní, Smart nebo Vlastní instrukce; lze zobrazit náhled system promptu. Platí pro chaty i hovory. Ve **Přepisy** lze hotové shrnutí **přegenerovat** aktuálním stylem.
 
+### Fixed
+- Lokální AI (Gemma): aktualizace `node-llama-cpp` 3.19.0 → 3.19.1 — oprava pádu při uvolnění kontextu modelu a okrajových případů při posunu kontextu.
+
 ## [8.21.0-m1.2.1] - 2026-08-10
 
 ### Fixed
