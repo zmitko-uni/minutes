@@ -16,6 +16,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.23.0-m1.3.0-beta.1] - 2026-08-18
+
+### Changed
+- Release 8.23.0-m1.3.0-beta.1 (viz git historie od v8.23.0-m1.3.0).
+
 ## [8.23.0-m1.3.0] - 2026-08-17
 
 ### Changed
