@@ -3,7 +3,7 @@
 # Prod (main): stable release, GitHub --latest
 # Beta (beta): pre-release for testing confirmed fixes
 #
-# Manual: workflow_dispatch with release_channel
+# Manual: workflow_dispatch; the selected branch is the release channel
 # Auto: push with chore(release): on main or beta
 name: Release Minutes
 
@@ -14,14 +14,6 @@ on:
       - beta
   workflow_dispatch:
     inputs:
-      release_channel:
-        description: 'Release channel — beta = pre-release on branch beta, prod = stable on main'
-        required: false
-        default: prod
-        type: choice
-        options:
-          - prod
-          - beta
       skip_version_bump:
         description: 'Skip auto bump (rebuild same version from package.json)'
         required: false
@@ -56,6 +48,9 @@ jobs:
     timeout-minutes: 90
     outputs:
       channel: ${{ steps.channel.outputs.channel }}
+      release_sha: ${{ steps.release.outputs.sha }}
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -67,13 +62,7 @@ jobs:
         id: channel
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            CHANNEL="${{ inputs.release_channel || 'prod' }}"
-          elif [ "${{ github.ref_name }}" = "beta" ]; then
-            CHANNEL="beta"
-          else
-            CHANNEL="prod"
-          fi
+          CHANNEL="$(node scripts/resolve-minutes-release-channel.mjs "${{ github.ref_name }}")"
           echo "channel=${CHANNEL}" >> "$GITHUB_OUTPUT"
           echo "Release channel: ${CHANNEL} (branch ${{ github.ref_name }})"
 
@@ -156,6 +145,14 @@ jobs:
             git stash drop --quiet 2>/dev/null || true
           fi
 
+      - name: Resolve release commit
+        id: release
+        shell: bash
+        run: |
+          RELEASE_SHA="$(git rev-parse HEAD)"
+          echo "sha=${RELEASE_SHA}" >> "$GITHUB_OUTPUT"
+          echo "Release commit: ${RELEASE_SHA}"
+
       - name: Generate build artifacts
         run: pnpm run generate
         env:
@@ -209,7 +206,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           CHANNEL="${{ steps.channel.outputs.channel }}"
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
-          TARGET_SHA="$(git rev-parse HEAD)"
+          TARGET_SHA="${{ steps.release.outputs.sha }}"
           node scripts/extract-changelog-release.mjs "${VERSION}" > "${NOTES_FILE}"
 
           # Re-runs / failed prior attempts may leave a local tag after the remote
@@ -248,7 +245,10 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
-          ref: ${{ github.ref_name }}
+          # The Windows job creates and pushes the release commit. Pin macOS to
+          # that exact SHA so a later branch push cannot change the version or
+          # the sources between platform builds.
+          ref: ${{ needs.release-windows.outputs.release_sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
@@ -303,8 +303,12 @@ jobs:
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          EXPECTED_VERSION="${{ needs.release-windows.outputs.version }}"
+          if [ "${VERSION}" != "${EXPECTED_VERSION}" ]; then
+            echo "macOS checkout version ${VERSION} does not match Windows release ${EXPECTED_VERSION}"
+            exit 1
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Release version: ${VERSION}"
 
       - name: Verify CHANGELOG has release section
@@ -358,5 +362,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
+          TAG="${{ needs.release-windows.outputs.tag }}"
           gh release upload "${TAG}" "${INSTALLER}" "${ASSET_STABLE}" --clobber
