@@ -3,7 +3,7 @@
 # Prod (main): stable release, GitHub --latest
 # Beta (beta): pre-release for testing confirmed fixes
 #
-# Manual: workflow_dispatch with release_channel
+# Manual: workflow_dispatch; the selected branch is the release channel
 # Auto: push with chore(release): on main or beta
 name: Release Minutes
 
@@ -14,14 +14,6 @@ on:
       - beta
   workflow_dispatch:
     inputs:
-      release_channel:
-        description: 'Release channel — beta = pre-release on branch beta, prod = stable on main'
-        required: false
-        default: prod
-        type: choice
-        options:
-          - prod
-          - beta
       skip_version_bump:
         description: 'Skip auto bump (rebuild same version from package.json)'
         required: false
@@ -56,6 +48,9 @@ jobs:
     timeout-minutes: 90
     outputs:
       channel: ${{ steps.channel.outputs.channel }}
+      release_sha: ${{ steps.release.outputs.sha }}
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -67,13 +62,7 @@ jobs:
         id: channel
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            CHANNEL="${{ inputs.release_channel || 'prod' }}"
-          elif [ "${{ github.ref_name }}" = "beta" ]; then
-            CHANNEL="beta"
-          else
-            CHANNEL="prod"
-          fi
+          CHANNEL="$(node scripts/resolve-minutes-release-channel.mjs "${{ github.ref_name }}")"
           echo "channel=${CHANNEL}" >> "$GITHUB_OUTPUT"
           echo "Release channel: ${CHANNEL} (branch ${{ github.ref_name }})"
 
@@ -156,15 +145,23 @@ jobs:
             git stash drop --quiet 2>/dev/null || true
           fi
 
+      - name: Resolve release commit
+        id: release
+        shell: bash
+        run: |
+          RELEASE_SHA="$(git rev-parse HEAD)"
+          echo "sha=${RELEASE_SHA}" >> "$GITHUB_OUTPUT"
+          echo "Release commit: ${RELEASE_SHA}"
+
       - name: Generate build artifacts
         run: pnpm run generate
         env:
-          NODE_CONFIG_ENV: minutes
+          NODE_CONFIG_ENV: ${{ steps.channel.outputs.channel == 'beta' && 'minutes-beta' || 'minutes' }}
 
       - name: Generate minutes icons
         run: pnpm run build:minutes-icons
         env:
-          NODE_CONFIG_ENV: minutes
+          NODE_CONFIG_ENV: ${{ steps.channel.outputs.channel == 'beta' && 'minutes-beta' || 'minutes' }}
 
       - name: Typecheck
         run: pnpm run check:types
@@ -177,7 +174,7 @@ jobs:
           MINUTES_SKIP_ICONS: '1'
           MINUTES_SKIP_BUNDLES: '1'
           MINUTES_RELEASE_CHANNEL: ${{ steps.channel.outputs.channel }}
-          NODE_CONFIG_ENV: minutes
+          NODE_CONFIG_ENV: ${{ steps.channel.outputs.channel == 'beta' && 'minutes-beta' || 'minutes' }}
           DISABLE_INSPECT_FUSE: on
 
       - name: Prepare release assets
@@ -209,7 +206,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           CHANNEL="${{ steps.channel.outputs.channel }}"
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
-          TARGET_SHA="$(git rev-parse HEAD)"
+          TARGET_SHA="${{ steps.release.outputs.sha }}"
           node scripts/extract-changelog-release.mjs "${VERSION}" > "${NOTES_FILE}"
 
           # Re-runs / failed prior attempts may leave a local tag after the remote
@@ -240,9 +237,7 @@ jobs:
   release-macos:
     name: Build & publish macOS installer
     needs: release-windows
-    # macOS ships prod-only (arm64 dmg, no beta variant); skip on beta so the
-    # stable Minutes-mac-arm64.dmg is never overwritten by a beta build.
-    if: needs.release-windows.result == 'success' && needs.release-windows.outputs.channel == 'prod'
+    if: needs.release-windows.result == 'success'
     runs-on: macos-latest
     timeout-minutes: 90
     steps:
@@ -250,7 +245,10 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
-          ref: main
+          # The Windows job creates and pushes the release commit. Pin macOS to
+          # that exact SHA so a later branch push cannot change the version or
+          # the sources between platform builds.
+          ref: ${{ needs.release-windows.outputs.release_sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
@@ -290,12 +288,12 @@ jobs:
       - name: Generate build artifacts
         run: pnpm run generate
         env:
-          NODE_CONFIG_ENV: minutes
+          NODE_CONFIG_ENV: ${{ needs.release-windows.outputs.channel == 'beta' && 'minutes-beta' || 'minutes' }}
 
       - name: Generate minutes icons
         run: pnpm run build:minutes-icons
         env:
-          NODE_CONFIG_ENV: minutes
+          NODE_CONFIG_ENV: ${{ needs.release-windows.outputs.channel == 'beta' && 'minutes-beta' || 'minutes' }}
 
       - name: Typecheck
         run: pnpm run check:types
@@ -305,8 +303,12 @@ jobs:
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          EXPECTED_VERSION="${{ needs.release-windows.outputs.version }}"
+          if [ "${VERSION}" != "${EXPECTED_VERSION}" ]; then
+            echo "macOS checkout version ${VERSION} does not match Windows release ${EXPECTED_VERSION}"
+            exit 1
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Release version: ${VERSION}"
 
       - name: Verify CHANGELOG has release section
@@ -329,7 +331,8 @@ jobs:
         env:
           MINUTES_SKIP_VERSION_BUMP: '1'
           MINUTES_SKIP_GENERATE: '1'
-          NODE_CONFIG_ENV: minutes
+          MINUTES_RELEASE_CHANNEL: ${{ needs.release-windows.outputs.channel }}
+          NODE_CONFIG_ENV: ${{ needs.release-windows.outputs.channel == 'beta' && 'minutes-beta' || 'minutes' }}
           DISABLE_INSPECT_FUSE: on
           PYTHON: ${{ steps.python.outputs.python-path }}
           npm_config_python: ${{ steps.python.outputs.python-path }}
@@ -337,14 +340,21 @@ jobs:
       - name: Prepare release assets
         shell: bash
         run: |
-          INSTALLER=$(ls release/minutes/*.dmg | head -n 1)
+          CHANNEL="${{ needs.release-windows.outputs.channel }}"
+          if [ "${CHANNEL}" = "beta" ]; then
+            INSTALLER=$(ls release/minutes/Minutes-Beta-*-mac-arm64.dmg | head -n 1)
+            STABLE_NAME="Minutes-Beta-mac-arm64.dmg"
+          else
+            INSTALLER=$(ls release/minutes/Minutes-*-mac-arm64.dmg | head -n 1)
+            STABLE_NAME="Minutes-mac-arm64.dmg"
+          fi
           if [ -z "${INSTALLER}" ]; then
             echo "Installer .dmg not found in release/minutes/"
             exit 1
           fi
-          cp "${INSTALLER}" "release/minutes/Minutes-mac-arm64.dmg"
+          cp "${INSTALLER}" "release/minutes/${STABLE_NAME}"
           echo "INSTALLER=${INSTALLER}" >> "$GITHUB_ENV"
-          echo "ASSET_STABLE=release/minutes/Minutes-mac-arm64.dmg" >> "$GITHUB_ENV"
+          echo "ASSET_STABLE=release/minutes/${STABLE_NAME}" >> "$GITHUB_ENV"
           ls -la release/minutes/*.dmg
 
       - name: Upload macOS release assets
@@ -352,5 +362,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
+          TAG="${{ needs.release-windows.outputs.tag }}"
           gh release upload "${TAG}" "${INSTALLER}" "${ASSET_STABLE}" --clobber

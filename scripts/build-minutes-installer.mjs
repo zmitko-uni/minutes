@@ -26,7 +26,10 @@ if (process.env.MINUTES_SKIP_VERSION_BUMP !== '1') {
   const version = JSON.parse(
     readFileSync(join(root, 'package.json'), 'utf8')
   ).version;
-  run('Prepare CHANGELOG', `node scripts/prepare-changelog-release.mjs ${version}`);
+  run(
+    'Prepare CHANGELOG',
+    `node scripts/prepare-changelog-release.mjs ${version}`
+  );
 } else {
   console.log('Skipping version bump (MINUTES_SKIP_VERSION_BUMP=1)\n');
 }
@@ -67,7 +70,7 @@ run(
     NODE_OPTIONS: '--import=tsx',
     CSC_IDENTITY_AUTO_DISCOVERY: 'false',
     SIGNAL_ENV: 'production',
-    NODE_CONFIG_ENV: 'minutes',
+    NODE_CONFIG_ENV: process.env.NODE_CONFIG_ENV ?? 'minutes',
     MINUTES_RELEASE_CHANNEL: process.env.MINUTES_RELEASE_CHANNEL ?? 'prod',
   }
 );
@@ -88,12 +91,14 @@ if (installers.length > 0) {
 }
 
 if (isMac) {
+  const appName =
+    process.env.MINUTES_RELEASE_CHANNEL === 'beta' ? 'Minutes Beta' : 'Minutes';
   console.log(`
 Notes:
   • App is NOT code-signed/notarized — Gatekeeper blocks a normal double-click.
-  • First launch: right-click Minutes.app → Open, or run:
-      xattr -dr com.apple.quarantine /Applications/Minutes.app
-  • User data stays in ~/Library/Application Support/Minutes.
+  • First launch: right-click ${appName}.app → Open, or run:
+      xattr -dr com.apple.quarantine "/Applications/${appName}.app"
+  • User data stays in ~/Library/Application Support/${appName.replace(' ', '-')}.
 `);
 } else {
   console.log(`

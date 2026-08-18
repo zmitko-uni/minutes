@@ -13,11 +13,11 @@ const ref = process.env.MINUTES_BETA_BRANCH ?? 'beta';
 
 ensureGhAuth();
 
-runGh(
-  `workflow run ${workflowFile} --repo ${repo} --ref ${ref} -f release_channel=beta`
-);
+runGh(`workflow run ${workflowFile} --repo ${repo} --ref ${ref}`);
 
 console.log(
   `Spuštěn workflow Release Minutes (beta) na branchi ${ref} v ${repo}.`
 );
-console.log(`Sleduj: https://github.com/${repo}/actions/workflows/${workflowFile}`);
+console.log(
+  `Sleduj: https://github.com/${repo}/actions/workflows/${workflowFile}`
+);
