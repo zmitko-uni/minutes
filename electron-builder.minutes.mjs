@@ -80,6 +80,7 @@ export default {
   },
   extraMetadata: {
     environment: 'production',
+    productName: isBeta ? 'Minutes Beta' : 'Minutes',
     minutesChannel: isBeta ? 'beta' : 'prod',
   },
 };
