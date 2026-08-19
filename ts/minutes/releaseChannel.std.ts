@@ -28,18 +28,44 @@ export function isMinutesBetaProductName(
   return productName?.trim() === MINUTES_BETA_DISPLAY_NAME;
 }
 
+export function isMinutesBetaExecutablePath(
+  executablePath: string | undefined
+): boolean {
+  const executableName = executablePath
+    ?.split(/[\\/]/)
+    .at(-1)
+    ?.toLocaleLowerCase('en-US');
+
+  return (
+    executableName === 'minutes beta' ||
+    executableName === 'minutes beta.exe' ||
+    executableName === 'minutes-beta'
+  );
+}
+
 export function getMinutesReleaseChannel(
   productName: string | undefined = packageJson.productName,
   packagedChannel: MinutesReleaseChannel | undefined = (
     packageJson as typeof packageJson & {
       readonly minutesChannel?: MinutesReleaseChannel;
     }
-  ).minutesChannel
+  ).minutesChannel,
+  executablePath: string | undefined = typeof process !== 'undefined'
+    ? process.execPath
+    : undefined
 ): MinutesReleaseChannel {
   if (
     typeof process !== 'undefined' &&
     process.env?.MINUTES_DEV_CHANNEL === 'beta'
   ) {
+    return 'beta';
+  }
+
+  // package.json is bundled before electron-builder applies extraMetadata, so
+  // its inlined minutesChannel can still look like prod in a packaged beta.
+  // The packaged executable name is set by electron-builder and is available
+  // consistently in Electron main/preload/renderer processes.
+  if (isMinutesBetaExecutablePath(executablePath)) {
     return 'beta';
   }
 
