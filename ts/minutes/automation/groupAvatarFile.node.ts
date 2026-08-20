@@ -19,7 +19,7 @@ export async function readConfinedGroupAvatar(
   path: string,
   directory: string,
   maxBytes: number
-): Promise<Buffer> {
+): Promise<Buffer<ArrayBuffer>> {
   const absoluteDirectory = resolve(directory);
   const resolvedPath = resolve(path);
   if (!isInsideDirectory(absoluteDirectory, resolvedPath)) {
@@ -52,10 +52,10 @@ export async function readConfinedGroupAvatar(
     throw new Error('Avatar path must not contain symbolic links');
   }
 
-  const file = await open(
-    canonicalPath,
-    constants.O_RDONLY | constants.O_NOFOLLOW
-  );
+  // Bit flags are required by Node's fs.open API.
+  // eslint-disable-next-line no-bitwise
+  const openFlags = constants.O_RDONLY | constants.O_NOFOLLOW;
+  const file = await open(canonicalPath, openFlags);
   try {
     const openedMetadata = await file.stat();
     if (!openedMetadata.isFile()) {

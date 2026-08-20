@@ -101,11 +101,13 @@ export class WebhookDispatcher {
     if (this.#flushPromise != null) {
       return this.#flushPromise;
     }
-    const flushPromise = this.#flushDue().finally(() => {
-      if (this.#flushPromise === flushPromise) {
+    const flushPromise = (async () => {
+      try {
+        await this.#flushDue();
+      } finally {
         this.#flushPromise = undefined;
       }
-    });
+    })();
     this.#flushPromise = flushPromise;
     return flushPromise;
   }
