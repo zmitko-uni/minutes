@@ -30,7 +30,7 @@ describe('validateMinutesRingRtcPackage', () => {
   /** @type {ReadonlyArray<readonly [string, Record<string, unknown>]>} */
   const invalidManifests = [
     ['package name', { name: '@minutes/untrusted' }],
-    ['package version', { version: '2.70.2-minutes.3' }],
+    ['package version', { version: '2.70.2-minutes.2' }],
     [
       'upstream version',
       { config: { ...validManifest.config, upstreamVersion: '2.71.0' } },

@@ -146,7 +146,7 @@
     "@indutny/simple-windows-notifications": "2.0.21",
     "@signalapp/libsignal-client": "0.99.2",
     "@signalapp/mute-state-change": "workspace:*",
-    "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.2/minutes-ringrtc-2.70.2-minutes.2.tgz",
+    "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz",
     "@signalapp/sqlcipher": "4.0.3",
     "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
