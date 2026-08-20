@@ -16,6 +16,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 
 - Lokální MCP server a webhooková automatizace se samostatným nastavením, řízením dostupných nástrojů a bezpečným tokenem
+- Nastavitelný seznam povolených MCP hostů umožňuje připojení z Docker Desktop přes `host.docker.internal`; HTTP originy se odvozují automaticky a server stále vyžaduje token
 - MCP vyhledávání zpráv vrací nejnovější výsledky jako první, podporuje autora, směr, časový rozsah, textový filtr, hluboké stránkování a načtení jedné zprávy s okolním kontextem
 - MCP umí bezpečně stáhnout i odeslat přílohy, číst a měnit reakce a spravovat nebo trvale ukončit Signal Group V2
 
