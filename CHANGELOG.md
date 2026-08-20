@@ -16,6 +16,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+### Fixed
+
+- RingRTC addon je sestavený proti produkční konfiguraci WebRTC i po spuštění testu nahrávacích tapů; přímé hovory proto používají stejné DTLS/SDP chování jako oficiální Signal Desktop 8.23.
+
 ## [8.23.0-m1.3.0-beta.1] - 2026-08-18
 
 ### Added
