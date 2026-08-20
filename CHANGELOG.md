@@ -22,6 +22,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.23.0-m1.3.0-beta.2] - 2026-08-20
 
 ### Added
+
 - (doplňte před příštím release)
 
 ### Fixed
@@ -52,25 +53,30 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - use a dedicated `Minutes-Beta-mac-arm64.dmg` asset so beta updates cannot overwrite or install the stable macOS build
 
 ### Added
+
 - (doplňte před příštím release)
 
 ## [8.21.0-m1.2.1] - 2026-08-10
 
 ### Fixed
+
 - Oprava přepisu AI: když model vrátí odmítnutí, shrnutí nebo moc krátký text, Minutes ponechá původní Whisper přepis (nesmaže ho)
 
 ## [8.21.0-m1.2.0] - 2026-08-10
 
 ### Fixed
+
 - pin Python 3.12 for macOS release native rebuilds
 
 ## [8.21.0-m1.1.0] - 2026-08-10
 
 ### Added
+
 - Nastavení AI: u Google Gemini nové modely **gemini-3.5-flash-lite** a **gemini-3.6-flash**; seznam modelů lze **obnovit z API** podle dostupného klíče
 - Nastavení přepisů: při více grafických kartách lze **zvolit GPU** pro akceleraci Whisperu (dříve se používala jen první)
 
 ### Changed
+
 - Skupinové hovory: Minutes povoluje zvonění i ve skupinách s více než 15 členy (Signal to standardně vypíná od 16). Funguje spolehlivě, pokud mají Minutes i příjemci.
 - Doporučený levný Gemini model: `gemini-3.5-flash-lite` (místo `gemini-3.1-flash-lite`)
 
