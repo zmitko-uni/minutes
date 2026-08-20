@@ -70,7 +70,8 @@ export function truncateSignalChatMessage(
   body: string,
   suffix = '\n\n… (text pokračuje v uloženém souboru)'
 ): string {
-  const maxBodyLength = MAX_MESSAGE_BODY_LENGTH - header.length - suffix.length - 80;
+  const maxBodyLength =
+    MAX_MESSAGE_BODY_LENGTH - header.length - suffix.length - 80;
   if (body.length <= maxBodyLength) {
     return `${header}${body}`;
   }

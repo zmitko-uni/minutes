@@ -5,12 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { mkdir, open, readFile, stat, writeFile } from 'node:fs/promises';
 
-import {
-  app,
-  ipcMain,
-  shell,
-  type BrowserWindow,
-} from 'electron';
+import { app, ipcMain, shell, type BrowserWindow } from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
 import * as Errors from '../ts/types/errors.std.ts';
