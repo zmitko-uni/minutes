@@ -146,12 +146,13 @@ Instalátor je vhodný pro interní/ad-hoc distribuci. Pro veřejné šíření 
 
 ## Output locations
 
-| Type                                  | Windows                                      | macOS                                                            |
-| ------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
-| Call recordings (MP3/WebM + sidecars) | `%USERPROFILE%\\Documents\\Minutes`         | `~/Documents/Minutes`                                            |
-| Chat summaries (MD + JSON metadata)   | `%APPDATA%\Minutes\minutes\summaries\`       | `~/Library/Application Support/Minutes/minutes/summaries/`       |
-| AI settings (encrypted API key)       | `%APPDATA%\Minutes\minutes\ai-settings.json` | `~/Library/Application Support/Minutes/minutes/ai-settings.json` |
-| Whisper models                        | `%APPDATA%\Minutes\minutes\whisper-models\`  | `~/Library/Application Support/Minutes/minutes/whisper-models/`  |
+| Type                                  | Windows                                             | macOS                                                                   |
+| ------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------- |
+| Call recordings (MP3/WebM + sidecars) | `%USERPROFILE%\\Documents\\Minutes`                 | `~/Documents/Minutes`                                                   |
+| Chat summaries (MD + JSON metadata)   | `%APPDATA%\Minutes\minutes\summaries\`              | `~/Library/Application Support/Minutes/minutes/summaries/`              |
+| MCP attachments (staging/downloads)   | `%APPDATA%\Minutes\minutes\automation-attachments\` | `~/Library/Application Support/Minutes/minutes/automation-attachments/` |
+| AI settings (encrypted API key)       | `%APPDATA%\Minutes\minutes\ai-settings.json`        | `~/Library/Application Support/Minutes/minutes/ai-settings.json`        |
+| Whisper models                        | `%APPDATA%\Minutes\minutes\whisper-models\`         | `~/Library/Application Support/Minutes/minutes/whisper-models/`         |
 
 Menu: **Minutes → Open Call Recordings / Open Chat Summaries / AI Settings… / Příručka…**
 
@@ -189,6 +190,21 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 1. **Menu → Minutes → Nastavení AI…** — API klíče (OpenAI, Gemini, Claude, Perplexity), model, jazyk; klíč šifrovaně přes OS safeStorage
 2. **Menu → Minutes → Sumarizace hovoru…** — Whisper přepis, rozšíření přepisu, volitelná AI korekce
 3. Data chatu/hovoru zůstávají lokálně; do cloudu jdou jen volání zvoleného AI poskytovatele (pokud je zapnuto)
+
+## MCP attachments
+
+- `get_attachment_directories` vrátí absolutní staging adresář `outgoing` a cílový adresář `downloads`.
+- Pro odeslání nejprve vložte soubor do `outgoing` a zavolejte `send_message` s `attachments: [{ path, contentType? }]`; zpráva může obsahovat text, přílohy nebo obojí.
+- `download_attachment` přijímá `messageId` a `attachmentId` z výsledku `get_messages` / `search_messages` a vrací absolutní cestu uloženého souboru.
+- Cesty mimo staging, symbolické odkazy, nebezpečné typy a soubory nad aktuálním limitem Signalu se odmítnou. Existující stažený soubor se nepřepisuje.
+- Pro opakování odeslání používejte stejný `idempotencyKey`; identita příloh je součástí kontroly proti duplicitám.
+
+## MCP zprávy a skupiny
+
+- `get_messages` vrací zprávy implicitně od nejnovějších; poslední zpráva v konverzaci je tedy jeden dotaz s `limit: 1`. Podporuje textový filtr `search`, přesného autora `senderContactId`, směr `incoming` / `outgoing`, časové meze `from` / `to` v Unix ms a pořadí `newest` / `oldest`.
+- Pro další stránku se beze změny předává serverem vrácený `nextCursor`; klient kurzor nikdy nesestavuje. Vyhledávání při pokračování načítá skutečnou historii a nekončí na původním interním okně 500 zpráv.
+- Výsledek zprávy obsahuje `authorId` a `authorName`, takže lze v grupě přesně najít odpověď konkrétního člena. `get_message` načte zprávu podle ID a volitelně až 100 zpráv před ní a po ní.
+- `terminate_group` je trvalé ukončení Group V2 pro všechny členy a vyžaduje, aby byl lokální účet administrátor. Je záměrně oddělené od `leave_group`, které odebere jen lokální účet.
 
 ## Architecture
 

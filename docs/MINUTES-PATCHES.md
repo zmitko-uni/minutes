@@ -6,7 +6,7 @@
 
 | Soubor | Co | Hook |
 |--------|-----|------|
-| `package.json` | productName, skripty a Minutes RingRTC tarball + ověřený root instalátor | branding + 3 řádky |
+| `package.json` | productName, skripty, MCP SDK a Minutes RingRTC tarball + ověřený root instalátor | branding + závislosti |
 | `scripts/utils/parseVersion.mjs` | Minutes `-m` verze pro build skripty | regex větev |
 | `pnpm-workspace.yaml` | dependency install skript Minutes RingRTC je zakázaný; prebuild stahuje ověřený root instalátor | 1 řádek |
 | `app/user_config.main.ts` | `minutes-*` userData | 1 řádek |
@@ -15,11 +15,12 @@
 | `app/minutes_readme.main.ts` | načtení příručky z disku |
 | `app/main.main.ts` | IPC init, menu akce, minutes ikona, test pipeline hook (`MINUTES_TEST_PIPELINE=1`) | registrace |
 | `app/SystemTrayService.main.ts` | tray ikona + tooltip minutes | 2 volání |
-| `app/menu.std.ts` | submenu minutes + Příručka | menu |
+| `app/menu.std.ts` | submenu Minutes + Příručka/MCP | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
 | `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru | 2 volání |
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
-| `ts/background.preload.ts` | init + IPC summarize, build expiration | bootstrap |
+| `ts/background.preload.ts` | init Minutes služeb, automation rendereru a IPC sumarizace; build expiration | bootstrap |
+| `ts/messages/saveAndNotify.preload.ts` | publikuje `message.received` do explicitně povolených webhooků | webhook hook |
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
 | `ts/components/App.dom.tsx` | minutes host komponenty | +TranscriptionQueueHost, bez update banneru |
