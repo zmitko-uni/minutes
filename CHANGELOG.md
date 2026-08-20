@@ -19,6 +19,14 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Nastavitelný seznam povolených MCP hostů umožňuje připojení z Docker Desktop přes `host.docker.internal`; HTTP originy se odvozují automaticky a server stále vyžaduje token
 - MCP vyhledávání zpráv vrací nejnovější výsledky jako první, podporuje autora, směr, časový rozsah, textový filtr, hluboké stránkování a načtení jedné zprávy s okolním kontextem
 - MCP umí bezpečně stáhnout i odeslat přílohy, číst a měnit reakce a spravovat nebo trvale ukončit Signal Group V2
+- Lokální LLM vytváří shrnutí hovorů bez cloudového API klíče a umožňuje nastavit velikost kontextu i reasoning režim
+- Dialogy Minutes lze přesouvat myší i klávesnicí a jejich pozice se zachová při opětovném otevření
+
+### Fixed
+
+- Aktivní Signal hovor se při pouhém zamknutí obrazovky nepovažuje za uspání aplikace a neukončí se
+- Lokální LLM serializuje načítání modelu, přizpůsobuje dlouhé prompty skutečnému kontextu a odmítne prázdný výstup
+- Dlouhé PCM sidecary se pro Whisper čtou a převzorkují po blocích místo načtení celé 48kHz nahrávky do paměti
 
 ## [8.23.0-m1.3.0-beta.2] - 2026-08-20
 
