@@ -19,7 +19,7 @@
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
 | `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru | 2 volání |
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
-| `ts/background.preload.ts` | init Minutes služeb, automation rendereru a IPC sumarizace; build expiration | bootstrap |
+| `ts/background.preload.ts` | init Minutes služeb, automation rendereru, IPC sumarizace, build expiration a ochrana aktivního hovoru při zamknutí obrazovky | bootstrap |
 | `ts/messages/saveAndNotify.preload.ts` | publikuje `message.received` do explicitně povolených webhooků | webhook hook |
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
@@ -72,7 +72,10 @@
 | `ts/minutes/localLlmSettings.std.ts` | katalog GGUF modelů Gemma |
 | `ts/minutes/localLlmExtension.*` | stažení + inference lokálního LLM |
 | `ts/minutes/localLlmInference.main.ts` | node-llama-cpp chat session |
+| `ts/minutes/localLlmContextSize.std.ts`, `localLlmReasoning.std.ts`, `callSummaryCredentials.std.ts` | kontext/reasoning lokálního LLM a shrnutí bez cloudového API klíče |
 | `ts/minutes/components/MinutesLocalLlmPanel.dom.tsx` | panel instalace v Nastavení AI |
+| `ts/minutes/components/MinutesDraggableSurface.dom.tsx`, `draggableSurface.std.ts` | přesouvání Minutes dialogů myší i klávesnicí |
+| `ts/minutes/screenLockCallPolicy.std.ts` | zachování aktivního hovoru při zamknutí obrazovky |
 | `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external); `asarUnpack` + `sleep-promise/build`; FileSet pro `build/*.json` |
 | `ts/minutes/perplexitySummary.main.ts` | Perplexity API (bez web search) |
 | `ts/minutes/anthropicSummary.main.ts` | Anthropic Claude API |
@@ -89,6 +92,7 @@
 | `ts/minutes/videoRecording*.ts` | video lifecycle, MediaRecorder, streamovaný WebM/PCM IPC writer, automatický přepis, stav UI a speaker-activity logger |
 | `app/minutes_video_recording_channel.main.ts` | sekvenční `.webm.partial` + `.pcm.f32.partial` writer a atomická finalizace videa, PCM, metadat a `.speaker-activity.json` |
 | `ts/minutes/recordingArtifacts.std.ts` | společné odvozování PCM, přepisu a shrnutí pro MP3 i WebM |
+| `ts/minutes/recordingPcmReader.node.ts` | blokové čtení a převzorkování dlouhých PCM sidecarů pro Whisper |
 | `ts/minutes/macCallVoiceProcessing.preload.ts` | macOS: zapne RingRTC VoiceProcessingIO, aby šly během hovoru měnit Mic Modes |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/minutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |
