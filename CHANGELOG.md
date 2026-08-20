@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.23.0-m1.3.0-beta.3] - 2026-08-20
+
+### Added
 
 - Lokální MCP server a webhooková automatizace se samostatným nastavením, řízením dostupných nástrojů a bezpečným tokenem
 - Nastavitelný seznam povolených MCP hostů umožňuje připojení z Docker Desktop přes `host.docker.internal`; HTTP originy se odvozují automaticky a server stále vyžaduje token
