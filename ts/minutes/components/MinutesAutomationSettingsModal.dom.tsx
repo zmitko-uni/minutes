@@ -7,6 +7,7 @@ import { useEffect, useState, type JSX } from 'react';
 
 import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
 import { formatAppDialogTitle } from '../branding.std.ts';
+import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 import { MinutesAutomationSettingsPanel } from './MinutesAutomationSettingsPanel.dom.tsx';
 
 type Props = Readonly<{
@@ -21,12 +22,12 @@ export function MinutesAutomationSettingsModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
-        <AxoDialog.Header>
+        <MinutesDraggableDialogHeader positionKey="automation-settings">
           <AxoDialog.Title>
             {formatAppDialogTitle('Nastavení MCP')}
           </AxoDialog.Title>
           <AxoDialog.Close />
-        </AxoDialog.Header>
+        </MinutesDraggableDialogHeader>
         <AxoDialog.Body>
           <AxoDialog.Description>
             <MinutesAutomationSettingsPanel />
