@@ -205,6 +205,7 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 - Pro další stránku se beze změny předává serverem vrácený `nextCursor`; klient kurzor nikdy nesestavuje. Vyhledávání při pokračování načítá skutečnou historii a nekončí na původním interním okně 500 zpráv.
 - Výsledek zprávy obsahuje `authorId` a `authorName`, takže lze v grupě přesně najít odpověď konkrétního člena. `get_message` načte zprávu podle ID a volitelně až 100 zpráv před ní a po ní.
 - `terminate_group` je trvalé ukončení Group V2 pro všechny členy a vyžaduje, aby byl lokální účet administrátor. Je záměrně oddělené od `leave_group`, které odebere jen lokální účet.
+- Pro přístup z Docker Desktop přidejte v **Minutes → Nastavení MCP → Povolení hosté** hodnotu `host.docker.internal`. Hostnames se zadávají bez schématu a portu; odpovídající HTTP origin se odvodí automaticky.
 
 ## Architecture
 
