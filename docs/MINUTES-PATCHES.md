@@ -24,8 +24,10 @@
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
 | `ts/components/App.dom.tsx` | minutes host komponenty | +TranscriptionQueueHost, bez update banneru |
-| `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere`, `onAskAiOpinion` | props + items |
-| `ts/components/conversation/TimelineMessage.dom.tsx` | callback záložky, nepřečteno, názor AI | callbacks |
+| `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere`, `onAskAiOpinion` + kontextové copy/forward | props + items |
+| `ts/components/conversation/TimelineMessage.dom.tsx` | callback záložky, nepřečteno, názor AI a kontextové copy/forward | callbacks |
+| `ts/components/conversation/SelectModeActions.dom.tsx` | Minutes akce kopírování a přeposlání vybraných zpráv s autorem a časem | 1 komponenta |
+| `ts/state/ducks/globalModals.preload.ts` | obecný volitelný transform draftu před otevřením forward modalu | forwarding hook |
 | `app/startup_config.main.ts` | AUMID + název Minutes / Minutes Beta | releaseChannel |
 | `app/user_config.main.ts` | `%APPDATA%\Minutes` vs `Minutes-Beta` | releaseChannel |
 | `electron-builder.minutes.mjs` | prod vs beta instalátor | MINUTES_RELEASE_CHANNEL |
@@ -97,6 +99,7 @@
 | `ts/minutes/macCallVoiceProcessing.preload.ts` | macOS: zapne RingRTC VoiceProcessingIO, aby šly během hovoru měnit Mic Modes |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/minutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |
+| `ts/minutes/contextForward.std.ts`, `contextForward.preload.ts`, `components/MinutesSelectModeContextActions.dom.tsx` | kopírování a vizuálně odlišené přeposlání zpráv se jménem a časem; kontextová varianta má vlastní titulek dialogu |
 | `ts/sql/Server.node.ts` | `markMessagesUnreadFromAnchor` — SQL UPDATE readStatus/seenStatus |
 | `ts/sql/Interface.std.ts` | typ pro `markMessagesUnreadFromAnchor` |
 | `ts/minutes/components/MinutesAppUpdateBannerHost.dom.tsx` | banner aktualizace při startu |

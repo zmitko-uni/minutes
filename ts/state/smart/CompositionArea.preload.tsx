@@ -62,6 +62,11 @@ import { isDirectConversation } from '../../util/whatTypeOfConversation.dom.ts';
 import { itemStorage } from '../../textsecure/Storage.preload.ts';
 import { useNavActions } from '../ducks/nav.std.ts';
 import { isFeaturedEnabledSelector } from '../../util/isFeatureEnabled.dom.ts';
+import { drop } from '../../util/drop.std.ts';
+import {
+  copySelectedMessagesWithContext,
+  forwardSelectedMessagesWithContext,
+} from '../../minutes/contextForward.preload.ts';
 
 function renderSmartCompositionRecording() {
   return <SmartCompositionRecording />;
@@ -386,6 +391,12 @@ export const SmartCompositionArea = memo(function SmartCompositionArea({
       areSelectedMessagesForwardable={areSelectedMessagesForwardable}
       toggleSelectMode={toggleSelectMode}
       toggleForwardMessagesModal={toggleForwardMessagesModal}
+      onCopyMessagesWithContext={() => {
+        drop(copySelectedMessagesWithContext(selectedMessageIds ?? []));
+      }}
+      onForwardMessagesWithContext={() => {
+        forwardSelectedMessagesWithContext(selectedMessageIds ?? []);
+      }}
       // DraftGifMessageSendModal
       toggleDraftGifMessageSendModal={toggleDraftGifMessageSendModal}
       // Dispatch
