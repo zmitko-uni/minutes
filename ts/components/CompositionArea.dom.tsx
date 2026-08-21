@@ -225,6 +225,8 @@ export type OwnProps = Readonly<{
     payload: ForwardMessagesPayload,
     onForward: () => void
   ) => void;
+  onCopyMessagesWithContext?: () => void;
+  onForwardMessagesWithContext?: () => void;
   toggleDraftGifMessageSendModal: (
     props: SmartDraftGifMessageSendModalProps | null
   ) => void;
@@ -359,6 +361,8 @@ export const CompositionArea = memo(function CompositionArea({
   areSelectedMessagesForwardable,
   toggleSelectMode,
   toggleForwardMessagesModal,
+  onCopyMessagesWithContext,
+  onForwardMessagesWithContext,
   // DraftGifMessageSendModal
   toggleDraftGifMessageSendModal,
 }: Props): JSX.Element | null {
@@ -976,6 +980,8 @@ export const CompositionArea = memo(function CompositionArea({
             );
           }
         }}
+        onCopyMessagesWithContext={onCopyMessagesWithContext}
+        onForwardMessagesWithContext={onForwardMessagesWithContext}
         showToast={showToast}
       />
     );

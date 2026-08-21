@@ -53,3 +53,7 @@ export const MINUTES_MENU_ASK_AI_OPINION = formatMenuActionLabel(
 
 export const MINUTES_MENU_TRANSCRIPTION_QUEUE =
   formatMinutesScopedMenuLabel('Přepisy');
+export const MINUTES_MENU_FORWARD_WITH_CONTEXT = 'Přeposlat s kontextem';
+export const MINUTES_MENU_COPY_WITH_CONTEXT = 'Kopírovat s kontextem';
+export const MINUTES_FORWARD_WITH_CONTEXT_MODAL_TITLE =
+  'Přeposlat s kontextem uživateli';

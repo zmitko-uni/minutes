@@ -42,6 +42,10 @@ import { summarizeFromMessage } from '../../minutes/chatSummaryService.preload.t
 import { askAiOpinionFromMessage } from '../../minutes/askAiOpinionService.preload.ts';
 import { addMessageBookmark } from '../../minutes/bookmarksService.preload.ts';
 import { markUnreadFromMessage } from '../../minutes/markUnreadFromMessage.preload.ts';
+import {
+  copyMessagesWithContext,
+  forwardMessagesWithContext,
+} from '../../minutes/contextForward.preload.ts';
 import { drop } from '../../util/drop.std.ts';
 
 const { useAxoContextMenuOutsideKeyboardTrigger } = AxoContextMenu;
@@ -345,6 +349,11 @@ export function TimelineMessage(props: Props): JSX.Element {
             canRetryDeleteForEveryone ? () => retryDeleteForEveryone(id) : null
           }
           onCopy={canCopy ? () => copyMessageText(id) : null}
+          onCopyWithContext={
+            canCopy && window.minutes != null
+              ? () => drop(copyMessagesWithContext([id]))
+              : null
+          }
           onSelect={
             canSelect
               ? () => toggleSelectMessage(conversationId, id, false, true)
@@ -357,6 +366,11 @@ export function TimelineMessage(props: Props): JSX.Element {
                     type: ForwardMessagesModalType.Forward,
                     messageIds: [id],
                   })
+              : null
+          }
+          onForwardWithContext={
+            canForward && window.minutes != null
+              ? () => forwardMessagesWithContext([id])
               : null
           }
           onDeleteMessage={() => {
