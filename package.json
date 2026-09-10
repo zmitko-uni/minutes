@@ -145,6 +145,7 @@
   "dependencies": {
     "@indutny/mac-screen-share": "1.2.5",
     "@indutny/simple-windows-notifications": "2.0.21",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@signalapp/libsignal-client": "0.100.0",
     "@signalapp/mute-state-change": "workspace:*",
     "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz",
@@ -152,8 +153,7 @@
     "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
     "google-libphonenumber": "3.2.44",
-    "@modelcontextprotocol/sdk": "1.29.0",
-    "node-llama-cpp": "3.19.1",
+    "node-llama-cpp": "3.20.0",
     "whisper-cpp-node": "0.2.12"
   },
   "devDependencies": {
@@ -340,6 +340,7 @@
     "redux-logger": "3.0.6",
     "redux-promise-middleware": "6.2.0",
     "redux-thunk": "3.1.0",
+    "resedit": "3.1.0",
     "reselect": "5.1.1",
     "rolldown": "1.0.1",
     "sass": "1.99.0",
@@ -368,8 +369,7 @@
     "wait-on": "9.0.5",
     "webpack": "5.96.1",
     "write-file-atomic": "7.0.1",
-    "zod": "4.3.6",
-    "resedit": "3.0.2"
+    "zod": "4.3.6"
   },
   "engines": {
     "node": "24.17.0"

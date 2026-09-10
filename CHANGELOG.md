@@ -16,6 +16,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Changed
 - Základ aplikace: Signal Desktop **8.26.0** — ve vyhledávání členů skupiny se vlastní účet zobrazuje jako **Vy**
 - Electron **43.5.0**, sqlcipher **4.1.0**
+- Lokální AI (Gemma): `node-llama-cpp` 3.19.1 → **3.20.0** (novější llama.cpp, oprava uvolnění kontextu)
+- Windows ikony: `resedit` 3.0.2 → **3.1.0**
+- CI: `pnpm/action-setup` 6.1.0, `actions/setup-python` 7.0.0
 
 ### Added
 - (doplňte před příštím release)

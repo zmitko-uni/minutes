@@ -141,7 +141,7 @@ async function loadLocalModel(
     reasoningEnabled,
     runtimeContextSize: context.contextSize,
     dispose: async () => {
-      contextSequence.dispose();
+      await contextSequence.dispose();
       await context.dispose();
       await model.dispose();
     },
