@@ -20,9 +20,6 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Windows ikony: `resedit` 3.0.2 → **3.1.0**
 - CI: `pnpm/action-setup` 6.1.0, `actions/setup-python` 7.0.0
 
-### Added
-- (doplňte před příštím release)
-
 ## [8.25.0-m1.3.1] - 2026-09-10
 
 ### Added

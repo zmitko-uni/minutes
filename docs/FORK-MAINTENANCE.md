@@ -115,6 +115,28 @@ Po merge konflikty řeš takto:
 2. Na konec souboru / vedle hooku znovu přidej minutes řádky
 3. Nikdy nemaž upstream změny kvůli minutes
 
+## Minutes RingRTC vs Signal 2.71.0 (odloženo)
+
+Po syncu Signal Desktop **8.26.0** (2026-09-10) Minutes **nepoužívá** stock RingRTC `2.71.0`. Zůstává fork [`minutes-ringrtc`](https://github.com/jiridudekusy/minutes-ringrtc) **`2.70.2-minutes.3`**, protože v něm jsou nahrávací tapy (MP3/WebM z hovoru).
+
+V `ts/services/calling.preload.ts` se **nepředává** `GroupCallSvcConfig` — to API má až 2.71.0. Hovory i nahrávání na 2.70.2 fungují; nové skupinové SVC video z 8.26 Minutes zatím nemá.
+
+**Teď to nedělat** (není krok beta/prod releasu). **Musí se to udělat**, až:
+
+1. hovory přestanou sedět se SFU / Signálem bez 2.71 API, nebo
+2. budeme chtít `GroupCallSvcConfig`, nebo
+3. další merge Signálu (8.27+) bez 2.71 nesloží `calling.preload.ts` / tapy.
+
+**Postup, až na to přijde:**
+
+1. V **minutes-ringrtc** přebasovat tapy na upstream RingRTC **2.71.0**.
+2. Sestavit a vydat prebuild (Windows + macOS), např. `2.71.0-minutes.1`.
+3. V tomto repu na `beta` bumpnout tarball v `package.json` a `MINUTES_RINGRTC_PACKAGE_VERSION` (`scripts/utils/minutesRingRtcInstall.mjs`).
+4. Vrátit předávání `GroupCallSvcConfig` v `calling.preload.ts`.
+5. Ověřit hovor + nahrávku zvuku i videa na Windows i macOS, pak beta/prod.
+
+Tento repo RingRTC nesestavuje — jen stahuje ověřený tarball. Bez nového releasu z minutes-ringrtc bumpnout nejde.
+
 ## Kontrolní seznam před PR / commitem
 
 - [ ] Většina diffu je v `ts/minutes/` nebo `app/minutes_*.ts`
