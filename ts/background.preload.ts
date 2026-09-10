@@ -154,6 +154,7 @@ import {
   registerRequestHandler,
   reportMessage,
   unregisterRequestHandler,
+  getHasClockSkew,
 } from './textsecure/WebAPI.preload.ts';
 import { accountManager } from './textsecure/AccountManager.preload.ts';
 import * as KeyChangeListener from './textsecure/KeyChangeListener.dom.ts';
@@ -215,10 +216,10 @@ import {
   summarizeUnreadConversations,
 } from './minutes/index.preload.ts';
 import {
-  getMinutesConnectHasBuildExpired,
+  applyMinutesBuildExpirationPolicy,
   isMinutesBuildExpirationDisabled,
-  prepareMinutesBuildExpiration,
 } from './minutes/buildExpiration.preload.ts';
+import { handleActiveCallOnScreenLock } from './minutes/screenLockCallPolicy.std.ts';
 import { ReactionSource } from './reactions/ReactionSource.std.ts';
 import { singleProtoJobQueue } from './jobs/singleProtoJobQueue.preload.ts';
 import { SeenStatus } from './MessageSeenStatus.std.ts';
@@ -308,6 +309,10 @@ import { saveAndNotify } from './messages/saveAndNotify.preload.ts';
 import { getBackupKeyHash } from './services/backups/crypto.preload.ts';
 import { Emoji } from './axo/emoji.std.ts';
 import { isTrustedContact } from './util/isConversationAccepted.preload.ts';
+import { registrationJobQueue } from './jobs/registrationJobQueue.preload.ts';
+import { PartialRegistrationType } from './types/StandaloneRegistration.std.ts';
+import { PhoneNumberDiscoverability } from './util/phoneNumberDiscoverability.std.ts';
+import { getProfileData } from './state/ducks/standaloneInstaller.preload.ts';
 
 const { isNumber, throttle } = lodash;
 
@@ -487,8 +492,6 @@ async function startApp(): Promise<void> {
     drop(logout());
     authSocketConnectCount = 0;
 
-    backupReady.reject(new Error('startRegistration'));
-    backupReady = explodePromise();
     registrationCompleted = explodePromise();
   });
 
@@ -579,12 +582,12 @@ async function startApp(): Promise<void> {
 
     window.Whisper.events.on('firstEnvelope', checkFirstEnvelope);
 
-    await prepareMinutesBuildExpiration(itemStorage);
-
     const buildExpirationService = new BuildExpirationService();
-    const hasBuildExpired = isMinutesBuildExpirationDisabled()
-      ? getMinutesConnectHasBuildExpired()
-      : buildExpirationService.hasBuildExpired();
+    const { hasBuildExpired, observeSignalExpiration } =
+      await applyMinutesBuildExpirationPolicy({
+        storage: itemStorage,
+        signalHasBuildExpired: buildExpirationService.hasBuildExpired(),
+      });
 
     if (hasBuildExpired) {
       log.warn('connectWebAPI: build is marked expired');
@@ -598,7 +601,7 @@ async function startApp(): Promise<void> {
       })
     );
 
-    if (!isMinutesBuildExpirationDisabled()) {
+    if (observeSignalExpiration) {
       buildExpirationService.on('expired', () => {
         drop(onExpiration('build'));
       });
@@ -928,6 +931,24 @@ async function startApp(): Promise<void> {
         await itemStorage.remove('remoteBuildExpiration');
       }
 
+      try {
+        if (window.ConversationController.areWePrimaryDevice()) {
+          log.info(
+            `We are primary device; adding MigrateSVR job to registrationJobQueue`
+          );
+          await registrationJobQueue.add({
+            type: 'MigrateSVR',
+            reason: `New version ${newVersion}`,
+            id: generateUuid(),
+          });
+        }
+      } catch (error) {
+        log.error(
+          'Failed to add MigrateSVR job to registrationJobQueue:',
+          Errors.toLogFormat(error)
+        );
+      }
+
       if (window.isBeforeVersion(lastVersion, '6.45.0-alpha')) {
         await removeStorageKeyJobQueue.add({
           key: 'previousAudioDeviceModule',
@@ -1036,7 +1057,7 @@ async function startApp(): Promise<void> {
         if (!hasAllChatsChatFolder) {
           log.info('Creating "all chats" chat folder');
           await DataWriter.createAllChatsChatFolder();
-          StorageService.storageServiceUploadJobAfterEnabled({
+          StorageService.runStorageServiceUploadJobAfterEnabled({
             reason: 'createAllChatsChatFolder',
           });
         }
@@ -1259,6 +1280,7 @@ async function startApp(): Promise<void> {
       window.reduxActions.expiration.hydrateExpirationStatus(
         window.getBuildExpiration()
       );
+      window.reduxActions.network.setClockSkew(getHasClockSkew());
 
       // Process crash reports if any. Note that the modal won't be visible
       // until the app will finish loading.
@@ -1359,7 +1381,15 @@ async function startApp(): Promise<void> {
   });
 
   window.Whisper.events.on('powerMonitorLockScreen', () => {
-    window.reduxActions.calling.hangUpActiveCall('powerMonitorLockScreen');
+    const result = handleActiveCallOnScreenLock({
+      isMinutesBuild: window.minutes != null,
+      hangUpActiveCall: reason =>
+        window.reduxActions.calling.hangUpActiveCall(reason),
+    });
+
+    if (result === 'kept') {
+      log.info('powerMonitor: keeping active call on screen lock');
+    }
   });
 
   const reconnectToWebSocketQueue = new LatestQueue();
@@ -1406,15 +1436,7 @@ async function startApp(): Promise<void> {
     remotelyExpired = true;
   });
 
-  async function enableStorageService({ andSync }: { andSync?: string } = {}) {
-    log.info('enableStorageService: waiting for backupReady');
-    try {
-      await backupReady.promise;
-    } catch (error) {
-      log.warn('enableStorageService: backup is not ready; returning early');
-      return;
-    }
-
+  function enableStorageService({ andSync }: { andSync?: string } = {}) {
     log.info('enableStorageService: enabling and running');
     StorageService.enableStorageService();
 
@@ -1467,7 +1489,9 @@ async function startApp(): Promise<void> {
 
     log.info('Blocked uuids cleanup: starting...');
     const blockedUuids = itemStorage.get(BLOCKED_UUIDS_ID, []);
-    const blockedAcis = blockedUuids.filter(isAciString);
+    const blockedAcis = blockedUuids.filter(item =>
+      isAciString(item.serviceId)
+    );
     const diff = blockedUuids.length - blockedAcis.length;
     if (diff > 0) {
       log.warn(
@@ -1476,14 +1500,20 @@ async function startApp(): Promise<void> {
       await itemStorage.put(BLOCKED_UUIDS_ID, blockedAcis);
     }
 
-    if (blockedAcis.some(isSignalServiceId)) {
+    const signalItem = blockedAcis.find(item =>
+      isSignalServiceId(item.serviceId)
+    );
+    if (signalItem) {
       log.warn(
         'Release notes chat block migration: found in blocked list. Moving.'
       );
-      await itemStorage.blocked.setReleaseNotesChatBlocked(true);
+      await itemStorage.blocked.setReleaseNotesChatBlocked(
+        true,
+        signalItem.blockedAt
+      );
       await itemStorage.put(
         BLOCKED_UUIDS_ID,
-        blockedAcis.filter(aci => !isSignalServiceId(aci))
+        blockedAcis.filter(item => !isSignalServiceId(item.serviceId))
       );
       log.info('Release notes chat block migration: complete');
     }
@@ -1587,8 +1617,70 @@ async function startApp(): Promise<void> {
 
     if (isCoreDataValid && Registration.everDone()) {
       idleDetector.start();
+
+      const registrationPartialState = itemStorage.get(
+        'standaloneRegistrationPartialState'
+      );
+
       if (itemStorage.get('backupDownloadPath')) {
         window.reduxActions.installer.showBackupImport();
+      } else if (
+        registrationPartialState &&
+        !window.ConversationController.areWePrimaryDevice()
+      ) {
+        log.error(
+          `start: standaloneRegistrationPartialState '${registrationPartialState}' found, but we are not a primary device. Clearing and opening inbox.`
+        );
+        window.reduxActions.app.openInbox();
+        await itemStorage.put('standaloneRegistrationPartialState', undefined);
+      } else if (
+        registrationPartialState &&
+        window.ConversationController.areWePrimaryDevice()
+      ) {
+        const startFromBeginning = false;
+        const phoneNumberDiscoverability =
+          itemStorage.get('phoneNumberDiscoverability') ??
+          PhoneNumberDiscoverability.Discoverable;
+        const profileData = await getProfileData(phoneNumberDiscoverability);
+        log.error(
+          `start: standaloneRegistrationPartialState '${registrationPartialState}' found, processing`
+        );
+        if (
+          registrationPartialState === PartialRegistrationType.EXISTING__PIN
+        ) {
+          window.reduxActions.standaloneInstaller.goToVerifyPINStage();
+          window.reduxActions.app.openStandalone(startFromBeginning);
+        } else if (
+          registrationPartialState === PartialRegistrationType.EXISTING__PROFILE
+        ) {
+          const hasPin = true;
+          window.reduxActions.standaloneInstaller.goToProfileEntryStage(
+            hasPin,
+            profileData
+          );
+          window.reduxActions.app.openStandalone(startFromBeginning);
+        } else if (
+          registrationPartialState ===
+          PartialRegistrationType.NEW_ACCOUNT__PROFILE
+        ) {
+          const hasPin = false;
+          window.reduxActions.standaloneInstaller.goToProfileEntryStage(
+            hasPin,
+            profileData
+          );
+          window.reduxActions.app.openStandalone(startFromBeginning);
+        } else if (
+          registrationPartialState === PartialRegistrationType.NEW_ACCOUNT__PIN
+        ) {
+          window.reduxActions.standaloneInstaller.goToCreatePINStage();
+          window.reduxActions.app.openStandalone(startFromBeginning);
+        } else {
+          const unexpectedState: never = registrationPartialState;
+          log.error(
+            `start: unexpected standaloneRegistrationPartialState '${unexpectedState}', opening inbox`
+          );
+          window.reduxActions.app.openInbox();
+        }
       } else {
         window.reduxActions.app.openInbox();
       }
@@ -1720,7 +1812,6 @@ async function startApp(): Promise<void> {
     }
   }
 
-  let backupReady = explodePromise<{ wasBackupImported: boolean }>();
   let registrationCompleted: ExplodePromiseResultType<void> | undefined;
   let authSocketConnectCount = 0;
   let afterAuthSocketConnectPromise: ExplodePromiseResultType<void> | undefined;
@@ -1821,13 +1912,11 @@ async function startApp(): Promise<void> {
         storageServiceSyncComplete = waitForEvent(
           'storageService:syncComplete'
         );
-        drop(
-          enableStorageService({
-            andSync: 'afterFirstAuthSocketConnect',
-          })
-        );
+        enableStorageService({
+          andSync: 'afterFirstAuthSocketConnect',
+        });
       } else {
-        drop(enableStorageService());
+        enableStorageService();
       }
 
       // 7. Wait for critical post-registration syncs before showing inbox
@@ -1892,41 +1981,38 @@ async function startApp(): Promise<void> {
     const isLocalBackupAvailable =
       backupsService.isLocalBackupStaged() && isLocalBackupsEnabled();
 
-    if (isLocalBackupAvailable || backupDownloadPath) {
-      tapToViewMessagesDeletionService.pause();
-
-      // Download backup before enabling request handler and storage service
-      try {
-        let wasBackupImported = false;
-        if (isLocalBackupAvailable) {
-          await backupsService.importLocalBackup();
-          wasBackupImported = true;
-        } else {
-          ({ wasBackupImported } = await backupsService.downloadAndImport({
-            onProgress: (backupStep, currentBytes, totalBytes) => {
-              window.reduxActions.installer.updateBackupImportProgress({
-                backupStep,
-                currentBytes,
-                totalBytes,
-              });
-            },
-          }));
-        }
-
-        log.info('afterAppStart: backup download attempt completed, resolving');
-        backupReady.resolve({ wasBackupImported });
-      } catch (error) {
-        log.error('afterAppStart: backup download failed, rejecting');
-        backupReady.reject(error);
-        throw error;
-      } finally {
-        tapToViewMessagesDeletionService.resume();
-      }
-    } else {
-      backupReady.resolve({ wasBackupImported: false });
+    if (!isLocalBackupAvailable && !backupDownloadPath) {
+      return { wasBackupImported: false };
     }
 
-    return backupReady.promise;
+    tapToViewMessagesDeletionService.pause();
+
+    // Download backup before enabling request handler and storage service
+    try {
+      let wasBackupImported = false;
+      if (isLocalBackupAvailable) {
+        await backupsService.importLocalBackup();
+        wasBackupImported = true;
+      } else {
+        ({ wasBackupImported } = await backupsService.downloadAndImport({
+          onProgress: (backupStep, currentBytes, totalBytes) => {
+            window.reduxActions.installer.updateBackupImportProgress({
+              backupStep,
+              currentBytes,
+              totalBytes,
+            });
+          },
+        }));
+      }
+
+      log.info('afterAppStart: backup download attempt completed');
+      return { wasBackupImported };
+    } catch (error) {
+      log.error('afterAppStart: backup download failed');
+      throw error;
+    } finally {
+      tapToViewMessagesDeletionService.resume();
+    }
   }
 
   function afterEveryLinkedStartup() {
@@ -3501,9 +3587,6 @@ async function startApp(): Promise<void> {
 
       pauseProcessing('unlinkAndDisconnect');
 
-      backupReady.reject(new Error('Aborted'));
-      backupReady = explodePromise();
-
       await logout();
       await waitForAllBatchers();
     }
@@ -3628,6 +3711,13 @@ async function startApp(): Promise<void> {
   async function onKeysSync(ev: KeysEvent) {
     const { accountEntropyPool, masterKey, mediaRootBackupKey } = ev;
 
+    if (window.ConversationController.areWePrimaryDevice()) {
+      log.info(
+        'onKeysSync: Not processing incoming keys; we are primary device'
+      );
+      return;
+    }
+
     const prevMasterKeyBase64 = itemStorage.get('masterKey');
     const prevMasterKey = prevMasterKeyBase64
       ? Bytes.fromBase64(prevMasterKeyBase64)
@@ -3680,7 +3770,7 @@ async function startApp(): Promise<void> {
       await itemStorage.put('backupMediaRootKey', mediaRootBackupKey);
     }
 
-    await StorageService.updateWithNewKey('onKeysSync');
+    await StorageService.syncAfterNewKey('onKeysSync');
 
     ev.confirm();
   }

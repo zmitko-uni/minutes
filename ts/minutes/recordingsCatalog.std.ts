@@ -1,6 +1,8 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import type { RecordingMediaKind } from './recordingArtifacts.std.ts';
+
 export type StoredCallRecordingMetadata = Readonly<{
   conversationId: string;
   conversationTitle: string;
@@ -9,7 +11,10 @@ export type StoredCallRecordingMetadata = Readonly<{
   startedAt: number;
   endedAt: number;
   durationMs: number;
-  audioFile: string;
+  mediaKind?: RecordingMediaKind;
+  audioFile?: string;
+  videoFile?: string;
+  pcmFile?: string;
   speakerActivityFile?: string;
 }>;
 
@@ -19,7 +24,10 @@ export type CallRecordingCatalogEntry = Readonly<{
   startedAt: number;
   endedAt: number;
   durationMs: number;
-  mp3Path: string;
+  mediaKind: RecordingMediaKind;
+  recordingPath: string;
+  hasMp4Export: boolean;
+  mp4Path?: string;
   hasPcmSidecar: boolean;
   hasTranscript: boolean;
   hasSummary: boolean;

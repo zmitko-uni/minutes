@@ -61,6 +61,7 @@ export type DataPropsType = {
   getPreferredBadge: PreferredBadgeSelectorType;
   i18n: LocalizerType;
   isInFullScreenCall: boolean;
+  modalTitle?: string;
 
   linkPreviewForSource: (
     source: LinkPreviewSourceType
@@ -94,6 +95,7 @@ export function ForwardMessagesModal({
   getPreferredBadge,
   i18n,
   isInFullScreenCall,
+  modalTitle,
   onClose,
   onChange,
   removeLinkPreview,
@@ -283,7 +285,9 @@ export function ForwardMessagesModal({
   );
 
   let title: string;
-  if (
+  if (modalTitle != null) {
+    title = modalTitle;
+  } else if (
     type === ForwardMessagesModalType.Forward ||
     type === ForwardMessagesModalType.ForwardAttachment
   ) {

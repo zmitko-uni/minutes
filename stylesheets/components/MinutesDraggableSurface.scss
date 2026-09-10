@@ -1,0 +1,20 @@
+// Copyright 2026 Signal Messenger, LLC
+// SPDX-License-Identifier: AGPL-3.0-only
+
+.MinutesDraggableSurface__handle {
+  cursor: move;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role='button'],
+  [data-minutes-no-drag] {
+    cursor: auto;
+    touch-action: auto;
+  }
+}

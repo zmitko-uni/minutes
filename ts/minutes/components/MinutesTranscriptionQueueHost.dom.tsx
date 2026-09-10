@@ -19,9 +19,7 @@ import {
   openTranscriptionQueuePanel,
   transcriptionQueue,
 } from '../transcriptionQueueService.preload.ts';
-import {
-  getCallSummaryExtensionState,
-} from '../callSummaryExtensionService.preload.ts';
+import { getCallSummaryExtensionState } from '../callSummaryExtensionService.preload.ts';
 import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
 import { getWhisperModelLabel } from '../whisperSettings.std.ts';
 import {
@@ -32,6 +30,16 @@ import {
 } from '../sendCallRecordingToChat.preload.ts';
 import type { CallRecordingOutput } from '../types.std.ts';
 import type { CallRecordingCatalogEntry } from '../recordingsCatalog.std.ts';
+import { getRecordingArtifactPaths } from '../recordingArtifacts.std.ts';
+import {
+  cancelRecordingMp4Export,
+  exportRecordingToMp4,
+  getRecordingMp4Support,
+  installRecordingMp4Support,
+  subscribeVideoMp4ExportProgress,
+  subscribeVideoMp4SupportProgress,
+} from '../videoMp4ExportService.preload.ts';
+import { useMinutesDraggableSurface } from './MinutesDraggableSurface.dom.tsx';
 
 type SendAction =
   | 'transcript-chat'
@@ -130,12 +138,12 @@ function formatQueuedLabel(job: TranscriptionJob): string {
 }
 
 function findActiveJobForRecording(
-  mp3Path: string,
+  recordingPath: string,
   jobs: ReadonlyArray<TranscriptionJob>
 ): TranscriptionJob | undefined {
   return jobs.find(
     job =>
-      job.metadata.filePath === mp3Path &&
+      job.metadata.filePath === recordingPath &&
       (job.status === 'queued' ||
         job.status === 'processing' ||
         job.status === 'failed')
@@ -159,7 +167,10 @@ function ArtifactBadge({
   );
 }
 
-function formatStatus(job: TranscriptionJob, snapshot: TranscriptionQueueSnapshot): string {
+function formatStatus(
+  job: TranscriptionJob,
+  snapshot: TranscriptionQueueSnapshot
+): string {
   if (job.status === 'processing' && job.cancelRequested) {
     return 'Rušení…';
   }
@@ -218,9 +229,11 @@ function SendIconButton({
   return (
     <button
       type="button"
-      className={`MinutesTranscriptionQueue__send-icon${
-        active ? ' MinutesTranscriptionQueue__send-icon--active' : ''
-      }`}
+      className={
+        active
+          ? 'MinutesTranscriptionQueue__send-icon MinutesTranscriptionQueue__send-icon--active'
+          : 'MinutesTranscriptionQueue__send-icon'
+      }
       title={tooltip}
       aria-label={tooltip}
       disabled={disabled}
@@ -327,6 +340,13 @@ function HistoryRecordingCard({
   onRefresh: () => void;
   onSend: (entry: CallRecordingCatalogEntry, action: SendAction) => void;
 }>): JSX.Element {
+  const [mp4Export, setMp4Export] = useState<{
+    status: 'running' | 'failed';
+    percent: number;
+    detail?: string;
+    cancellable?: boolean;
+    error?: string;
+  } | null>(null);
   const durationLabel =
     entry.durationMs > 0
       ? formatRecordingDuration(entry.durationMs)
@@ -337,6 +357,82 @@ function HistoryRecordingCard({
       ? getWhisperModelLabel(entry.transcriptWhisperModelFileName)
       : null);
 
+  useEffect(() => {
+    const unsubscribeExport = subscribeVideoMp4ExportProgress(progress => {
+      if (progress.recordingPath === entry.recordingPath) {
+        setMp4Export({
+          status: 'running',
+          percent: progress.percent,
+          detail: 'Převádím video do MP4…',
+          cancellable: true,
+        });
+      }
+    });
+    const unsubscribeSupport = subscribeVideoMp4SupportProgress(progress => {
+      if (progress.recordingPath !== entry.recordingPath) {
+        return;
+      }
+      setMp4Export({
+        status: 'running',
+        percent: progress.percent,
+        detail: progress.detail,
+        cancellable: false,
+      });
+    });
+    return () => {
+      unsubscribeExport();
+      unsubscribeSupport();
+    };
+  }, [entry.recordingPath]);
+
+  const startMp4Export = useCallback(() => {
+    setMp4Export({
+      status: 'running',
+      percent: 0,
+      detail: 'Hledám systémový FFmpeg…',
+      cancellable: false,
+    });
+    drop(
+      getRecordingMp4Support()
+        .then(async support => {
+          if (support.source === 'missing') {
+            const accepted = window.confirm(
+              `Kompatibilní systémový FFmpeg nebyl nalezen. Stáhnout jednorázově podporu MP4 (${support.downloadLabel ?? 'velikost dle platformy'})?`
+            );
+            if (!accepted) {
+              setMp4Export(null);
+              return null;
+            }
+            await installRecordingMp4Support(entry.recordingPath);
+          }
+          setMp4Export({
+            status: 'running',
+            percent: 0,
+            detail:
+              support.source === 'system'
+                ? 'Používám systémový FFmpeg…'
+                : 'Převádím video do MP4…',
+            cancellable: true,
+          });
+          return exportRecordingToMp4({
+            recordingPath: entry.recordingPath,
+            durationMs: entry.durationMs,
+          });
+        })
+        .then(() => {
+          setMp4Export(null);
+          onRefresh();
+        })
+        .catch((error: unknown) => {
+          setMp4Export({
+            status: 'failed',
+            percent: 0,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        })
+    );
+  }, [entry.durationMs, entry.recordingPath, onRefresh]);
+
   return (
     <div className="MinutesTranscriptionQueue__job MinutesTranscriptionQueue__job--history">
       <div className="MinutesTranscriptionQueue__job-title">
@@ -346,6 +442,11 @@ function HistoryRecordingCard({
         Délka: <strong>{durationLabel}</strong>
         {' · '}
         {new Date(entry.endedAt || entry.startedAt).toLocaleString('cs-CZ')}
+        {' · '}
+        Typ:{' '}
+        <strong>
+          {entry.mediaKind === 'screen-share-video' ? 'Video' : 'Audio'}
+        </strong>
         {entry.hasTranscript && usedModelLabel ? (
           <>
             {' · '}
@@ -356,6 +457,9 @@ function HistoryRecordingCard({
       <div className="MinutesTranscriptionQueue__badges">
         <ArtifactBadge label="Přepis" ready={entry.hasTranscript} />
         <ArtifactBadge label="Shrnutí" ready={entry.hasSummary} />
+        {entry.mediaKind === 'screen-share-video' ? (
+          <ArtifactBadge label="MP4" ready={entry.hasMp4Export} />
+        ) : null}
         {!entry.hasPcmSidecar ? (
           <span className="MinutesTranscriptionQueue__badge MinutesTranscriptionQueue__badge--warn">
             Chybí PCM
@@ -375,8 +479,29 @@ function HistoryRecordingCard({
           })}
         </div>
       ) : null}
+      {mp4Export ? (
+        <>
+          <div
+            className={`MinutesTranscriptionQueue__job-status MinutesTranscriptionQueue__job-status--${
+              mp4Export.status === 'failed' ? 'failed' : 'processing'
+            }`}
+          >
+            {mp4Export.status === 'failed'
+              ? `MP4: ${mp4Export.error ?? 'Převod selhal'}`
+              : `${mp4Export.detail ?? 'Převod do MP4'} ${mp4Export.percent} %`}
+          </div>
+          {mp4Export.status === 'running' ? (
+            <div className="MinutesTranscriptionQueue__progress">
+              <div
+                className="MinutesTranscriptionQueue__progress-bar"
+                style={{ width: `${mp4Export.percent}%` }}
+              />
+            </div>
+          ) : null}
+        </>
+      ) : null}
       <RecordingSendActions
-        itemKey={entry.mp3Path}
+        itemKey={entry.recordingPath}
         conversationId={entry.conversationId}
         conversationTitle={entry.conversationTitle}
         hasTranscript={entry.hasTranscript}
@@ -438,7 +563,8 @@ function HistoryRecordingCard({
                 ipcRenderer.send(
                   'show-item-in-folder',
                   entry.transcriptPath ??
-                    entry.mp3Path.replace(/\.mp3$/i, '.transcript.md')
+                    getRecordingArtifactPaths(entry.recordingPath)
+                      .transcriptPath
                 );
               }}
             >
@@ -453,20 +579,52 @@ function HistoryRecordingCard({
               ipcRenderer.send(
                 'show-item-in-folder',
                 entry.summaryPath ??
-                  entry.mp3Path.replace(/\.mp3$/i, '.summary.md')
+                  getRecordingArtifactPaths(entry.recordingPath).summaryPath
               );
             }}
           >
             Otevřít shrnutí
           </button>
         ) : null}
+        {entry.mediaKind === 'screen-share-video' ? (
+          mp4Export?.status === 'running' && mp4Export.cancellable ? (
+            <button
+              type="button"
+              onClick={() => {
+                drop(cancelRecordingMp4Export(entry.recordingPath));
+              }}
+            >
+              Zrušit převod MP4
+            </button>
+          ) : mp4Export?.status === 'running' ? (
+            <button type="button" disabled>
+              Připravuji MP4…
+            </button>
+          ) : (
+            <button type="button" onClick={startMp4Export}>
+              {entry.hasMp4Export ? 'Přegenerovat MP4' : 'Vytvořit MP4'}
+            </button>
+          )
+        ) : null}
+        {entry.hasMp4Export && entry.mp4Path ? (
+          <button
+            type="button"
+            onClick={() => {
+              ipcRenderer.send('show-item-in-folder', entry.mp4Path);
+            }}
+          >
+            Otevřít MP4
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => {
-            ipcRenderer.send('show-item-in-folder', entry.mp3Path);
+            ipcRenderer.send('show-item-in-folder', entry.recordingPath);
           }}
         >
-          Otevřít MP3
+          {entry.mediaKind === 'screen-share-video'
+            ? 'Otevřít WebM'
+            : 'Otevřít MP3'}
         </button>
       </div>
     </div>
@@ -510,6 +668,9 @@ function TranscriptionQueuePanel({
   onClose: () => void;
   activeWhisperModelLabel: string;
 }>): JSX.Element | null {
+  const { setSurfaceElement, dragHandleProps } = useMinutesDraggableSurface(
+    'transcription-queue'
+  );
   const activeCount = useMemo(
     () =>
       snapshot.jobs.filter(
@@ -559,8 +720,11 @@ function TranscriptionQueuePanel({
   }
 
   return (
-    <div className="MinutesTranscriptionQueue">
-      <div className="MinutesTranscriptionQueue__header">
+    <div ref={setSurfaceElement} className="MinutesTranscriptionQueue">
+      <div
+        className="MinutesTranscriptionQueue__header MinutesDraggableSurface__handle"
+        {...dragHandleProps}
+      >
         <span className="MinutesTranscriptionQueue__title">
           Přepisy ({APP_DISPLAY_NAME})
         </span>
@@ -618,9 +782,12 @@ function TranscriptionQueuePanel({
           ) : (
             historyEntries.map(entry => (
               <HistoryRecordingCard
-                key={entry.mp3Path}
+                key={entry.recordingPath}
                 entry={entry}
-                activeJob={findActiveJobForRecording(entry.mp3Path, snapshot.jobs)}
+                activeJob={findActiveJobForRecording(
+                  entry.recordingPath,
+                  snapshot.jobs
+                )}
                 sendingKey={sendingKey}
                 activeWhisperModelLabel={activeWhisperModelLabel}
                 onEnqueueTranscription={onEnqueueTranscription}
@@ -720,7 +887,8 @@ function TranscriptionQueuePanel({
                     <button
                       type="button"
                       disabled={
-                        job.status === 'processing' && Boolean(job.cancelRequested)
+                        job.status === 'processing' &&
+                        Boolean(job.cancelRequested)
                       }
                       onClick={() => transcriptionQueue.cancelJob(job.id)}
                     >
@@ -746,14 +914,18 @@ function TranscriptionQueuePanel({
                         ipcRenderer.send(
                           'show-item-in-folder',
                           job.kind === 'summary'
-                            ? job.output?.summaryPath ??
-                                job.metadata.filePath.replace(/\.mp3$/i, '.summary.md')
-                            : job.output?.transcriptPath ??
-                                job.metadata.filePath.replace(/\.mp3$/i, '.transcript.md')
+                            ? (job.output?.summaryPath ??
+                                getRecordingArtifactPaths(job.metadata.filePath)
+                                  .summaryPath)
+                            : (job.output?.transcriptPath ??
+                                getRecordingArtifactPaths(job.metadata.filePath)
+                                  .transcriptPath)
                         );
                       }}
                     >
-                      {job.kind === 'summary' ? 'Otevřít shrnutí' : 'Otevřít přepis'}
+                      {job.kind === 'summary'
+                        ? 'Otevřít shrnutí'
+                        : 'Otevřít přepis'}
                     </button>
                   ) : null}
                 </div>
@@ -765,12 +937,18 @@ function TranscriptionQueuePanel({
 
       <div className="MinutesTranscriptionQueue__footer">
         {!showHistory && activeCount > 0 ? (
-          <button type="button" onClick={() => transcriptionQueue.cancelAllActive()}>
+          <button
+            type="button"
+            onClick={() => transcriptionQueue.cancelAllActive()}
+          >
             Zrušit aktivní frontu
           </button>
         ) : null}
         {!showHistory && snapshot.queuePaused ? (
-          <button type="button" onClick={() => transcriptionQueue.resumeQueue()}>
+          <button
+            type="button"
+            onClick={() => transcriptionQueue.resumeQueue()}
+          >
             Pokračovat ve frontě
           </button>
         ) : (
@@ -779,7 +957,10 @@ function TranscriptionQueuePanel({
           </button>
         )}
         {!showHistory ? (
-          <button type="button" onClick={() => transcriptionQueue.clearCompleted()}>
+          <button
+            type="button"
+            onClick={() => transcriptionQueue.clearCompleted()}
+          >
             Vyčistit hotové
           </button>
         ) : (
@@ -866,7 +1047,9 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
   }, [loadHistory, showHistory, snapshot.jobs]);
 
   useEffect(() => {
-    const hasProcessing = snapshot.jobs.some(job => job.status === 'processing');
+    const hasProcessing = snapshot.jobs.some(
+      job => job.status === 'processing'
+    );
     if (!hasProcessing) {
       return;
     }
@@ -918,10 +1101,13 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
     []
   );
 
-  const handleEnqueueSummary = useCallback((entry: CallRecordingCatalogEntry) => {
-    transcriptionQueue.enqueueFromCatalog(entry, 'summary');
-    setShowHistory(false);
-  }, []);
+  const handleEnqueueSummary = useCallback(
+    (entry: CallRecordingCatalogEntry) => {
+      transcriptionQueue.enqueueFromCatalog(entry, 'summary');
+      setShowHistory(false);
+    },
+    []
+  );
 
   const handleSendOutput = useCallback(
     (job: TranscriptionJob, action: SendAction) => {
@@ -955,7 +1141,7 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
         return;
       }
 
-      const key = `${entry.mp3Path}:${action}`;
+      const key = `${entry.recordingPath}:${action}`;
       setSendingKey(key);
 
       drop(
@@ -963,7 +1149,9 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
           try {
             const output = await loadCallRecordingOutputFromEntry(entry);
             if (!output) {
-              window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+              window.reduxActions.toast.showToast({
+                toastType: ToastType.Error,
+              });
               return;
             }
             await performSendAction(output, action);

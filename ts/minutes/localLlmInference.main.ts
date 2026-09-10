@@ -3,11 +3,27 @@
 
 import { createLogger } from '../logging/log.std.ts';
 import { loadNodeLlamaCpp } from './loadNodeLlamaCpp.main.ts';
+import {
+  canReuseLocalLlmContext,
+  DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+  fitLocalLlmPromptToContext,
+  resolveLocalLlmRuntimeContextSize,
+  type LocalLlmContextSize,
+} from './localLlmContextSize.std.ts';
+import {
+  DEFAULT_LOCAL_LLM_REASONING_ENABLED,
+  getLocalLlmChatWrapperOptions,
+  requireNonEmptyLocalLlmOutput,
+} from './localLlmReasoning.std.ts';
 
 const log = createLogger('minutes/localLlmInference');
 
-type LoadedLocalModel = Readonly<{
+export type LoadedLocalModel = Readonly<{
+  modelPath: string;
   modelFileName: string;
+  contextSize: LocalLlmContextSize;
+  reasoningEnabled: boolean;
+  runtimeContextSize: number;
   dispose: () => Promise<void>;
   prompt: (options: {
     systemPrompt: string;
@@ -17,46 +33,113 @@ type LoadedLocalModel = Readonly<{
   }) => Promise<string>;
 }>;
 
-let loadedModel: LoadedLocalModel | null = null;
-let loadPromise: Promise<LoadedLocalModel> | null = null;
-let promptChain: Promise<unknown> = Promise.resolve();
+export type LocalLlmModelRequest = Readonly<{
+  modelPath: string;
+  modelFileName: string;
+  contextSize: LocalLlmContextSize;
+  reasoningEnabled: boolean;
+}>;
 
-async function disposeLoadedModel(): Promise<void> {
-  if (!loadedModel) {
-    return;
+export class LocalLlmModelScheduler {
+  #loadedModel: LoadedLocalModel | null = null;
+  #operationChain: Promise<unknown> = Promise.resolve();
+
+  constructor(
+    private readonly loadModel: (
+      request: LocalLlmModelRequest
+    ) => Promise<LoadedLocalModel>
+  ) {}
+
+  generate<T>(
+    request: LocalLlmModelRequest,
+    run: (model: LoadedLocalModel) => Promise<T>
+  ): Promise<T> {
+    return this.#enqueue(async () => run(await this.#getLoadedModel(request)));
   }
-  try {
-    await loadedModel.dispose();
-  } catch (error) {
-    log.warn(
-      'disposeLoadedModel failed',
-      error instanceof Error ? error.message : error
+
+  dispose(): Promise<void> {
+    return this.#enqueue(() => this.#disposeLoadedModel());
+  }
+
+  #enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.#operationChain.then(operation, operation);
+    this.#operationChain = result.then(
+      () => undefined,
+      () => undefined
     );
+    return result;
   }
-  loadedModel = null;
+
+  async #getLoadedModel(
+    request: LocalLlmModelRequest
+  ): Promise<LoadedLocalModel> {
+    if (
+      this.#loadedModel?.modelPath === request.modelPath &&
+      canReuseLocalLlmContext(
+        this.#loadedModel,
+        request.modelFileName,
+        request.contextSize,
+        request.reasoningEnabled
+      )
+    ) {
+      return this.#loadedModel;
+    }
+
+    await this.#disposeLoadedModel();
+    log.info(
+      `loading local LLM model ${request.modelFileName} (context setting: ${request.contextSize}, reasoning: ${request.reasoningEnabled})`
+    );
+    const next = await this.loadModel(request);
+    this.#loadedModel = next;
+    return next;
+  }
+
+  async #disposeLoadedModel(): Promise<void> {
+    const model = this.#loadedModel;
+    this.#loadedModel = null;
+    if (!model) {
+      return;
+    }
+    try {
+      await model.dispose();
+    } catch (error) {
+      log.warn(
+        'disposeLoadedModel failed',
+        error instanceof Error ? error.message : error
+      );
+    }
+  }
 }
 
-export async function disposeLocalLlmModel(): Promise<void> {
-  loadPromise = null;
-  promptChain = Promise.resolve();
-  await disposeLoadedModel();
-}
-
-async function loadLocalModel(modelPath: string, modelFileName: string): Promise<LoadedLocalModel> {
+async function loadLocalModel(
+  modelPath: string,
+  modelFileName: string,
+  contextSize: LocalLlmContextSize,
+  reasoningEnabled: boolean
+): Promise<LoadedLocalModel> {
   const { getLlama, LlamaChatSession, resolveChatWrapper } =
     await loadNodeLlamaCpp();
   const llama = await getLlama();
   const model = await llama.loadModel({ modelPath });
-  const chatWrapper = resolveChatWrapper(model);
-  const context = await model.createContext({ contextSize: 8192 });
+  const chatWrapper = resolveChatWrapper(
+    model,
+    getLocalLlmChatWrapperOptions(reasoningEnabled)
+  );
+  const context = await model.createContext({
+    contextSize: resolveLocalLlmRuntimeContextSize(contextSize),
+  });
   const contextSequence = context.getSequence();
 
   log.info(
-    `local LLM model ready ${modelFileName} (chat wrapper: ${chatWrapper.wrapperName})`
+    `local LLM model ready ${modelFileName} (context: ${context.contextSize}, reasoning: ${reasoningEnabled}, chat wrapper: ${chatWrapper.wrapperName})`
   );
 
   return {
+    modelPath,
     modelFileName,
+    contextSize,
+    reasoningEnabled,
+    runtimeContextSize: context.contextSize,
     dispose: async () => {
       contextSequence.dispose();
       await context.dispose();
@@ -84,71 +167,72 @@ async function loadLocalModel(modelPath: string, modelFileName: string): Promise
   };
 }
 
-async function getLoadedModel(
-  modelPath: string,
-  modelFileName: string
-): Promise<LoadedLocalModel> {
-  if (loadedModel?.modelFileName === modelFileName) {
-    return loadedModel;
-  }
+const modelScheduler = new LocalLlmModelScheduler(request =>
+  loadLocalModel(
+    request.modelPath,
+    request.modelFileName,
+    request.contextSize,
+    request.reasoningEnabled
+  )
+);
 
-  if (loadPromise) {
-    const pending = await loadPromise;
-    if (pending.modelFileName === modelFileName) {
-      return pending;
-    }
-  }
-
-  loadPromise = (async () => {
-    await disposeLoadedModel();
-    log.info(`loading local LLM model ${modelFileName}`);
-    const next = await loadLocalModel(modelPath, modelFileName);
-    loadedModel = next;
-    return next;
-  })();
-
-  try {
-    return await loadPromise;
-  } finally {
-    loadPromise = null;
-  }
+export function disposeLocalLlmModel(): Promise<void> {
+  return modelScheduler.dispose();
 }
 
 export async function generateLocalLlmText(options: {
   modelPath: string;
   modelFileName: string;
+  contextSize?: LocalLlmContextSize;
+  reasoningEnabled?: boolean;
   systemPrompt: string;
   userPrompt: string;
   maxTokens?: number;
   temperature?: number;
 }): Promise<string> {
-  const model = await getLoadedModel(options.modelPath, options.modelFileName);
-
-  const runPrompt = async (): Promise<string> => {
-    const text = await model.prompt({
-      systemPrompt: options.systemPrompt,
-      userPrompt: options.userPrompt,
-      maxTokens: options.maxTokens ?? 2000,
-      temperature: options.temperature ?? 0.2,
-    });
-    return text.trim();
-  };
-
-  const result = promptChain.then(runPrompt, runPrompt);
-  promptChain = result.then(
-    () => undefined,
-    () => undefined
+  return modelScheduler.generate(
+    {
+      modelPath: options.modelPath,
+      modelFileName: options.modelFileName,
+      contextSize: options.contextSize ?? DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+      reasoningEnabled:
+        options.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED,
+    },
+    async model => {
+      const maxTokens = options.maxTokens ?? 2000;
+      const fittedPrompt = fitLocalLlmPromptToContext({
+        systemPrompt: options.systemPrompt,
+        userPrompt: options.userPrompt,
+        contextSize: model.runtimeContextSize,
+        maxTokens,
+      });
+      if (fittedPrompt.truncated) {
+        log.warn(
+          `local LLM prompt truncated to fit ${model.runtimeContextSize} token context`
+        );
+      }
+      const text = await model.prompt({
+        systemPrompt: options.systemPrompt,
+        userPrompt: fittedPrompt.userPrompt,
+        maxTokens,
+        temperature: options.temperature ?? 0.2,
+      });
+      return requireNonEmptyLocalLlmOutput(text);
+    }
   );
-  return result;
 }
 
 export async function testLocalLlmText(options: {
   modelPath: string;
   modelFileName: string;
+  contextSize?: LocalLlmContextSize;
+  reasoningEnabled?: boolean;
 }): Promise<string> {
   const text = await generateLocalLlmText({
     modelPath: options.modelPath,
     modelFileName: options.modelFileName,
+    contextSize: options.contextSize,
+    reasoningEnabled: options.reasoningEnabled,
     systemPrompt: 'Odpovídej stručně.',
     userPrompt: 'Odpověz jedním slovem: OK',
     maxTokens: 16,

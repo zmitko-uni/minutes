@@ -29,10 +29,10 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 
 ### 3. Nahrajte a přepište hovor
 
-1. Během hovoru stiskněte **Record** (vedle mute)
+1. Během hovoru zvolte **nahrávání zvuku** nebo **nahrávání sdíleného videa** (vedle mute)
 2. V potvrzení **Nahrávání se chystá spustit** klikněte **Spustit nahrávání** (nebo **Zrušit**, pokud nahrávat nechcete)
 3. Po skončení se nahrávka uloží automaticky
-4. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
+4. Pro přepis audio i video nahrávky v **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
 5. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ### Zvonění ve velké skupině
@@ -140,11 +140,14 @@ Export proběhne vždy — uloží se přepis zpráv. Lišta upozorní, že AI s
 
 ### Nahrávání během hovoru
 
-V obrazovce hovoru (vedle mute):
+V obrazovce hovoru (vedle mute) jsou dvě samostatné akce:
 
-- **Record** — nejdřív zobrazí potvrzení **Nahrávání se chystá spustit**. **Spustit nahrávání** začne nahrávat (funguje i bez Whisperu — uloží se MP3), **Zrušit** dialog zavře bez nahrávání
-- **Pause / Resume** — pozastaví / obnoví nahrávku i log řečníků. Při obnovení se potvrzení nezobrazí
-- **Stop** — ukončí a uloží
+- **Nahrávání zvuku** — po potvrzení začne ukládat MP3 (funguje i bez Whisperu)
+- **Nahrávání sdíleného videa** — WebM obsahující pouze obraz, který někdo sdílí přes Signal, a zvuk hovoru přímo z RingRTC; vaše vlastní sdílení se zapisuje z odchozího RingRTC video streamu, nikoli novým snímáním obrazovky
+- **Pause / Resume** — pozastaví / obnoví aktivní nahrávku i log řečníků; při obnovení se potvrzení nezobrazuje
+- **Stop** — ukončí a uloží aktivní nahrávku
+
+Obě nahrávání jsou vzájemně výlučná. Video lze spustit i bez aktivního sdílení; do té doby obsahuje černý obraz se zvukem. Kamery účastníků ani okno Signalu se do videa nenahrávají. Audio i video nahrávky se po uložení automaticky přepíšou přes Whisper.
 
 Po **skončení hovoru** se aktivní nahrávka uloží automaticky.
 
@@ -168,22 +171,24 @@ Stejné nastavení jako u chatů (**Nastavení AI** včetně **stylu shrnutí**)
 
 ### Kam se ukládá
 
-`%APPDATA%\Minutes\minutes\recordings\`
+`Dokumenty/Minutes`
 
-Soubory: `.mp3`, `.json` (metadata), `.transcript.md`, volitelně `.summary.md`.
+Soubory: audio `.mp3`, sdílené video `.webm`, volitelně export `.mp4`, PCM a `.json` metadata, `.transcript.md` a volitelně `.summary.md`. Nové audio i video nahrávky používají stejný automatický přepis a shrnutí.
+
+V **Přepisy (Minutes)** u videonahrávky lze **Vytvořit MP4** (H.264/AAC) pro přehrání mimo Minutes. Převod použije systémový FFmpeg, pokud je k dispozici; jinak nabídne jednorázové stažení podpory. Původní WebM se nemění. Během převodu jde akci **zrušit** nebo později **přegenerovat**.
 
 ### Právní upozornění
 
-Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba. Minutes na to upozorní v potvrzení před každým novým nahráváním.
+Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba. Minutes na to upozorní v potvrzení **Nahrávání se chystá spustit** před každým novým nahráváním (při obnovení pozastavené nahrávky se dialog nezobrazí).
 
-### Nahrávání na macOS
+### Zvuk nahrávky a oprávnění
 
-Nahrávání systémového zvuku (co slyšíte od ostatních) vyžaduje na macOS dvě oprávnění:
+Audio i video nahrávka používají zvuk přímo z RingRTC: vzdálený playout a lokální vstup, který Signal posílá do hovoru. Recorder neotevírá vlastní mikrofon ani systémový loopback.
 
-1. **Screen Recording** — v **System Settings → Privacy & Security → Screen Recording** povolte Minutes. Systémový dialog se poprvé zobrazí až při prvním pokusu o nahrávání.
-2. **Microphone** — stejné místo, sekce **Microphone**.
+1. **Microphone** je potřeba pro samotný Signal hovor. Když je mikrofon v Signalu ztlumený, lokální větev nahrávky obsahuje ticho.
+2. **Screen Recording** je potřeba pouze tehdy, když přes Signal sdílíte obrazovku. Nahrávání žádné druhé snímání obrazovky nespouští.
 
-> **Po povolení Screen Recording je nutné aplikaci restartovat** — do restartu se nahrává **jen mikrofon** (bez zvuku ostatních účastníků).
+Příchozí zvuk se bere před operačním systémovým výstupem, takže není závislý na hlasitosti reproduktorů ani na vybraném fyzickém výstupu.
 
 ### Režim mikrofonu na macOS (Izolace hlasu)
 
@@ -208,6 +213,30 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 ---
 
+## Zprávy s kontextem
+
+Pravý klik na zprávu (nebo výběr více zpráv) nabízí:
+
+- **Přeposlat s kontextem** — přeposlání včetně jména autora a času původní zprávy (odlišená ikona i titulek dialogu)
+- **Kopírovat s kontextem** — zkopíruje text se stejným kontextem do schránky
+
+Běžné přeposlání a kopírování Signálu zůstávají beze změny.
+
+---
+
+## Nastavení MCP
+
+Lokální MCP server a webhooky pro automatizaci (například AI nástroje nebo skripty). Otevřete **Menu → Minutes → Nastavení MCP**.
+
+- Zapnutí serveru, **port**, **kopírování URL** a jednorázové zobrazení **tokenu** (bez tokenu se server nepřipojí)
+- **Povolení hostů** — například `host.docker.internal` pro Docker Desktop; HTTP originy se odvodí automaticky
+- Oprávnění nástrojů po úrovních: **Pouze čtení**, **Běžné zápisy**, **Destruktivní zápisy**
+- Webhooky na události (hovor, nahrávka, přepis, zpráva)
+
+Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho má, může jménem Minutes číst nebo měnit data podle zapnutých oprávnění.
+
+---
+
 ## Menu Minutes — přehled
 
 | Položka | Co dělá |
@@ -216,10 +245,11 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 | Záložky | Seznam záložek (Ctrl+Shift+B) |
 | Přepisy (Minutes) | Fronta přepisů, historie nahrávek (Ctrl+Shift+M) |
 | Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma |
+| Nastavení MCP | Lokální MCP server, token, oprávnění nástrojů a webhooky |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Příručka | Tato nápověda |
 | O Minutes | Úvodní obrazovka s přehledem funkcí |
-| Otevřít nahrávky hovorů | Složka s MP3 |
+| Otevřít nahrávky hovorů | Složka s MP3, WebM a volitelně MP4 |
 | Otevřít sumarizace chatů | Složka s exporty chatů |
 | Zobrazit log | Diagnostika (jen z menu) |
 
@@ -239,9 +269,9 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 | Typ | Cesta |
 |-----|--------|
-| Nahrávky hovorů | `%APPDATA%\Minutes\minutes\recordings\` |
-| Sumáře chatů | `%APPDATA%\Minutes\minutes\summaries\` |
-| AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` |
+| Nahrávky hovorů | `Dokumenty/Minutes` |
+| Sumáře chatů | Windows `%APPDATA%\Minutes\minutes\summaries\` · macOS `~/Library/Application Support/Minutes/minutes/summaries/` |
+| AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |
 | Lokální LLM (Gemma) | `%APPDATA%\Minutes\minutes\models\llm\` |
 | Záložky | `%APPDATA%\Minutes\minutes\` |
@@ -345,12 +375,17 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 ### Nahrávání nejde
 
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
+- Na macOS: režim mikrofonu se volí v **Control Center** (oranžová ikona mikrofonu v řádku nabídek), ne v nastavení Minutes
 
-### Na Macu nejde během hovoru zapnout Izolaci hlasu
+### Export MP4 selhal
 
-- Režim se volí v **Control Center** (oranžová ikona mikrofonu v řádku nabídek), ne v nastavení Minutes
-- Ověřte, že máte aktuální Minutes — starší verze režimy během hovoru blokovaly
-- Pokud volby zůstanou šedé, zkuste hovor ukončit a znovu připojit
+- V **Přepisy** zkuste **Přegenerovat MP4**, nebo nainstalujte FFmpeg do systému a akci spusťte znovu
+- Pokud Minutes nabídne stažení podpory MP4, potvrďte ho jednorázově (ukládá se do dat aplikace, instalátor se tím nezvětší)
+
+### MCP se nepřipojuje
+
+- V **Nastavení MCP** ověřte, že server **Běží**, a zkopírujte aktuální URL i token
+- Z Dockeru přidejte `host.docker.internal` mezi povolené hosty
 
 ### Skupinový hovor ve velké skupině nezvoní
 
@@ -382,4 +417,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-08-17*
+*Poslední aktualizace příručky: 2026-09-10*

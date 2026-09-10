@@ -33,13 +33,19 @@ import {
   type TranscribePcmResult,
   type WhisperTranscribeRuntimeOptions,
 } from './whisperTranscribe.main.ts';
-import { preparePcmForWhisper } from './whisperAudioPrep.std.ts';
+import { readPcmF32FileForWhisper } from './recordingPcmReader.node.ts';
+import { getRecordingArtifactPaths } from './recordingArtifacts.std.ts';
+import {
+  getPrivateRecordingPcmPath,
+  resolveRecordingPcmPath,
+} from './recordingPcmStorage.node.ts';
 import { isAiSummaryEnabled, getAiSettingsPublic, getAiApiKey, isTranscriptCorrectionEnabled } from './aiSettings.main.ts';
 import { formatAiModelDisplayLabel, formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { generateAiSummaryForProvider } from './aiSummaryService.main.ts';
+import { resolveCallSummaryCredential } from './callSummaryCredentials.std.ts';
+import { requireNonEmptySummaryText } from './generatedTextValidation.std.ts';
 import { correctTranscriptWithAi } from './transcriptCorrection.main.ts';
-import { DEFAULT_WHISPER_LANGUAGE, RECORDING_PCM_SIDECAR_SUFFIX, WHISPER_VAD_MODEL_FILE, WHISPER_VAD_MODEL_MIN_BYTES, WHISPER_VAD_MODEL_URL } from './whisperSettings.std.ts';
-import { SPEAKER_ACTIVITY_FILE_SUFFIX } from './constants.std.ts';
+import { DEFAULT_WHISPER_LANGUAGE, WHISPER_VAD_MODEL_FILE, WHISPER_VAD_MODEL_MIN_BYTES, WHISPER_VAD_MODEL_URL } from './whisperSettings.std.ts';
 import {
   isSpeakerActivityCoverageSufficient,
   replaceLegacyLocalSpeakerLabels,
@@ -305,22 +311,22 @@ async function loadRecordingPcmSidecar(
   recordingPath: string,
   sampleRate = 48_000
 ): Promise<Float32Array> {
-  const basePath = recordingPath.replace(/\.mp3$/i, '');
-  const pcmPath = `${basePath}${RECORDING_PCM_SIDECAR_SUFFIX}`;
+  const { pcmPath } = getRecordingArtifactPaths(recordingPath);
   try {
-    const raw = await readFile(pcmPath);
-    if (raw.byteLength < 4) {
-      throw new Error('PCM sidecar is empty');
+    const resolvedPcmPath = await resolveRecordingPcmPath({
+      privatePath: getPrivateRecordingPcmPath(
+        app.getPath('userData'),
+        recordingPath
+      ),
+      legacyPath: pcmPath,
+    });
+    if (resolvedPcmPath == null) {
+      throw new Error('PCM sidecar missing');
     }
-    const pcm48 = new Float32Array(
-      raw.buffer,
-      raw.byteOffset,
-      Math.floor(raw.byteLength / 4)
-    );
-    if (pcm48.length === 0) {
-      throw new Error('PCM sidecar is empty');
-    }
-    return preparePcmForWhisper(pcm48, sampleRate);
+    return await readPcmF32FileForWhisper({
+      path: resolvedPcmPath,
+      inputSampleRate: sampleRate,
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'PCM sidecar missing';
@@ -526,8 +532,8 @@ function formatTranscriptMarkdown(options: {
 async function loadSpeakerActivityLog(
   recordingPath: string
 ): Promise<SpeakerActivityLog | null> {
-  const basePath = recordingPath.replace(/\.mp3$/i, '');
-  const activityPath = `${basePath}${SPEAKER_ACTIVITY_FILE_SUFFIX}`;
+  const { speakerActivityPath: activityPath } =
+    getRecordingArtifactPaths(recordingPath);
   try {
     const raw = await readFile(activityPath, 'utf8');
     const parsed = JSON.parse(raw) as SpeakerActivityLog;
@@ -684,7 +690,7 @@ export async function transcribeCallRecording(options: {
   const speakerAlignedSegments = getSpeakerAlignedSegments(transcription);
   const result = toTranscribePcmResult(transcription);
 
-  const basePath = options.recordingPath.replace(/\.mp3$/i, '');
+  const { basePath } = getRecordingArtifactPaths(options.recordingPath);
   const transcriptPath = `${basePath}.transcript.md`;
   const alignedSegments: Array<AlignedTranscriptSegment> =
     speakerAlignedSegments.length > 0
@@ -728,8 +734,11 @@ export async function transcribeCallRecording(options: {
       phase: 'ai-correction',
       detail: `AI korekce přepisu… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
     });
-    const apiKey = await getAiApiKey(settings.provider);
-    if (apiKey && transcriptForAi.length > 0) {
+    const apiKey = await resolveCallSummaryCredential(
+      settings.provider,
+      getAiApiKey
+    );
+    if (apiKey != null && transcriptForAi.length > 0) {
       try {
         const corrected = await correctTranscriptWithAi({
           provider: settings.provider,
@@ -805,19 +814,24 @@ export async function transcribeCallRecording(options: {
       phase: 'ai-correction',
       detail: `AI shrnutí hovoru… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
     });
-    const apiKey = await getAiApiKey(settings.provider);
-    if (apiKey && correctedTranscriptForAi.length > 0) {
-      const summaryText = await generateAiSummaryForProvider({
-        provider: settings.provider,
-        apiKey,
-        model: settings.model,
-        outputLanguage: settings.outputLanguage,
-        conversationTitle: options.conversationTitle,
-        scopeLabel: 'Přepis hovoru',
-        transcript: correctedTranscriptForAi,
-        style: settings.summaryStyle,
-        customInstructions: settings.customSummaryInstructions,
-      });
+    const apiKey = await resolveCallSummaryCredential(
+      settings.provider,
+      getAiApiKey
+    );
+    if (apiKey != null && correctedTranscriptForAi.length > 0) {
+      const summaryText = requireNonEmptySummaryText(
+        await generateAiSummaryForProvider({
+          provider: settings.provider,
+          apiKey,
+          model: settings.model,
+          outputLanguage: settings.outputLanguage,
+          conversationTitle: options.conversationTitle,
+          scopeLabel: 'Přepis hovoru',
+          transcript: correctedTranscriptForAi,
+          style: settings.summaryStyle,
+          customInstructions: settings.customSummaryInstructions,
+        })
+      );
       summaryPath = `${basePath}.summary.md`;
       await writeFile(summaryPath, summaryText, 'utf8');
     }
@@ -860,12 +874,15 @@ export async function generateCallRecordingSummary(options: {
     }
 
     const settings = await getAiSettingsPublic();
-    const apiKey = await getAiApiKey(settings.provider);
-    if (!apiKey) {
+    const apiKey = await resolveCallSummaryCredential(
+      settings.provider,
+      getAiApiKey
+    );
+    if (apiKey == null) {
       throw new Error('Chybí API klíč pro AI shrnutí.');
     }
 
-    const basePath = options.recordingPath.replace(/\.mp3$/i, '');
+    const { basePath } = getRecordingArtifactPaths(options.recordingPath);
     const transcriptPath = `${basePath}.transcript.md`;
     let transcript: string;
     try {
@@ -892,17 +909,19 @@ export async function generateCallRecordingSummary(options: {
     });
     throwIfTranscriptionCancelled(options.jobId);
 
-    const summaryText = await generateAiSummaryForProvider({
-      provider: settings.provider,
-      apiKey,
-      model: settings.model,
-      outputLanguage: settings.outputLanguage,
-      conversationTitle: options.conversationTitle,
-      scopeLabel: 'Přepis hovoru',
-      transcript,
-      style: settings.summaryStyle,
-      customInstructions: settings.customSummaryInstructions,
-    });
+    const summaryText = requireNonEmptySummaryText(
+      await generateAiSummaryForProvider({
+        provider: settings.provider,
+        apiKey,
+        model: settings.model,
+        outputLanguage: settings.outputLanguage,
+        conversationTitle: options.conversationTitle,
+        scopeLabel: 'Přepis hovoru',
+        transcript,
+        style: settings.summaryStyle,
+        customInstructions: settings.customSummaryInstructions,
+      })
+    );
 
     throwIfTranscriptionCancelled(options.jobId);
 

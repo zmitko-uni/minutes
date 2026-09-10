@@ -4,7 +4,14 @@
 import { useRef, type ReactNode, type JSX } from 'react';
 import type { LocalizerType } from '../../types/I18N.std.ts';
 import { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
-import { MINUTES_MENU_ADD_BOOKMARK, MINUTES_MENU_ASK_AI_OPINION, MINUTES_MENU_MARK_UNREAD_FROM_HERE, MINUTES_MENU_SUMMARIZE_FROM_HERE } from '../../minutes/menuLabels.std.ts';
+import {
+  MINUTES_MENU_ADD_BOOKMARK,
+  MINUTES_MENU_ASK_AI_OPINION,
+  MINUTES_MENU_COPY_WITH_CONTEXT,
+  MINUTES_MENU_FORWARD_WITH_CONTEXT,
+  MINUTES_MENU_MARK_UNREAD_FROM_HERE,
+  MINUTES_MENU_SUMMARIZE_FROM_HERE,
+} from '../../minutes/menuLabels.std.ts';
 import { isInternalFeaturesEnabled } from '../../util/isInternalFeaturesEnabled.dom.ts';
 
 type MessageContextMenuProps = Readonly<{
@@ -31,6 +38,8 @@ type MessageContextMenuProps = Readonly<{
   onAskAiOpinion?: (() => void) | null;
   onMarkUnreadFromHere?: (() => void) | null;
   onBookmarkMessage?: (() => void) | null;
+  onCopyWithContext?: (() => void) | null;
+  onForwardWithContext?: (() => void) | null;
   onSelect: (() => void) | null;
   children: ReactNode;
 }>;
@@ -52,6 +61,8 @@ export function MessageContextMenu({
   onAskAiOpinion,
   onMarkUnreadFromHere,
   onBookmarkMessage,
+  onCopyWithContext,
+  onForwardWithContext,
   onCopy,
   onSelect,
   onRetryMessageSend,
@@ -139,6 +150,22 @@ export function MessageContextMenu({
         {onCopy && (
           <AxoMenuBuilder.Item symbol="copy" onSelect={onCopy}>
             {i18n('icu:copy')}
+          </AxoMenuBuilder.Item>
+        )}
+        {onForwardWithContext && (
+          <AxoMenuBuilder.Item
+            symbol="message-arrow"
+            onSelect={() => {
+              shouldReturnFocusToTrigger.current = false;
+              onForwardWithContext();
+            }}
+          >
+            {MINUTES_MENU_FORWARD_WITH_CONTEXT}
+          </AxoMenuBuilder.Item>
+        )}
+        {onCopyWithContext && (
+          <AxoMenuBuilder.Item symbol="copy" onSelect={onCopyWithContext}>
+            {MINUTES_MENU_COPY_WITH_CONTEXT}
           </AxoMenuBuilder.Item>
         )}
         {onPinMessage && (

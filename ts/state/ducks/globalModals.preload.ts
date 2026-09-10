@@ -92,8 +92,15 @@ export type ForwardMessagePropsType = ReadonlyDeep<MessagePropsType>;
 export type ForwardMessagesPropsType = ReadonlyDeep<{
   type: ForwardMessagesModalType;
   messageDrafts: Array<MessageForwardDraft>;
+  modalTitle?: string;
   onForward?: () => void;
 }>;
+export type ForwardMessageDraftTransform = ReadonlyDeep<
+  (
+    draft: MessageForwardDraft,
+    message: ForwardMessagePropsType
+  ) => MessageForwardDraft
+>;
 export type MessageRequestActionsConfirmationPropsType = ReadonlyDeep<{
   conversationId: string;
   state: MessageRequestState;
@@ -936,6 +943,8 @@ export type ForwardMessagesPayload = ReadonlyDeep<
   | {
       type: ForwardMessagesModalType.Forward;
       messageIds: ReadonlyArray<string>;
+      modalTitle?: string;
+      transformDraft?: ForwardMessageDraftTransform;
     }
   | {
       type:
@@ -1014,7 +1023,9 @@ function toggleForwardMessagesModal(
             conversationSelector
           );
 
-          return messageDraft;
+          return (
+            payload.transformDraft?.(messageDraft, messageProps) ?? messageDraft
+          );
         })
       );
     } else if (
@@ -1028,7 +1039,15 @@ function toggleForwardMessagesModal(
 
     dispatch({
       type: TOGGLE_FORWARD_MESSAGES_MODAL,
-      payload: { type: payload.type, messageDrafts, onForward },
+      payload: {
+        type: payload.type,
+        messageDrafts,
+        modalTitle:
+          payload.type === ForwardMessagesModalType.Forward
+            ? payload.modalTitle
+            : undefined,
+        onForward,
+      },
     });
   };
 }

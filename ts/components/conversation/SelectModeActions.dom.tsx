@@ -7,6 +7,7 @@ import classNames from 'classnames';
 import type { ShowToastAction } from '../../state/ducks/toast.preload.ts';
 import { ToastType } from '../../types/Toast.dom.tsx';
 import type { LocalizerType } from '../../types/Util.std.ts';
+import { MinutesSelectModeContextActions } from '../../minutes/components/MinutesSelectModeContextActions.dom.tsx';
 
 // Keep this in sync with iOS and Android
 const MAX_FORWARD_COUNT = 30;
@@ -17,6 +18,8 @@ type SelectModeActionsProps = Readonly<{
   onExitSelectMode: () => void;
   onDeleteMessages: () => void;
   onForwardMessages: () => void;
+  onCopyMessagesWithContext?: () => void;
+  onForwardMessagesWithContext?: () => void;
   showToast: ShowToastAction;
   i18n: LocalizerType;
 }>;
@@ -27,6 +30,8 @@ export default function SelectModeActions({
   onExitSelectMode,
   onDeleteMessages,
   onForwardMessages,
+  onCopyMessagesWithContext,
+  onForwardMessagesWithContext,
   showToast,
   i18n,
 }: SelectModeActionsProps): JSX.Element {
@@ -72,6 +77,14 @@ export default function SelectModeActions({
           className="SelectModeActions__icon SelectModeActions__icon--deleteSelectedMessages"
         />
       </button>
+      {onCopyMessagesWithContext && onForwardMessagesWithContext && (
+        <MinutesSelectModeContextActions
+          canCopy={hasSelectedMessages}
+          canForward={canForward}
+          onCopy={onCopyMessagesWithContext}
+          onForward={onForwardMessagesWithContext}
+        />
+      )}
       <button
         type="button"
         className={classNames('SelectModeActions__button', {

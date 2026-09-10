@@ -1,18 +1,27 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { mkdir, open, stat, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, stat, writeFile } from 'node:fs/promises';
 
-import { app, desktopCapturer, ipcMain, shell } from 'electron';
+import { app, ipcMain, shell, type BrowserWindow } from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
+import * as Errors from '../ts/types/errors.std.ts';
 import {
-  RECORDINGS_DIR_NAME,
+  LEGACY_RECORDINGS_DIR_NAME,
   SPEAKER_ACTIVITY_FILE_SUFFIX,
   SUMMARIES_DIR_NAME,
 } from '../ts/minutes/constants.std.ts';
-import { RECORDING_PCM_SIDECAR_SUFFIX } from '../ts/minutes/whisperSettings.std.ts';
+import {
+  initializeMinutesRecordingsDirectory,
+  resolveMinutesRecordingsDir,
+} from '../ts/minutes/recordingsDirectory.node.ts';
+import {
+  getPrivateRecordingPcmPath,
+  RECORDING_PCM_STORAGE_DIR,
+} from '../ts/minutes/recordingPcmStorage.node.ts';
 import type { SpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
 import {
   getAiSettingsPublic,
@@ -20,7 +29,10 @@ import {
   assertAiSummaryReady,
   saveAiSettings,
 } from '../ts/minutes/aiSettings.main.ts';
-import type { AiSettingsSaveInput, AiProvider } from '../ts/minutes/aiSettings.std.ts';
+import type {
+  AiSettingsSaveInput,
+  AiProvider,
+} from '../ts/minutes/aiSettings.std.ts';
 import {
   addBookmark,
   listBookmarks,
@@ -40,8 +52,13 @@ import {
   createLocalLlmProgressSender,
   getLocalLlmExtensionPublic,
   installLocalLlmExtension,
+  saveLocalLlmContextSize,
+  saveLocalLlmReasoningEnabled,
 } from '../ts/minutes/localLlmExtension.main.ts';
-import { listCallRecordings, loadCallRecordingOutput } from '../ts/minutes/recordingsCatalog.main.ts';
+import {
+  listCallRecordings,
+  loadCallRecordingOutput,
+} from '../ts/minutes/recordingsCatalog.main.ts';
 import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
@@ -60,6 +77,15 @@ import {
   installPendingAppUpdate,
   resolveStartupAppUpdateState,
 } from '../ts/minutes/appUpdate.main.ts';
+import { initializeMinutesVideoRecordingChannel } from './minutes_video_recording_channel.main.ts';
+import {
+  emitMinutesAutomationEvent,
+  initializeMinutesAutomationRuntime,
+} from '../ts/minutes/automation/automationRuntime.main.ts';
+import { MeetingAutomationService } from '../ts/minutes/automation/meetingAutomationService.node.ts';
+import type { StoredCallRecordingMetadata } from '../ts/minutes/recordingsCatalog.std.ts';
+import { VideoMp4Exporter } from '../ts/minutes/videoMp4Export.node.ts';
+import { VideoMp4Support } from '../ts/minutes/videoMp4Support.main.ts';
 
 const log = createLogger('minutes/main');
 
@@ -74,10 +100,6 @@ function formatTimestampForFilename(epochMs: number): string {
   return new Date(epochMs).toISOString().replace(/[:.]/g, '-');
 }
 
-function getRecordingsDir(): string {
-  return join(app.getPath('userData'), RECORDINGS_DIR_NAME);
-}
-
 function getSummariesDir(): string {
   return join(app.getPath('userData'), SUMMARIES_DIR_NAME);
 }
@@ -86,24 +108,81 @@ async function ensureDir(path: string): Promise<void> {
   await mkdir(path, { recursive: true });
 }
 
-export function initializeMinutesChannel(): void {
-  ipcMain.handle('minutes:get-loopback-audio-source', async () => {
-    const sources = await desktopCapturer.getSources({
-      types: ['screen'],
-      thumbnailSize: { width: 1, height: 1 },
+export async function initializeMinutesChannel(automationOptions?: {
+  getMainWindow: () => BrowserWindow | undefined;
+}): Promise<void> {
+  const preferredRecordingsDir = resolveMinutesRecordingsDir(
+    app.getPath('documents')
+  );
+  const { recordingsDir, migration, migrationError } =
+    await initializeMinutesRecordingsDirectory({
+      legacyDir: join(app.getPath('userData'), LEGACY_RECORDINGS_DIR_NAME),
+      targetDir: preferredRecordingsDir,
     });
-
-    const primary =
-      sources.find(source => /screen|display|entire/i.test(source.name)) ??
-      sources[0];
-
-    if (!primary) {
-      log.warn('no desktop capturer sources for loopback audio');
-      return '';
-    }
-
-    return primary.id;
+  const pcmStorageDir = join(
+    app.getPath('userData'),
+    RECORDING_PCM_STORAGE_DIR
+  );
+  const videoMp4Support = new VideoMp4Support(app.getPath('userData'));
+  const videoMp4Exporter = new VideoMp4Exporter({
+    recordingsDir,
+    resolveFfmpegPath: async () => {
+      const support = await videoMp4Support.resolve(true);
+      if (!support) {
+        throw new Error('Podpora MP4 není dostupná.');
+      }
+      return support.path;
+    },
   });
+  app.once('before-quit', () => {
+    videoMp4Exporter.cancelActive();
+  });
+  if (migrationError) {
+    log.error(
+      'failed to migrate recordings to Documents; using app storage',
+      Errors.toLogFormat(migrationError)
+    );
+  }
+  if (migration.migratedFiles.length > 0) {
+    log.info(
+      `migrated ${migration.migratedFiles.length} recording artifacts to Documents`
+    );
+  }
+  if (migration.conflicts.length > 0) {
+    log.warn(
+      `left ${migration.conflicts.length} conflicting recording artifacts in legacy storage`
+    );
+  }
+
+  initializeMinutesVideoRecordingChannel({
+    ipcMain,
+    recordingsDir,
+    pcmStorageDir,
+    onFinalized: async value => {
+      const metadata = JSON.parse(
+        await readFile(value.metadataPath, 'utf8')
+      ) as StoredCallRecordingMetadata;
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'recording.completed',
+        occurredAt: new Date().toISOString(),
+        data: {
+          recordingId: MeetingAutomationService.getRecordingId({
+            recordingPath: value.filePath,
+          }),
+          conversationId: metadata.conversationId,
+          mediaKind: 'screen-share-video',
+        },
+      });
+    },
+  });
+
+  if (automationOptions != null) {
+    await initializeMinutesAutomationRuntime({
+      recordingsDir,
+      getMainWindow: automationOptions.getMainWindow,
+    });
+  }
 
   ipcMain.handle(
     'minutes:save-recording',
@@ -116,12 +195,11 @@ export function initializeMinutesChannel(): void {
         eraId?: string;
         startedAt: number;
         endedAt: number;
-        data: Uint8Array;
-        pcm48?: Float32Array;
+        data: Uint8Array<ArrayBuffer>;
+        pcm48?: Float32Array<ArrayBuffer>;
         speakerActivityLog?: SpeakerActivityLog | null;
       }
     ) => {
-      const recordingsDir = getRecordingsDir();
       await ensureDir(recordingsDir);
 
       const baseName = [
@@ -134,7 +212,11 @@ export function initializeMinutesChannel(): void {
       await writeFile(filePath, Buffer.from(options.data));
 
       if (options.pcm48 && options.pcm48.length > 0) {
-        const pcmPath = join(recordingsDir, `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`);
+        await ensureDir(pcmStorageDir);
+        const pcmPath = getPrivateRecordingPcmPath(
+          app.getPath('userData'),
+          filePath
+        );
         await writeFile(
           pcmPath,
           Buffer.from(
@@ -180,6 +262,19 @@ export function initializeMinutesChannel(): void {
           'utf8'
         );
       }
+
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'recording.completed',
+        occurredAt: new Date().toISOString(),
+        data: {
+          recordingId: MeetingAutomationService.getRecordingId({
+            recordingPath: filePath,
+          }),
+          conversationId: options.conversationId,
+          mediaKind: 'audio',
+        },
+      });
 
       return filePath;
     }
@@ -241,23 +336,57 @@ export function initializeMinutesChannel(): void {
   });
 
   ipcMain.handle('minutes:open-recordings-folder', async () => {
-    const recordingsDir = getRecordingsDir();
     await ensureDir(recordingsDir);
     await shell.openPath(recordingsDir);
   });
 
   ipcMain.handle('minutes:list-call-recordings', async () => {
-    const recordingsDir = getRecordingsDir();
     await ensureDir(recordingsDir);
     return listCallRecordings(recordingsDir);
   });
+
+  ipcMain.handle('minutes:get-recording-mp4-support', async () => {
+    return videoMp4Support.getPublic();
+  });
+
+  ipcMain.handle(
+    'minutes:install-recording-mp4-support',
+    async (event, options: { recordingPath: string }) => {
+      return videoMp4Support.install(progress => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('minutes:recording-mp4-support-progress', {
+            ...progress,
+            recordingPath: options.recordingPath,
+          });
+        }
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:export-recording-mp4',
+    async (event, options: { recordingPath: string; durationMs: number }) => {
+      return videoMp4Exporter.export(options, progress => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('minutes:recording-mp4-export-progress', progress);
+        }
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:cancel-recording-mp4-export',
+    async (_event, options: { recordingPath: string }) => {
+      return videoMp4Exporter.cancel(options.recordingPath);
+    }
+  );
 
   ipcMain.handle(
     'minutes:load-call-recording-output',
     async (
       _event,
       entry: {
-        mp3Path: string;
+        recordingPath: string;
         conversationId: string;
         conversationTitle: string;
         hasTranscript: boolean;
@@ -350,6 +479,20 @@ export function initializeMinutesChannel(): void {
   });
 
   ipcMain.handle(
+    'minutes:save-local-llm-context-size',
+    async (_event, contextSize: unknown) => {
+      return saveLocalLlmContextSize(contextSize);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:save-local-llm-reasoning-enabled',
+    async (_event, reasoningEnabled: unknown) => {
+      return saveLocalLlmReasoningEnabled(reasoningEnabled);
+    }
+  );
+
+  ipcMain.handle(
     'minutes:install-local-llm-extension',
     async (
       event,
@@ -379,7 +522,7 @@ export function initializeMinutesChannel(): void {
         background?: boolean;
       }
     ) => {
-      return transcribeCallRecording({
+      const result = await transcribeCallRecording({
         ...options,
         onProgress: update => {
           if (!event.sender.isDestroyed()) {
@@ -392,6 +535,24 @@ export function initializeMinutesChannel(): void {
           }
         },
       });
+      const recordingId = MeetingAutomationService.getRecordingId({
+        recordingPath: options.recordingPath,
+      });
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'transcript.completed',
+        occurredAt: new Date().toISOString(),
+        data: { recordingId, transcriptId: recordingId },
+      });
+      if (result.summaryPath) {
+        await emitMinutesAutomationEvent({
+          id: randomUUID(),
+          type: 'summary.completed',
+          occurredAt: new Date().toISOString(),
+          data: { recordingId, summaryId: recordingId },
+        });
+      }
+      return result;
     }
   );
 
@@ -415,7 +576,7 @@ export function initializeMinutesChannel(): void {
         localSpeakerDisplayName?: string;
       }
     ) => {
-      return generateCallRecordingSummary({
+      const result = await generateCallRecordingSummary({
         ...options,
         onProgress: update => {
           if (!event.sender.isDestroyed()) {
@@ -428,6 +589,16 @@ export function initializeMinutesChannel(): void {
           }
         },
       });
+      const recordingId = MeetingAutomationService.getRecordingId({
+        recordingPath: options.recordingPath,
+      });
+      await emitMinutesAutomationEvent({
+        id: randomUUID(),
+        type: 'summary.completed',
+        occurredAt: new Date().toISOString(),
+        data: { recordingId, summaryId: recordingId },
+      });
+      return result;
     }
   );
 
@@ -505,7 +676,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
@@ -541,7 +712,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
@@ -575,7 +746,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }

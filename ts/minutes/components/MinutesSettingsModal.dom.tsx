@@ -23,7 +23,6 @@ import {
   type AiSummaryStyle,
 } from '../aiSettings.std.ts';
 import { AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS } from '../aiUserMessages.std.ts';
-import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
 import { MinutesSummaryStyleFields } from './MinutesSummaryStyleFields.dom.tsx';
 import {
   getAiSettings,
@@ -36,6 +35,8 @@ import {
   isLocalLlmExtensionActive,
 } from '../localLlmExtensionService.preload.ts';
 import { localLlmExtensionEvents } from '../localLlmExtensionEvents.std.ts';
+import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
+import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
 
 type Props = Readonly<{
   open: boolean;
@@ -441,12 +442,12 @@ export function MinutesSettingsModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
-        <AxoDialog.Header>
+        <MinutesDraggableDialogHeader positionKey="ai-settings">
           <AxoDialog.Title>
             {formatAppDialogTitle('Nastavení AI')}
           </AxoDialog.Title>
           <AxoDialog.Close />
-        </AxoDialog.Header>
+        </MinutesDraggableDialogHeader>
         <AxoDialog.Body>
           <AxoDialog.Description>
             <p className={tw('text-label-medium mb-4 opacity-90')}>

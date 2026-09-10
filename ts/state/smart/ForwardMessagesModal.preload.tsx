@@ -176,6 +176,7 @@ function SmartForwardMessagesModalInner({
       getPreferredBadge={getPreferredBadge}
       i18n={i18n}
       isInFullScreenCall={isInFullScreenCall}
+      modalTitle={forwardMessagesProps.modalTitle}
       onClose={closeModal}
       onChange={handleChange}
       regionCode={regionCode}

@@ -15,7 +15,6 @@ const external = [
   '@signalapp/ringrtc',
   '@signalapp/sqlcipher',
   '@signalapp/mute-state-change',
-  '@minutes/mac-audio-tap',
   '@signalapp/windows-ucv',
   '@indutny/simple-windows-notifications',
   '@indutny/mac-screen-share',
@@ -181,6 +180,12 @@ export default defineConfig([
     input: {
       // Main
       main: 'app/main.main.ts',
+    },
+  },
+  {
+    ...defaults,
+
+    input: {
       config: 'app/config.main.js',
 
       // Preloads
@@ -228,6 +233,29 @@ export default defineConfig([
     },
     output: {
       file: 'bundles/workers/minutesMp3Encoder.js',
+      exports: 'named',
+      generatedCode: {
+        symbols: false,
+      },
+      codeSplitting: false,
+    },
+    watch: {
+      clearScreen: false,
+    },
+  },
+
+  // minutes screen-share recording — RingRTC PCM source
+  {
+    input: 'ts/minutes/ringRtcAudioSource.std.ts',
+    transform: {
+      define: {
+        process: 'undefined',
+        require: 'undefined',
+        eval: 'undefined',
+      },
+    },
+    output: {
+      file: 'bundles/workers/minutesRingRtcAudioSource.js',
       exports: 'named',
       generatedCode: {
         symbols: false,
