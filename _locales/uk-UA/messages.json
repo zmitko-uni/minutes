@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Перевірка коду безпеки"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Змінився код безпеки"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Зміна коду безпеки"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Увімкнути сповіщення"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Вимкнути сповіщення чату на…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Вимкнути сповіщення цих чатів на…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 годину"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 годин"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 день"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 тиждень"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "До…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Назавжди"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Виберіть дату"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Виберіть час"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Вимкнути сповіщення чату до…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Дата"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Час"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "Зазначений час — {timeZone}"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Сповіщення завжди вимкнено"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Надсилати й отримувати повідомлення зі звуковим сповіщенням, якщо чат відкрито."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Сповіщення про реакції"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Отримувати сповіщення, коли на ваші повідомлення реагують"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Загальні"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Додаткові налаштування"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "PIN-код Signal"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "Нагадувати PIN-код"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "З часом нагадування з'являтимуться рідше"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Зміст сповіщень"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Введення тексту"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Папки для чатів"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Звуки"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Значок застосунку"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Експортувати історію чатів"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Якщо вимкнути, ви не будете бачити індикатор набору тексту, коли інші користувачі набиратимуть повідомлення."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Ці функції дають вам і вашим співрозмовникам змогу бачити, що повідомлення прочитано / триває набір тексту. Якщо їх вимкнути, ви не будете бачити відміток про читання ваших повідомлень і індикаторів набору тексту."
   },
   "icu:Preferences--updates": {
     "messageformat": "Оновлення"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Закрити"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Підтвердьте свій PIN-код Signal"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Періодично ми проситимемо вас підтверджувати PIN-код, щоб ви його не забували."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Підтвердити"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Не зараз"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Ввести PIN-код Signal"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "Щоб ви запам'ятали свій PIN-код, ми періодично проситимемо вас його вводити. Згодом це ставатиметься рідше."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "Введіть свій PIN-код"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Неправильний PIN-код. Спробувати знов"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Підтвердити"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN-код правильний. Згодом ми нагадаємо знов."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Незабаром Signal Desktop перестане підтримувати версію {OS} вашого комп'ютера. Щоб користуватися Signal і надалі, оновіть операційну систему комп'ютера до {expirationDate}. <learnMoreLink>Докладніше</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Один раз"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Дякуємо за підтримку Signal. Ваш внесок допомагає реалізувати нашу місію: захищати свободу слова і робити можливим безпечне спілкування для мільйонів людей у всьому світі за допомогою технології конфіденційності з відкритим кодом. Якщо ви резидент Сполучених Штатів Америки, збережіть цю квитанцію для звітування в податкові органи. Signal Technology Foundation — звільнена від оподаткування неприбуткова організація, створена відповідно до розділу 501c3 податкового кодексу США. Наш федеральний податковий номер: 82–4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Дякуємо за підтримку Signal. Ваш внесок допомагає реалізувати нашу місію: захищати свободу слова і робити можливим безпечне спілкування для мільйонів людей у всьому світі за допомогою технології конфіденційного обміну повідомленнями з відкритим кодом. Якщо ви резидент Сполучених Штатів Америки, збережіть це підтвердження для звітування в податкові органи. Signal Technology Foundation — звільнена від оподаткування неприбуткова організація, створена відповідно до розділу 501c3 податкового кодексу США. Наш федеральний податковий номер: 82–4506840. За цей внесок Signal не надав ні товарів, ні послуг."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Дрібні поліпшення, виправлення помилок і покращення роботи застосунку. Дякуємо, що ви з Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Представляємо тимчасові сповіщення про виклики: після цього оновлення всі пропущені, вихідні та отримані дзвінки автоматично зникатимуть у чатах, де ввімкнено тимчасові повідомлення."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Тепер можна впорядковувати набори стікерів як вам зручно, щоб улюблені завжди були на початку списку."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Ми спростили пошук учасників на сторінці налаштувань групи. Тепер ви зможете швидко перевірити, чи мама вже додала вашу троюрідну тітку до групи «Всі свої»."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Ми додали два нові рівні збільшення масштабу в налаштуваннях вигляду, щоб навіть із мінімальними зусиллями ваші повідомлення виглядали на всі 110% (або 90%)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Пошук себе може тривати все життя, але принаймні тепер ви легко можете знайти себе в пошуку учасників групи, просто написавши «ти»."
   }
 }

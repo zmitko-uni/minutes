@@ -19,11 +19,6 @@ import { MY_STORY_ID } from '../../types/Stories.std.ts';
 import { Bootstrap } from '../bootstrap.node.ts';
 import type { App } from '../bootstrap.node.ts';
 import {
-  DELETE_SENT_PROTO_BATCHER_WAIT_MS,
-  RECEIPT_BATCHER_WAIT_MS,
-} from '../../types/Receipt.std.ts';
-import { sleep } from '../../util/sleep.std.ts';
-import {
   acceptConversation,
   expectSystemMessages,
   typeIntoInput,
@@ -79,8 +74,13 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
     await bootstrap.teardown();
   });
 
-  it('should be sent by Desktop until encrypted delivery receipt', async () => {
+  it('should be sent by Desktop until encrypted delivery receipt', async function () {
     const { server, desktop } = bootstrap;
+
+    if (!desktop.pni) {
+      this.skip();
+      return;
+    }
 
     const ourPniKey = await desktop.getIdentityKey(ServiceIdKind.PNI);
     const ourAciKey = await desktop.getIdentityKey(ServiceIdKind.ACI);
@@ -209,10 +209,7 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
         ],
         timestamp: receiptTimestamp,
       });
-      // Wait for receipts to be batched and processed (+ buffer)
-      await sleep(
-        RECEIPT_BATCHER_WAIT_MS + DELETE_SENT_PROTO_BATCHER_WAIT_MS + 20
-      );
+      await app.waitForPhoneNumberSharedWith(stranger.device.aci);
     }
 
     debug('Enter third message text');
@@ -268,8 +265,8 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
 
     debug('Send a PNI sync message');
     const timestamp = bootstrap.getTimestamp();
-    const destinationServiceIdBinary = stranger.device.pniBinary;
-    const destinationE164 = stranger.device.number;
+    const destinationServiceIdBinary = stranger.device.checkedPniBinary;
+    const destinationE164 = stranger.device.checkedNumber;
     const destinationPniIdentityKey = await stranger.device.getIdentityKey(
       ServiceIdKind.PNI
     );

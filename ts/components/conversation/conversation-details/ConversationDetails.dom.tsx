@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { ReactNode, JSX } from 'react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import classNames from 'classnames';
+import type { MuteExpiration } from '@signalapp/types';
 
 import type {
   ConversationType,
@@ -42,7 +43,6 @@ import { EditConversationAttributesModal } from './EditConversationAttributesMod
 import { RequestState } from './util.std.ts';
 import { getCustomColorStyle } from '../../../util/getCustomColorStyle.dom.ts';
 import { openLinkInWebBrowser } from '../../../util/openLinkInWebBrowser.dom.ts';
-import { ConversationNotificationsModal } from './ConversationNotificationsModal.dom.tsx';
 import type {
   AvatarDataType,
   DeleteAvatarFromDiskActionType,
@@ -66,15 +66,15 @@ import { AxoConfirmDialog } from '../../../axo/AxoConfirmDialog.dom.tsx';
 import { canConversationOnlyBeMutedAlways } from '../../../conversations/canConversationOnlyBeMutedAlways.dom.ts';
 import { CONTACT_SUPPORT_URL } from '../../../util/contactSupport.dom.tsx';
 import { AxoStackedButton } from '../../../axo/AxoStackedButton.dom.tsx';
+import { getConversationMuteMenu } from '../../../util/getMuteOptions.std.ts';
+import { MuteNotificationsDropdownMenu } from '../../MuteNotificationsMenu.dom.tsx';
 
 enum ModalState {
   AddingGroupMembers,
   ConfirmDeleteNicknameAndNote,
   EditingGroupDescription,
   EditingGroupTitle,
-  MuteNotifications,
   NothingOpen,
-  UnmuteNotifications,
 }
 
 export type StateProps = {
@@ -144,7 +144,10 @@ type ActionProps = {
   saveAvatarToDisk: SaveAvatarToDiskActionType;
   searchInConversation: (id: string) => unknown;
   setDisappearingMessages: (id: string, seconds: DurationInSeconds) => void;
-  setMuteDuration: (id: string, muteDuration: undefined | number) => unknown;
+  setMuteExpiration: (
+    id: string,
+    expiration: MuteExpiration | undefined
+  ) => unknown;
   showContactModal: (payload: ContactModalStateType) => void;
   showConversation: ShowConversationType;
   terminateGroup: (conversationId: string) => void;
@@ -219,7 +222,7 @@ export function ConversationDetails({
   searchInConversation,
   selectedNavTab,
   setDisappearingMessages,
-  setMuteDuration,
+  setMuteExpiration,
   showContactModal,
   showConversation,
   showToast,
@@ -264,6 +267,19 @@ export function ConversationDetails({
     setModalState(ModalState.NothingOpen);
     setEditGroupAttributesRequestState(RequestState.Inactive);
   }, []);
+
+  const muteMenu = useMemo(() => {
+    return getConversationMuteMenu(conversation.muteExpiresAt, i18n, {
+      canOnlyBeMutedAlways: canConversationOnlyBeMutedAlways(conversation),
+    });
+  }, [conversation, i18n]);
+
+  const handleMuteExpiration = useCallback(
+    (expiration: MuteExpiration) => {
+      setMuteExpiration(conversation.id, expiration);
+    },
+    [setMuteExpiration, conversation.id]
+  );
 
   let modalNode: ReactNode;
   switch (modalState) {
@@ -374,39 +390,6 @@ export function ConversationDetails({
         </AxoConfirmDialog.Root>
       );
       break;
-    case ModalState.MuteNotifications:
-      modalNode = (
-        <ConversationNotificationsModal
-          i18n={i18n}
-          id={conversation.id}
-          muteExpiresAt={conversation.muteExpiresAt}
-          onClose={onCloseModal}
-          setMuteDuration={setMuteDuration}
-        />
-      );
-      break;
-    case ModalState.UnmuteNotifications:
-      modalNode = (
-        <AxoConfirmDialog.Root
-          open
-          onOpenChange={onCloseModal}
-          title={i18n('icu:ConversationDetails__unmute--title')}
-          description={getMutedUntilText(
-            Number(conversation.muteExpiresAt),
-            i18n
-          )}
-        >
-          <AxoConfirmDialog.Cancel />
-          <AxoConfirmDialog.Action
-            variant="strong-primary"
-            onClick={() => setMuteDuration(conversation.id, 0)}
-          >
-            {i18n('icu:unmute')}
-          </AxoConfirmDialog.Action>
-        </AxoConfirmDialog.Root>
-      );
-      break;
-
     default:
       throw missingCaseError(modalState);
   }
@@ -482,26 +465,17 @@ export function ConversationDetails({
             </>
           )}
 
-          <AxoStackedButton.Root
-            symbol={isMuted ? 'bell-slash' : 'bell'}
-            label={isMuted ? i18n('icu:unmute') : i18n('icu:mute')}
-            onClick={() => {
-              if (canConversationOnlyBeMutedAlways(conversation)) {
-                if (isMuted) {
-                  setMuteDuration(conversation.id, 0);
-                } else {
-                  setMuteDuration(conversation.id, Number.MAX_SAFE_INTEGER);
-                }
-                return;
-              }
-
-              if (isMuted) {
-                setModalState(ModalState.UnmuteNotifications);
-              } else {
-                setModalState(ModalState.MuteNotifications);
-              }
-            }}
-          />
+          <MuteNotificationsDropdownMenu
+            i18n={i18n}
+            label={muteMenu.label}
+            options={muteMenu.options}
+            onMuteExpiration={handleMuteExpiration}
+          >
+            <AxoStackedButton.Root
+              symbol={isMuted ? 'bell-slash' : 'bell'}
+              label={isMuted ? i18n('icu:unmute') : i18n('icu:mute')}
+            />
+          </MuteNotificationsDropdownMenu>
 
           {selectedNavTab !== NavTab.Calls && (
             <AxoStackedButton.Root

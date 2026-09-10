@@ -343,7 +343,7 @@ function maybeShowCallQualitySurvey(
   const lastFailureSurveyTime =
     itemStorage.get('lastCallQualityFailureSurveyTime') ?? null;
   const cqsTestMode = itemStorage.get('cqsTestMode') ?? false;
-  const ourE164 = itemStorage.user.getNumber();
+  const ourE164 = itemStorage.user.getOptionalNumber();
 
   if (
     !shouldShowCallQualitySurvey({
@@ -1460,6 +1460,7 @@ class CallingClass {
     let isRequestingMembershipProof = false;
     const config = this.#getRemoteAndOverrideConfigValues();
 
+    // Minutes RingRTC 2.70.2 has no GroupCallSvcConfig (Signal 8.26 / 2.71.0).
     const outerGroupCall = RingRTC.getGroupCall(
       groupIdBuffer,
       this.sfuUrl,
@@ -1539,6 +1540,7 @@ class CallingClass {
     }
     const config = this.#getRemoteAndOverrideConfigValues();
 
+    // Minutes RingRTC 2.70.2 has no GroupCallSvcConfig (Signal 8.26 / 2.71.0).
     const outerGroupCall = RingRTC.getCallLinkCall(
       this.sfuUrl,
       endorsementsPublicKey,
@@ -3953,10 +3955,14 @@ class CallingClass {
 
   #getRemoteAndOverrideConfigValues(): {
     dredDuration: number | undefined;
-    isDirectVp9Enabled: boolean | undefined;
+    enableVp9Encode: boolean | undefined;
+    enableVp9Decode: boolean | undefined;
     directMaxBitrate: number | undefined;
-    isGroupVp9Enabled: boolean | undefined;
     groupMaxBitrate: number | undefined;
+    isGroupSvcEnabled: boolean | undefined;
+    groupSvcMode: string | undefined;
+    groupSvcModeForScreenshare: string | undefined;
+    callStatsIntervalSecs: number | undefined;
   } {
     function dredDuration(version: string): number | undefined {
       const override = itemStorage.get('dredDuration');
@@ -3985,6 +3991,34 @@ class CallingClass {
       return undefined;
     }
 
+    function isGroupSvcEnabled(): boolean {
+      return (
+        itemStorage.get('isGroupSvcEnabled') ??
+        RemoteConfig.isEnabled('desktop.calling.enableSvc')
+      );
+    }
+
+    function groupSvcMode(): string | undefined {
+      return (
+        itemStorage.get('groupSvcMode') ??
+        RemoteConfig.getValue('desktop.calling.svcMode')
+      );
+    }
+
+    function groupSvcModeForScreenshare(): string | undefined {
+      return (
+        itemStorage.get('groupSvcModeForScreenshare') ??
+        RemoteConfig.getValue('desktop.calling.svcModeForScreenshare')
+      );
+    }
+
+    function groupSvcMaxBitrateBps(): number | undefined {
+      return (
+        itemStorage.get('groupMaxBitrate') ??
+        tryParseInt(RemoteConfig.getValue('desktop.calling.svcMaxBitrateBps'))
+      );
+    }
+
     function tryParseInt(v: string | undefined): number | undefined {
       try {
         return parseIntOrThrow(v, 'invalid');
@@ -3997,10 +4031,14 @@ class CallingClass {
 
     return {
       dredDuration: dredDuration(version),
-      isDirectVp9Enabled: itemStorage.get('isDirectVp9Enabled'),
+      enableVp9Encode: itemStorage.get('enableVp9Encode'),
+      enableVp9Decode: itemStorage.get('enableVp9Decode'),
       directMaxBitrate: itemStorage.get('directMaxBitrate'),
-      isGroupVp9Enabled: itemStorage.get('isGroupVp9Enabled'),
-      groupMaxBitrate: itemStorage.get('directMaxBitrate'),
+      groupMaxBitrate: groupSvcMaxBitrateBps(),
+      isGroupSvcEnabled: isGroupSvcEnabled(),
+      groupSvcMode: groupSvcMode(),
+      groupSvcModeForScreenshare: groupSvcModeForScreenshare(),
+      callStatsIntervalSecs: itemStorage.get('callStatsIntervalSecs'),
     };
   }
 
@@ -4127,6 +4165,9 @@ class CallingClass {
       dataMode: DataMode.Normal,
       audioLevelsIntervalMillis: AUDIO_LEVEL_INTERVAL_MS,
       dredDuration: config.dredDuration,
+      enableVp9Encode: config.enableVp9Encode,
+      enableVp9Decode: config.enableVp9Decode,
+      callStatsIntervalSecs: config.callStatsIntervalSecs,
     };
 
     log.info('CallingClass.handleStartCall(): Proceeding');

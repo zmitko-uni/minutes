@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Xác minh Số An toàn"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Số An toàn đã được thay đổi"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Các thay đổi về Mã số an toàn"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Bỏ tắt tiếng"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Tắt tiếng cuộc trò chuyện này trong…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Tắt tiếng các cuộc trò chuyện này trong…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 giờ"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 tiếng"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 ngày"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 tuần"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Cho đến…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Luôn luôn"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Chọn ngày"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Chọn thời gian"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Tắt tiếng cuộc trò chuyện này cho đến…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Ngày"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Thời gian"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "Thời gian hiển thị là {timeZone}"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Đã tắt tiếng mãi mãi"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Nghe một âm thanh thông báo cho tin nhắn gửi đi hoặc nhận được khi trò chuyện."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Thông báo về bày tỏ cảm xúc"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Thông báo khi có người bày tỏ cảm xúc với tin nhắn của bạn"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Chung"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Nâng cao"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Mã PIN Signal"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "Nhắc nhở PIN"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "Bạn sẽ dần được hỏi ít thường xuyên hơn qua thời gian"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Nội dung thông báo"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Nhập văn bản"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Thư mục trò chuyện"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Âm thanh"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Huy hiệu ứng dụng"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Xuất lịch sử trò chuyện"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Nếu tắt, bạn sẽ không thấy thông báo đang nhập tin nhắn từ người khác."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Xem và chia sẻ khi tin nhắn được đọc và đang được nhập. Nếu tắt, bạn sẽ không thấy chỉ báo đã đọc hay đang nhập từ người khác."
   },
   "icu:Preferences--updates": {
     "messageformat": "Cập nhật"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Bỏ qua"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Xác minh mã PIN Signal của bạn"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Thỉnh thoảng chúng tôi sẽ yêu cầu bạn nhập lại mã PIN để giúp bạn ghi nhớ."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Xác minh"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Để sau"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Nhập mã PIN Signal của bạn"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "Để giúp bạn nhớ mã PIN của mình, chúng tôi sẽ yêu cầu bạn nhập lại mã định kỳ. Chúng tôi sẽ dần hỏi ít hơn."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "Nhập mã PIN của bạn"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Mã PIN không chính xác. Thử lại"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Xác nhận"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "Mã PIN đúng. Chúng tôi sẽ nhắc bạn lại sau."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal desktop sẽ sớm không còn hỗ trợ phiên bản hiện tại của hệ điều hành {OS} trên máy tính bạn. Để có thể tiếp tục sử dụng Signal, cập nhật phiên bản hệ điều hành trên máy tính bạn trước {expirationDate}. <learnMoreLink>Tìm hiểu thêm</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Một lần"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Cảm ơn bạn đã hỗ trợ Signal. Đóng góp của bạn giúp duy trì sứ mệnh bảo vệ việc tự biểu đạt và cung cấp nền tảng giao tiếp bảo mật cho hàng triệu người trên thế giới, thông qua công nghệ mã nguồn mở hướng tới quyền riêng tư. Nếu bạn là một cư dân của Hoa Kỳ, vui lòng giữ biên lai này cho hồ sơ thuế. Signal Technology Foundation là một tổ chức phi lợi nhuận được miễn trừ nghĩa vụ thuế ở Hoa Kỳ theo mục 501c3 của Internal Revenue Code. ID Thuế Liên bang của chúng tôi là 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Cảm ơn bạn đã hỗ trợ Signal. Đóng góp của bạn giúp duy trì sứ mệnh bảo vệ việc tự biểu đạt và cung cấp nền tảng giao tiếp bảo mật cho hàng triệu người trên thế giới, thông qua công nghệ mã nguồn mở hướng tới quyền riêng tư. Nếu bạn là một cư dân của Hoa Kỳ, vui lòng giữ biên lai này cho hồ sơ thuế. Signal Technology Foundation là một tổ chức phi lợi nhuận được miễn trừ nghĩa vụ thuế ở Hoa Kỳ theo mục 501c3 của Internal Revenue Code. ID Thuế Liên bang của chúng tôi là 82-4506840. Signal không cung cấp bất kỳ hàng hóa hoặc dịch vụ nào để đổi lấy khoản đóng góp này."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Các tinh chỉnh, sửa lỗi, và cải thiện hiệu năng. Cảm ơn bạn đã sử dụng Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Giới thiệu tính năng sự kiện cuộc gọi tự xóa: Các cuộc gọi nhỡ, cuộc gọi đi và cuộc gọi đến sau khi bạn cài đặt bản cập nhật này sẽ tự động biến mất trong bất kỳ cuộc trò chuyện nào đã bật tính năng tin nhắn tự xóa."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Giờ đây, bạn có thể sắp xếp lại các gói nhãn dán đã cài đặt để gói yêu thích mới của bạn không bị xếp ở cuối."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Chúng tôi cũng đã đơn giản hóa việc tìm thành viên nhóm trên trang cài đặt nhóm."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Chúng tôi đã thêm hai mức thu phóng mới vào phần cài đặt giao diện (110% và 90%)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Cải thiện chức năng tìm thành viên nhóm."
   }
 }

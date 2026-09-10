@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Провери Номерата за Безопасност"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Номерът за безопасност се промени"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Промени по номера за безопасност"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Изключване на тих режим"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Заглушаване на този чат за…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Заглушаване на тези чатове за…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 час"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 часа"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 ден"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 седмица"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "До…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Винаги"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Изберете дата"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Изберете час"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Заглушаване на този чат до…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Дата"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Час"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "По всяко време в часовата зона „{timeZone}“"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Заглушен за постоянно"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Чувайте звук за известие за изпратени и получени съобщения, докато сте в чата."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Известия за реакции"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Изпращане на известие, когато някой реагира на вашето съобщение"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Основни"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Допълнителни"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "PIN код за Signal"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "Напомняния за ПИН"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "Ще ви питаме по-рядко с времето"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Съдържание на известие"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Въвеждане на текст"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Папки за чат"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Звуци"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Значка на приложението"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Експортиране на историята на чата"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Ако е деактивирано, няма да виждате индикаторите за писане от останалите."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Виждайте и споделяйте, когато съобщенията се пишат и бъдат прочетени. Ако е изключено, няма да виждате разписките за прочитане или индикаторите за писане от останалите."
   },
   "icu:Preferences--updates": {
     "messageformat": "Актуализации"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Отказ"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Потвърдете своя ПИН за Signal"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Понякога ще ви молим да потвърдите вашия ПИН, за да го запомните."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Потвърждаване"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Не сега"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Въведете вашия ПИН за Signal"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "За да ви помогнем да запомните вашия ПИН, периодично ще ви молим да го въвеждате. С времето ще ви питаме по-рядко."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "Въведете вашия ПИН"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Грешен ПИН. Опитайте отново"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Потвърждение"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "Правилен ПИН. Ще ви напомним отново по-късно."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Сайтът на Signal скоро няма да поддържа версията на {OS} на компютъра ви. За да продължите да използвате Signal, актуализирайте операционната система на компютъра ви до {expirationDate}. <learnMoreLink>Научете повече</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Само веднъж"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Благодарим ви, че подкрепяте Signal. Вашият принос помага за изпълнението на мисията за защитаване на свободата на изразяване и позволяване на сигурна глобална комуникация на милиони хора по света чрез технология за поверителност с отворен код. Ако сте жител на Съединените щати, моля, запазете тази разписка за данъчните си документи. Фондация Signal Technology Foundation е освободена от данъци организация с нестопанска цел в САЩ съгласно член 501c3 от Данъчния кодекс на САЩ. Нашият федерален данъчен номер е 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Благодарим ви, че подкрепяте Signal. Вашият принос помага за изпълнението на мисията за защитаване на свободата на изразяване и позволяване на сигурна глобална комуникация на милиони хора по света чрез технология за поверителност с отворен код. Ако сте жител на Съединените щати, моля, запазете тази разписка за данъчните си документи. Фондация Signal Technology Foundation е освободена от данъци организация с нестопанска цел в САЩ съгласно член 501c3 от Данъчния кодекс на САЩ (Internal Revenue Code). Нашият федерален данъчен номер (Federal Tax ID) е 82-4506840. Нашият федерален данъчен номер е 82-4506840. Signal не предоставя стоки или услуги в замяна за този принос."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Дребни корекции, поправки на бъгове и подобрения на работата. Благодарим ви, че използвате Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Представяме изчезващите събития, свързани с обаждане: Пропуснатите, изходящите и входящите обаждания, които възникнат, след като инсталирате тази актуализация, вече автоматично ще изчезват във всеки чат, в който са активирани изчезващите съобщения."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Вече можете да променяте реда на инсталираните пакети със стикери, така че новите ви любимци да не останат на заден план."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Улеснихме търсенето на членове на групи в страницата с настройките на групите."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Добавихме две нови нива на увеличаване в настройките за външен вид (110% и 90%)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Подобрения в търсенето на членове на групи."
   }
 }

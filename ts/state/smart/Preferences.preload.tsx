@@ -84,7 +84,6 @@ import { deleteAllMyStories } from '../../util/deleteAllMyStories.preload.ts';
 import { SmartPreferencesDonations } from './PreferencesDonations.preload.tsx';
 import { useDonationsActions } from '../ducks/donations.preload.ts';
 import { generateDonationReceiptBlob } from '../../util/generateDonationReceipt.dom.ts';
-import { getProfiles } from '../selectors/notificationProfiles.dom.ts';
 import { backupLevelFromNumber } from '../../services/backups/types.std.ts';
 import { getMessageQueueTime } from '../../util/getMessageQueueTime.dom.ts';
 import { useBackupActions } from '../ducks/backups.preload.ts';
@@ -123,6 +122,7 @@ import type { SmartPreferencesEditChatFolderPageProps } from './PreferencesEditC
 import type { ExternalProps as SmartNotificationProfilesProps } from './PreferencesNotificationProfiles.preload.tsx';
 import type { ZoomFactorType } from '../../types/StorageKeys.std.ts';
 import type { BlockedConversation } from '../../components/Preferences.dom.tsx';
+import { pinReminderService } from '../../services/pinReminder.preload.ts';
 
 const DEFAULT_NOTIFICATION_SETTING = 'message';
 
@@ -254,7 +254,6 @@ export function SmartPreferences(): JSX.Element | null {
   const donationReceipts = useSelector(
     (state: StateType) => state.donations.receipts
   );
-  const notificationProfileCount = useSelector(getProfiles).length;
   const weArePrimaryDevice = useSelector(areWePrimaryDevice);
   const conversationSelector = useSelector(getConversationSelector);
 
@@ -760,6 +759,8 @@ export function SmartPreferences(): JSX.Element | null {
   );
   const [hasNotificationAttention, onNotificationAttentionChange] =
     createItemsAccess('notification-draw-attention', false);
+  const [hasReactionNotifications, onReactionNotificationsChange] =
+    createItemsAccess('reaction-notification', true);
 
   const [notificationContent, onNotificationContentChange] = createItemsAccess(
     'notification-setting',
@@ -772,6 +773,14 @@ export function SmartPreferences(): JSX.Element | null {
       value ? DEFAULT_NOTIFICATION_SETTING : 'off'
     );
   };
+
+  const [hasPinReminders, onPinRemindersChange] = createItemsAccess(
+    'pinReminders',
+    true,
+    value => {
+      drop(pinReminderService.handlePinRemindersSettingChanged(Boolean(value)));
+    }
+  );
 
   const [hasRelayCalls, onRelayCallsChange] = createItemsAccess(
     'always-relay-calls',
@@ -877,18 +886,33 @@ export function SmartPreferences(): JSX.Element | null {
   const setDredDuration = useCallback((value: number | undefined) => {
     drop(itemStorage.put('dredDuration', value));
   }, []);
-  const setIsDirectVp9Enabled = useCallback((value: boolean | undefined) => {
-    drop(itemStorage.put('isDirectVp9Enabled', value));
+  const setCallStatsIntervalSecs = useCallback((value: number | undefined) => {
+    drop(itemStorage.put('callStatsIntervalSecs', value));
+  }, []);
+  const setEnableVp9Encode = useCallback((value: boolean | undefined) => {
+    drop(itemStorage.put('enableVp9Encode', value));
+  }, []);
+  const setEnableVp9Decode = useCallback((value: boolean | undefined) => {
+    drop(itemStorage.put('enableVp9Decode', value));
   }, []);
   const setDirectMaxBitrate = useCallback((value: number | undefined) => {
     drop(itemStorage.put('directMaxBitrate', value));
   }, []);
-  const setIsGroupVp9Enabled = useCallback((value: boolean | undefined) => {
-    drop(itemStorage.put('isGroupVp9Enabled', value));
-  }, []);
   const setGroupMaxBitrate = useCallback((value: number | undefined) => {
     drop(itemStorage.put('groupMaxBitrate', value));
   }, []);
+  const setIsGroupSvcEnabled = useCallback((value: boolean | undefined) => {
+    drop(itemStorage.put('isGroupSvcEnabled', value));
+  }, []);
+  const setGroupSvcMode = useCallback((value: string | undefined) => {
+    drop(itemStorage.put('groupSvcMode', value));
+  }, []);
+  const setGroupSvcModeForScreenshare = useCallback(
+    (value: string | undefined) => {
+      drop(itemStorage.put('groupSvcModeForScreenshare', value));
+    },
+    []
+  );
   const setSfuUrl = useCallback((value: string | undefined) => {
     drop(itemStorage.put('sfuUrl', value));
   }, []);
@@ -972,7 +996,9 @@ export function SmartPreferences(): JSX.Element | null {
         hasMinimizeToSystemTray={hasMinimizeToSystemTray}
         hasNotificationAttention={hasNotificationAttention}
         hasNotifications={hasNotifications}
+        hasPinReminders={hasPinReminders}
         hasPreferContactAvatars={hasPreferContactAvatars}
+        hasReactionNotifications={hasReactionNotifications}
         hasReadReceipts={hasReadReceipts}
         hasRelayCalls={hasRelayCalls}
         hasSealedSenderIndicators={hasSealedSenderIndicators}
@@ -1003,7 +1029,6 @@ export function SmartPreferences(): JSX.Element | null {
         me={me}
         navTabsCollapsed={navTabsCollapsed}
         notificationContent={notificationContent}
-        notificationProfileCount={notificationProfileCount}
         onAudioNotificationsChange={onAudioNotificationsChange}
         onAutoConvertEmojiChange={onAutoConvertEmojiChange}
         onAutoDownloadAttachmentChange={onAutoDownloadAttachmentChange}
@@ -1018,6 +1043,7 @@ export function SmartPreferences(): JSX.Element | null {
         onHasKeyTransparencyDisabledChanged={
           onHasKeyTransparencyDisabledChanged
         }
+        onPinRemindersChange={onPinRemindersChange}
         onHasStoriesDisabledChanged={onHasStoriesDisabledChanged}
         onHideMenuBarChange={onHideMenuBarChange}
         onIncomingCallNotificationsChange={onIncomingCallNotificationsChange}
@@ -1037,6 +1063,7 @@ export function SmartPreferences(): JSX.Element | null {
         onNotificationsChange={onNotificationsChange}
         onStartUpdate={startUpdate}
         onPreferContactAvatarsChange={onPreferContactAvatarsChange}
+        onReactionNotificationsChange={onReactionNotificationsChange}
         onReadReceiptsChange={onReadReceiptsChange}
         onRelayCallsChange={onRelayCallsChange}
         onSealedSenderIndicatorsChange={onSealedSenderIndicatorsChange}
@@ -1115,14 +1142,22 @@ export function SmartPreferences(): JSX.Element | null {
         setCqsTestMode={setCqsTestMode}
         dredDuration={items.dredDuration}
         setDredDuration={setDredDuration}
-        setIsDirectVp9Enabled={setIsDirectVp9Enabled}
-        isDirectVp9Enabled={items.isDirectVp9Enabled}
+        callStatsIntervalSecs={items.callStatsIntervalSecs}
+        setCallStatsIntervalSecs={setCallStatsIntervalSecs}
+        enableVp9Encode={items.enableVp9Encode}
+        setEnableVp9Encode={setEnableVp9Encode}
+        enableVp9Decode={items.enableVp9Decode}
+        setEnableVp9Decode={setEnableVp9Decode}
         setDirectMaxBitrate={setDirectMaxBitrate}
         directMaxBitrate={items.directMaxBitrate}
-        setIsGroupVp9Enabled={setIsGroupVp9Enabled}
-        isGroupVp9Enabled={items.isGroupVp9Enabled}
         setGroupMaxBitrate={setGroupMaxBitrate}
         groupMaxBitrate={items.groupMaxBitrate}
+        isGroupSvcEnabled={items.isGroupSvcEnabled}
+        setIsGroupSvcEnabled={setIsGroupSvcEnabled}
+        groupSvcMode={items.groupSvcMode}
+        setGroupSvcMode={setGroupSvcMode}
+        groupSvcModeForScreenshare={items.groupSvcModeForScreenshare}
+        setGroupSvcModeForScreenshare={setGroupSvcModeForScreenshare}
         sfuUrl={items.sfuUrl}
         setSfuUrl={setSfuUrl}
         forceKeyTransparencyCheck={forceKeyTransparencyCheck}

@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "უსაფრთხოების ნომრის ვერიფიკაცია"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "უსაფრთხოების ნომერი შეიცვალა"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "უსაფრთხოების ნომრის ცვლილება"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "მდუმარე რეჟიმის გამორთვა"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "ამ ჩატის დადუმება…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "ჩატების დადუმება…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 hour"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 საათით"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 day"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 week"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "სანამ…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "ყოველთვის"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "აირჩიე თარიღი"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "აირჩიე დრო"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "ჩატების დადუმება…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "თარიღი"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "დრო"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "ყველა დრო მითითებულია {timeZone}-ში"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "სამუდამოდ დადუმებული"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "გაგზავნილი და მიღებული შეტყობინებების ხმის გაგება ჩეთში ყოფნისას."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "რეაქციის შეტყობინებები"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "შეტყობინება, როცა ვინმე შენს მესიჯზე რეაქციას გამოხატავს."
+  },
   "icu:Preferences__button--general": {
     "messageformat": "ზოგადი"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "დეტალური"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal-ის პინ-კოდი"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "პინ-კოდის შეხსენებები"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "დროთა განმავლობაში ამას უფრო იშვიათად გთხოვთ"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "შეტყობინების კონტენტი"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "ტექსტის შეყვანა"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "ჩატის საქაღალდეები"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "ხმები"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "აპლიკაციის ემბლემა"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "ჩატის ისტორიის გადატანა"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "როცა ეს გამორთულია, სხვების ბეჭდვის ინდიკატორს ვერ ნახავ."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "ნახე, როდის იკითხება შეტყობინებები და როდის იწერება პასუხი, და გაუზიარე ეს ინფორმაცია სხვებსაც. თუ ფუნქცია გამორთულია, ვერც სხვების წაკითხვის დასტურს და ვერც ბეჭდვის ინდიკატორს დაინახავ."
   },
   "icu:Preferences--updates": {
     "messageformat": "განახლებები"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "გაუქმება"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "დაადასტურე შენი Signal-ის პინ-კოდი"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "დროდადრო გთხოვთ შენი პინ-კოდი დაადასტურო, რომ არ დაგავიწყდეს."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "დადასტურება"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "ახლა არა"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "შეიყვანე შენი Signal-ის პინ-კოდი"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "იმისთვის, რომ პინ-კოდი უკეთ დაიმახსოვრო, პერიოდულად მის შეყვანას მოგთხოვთ. დროთა განმავლობაში ამას უფრო იშვიათად მოგთხოვთ."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "შეიყვანე შენი პინ-კოდი"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "არასწორი პინ-კოდი. სცადეთ ახლიდან"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "დადასტურება"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "პინ-კოდი სწორია. მოგვიანებით ისევ შეგახსენებთ."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal desktop-ს მალე აღარ ექნება შენი კომპიუტერის {OS} ვერსიის მხარდაჭერა. Signal-ის გამოყენების გასაგრძელებლად, განაახლე შენი კომპიუტერის ოპერაციული სისტემა {expirationDate}-მდე. <learnMoreLink>გაიგე მეტი</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "ერთჯერადად"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "მადლობა Signal-ის მხარდაჭერისთვის. შენი წვლილი ხელს უწყობს გამოხატვის თავისუფლების დაცვისა და მთელ მსოფლიოში მილიონობით ადამიანისთვის უსაფრთხო გლობალური კომუნიკაციის უზრუნველყოფის მისიის განხორციელებას ღია კოდის კონფიდენციალურობის ტექნოლოგიების მეშვეობით. თუ შეერთებული შტატების რეზიდენტი ხარ, გთხოვთ, ეს ქვითარი შენი საგადასახადო ჩანაწერებისთვის შეინახო. Signal-ის ტექნოლოგიების ფონდი არის გადასახადებისგან გათავისუფლებული არაკომერციული ორგანიზაცია შეერთებულ შტატებში, Internal Revenue Code-ის 501c3 მუხლის შესაბამისად. ჩვენი ფედერალური საგადასახადო ID არის 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "მადლობა Signal-ის მხარდაჭერისთვის. შენი წვლილი ხელს უწყობს გამოხატვის თავისუფლების დაცვისა და მთელ მსოფლიოში მილიონობით ადამიანისთვის უსაფრთხო გლობალური კომუნიკაციის უზრუნველყოფის მისიის განხორციელებას ღია კოდის კონფიდენციალურობის ტექნოლოგიების მეშვეობით. თუ შეერთებული შტატების რეზიდენტი ხარ, გთხოვთ, ეს ქვითარი შენი საგადასახადო ჩანაწერებისთვის შეინახო. Signal-ის ტექნოლოგიების ფონდი არის გადასახადებისგან გათავისუფლებული არაკომერციული ორგანიზაცია შეერთებულ შტატებში, Internal Revenue Code-ის 501c3 მუხლის შესაბამისად. ჩვენი ფედერალური საგადასახადო ID არის 82-4506840. ამ კონტრიბუციის გათვალისწინებით, Signal-ს პროდუქტები თუ მომსახურება არ მიუწოდებია."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "მცირე შესწორებები, ბაგების გამოსწორება და წარმადობის გაუმჯობესება. მადლობას გიხდით სიგნალის გამოყენებისთვის!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "წარმოგიდგენთ გაქრობად ზარის აქტივობებს: გამოტოვებული, გამავალი და შემომავალი ზარები, რომლებიც ამ განახლების გადმოწერის შემდეგ განხორციელდება, ავტომატურად გაქრება ყველა ჩატში, რომელშიც გაქრობადი შეტყობინებებია ჩართული."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "ახლა შეგიძლია სტიკერების ნაკრებები დააორგანიზო, რომ შენი ფავორიტები სიის ბოლოში არ მოხვდეს."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "ჯგუფის პარამეტრების გვერდზე ჯგუფის წევრების ძიება გავამარტივეთ."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "ვიზუალის პარამეტრებში მიახლოების ორი ახალი დონე დავამატეთ (110% და 90%)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "ჯგუფის წევრების ძიების გაუმჯობესებები."
   }
 }

@@ -7,7 +7,7 @@
   "description": "Signal Desktop fork with meeting minutes — call recording and chat summaries",
   "desktopName": "minutes.desktop",
   "repository": "https://github.com/zmitko-uni/minutes.git",
-  "version": "8.25.0-m1.3.1",
+  "version": "8.26.0-m1.3.1",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "Signal Messenger, LLC",
@@ -145,14 +145,14 @@
   "dependencies": {
     "@indutny/mac-screen-share": "1.2.5",
     "@indutny/simple-windows-notifications": "2.0.21",
-    "@modelcontextprotocol/sdk": "1.29.0",
     "@signalapp/libsignal-client": "0.100.0",
     "@signalapp/mute-state-change": "workspace:*",
     "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz",
-    "@signalapp/sqlcipher": "4.0.5",
+    "@signalapp/sqlcipher": "4.1.0",
     "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
     "google-libphonenumber": "3.2.44",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "node-llama-cpp": "3.19.1",
     "whisper-cpp-node": "0.2.12"
   },
@@ -163,7 +163,7 @@
     "@babel/plugin-transform-typescript": "7.28.6",
     "@babel/preset-react": "7.28.5",
     "@babel/preset-typescript": "7.28.5",
-    "@changesets/cli": "3.0.0-next.8",
+    "@changesets/cli": "3.0.1",
     "@csstools/stylelint-formatter-github": "2.0.0",
     "@electron/asar": "3.4.1",
     "@electron/fuses": "1.5.0",
@@ -186,7 +186,7 @@
     "@react-spring/web": "10.0.3",
     "@signalapp/lame": "workspace:*",
     "@signalapp/minimask": "1.0.1",
-    "@signalapp/mock-server": "25.2.0",
+    "@signalapp/mock-server": "workspace:*",
     "@signalapp/parchment-cjs": "3.0.1",
     "@signalapp/quill-cjs": "2.1.2",
     "@storybook/addon-a11y": "8.4.4",
@@ -266,7 +266,7 @@
     "debug": "4.4.3",
     "direction": "2.0.1",
     "dom-accessibility-api": "0.7.1",
-    "electron": "43.4.1",
+    "electron": "43.5.0",
     "electron-builder": "26.11.1",
     "electron-mocha": "13.1.0",
     "emoji-regex-xs": "2.0.1",
@@ -340,7 +340,6 @@
     "redux-logger": "3.0.6",
     "redux-promise-middleware": "6.2.0",
     "redux-thunk": "3.1.0",
-    "resedit": "3.0.2",
     "reselect": "5.1.1",
     "rolldown": "1.0.1",
     "sass": "1.99.0",
@@ -369,7 +368,8 @@
     "wait-on": "9.0.5",
     "webpack": "5.96.1",
     "write-file-atomic": "7.0.1",
-    "zod": "4.3.6"
+    "zod": "4.3.6",
+    "resedit": "3.0.2"
   },
   "engines": {
     "node": "24.17.0"
@@ -676,13 +676,13 @@
       "sticker-creator/dist/**"
     ]
   },
+  "volta": {
+    "node": "24.17.0"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "node-llama-cpp",
       "whisper-cpp-node"
     ]
-  },
-  "volta": {
-    "node": "24.17.0"
   }
 }

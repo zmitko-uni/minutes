@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "સલામતી નંબર ચકાસો"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "સલામતી નંબર બદલાયો છે"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "સલામતી નંબર ફેરફારો"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "અનમ્યૂટ કરો"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "આ ચેટને આટલા સમય માટે મ્યૂટ કરો…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "આ ચેટને આટલા સમય માટે મ્યૂટ કરો…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 કલાક"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 કલાક"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 દિવસ"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 અઠવાડિયું"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "આ સમય સુધી…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "હંમેશાં"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "તારીખ પસંદ કરો"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "સમય પસંદ કરો"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "આ ચેટને આટલા સમય સુધી મ્યૂટ કરો…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "તારીખ"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "સમય"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "બધા સમય {timeZone}માં"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "હંમેશા માટે મ્યૂટ કરો"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "ચેટમાં હોય ત્યારે મોકલેલા અને પ્રાપ્ત થયેલા મેસેજ માટે નોટિફિકેશન સાઉન્ડ સાંભળો."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "પ્રતિક્રિયા નોટિફિકેશન"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "કોઈ તમારા મેસેજનો જવાબ આપે ત્યારે સૂચિત કરો"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "સામાન્ય"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "વધુ"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal પિન"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "પિન રિમાઇન્ડર"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "સમય જતાં તમને ઓછી વાર પૂછવામાં આવશે"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "નોટિફિકેશન કન્ટેન્ટ"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "ટેક્સ્ટ ઇનપુટ"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "ચેટના ફોલ્ડર"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "અવાજો"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "ઍપ બૅજ"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "ચેટ હિસ્ટ્રી નિકાસ કરો"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "જો અક્ષમ કરવામાં આવે, તો તમે અન્ય લોકો પાસેથી ટાઇપિંગ સૂચક જોઈ શકશો નહીં."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "જ્યારે મેસેજ વાંચવામાં આવે છે અને ટાઇપ કરવામાં આવે છે ત્યારે જુઓ અને શેર કરો. જો અક્ષમ કરેલ હોય, તો અન્ય લોકોએ વાંચી લીધાની રસીદો અથવા ટાઇપિંગ સૂચકો તમને દેખાશે નહીં."
   },
   "icu:Preferences--updates": {
     "messageformat": "અપડેટ્સ"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "કાઢી નાખો"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "તમારા Signal પિનને વેરિફાય કરો"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "અમે તમને ક્યારેક ક્યારેક તમારો પિન પિનને વેરિફાય કરવા માટે કહીશું જેથી કરીને તમે તેને યાદ કરો."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "વેરિફાય કરો"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "અત્યારે નહીં"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "તમારો Signal પિન દાખલ કરો"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "તમને તમારો પિન યાદ રાખવામાં મદદ કરવા માટે, અમે તમને તે સમયાંતરે દાખલ કરવા માટે કહીશું. અમે સમય જતાં ઓછુ પૂછશું."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "તમારો પિન દાખલ કરો"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "ખોટો પિન. ફરીથી પ્રયત્ન કરો"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "કન્ફર્મ કરો"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "પિન સાચો છે. અમે તમને પછી ફરીથી યાદ કરાવીશું."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal હવે ટૂંક સમયમાં તમારા ડિવાઇસના {OS} વર્ઝનને સપોર્ટ કરશે નહીં. Signalનો ઉપયોગ ચાલુ રાખવા માટે, તમારા કમ્પ્યુટરની ઓપરેટિંગ સિસ્ટમને {expirationDate} સુધીમાં અપડેટ કરો. <learnMoreLink>વધુ જાણો</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "એક વાર"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Signalને સપોર્ટ કરવા બદલ આપનો આભાર. તમારું યોગદાન ઓપન સોર્સ પ્રાઇવસી ટેક્નોલોજી વિકસિત કરવાના મિશનને વેગ આપવામાં મદદ કરે છે જે મુક્ત અભિવ્યક્તિનું રક્ષણ કરે છે અને વિશ્વના લાખો લોકો માટે સુરક્ષિત વૈશ્વિક સંચારને સક્રિય કરે છે. જો તમે યુનાઇટેડ સ્ટેટ્સના રહેવાસી હો, તો કૃપા કરીને તમારા ટેક્સ રેકોર્ડ માટે આ રસીદને સાચવી રાખો. Signal Technology Foundation એ યુનાઇટેડ સ્ટેટ્સમાં Internal Revenue Code (આંતરિક મહેસૂલ સંહિતા)ની કલમ 501c3 હેઠળ એક કરવેરા-મુક્ત બિનલાભકારી સંસ્થા છે. અમારું સંઘીય ટેક્સ ID છે 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Signalને સપોર્ટ કરવા બદલ આપનો આભાર. તમારું યોગદાન ઓપન સોર્સ પ્રાઇવસી ટેક્નોલોજી વિકસિત કરવાના મિશનને વેગ આપવામાં મદદ કરે છે જે મુક્ત અભિવ્યક્તિનું રક્ષણ કરે છે અને વિશ્વના લાખો લોકો માટે સુરક્ષિત વૈશ્વિક સંચારને સક્રિય કરે છે. જો તમે યુનાઇટેડ સ્ટેટ્સના રહેવાસી હો, તો કૃપા કરીને તમારા ટેક્સ રેકોર્ડ માટે આ રસીદને સાચવી રાખો. Signal Technology Foundation એ યુનાઇટેડ સ્ટેટ્સમાં Internal Revenue Code (આંતરિક મહેસૂલ સંહિતા)ની કલમ 501c3 હેઠળ એક કરવેરા-મુક્ત બિનલાભકારી સંસ્થા છે. અમારો ફેડરલ ટેક્સ ID 82-4506840 છે. Signalએ આ યોગદાનના બદલામાં કોઈ માલ કે સેવાઓ પૂરી પાડી નથી."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "નાના ફેરફારો, ભૂલ સુધારા અને પ્રદર્શનમાં વધારો. Signalનો ઉપયોગ કરવા બદલ આભાર!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "પ્રસ્તુત કરીએ છીએ ગાયબ થતી કૉલ ઇવેન્ટ: આ અપડેટ ઇન્સ્ટોલ કર્યા પછી થતા મિસ્ડ, આઉટગોઇંગ અને રિસીવ થયેલા કૉલ હવે કોઈ પણ ચેટમાં આપમેળે ગાયબ થઈ જશે જ્યાં ગાયબ થતાં મેસેજ સક્ષમ હોય."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "હવે તમે ઇન્સ્ટોલ કરેલા સ્ટીકર પેકને ફરીથી ગોઠવી શકો છો જેથી તમારા નવા મનપસંદ સ્ટીકર પેક લાઇનના પાછળના ભાગમાં અટવાઈ ન જાય."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "★ અમે ગ્રૂપ સેટિંગ્સ પેજ પર ગ્રૂપના સભ્યો શોધવાનું વધુ સરળ બનાવ્યું."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "અમે દેખાવ સેટિંગ્સમાં બે નવા ઝૂમ સ્તર ઉમેર્યા છે (110% અને 90%)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "ગ્રૂપના સભ્યોને શોધવામાં સુધારણાઓ કર્યા."
   }
 }

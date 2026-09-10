@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Pārbaudīt drošības numuru"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Drošības kods mainījies"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Drošības numura izmaiņas"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Ieslēgt"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Izslēgt skaņu šajā sarunā uz…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Izslēgt skaņu šajās sarunās uz..."
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 stunda"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 stundas"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 diena"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 nedēļa"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Līdz..."
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Vienmēr"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Izvēlieties datumu"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Izvēlieties laiku"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Izslēgt skaņu šajā sarunā līdz..."
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Datums"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Laiks"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "Visi laiki norādīti {timeZone} laika zonā"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Paziņojumi izslēgti vienmēr"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Atvērtā sarunā dzirdiet paziņojuma skaņu par nosūtītām un saņemtām ziņām."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Reakciju paziņojumi"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Rādīt paziņojumu, ja kāds reaģē uz jūsu ziņu"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Vispārīgi"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Papildu"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal PIN"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "PIN atgādinājumi"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "Laika gaitā jums tiks jautāts retāk"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Paziņojuma saturs"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Teksta ievade"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Sarunu mapes"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Skaņas"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Lietotnes nozīmīte"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Eksportēt sarunu vēsturi"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Ja tie ir atspējoti, jūs neredzēsiet citu personu rakstīšanas indikatorus."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Redziet un ļaujiet citiem redzēt, kad esat izlasījuši vai rakstāt ziņas. Ja to atspējosiet, jūs neredzēsiet citu personu izlasīšanas apliecinājumus vai rakstīšanas indikatorus."
   },
   "icu:Preferences--updates": {
     "messageformat": "Atjauninājumi"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Nerādīt"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Signal PIN pārbaude"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Mēs jums reizēm pieprasīsim pārbaudīt jūsu PIN, lai jūs to atcerētos."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Verificēt"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Ne tagad"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Ievadiet jūsu Signal PIN"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "Lai palīdzētu jums iegaumēt PIN, mēs jums lūgsim periodiski to ievadīt. Mēs pakāpeniski to lūgism retāk."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "Ievadiet jūsu PIN"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Nepareizs PIN. Mēģiniet vēlreiz"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Apstiprināt"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN pareizs. Atgādināsim vēlreiz vēlāk."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Drīzumā Signal Desktop vairs neatbalstīs jūsu datora {OS} versiju. Lai turpinātu lietot Signal, atjauniniet datora operētājsistēmu līdz {expirationDate}. <learnMoreLink>Lasīt vairāk</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Vienreiz"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Pateicamies, ka atbalstāt Signal. Jūsu atbalsts palīdz īstenot mūsu misiju: aizsargāt vārda brīvību un nodrošināt drošu saziņu miljoniem cilvēku visā pasaulē. Mēs to darām, izmantojot atvērtā pirmkoda privātuma tehnoloģijas. Ja jūs esat Amerikas Savienoto valstu iedzīvotājs, lūdzu, saglabājiet šo kvīti nodokļu uzskaitei. Signal Technology Foundation ir no nodokļu maksāšanas atbrīvota bezpeļnas organizācija Amerikas Savienotajās valstīs saskaņā ar Iekšējo ieņēmumu likuma 501c3 sadaļu. Mūsu federālais nodokļu ID ir 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Pateicamies, ka atbalstāt Signal. Jūsu atbalsts palīdz īstenot mūsu misiju: aizsargāt vārda brīvību un nodrošināt drošu saziņu miljoniem cilvēku visā pasaulē. Mēs to darām, izmantojot atvērtā pirmkoda privātuma tehnoloģijas. Ja esat Amerikas Savienoto valstu iedzīvotājs, lūdzu, saglabājiet šo kvīti nodokļu uzskaitei. Signal Technology Foundation ir no nodokļu maksāšanas atbrīvota bezpeļnas organizācija Amerikas Savienotajās valstīs saskaņā ar Iekšējo ieņēmumu likuma 501. punkta c) daļas 3. apakšpunktu. Mūsu federālais nodokļu ID ir 82-4506840. Signal apmaiņā pret šo ziedojumu nav sniedzis nekādas preces vai pakalpojumus."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Nelielas izmaiņas, kļūdu labojumi un darbības uzlabojumi. Paldies, ka lietojat Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Iepazīstinām ar gaistošiem zvanu notikumiem: neatbildētie, izejošie un saņemtie zvani, kas veikti pēc šī atjauninājuma instalēšanas, tagad automātiski izgaisīs visās sarunās, kurās ir iespējotas gaistošās ziņas."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Tagad vari mainīt instalēto uzlīmju komplektu secību, lai iecienītākie komplekti nav saraksta beigās."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Mēs vienkāršojām grupas biedru meklēšanu grupas iestatījumos, lai jūs varētu ātri noskaidrot, vai mamma jau ir pievienojusi otrās pakāpes brālēnu ģimenes barbekjū grupai."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Mēs izskata iestatījumos pievienojām divus jaunus tālummaiņas līmeņus, kas ļauj skatīt ziņas 110% vai 90% mērogā."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Tagad jūs grupas biedru meklēšanā citu lietotāju vidū tiksiet rādīts kā “jūs”."
   }
 }

@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "ಸುರಕ್ಷತಾ ಸಂಖ್ಯೆ ದೃಢೀಕರಿಸಿ"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "ಸುರಕ್ಷತೆ ಸಂಖ್ಯೆ ಬದಲಾಗಿದೆ"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "ಸುರಕ್ಷತಾ ಸಂಖ್ಯೆಯ ಬದಲಾವಣೆಗಳು"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "ಅನ್‌ಮ್ಯೂಟ್ ಮಾಡಿ"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "ಈ ಅವಧಿಗಾಗಿ ಈ ಚಾಟ್ ಅನ್ನು ಮ್ಯೂಟ್ ಮಾಡಿ…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "ಈ ಅವಧಿಗಾಗಿ ಈ ಚಾಟ್‌ಗಳನ್ನು ಮ್ಯೂಟ್ ಮಾಡಿ…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 ಗಂಟೆ"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 ಗಂಟೆಗಳು"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 ದಿನ"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 ವಾರ"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "ವರೆಗೆ…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "ಎಂದಿಗೂ"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "ದಿನಾಂಕವನ್ನು ಆರಿಸಿ"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "ಸಮಯವನ್ನು ಆರಿಸಿ"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "ಈ ಅವಧಿಯವರೆಗೂ ಈ ಚಾಟ್ ಅನ್ನು ಮ್ಯೂಟ್ ಮಾಡಿ…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "ದಿನಾಂಕ"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "ಸಮಯ"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "ಎಲ್ಲಾ ಸಮಯಗಳು {timeZone} ನಲ್ಲಿವೆ"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "ಯಾವಾಗಲೂ ಮ್ಯೂಟ್ ಮಾಡಲಾಗಿದೆ"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "ಚಾಟ್‌ನಲ್ಲಿರುವಾಗ ಕಳುಹಿಸಿದ ಮತ್ತು ಸ್ವೀಕರಿಸಿದ ಮೆಸೇಜ್‌ಗಳಿಗೆ ಅಧಿಸೂಚನೆ ಶಬ್ದವನ್ನು ಆಲಿಸಿ."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "ಪ್ರತಿಕ್ರಿಯೆ ನೋಟಿಫಿಕೇಷನ್‌ಗಳು"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "ನಿಮ್ಮ ಮೆಸೇಜ್‌ಗೆ ಯಾರಾದರೂ ಪ್ರತಿಕ್ರಿಯಿಸಿದಾಗ ತಿಳಿಸಿ"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "ಸಾಮಾನ್ಯ"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "ಸುಧಾರಿತ"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal ಪಿನ್"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "ಪಿನ್ ರಿಮೈಂಡರ್‌ಗಳು"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "ಕಾಲಾನಂತರದಲ್ಲಿ ಕಡಿಮೆ ಬಾರಿ ನಿಮ್ಮನ್ನು ಕೇಳಲಾಗುತ್ತದೆ"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "ಅಧಿಸೂಚನೆ ವಿಷಯ"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "ಟೆಕ್ಸ್ಟ್ ಇನ್‌ಪುಟ್"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "ಚಾಟ್ ಫೋಲ್ಡರ್ ಗಳು"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "ಶಬ್ದಗಳು"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "ಆ್ಯಪ್ ಬ್ಯಾಡ್ಜ್"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "ಚಾಟ್ ಇತಿಹಾಸವನ್ನು ಎಕ್ಸ್‌ಪೋರ್ಟ್ ಮಾಡಿ"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿದ್ದರೆ, ನಿಮಗೆ ಇತರರಿಂದ ಟೈಪಿಂಗ್ ಸೂಚಕಗಳು ಕಾಣಿಸುವುದಿಲ್ಲ."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "ಮೆಸೇಜ್ ಅನ್ನು ಓದಿದಾಗ ಮತ್ತು ಟೈಪ್ ಮಾಡುತ್ತಿರುವಾಗ ಅದನ್ನು ನೋಡಿ ಮತ್ತು ಹಂಚಿಕೊಳ್ಳಿ. ಇದನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿದರೆ, ನಿಮಗೆ ಇತರರಿಂದ ಸ್ವೀಕೃತಿ ಸೂಚನೆಗಳು ಮತ್ತು ಟೈಪಿಂಗ್ ಸೂಚಕಗಳು ಕಾಣಿಸುವುದಿಲ್ಲ."
   },
   "icu:Preferences--updates": {
     "messageformat": "ಅಪ್‌ಡೇಟ್‌ಗಳು"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "ವಜಾಗೊಳಿಸಿ"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "ನಿಮ್ಮ Signal ಪಿನ್ ಅನ್ನು ದೃಢೀಕರಿಸಿ"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "ನೀವು ಇದನ್ನು ನೆನಪಿಸಿಕೊಳ್ಳುವುದಕ್ಕಾಗಿ ನಿಮಗೆ ನಿಮ್ಮ PIN ಅನ್ನು ದೃಢೀಕರಿಸಿಕೊಳ್ಳಲು ನಾವು ಆಗಾಗ್ಗೆ ಕೇಳುತ್ತೇವೆ."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "ದೃಢೀಕರಿಸಿ"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "ಈಗಲ್ಲ"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "ನಿಮ್ಮ Signal ಪಿನ್ ಅನ್ನು ನಮೂದಿಸಿ"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "ನಿಮ್ಮ PIN ಅನ್ನು ನೆನಪಿನಲ್ಲಿ ಉಳಿಸಿಕೊಳ್ಳಲು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಲು, ಇದನ್ನು ಆಗಾಗ್ಗೆ ನಮೂದಿಸುವಂತೆ ನಾವು ನಿಮ್ಮನ್ನು ಕೇಳುತ್ತೇವೆ. ಸಮಯ ಸರಿದಂತೆ ಇದನ್ನು ನಾವು ಕಡಿಮೆ ಬಾರಿ ಕೇಳುತ್ತೇವೆ."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "ನಿಮ್ಮ ಪಿನ್ ನಮೂದಿಸಿ"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "ತಪ್ಪು ಪಿನ್. ಪುನಃ ಪ್ರಯತ್ನಿಸಿ"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "ದೃಢೀಕರಿಸಿ"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN ಸರಿಯಾಗಿದೆ. ನಾವು ನಂತರ ನಿಮಗೆ ಪುನಃ ರಿಮೈಂಡ್ ಮಾಡುತ್ತೇವೆ."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮ ಕಂಪ್ಯೂಟರ್‌ನ {OS} ಆವೃತ್ತಿಯನ್ನು Signal desktop ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. Signal ಬಳಕೆಯನ್ನು ಮುಂದುವರಿಸಲು, ನಿಮ್ಮ ಕಂಪ್ಯೂಟರ್‌ನ ಆಪರೇಟಿಂಗ್ ಸಿಸ್ಟಮ್ ಅನ್ನು {expirationDate} ನ ಒಳಗೆ ಅಪ್‌ಡೇಟ್ ಮಾಡಿ. <learnMoreLink>ಇನ್ನಷ್ಟು ತಿಳಿಯಿರಿ</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "ಒಂದು ಬಾರಿ"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Signal ಅನ್ನು ಬೆಂಬಲಿಸುತ್ತಿರುವುದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. ಮುಕ್ತ ಅಭಿವ್ಯಕ್ತಿಯನ್ನು ರಕ್ಷಿಸುವ ಮತ್ತು ಓಪನ್ ಸೋರ್‍ಸ್ ಗೌಪ್ಯತೆ ತಂತ್ರಜ್ಞಾನದ ಮೂಲಕ ಪ್ರಪಂಚದಾದ್ಯಂತ ಲಕ್ಷಾಂತರ ಜನರಿಗೆ ಸುರಕ್ಷಿತ ಜಾಗತಿಕ ಸಂವಹನವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸುವ ಧ್ಯೇಯವನ್ನು ಉತ್ತೇಜಿಸಲು ನಿಮ್ಮ ಕೊಡುಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ. ನೀವು ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್ ನಿವಾಸಿಯಾಗಿದ್ದರೆ, ನಿಮ್ಮ ತೆರಿಗೆ ದಾಖಲೆಗಳಿಗಾಗಿ ಈ ರಸೀದಿಯನ್ನು ಇಟ್ಟುಕೊಳ್ಳಿ. Signal Technology Foundation ಎಂಬುದು ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್‌ನಲ್ಲಿ ಆಂತರಿಕ ಕಂದಾಯ ಸಂಹಿತೆಯ ಸೆಕ್ಷನ್ 501c3 ಅಡಿಯಲ್ಲಿ ತೆರಿಗೆ ವಿನಾಯಿತಿ ಪಡೆದ ಲಾಭರಹಿತ ಸಂಸ್ಥೆಯಾಗಿದೆ. ನಮ್ಮ ಫೆಡರಲ್ ತೆರಿಗೆ ಐಡಿ 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Signal ಅನ್ನು ಬೆಂಬಲಿಸುತ್ತಿರುವುದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. ಮುಕ್ತ ಅಭಿವ್ಯಕ್ತಿಯನ್ನು ರಕ್ಷಿಸುವ ಮತ್ತು ಓಪನ್ ಸೋರ್‍ಸ್ ಗೌಪ್ಯತೆ ತಂತ್ರಜ್ಞಾನದ ಮೂಲಕ ಪ್ರಪಂಚದಾದ್ಯಂತ ಲಕ್ಷಾಂತರ ಜನರಿಗೆ ಸುರಕ್ಷಿತ ಜಾಗತಿಕ ಸಂವಹನವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸುವ ಧ್ಯೇಯವನ್ನು ಉತ್ತೇಜಿಸಲು ನಿಮ್ಮ ಕೊಡುಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ. ನೀವು ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್ ನಿವಾಸಿಯಾಗಿದ್ದರೆ, ನಿಮ್ಮ ತೆರಿಗೆ ದಾಖಲೆಗಳಿಗಾಗಿ ಈ ರಸೀದಿಯನ್ನು ಇಟ್ಟುಕೊಳ್ಳಿ. Signal Technology Foundation ಎಂಬುದು ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್‌ನಲ್ಲಿ Internal Revenue Code ನ ಸೆಕ್ಷನ್ 501c3 ಅಡಿಯಲ್ಲಿ ತೆರಿಗೆ ವಿನಾಯಿತಿ ಪಡೆದ ಲಾಭರಹಿತ ಸಂಸ್ಥೆಯಾಗಿದೆ. ನಮ್ಮ Federal Tax ID is 82-4506840. ಈ ಕೊಡುಗೆಯ ಪರಿಗಣನೆಯಲ್ಲಿ Signal ಯಾವುದೇ ಸರಕುಗಳು ಅಥವಾ ಸೇವೆಗಳನ್ನು ಒದಗಿಸುವುದಿಲ್ಲ."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "ಸಣ್ಣ ಟ್ವೀಕ್‌ಗಳು, ಬಗ್ ಫಿಕ್ಸ್‌ಗಳು ಮತ್ತು ಕಾರ್ಯಕ್ಷಮತೆ ವರ್ಧನೆಗಳು. Signal ಬಳಸುತ್ತಿರುವುದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "★ ಕಣ್ಮರೆಯಾಗುತ್ತಿರುವ ಕಾಲ್ ಇವೆಂಟ್‌ಗಳನ್ನು ಪರಿಚಯಿಸಲಾಗುತ್ತಿದೆ: ಈ ಅಪ್‌ಡೇಟ್ ಅನ್ನು ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿದ ನಂತರ ನಡೆಯುವ ತಪ್ಪಿಹೋದ, ಹೊರಹೋಗುವ ಮತ್ತು ಸ್ವೀಕರಿಸಿದ ಕರೆಗಳು, ಮಾಯವಾಗುವ ಸಂದೇಶಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿರುವ ಯಾವುದೇ ಚಾಟ್‌ನಲ್ಲಿ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಕಣ್ಮರೆಯಾಗುತ್ತವೆ."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "ನಿಮ್ಮ ಹೊಸ ಮೆಚ್ಚಿನ ಸ್ಟಿಕರ್‌ಗಳು ಸಾಲಿನಲ್ಲಿ ಸಿಲುಕಿಕೊಳ್ಳದಂತೆ ಈಗ ನೀವು ಸ್ಥಾಪಿಸಲಾದ ಸ್ಟಿಕ್ಕರ್ ಪ್ಯಾಕ್‌ಗಳನ್ನು ಮರುಕ್ರಮಗೊಳಿಸಬಹುದು."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "ಗುಂಪು ಸೆಟ್ಟಿಂಗ್‌ಗಳ ಪುಟದಲ್ಲಿ ಗುಂಪಿನ ಸದಸ್ಯರನ್ನು ಹುಡುಕುವುದನ್ನು ಇನ್ನಷ್ಟು ಸುಲಭಗೊಳಿಸಿದ್ದೇವೆ. ಹಾಗಾಗಿ, ಮೂರನೇ ವರ್ಷದ ವಿಸ್ತೃತ ಕುಟುಂಬ ಪುನರ್ಮಿಲನ BBQ ಗುಂಪಿಗೆ ನಿಮ್ಮ ಅಮ್ಮ ನಿಮ್ಮ ಎರಡನೇ ಕಸಿನ್‌ರನ್ನು ಈಗಾಗಲೇ ಸೇರಿಸಿದ್ದಾರೆಯೇ ಎಂದು ಕ್ಷಣದಲ್ಲೇ ತಿಳಿದುಕೊಳ್ಳಬಹುದು."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "ರೂಪದ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ನಾವು ಎರಡು ಹೊಸ ಝೂಮ್ ಹಂತಗಳನ್ನು ಸೇರಿಸಿದ್ದೇವೆ, ಹಾಗಾಗಿ ತೀರಾ ಕಡಿಮೆ ಶ್ರಮದೊಂದಿಗೆ ಸಹ ನೀವು ನಿಮ್ಮ ಮೆಸೇಜ್‌ಗಳಿಗೆ 110% (ಅಥವಾ 90%) ನೀಡಬಹುದು."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "ನಿಮ್ಮನ್ನು ನೀವು ಅರಿತುಕೊಳ್ಳಲು ಜೀವನವೇ ಬೇಕಾಗಬಹುದು. ಆದರೆ ಈಗ ಗುಂಪಿನ ಸದಸ್ಯರ ಹುಡುಕಾಟದಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು “ನೀವು” ಎಂದು ಕಾಣಿಸುತ್ತದೆ, ಆದ್ದರಿಂದ ನಿಮ್ಮನ್ನು ಗುರುತಿಸುವುದು ಇನ್ನಷ್ಟು ಸುಲಭ."
   }
 }

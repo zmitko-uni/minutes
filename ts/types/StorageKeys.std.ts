@@ -90,6 +90,7 @@ export type StorageAccessType = {
   'incoming-call-notification': boolean;
   'notification-draw-attention': boolean;
   'notification-setting': NotificationSettingType;
+  'reaction-notification': boolean;
   'read-receipt-setting': boolean;
   'sent-media-quality': SentMediaQualitySettingType;
   audioMessage: boolean;
@@ -251,6 +252,9 @@ export type StorageAccessType = {
   // link-and-sync backup
   backupEphemeralKey: Uint8Array<ArrayBuffer>;
 
+  // Should be present when linked/registered without PNI/E164
+  authCredentialSalt: Uint8Array<ArrayBuffer>;
+
   // If present - we are resuming the download of known transfer archive
   backupTransitArchive: {
     cdn: number;
@@ -273,10 +277,12 @@ export type StorageAccessType = {
 
   // When Desktop is standalone, we use these. Otherwise, only used for backup.
   svrPin: string;
+  pinReminders: boolean | undefined;
+  pinReminderLastCompleted: number | undefined;
+  pinReminderNextInterval: number | undefined;
 
   // Stored solely for persistence during import/export sequence
   optimizeOnDeviceStorage: boolean;
-  pinReminders: boolean | undefined;
   screenLockTimeoutMinutes: number | undefined;
   'auto-download-attachment-primary':
     | undefined
@@ -325,11 +331,15 @@ export type StorageAccessType = {
 
   // Used for manually controlling calling settings
   dredDuration: number | undefined;
-  isDirectVp9Enabled: boolean | undefined;
+  enableVp9Encode: boolean | undefined;
+  enableVp9Decode: boolean | undefined;
   directMaxBitrate: number | undefined;
-  isGroupVp9Enabled: boolean | undefined;
   groupMaxBitrate: number | undefined;
+  isGroupSvcEnabled: boolean | undefined;
+  groupSvcMode: string | undefined;
+  groupSvcModeForScreenshare: string | undefined;
   sfuUrl: string | undefined;
+  callStatsIntervalSecs: number | undefined;
 
   // Deprecated
   'challenge:retry-message-ids': never;
@@ -350,6 +360,8 @@ export type StorageAccessType = {
   callQualitySurveyCooldownDisabled: never;
   localDeleteWarningShown: never;
   backupKeyViewed: never;
+  isDirectVp9Enabled: never;
+  isGroupVp9Enabled: never;
 };
 
 export const STORAGE_KEYS_TO_PRESERVE_AFTER_UNLINK = [
@@ -378,6 +390,7 @@ export const STORAGE_KEYS_TO_PRESERVE_AFTER_UNLINK = [
   'preferred-video-input-device',
   'preferredLeftPaneWidth',
   'preferredReactionEmoji',
+  'reaction-notification',
   'sent-media-quality',
   'showStickerPickerHint',
   'showStickersIntroduction',
@@ -543,6 +556,7 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'releaseNotesPreviousManifestHash',
   'backupDownloadPath',
   'backupEphemeralKey',
+  'authCredentialSalt',
   'backupTransitArchive',
   'backupTier',
   'cloudBackupStatus',
@@ -572,11 +586,19 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'callQualitySurveyCooldownDisabled',
   'dredDuration',
   'directMaxBitrate',
-  'isDirectVp9Enabled',
+  'enableVp9Encode',
+  'enableVp9Decode',
+  'callStatsIntervalSecs',
   'groupMaxBitrate',
+  'isGroupSvcEnabled',
+  'groupSvcMode',
+  'groupSvcModeForScreenshare',
+  'isDirectVp9Enabled',
   'isGroupVp9Enabled',
   'sfuUrl',
   'svrPin',
+  'pinReminderLastCompleted',
+  'pinReminderNextInterval',
   'backupKeyViewed',
   'payments',
 ] as const satisfies ReadonlyArray<keyof StorageAccessType>;

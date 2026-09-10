@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Sicherheitsnummer verifizieren"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Sicherheitsnummer hat sich geändert"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Änderungen der Sicherheitsnummer"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Stummschaltung aufheben"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Diesen Chat stummschalten für …"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Diese Chats stummschalten für …"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 Stunde"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 Stunden"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 Tag"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 Woche"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Bis …"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Immer"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Datum auswählen"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Uhrzeit auswählen"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Diesen Chat stummschalten bis …"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Datum"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Uhrzeit"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "Alle Uhrzeiten in {timeZone}"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Immer stumm"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Während du im Chat bist, kannst du einen Benachrichtigungston für gesendete und empfangene Nachrichten hören."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Benachrichtigungen zu Reaktionen"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Benachrichtigen, wenn jemand auf deine Nachricht reagiert"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Allgemein"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Weitere Einstellungen"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal-PIN"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "PIN-Erinnerungen"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "PIN-Erinnerungen werden mit der Zeit seltener angezeigt"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Benachrichtigungsinhalt"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Texteingabe"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Chat-Ordner"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Töne"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "App-Abzeichen"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Chat-Verlauf exportieren"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Wenn diese Funktion deaktiviert ist, siehst du keine Tipp-Indikatoren von anderen."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Wenn Nachrichten gelesen oder getippt werden, kannst du das sehen und teilen. Wenn diese Funktion deaktiviert ist, siehst du keine Lesebestätigungen oder Tipp-Indikatoren von anderen."
   },
   "icu:Preferences--updates": {
     "messageformat": "Aktualisierungen"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Schließen"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Signal-PIN überprüfen"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Wir fragen dich gelegentlich nach deiner PIN, damit du sie nicht vergisst."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Bestätigen"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Jetzt nicht"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Bitte Signal-PIN eingeben"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "Damit du dir deine PIN besser merken kannst, werden wir gelegentlich nach ihr fragen. Mit der Zeit erfolgt die Abfrage seltener."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "PIN eingeben"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Falsche PIN. Erneut versuchen"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Bestätigen"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN korrekt. Wir erinnern dich später erneut."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal Desktop wird die {OS}-Version deines Computers bald nicht mehr unterstützen. Um Signal weiterhin nutzen zu können, aktualisiere das Betriebssystem deines Computers bis {expirationDate}. <learnMoreLink>Mehr erfahren</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Einmalig"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Danke, dass du Signal unterstützt. Deine Spende trägt dazu bei, mithilfe von Open-Source-Datenschutztechnologien die freie Meinungsäußerung zu schützen und eine sichere globale Kommunikation für Millionen von Menschen auf der ganzen Welt zu ermöglichen. Falls du deinen Wohnsitz in den USA hast, bitte bewahre diese Bescheinigung für deine Steuerunterlagen auf. Die Signal Stiftung (Signal Technology Foundation) ist eine steuerbefreite gemeinnützige Organisation in den USA gemäß Abschnitt 501c3 des Internal Revenue Code. Unsere Federal Tax ID lautet 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Danke, dass du Signal unterstützt. Deine Spende trägt dazu bei, mithilfe von Open-Source-Datenschutztechnologien die freie Meinungsäußerung zu schützen und eine sichere globale Kommunikation für Millionen von Menschen auf der ganzen Welt zu ermöglichen. Falls du deinen Wohnsitz in den USA hast, bewahre diese Bescheinigung bitte für deine Steuerunterlagen auf. Die Signal Technology Foundation ist eine steuerbefreite gemeinnützige Organisation in den USA gemäß Abschnitt 501c3 des Internal Revenue Code. Unsere Federal Tax ID lautet 82-4506840. Signal hat im Gegenzug für diesen Beitrag keine Produkte oder Dienstleistungen bereitgestellt."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Kleine Optimierungen, Fehlerbehebungen und Leistungsverbesserungen. Danke, dass du Signal nutzt!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Vorhang auf für »Verschwindende Anrufereignisse«: Verpasste, ausgehende und eingehende Anrufe, die nach der Installation dieses Updates erfolgen, verschwinden nun automatisch in jedem Chat, in dem »Verschwindende Nachrichten« aktiviert ist."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Jetzt kannst du installierte Sticker-Sets neu anordnen, damit deine liebsten Sticker nicht ganz hinten in deiner Sammlung landen."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Bei den Gruppeneinstellungen haben wir die Suche nach Gruppenmitgliedern vereinfacht, damit du sofort sehen kannst, ob deine Mama deinen Cousin zweiten Grades bereits zur Gruppe für das jährlich stattfindende Großfamilien-Grillfest hinzugefügt hat."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Wir haben in den Darstellungseinstellungen zwei neue Zoomstufen hinzugefügt, sodass du deinen Nachrichten auch mit sehr geringem Aufwand immer noch 110 % (oder 90 %) Ausdruck verleihen kannst."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Die Suche nach sich selbst kann ein Leben lang andauern – dafür erscheinst du ab jetzt in der Gruppenmitglieder-Suche als »Du«, damit es wenigstens hier etwas einfacher wird."
   }
 }

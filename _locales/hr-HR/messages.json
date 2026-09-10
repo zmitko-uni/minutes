@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Provjerite sigurnosni broj"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Promijenjen je sigurnosni broj"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Promjene sigurnosnog broja"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Ponovno prikazuj"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Utišaj razgovor na…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Utišaj razgovore na…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 sat"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 sati"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 dan"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 tjedan"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Do…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Uvijek"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Odaberite datum"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Odaberite vrijeme"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Utišajte ovaj razgovor do…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Datumu"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Vrijeme"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "Svako vrijeme u vremenskoj zoni {timeZone}"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Utišano zauvijek"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Primit ćete zvučne obavijesti za poslane i primljene poruke u otvorenom razgovoru."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Obavijesti o reakcijama"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Obavijesti me kad netko reagira na moju poruku"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Općenito"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Napredno"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal PIN"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "PIN podsjetnici"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "S vremenom ćete biti sve rjeđe upitani"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Sadržaj obavijesti"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Unos teksta"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Mape razgovora"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Zvukovi"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Značka aplikacije"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Izvoz povijesti razgovora"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Ako ovo onemogućite, nećete vidjeti indikatore tipkanja od drugih."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Vidite i dijelite kada se poruke čitaju i tipkaju. Ako ovo onemogućite, nećete moći vidjeti potvrde čitanja niti indikatore tipkanja kod drugih korisnika."
   },
   "icu:Preferences--updates": {
     "messageformat": "Ažuriranja"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Odbaci"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Potvrdite svoj Signal PIN"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Povremeno ćemo zatražiti da potvrdite svoj PIN kako biste ga zapamtili."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Potvrdi"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Ne sada"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Unesite svoj Signal PIN"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "Kako bismo vam pomogli da zapamtite vaš PIN, zamoliti ćemo vas da ga povremeno unesete. S vremenom ćemo vas rijeđe tražiti."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "Unesite svoj PIN"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Netočan PIN. Pokušajte ponovo"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Potvrdi"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN je ispravan. Podsjetit ćemo vas ponovo kasnije."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal uskoro više neće biti kompatibilan s verzijom {OS} na vašem računalu. Da biste nastavili koristiti Signal, ažurirajte operacijski sustav vašeg računala do {expirationDate}. <learnMoreLink>Saznajte više</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Jednom"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Hvala što podržavate Signal. Vaš doprinos podržava našu misiju razvoja tehnologije otvorenog koda za zaštitu privatnosti, koja štiti slobodu izražavanja i omogućuje sigurnu globalnu komunikaciju milijunima ljudi širom svijeta. Ako imate prebivalište u Sjedinjenim Američkim Državama, sačuvajte ovu potvrdu za poreznu dokumentaciju. Signal Technology Foundation je neprofitna organizacija oslobođena plaćanja poreza u Sjedinjenim Američkim Državama prema odjeljku 501c3 Zakona o internim prihodima. Naš federalni porezni broj je 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Hvala što podržavate Signal. Vaš doprinos podržava našu misiju razvoja tehnologije otvorenog koda za zaštitu privatnosti, koja štiti slobodu izražavanja i omogućuje sigurnu globalnu komunikaciju milijunima ljudi širom svijeta. Ako imate prebivalište u Sjedinjenim Američkim Državama, sačuvajte ovu potvrdu za poreznu dokumentaciju. Signal Technology Foundation je neprofitna organizacija oslobođena plaćanja poreza u Sjedinjenim Američkim Državama prema odjeljku 501c3 Zakona o internim prihodima. Naš federalni porezni broj je 82-4506840. Signal nije dostavio nikakav proizvod niti pružio nikakvu uslugu u zamjenu za ovaj doprinos."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Manja podešavanja, ispravci grešaka i poboljšanje rada aplikacije. Hvala vam što koristite Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Predstavljamo nestajuće aktivnosti vezane za pozive: svi propušteni, odlazni i dolazni pozivi nakon ažuriranja aplikacije automatski će nestajati iz svih razgovora u kojima su omogućene poruke koje nestaju."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Sada možete promijeniti raspored paketa naljepnica koje ste instalirali, tako da vam omiljene naljepnice uvijek budu nadohvat ruke."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Olakšali smo pretraživanje članova grupe u postavkama grupnog razgovora."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Dodali smo dvije nove razine zumiranja u postavkama izgleda (110 % i 90 %)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Poboljšanja pretraživanja članova grupe."
   }
 }

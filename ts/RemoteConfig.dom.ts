@@ -66,6 +66,10 @@ const ScalarKeys = [
   'desktop.calling.dredDuration.alpha',
   'desktop.calling.dredDuration.beta',
   'desktop.calling.dredDuration.prod',
+  'desktop.calling.enableSvc',
+  'desktop.calling.svcMode',
+  'desktop.calling.svcModeForScreenshare',
+  'desktop.calling.svcMaxBitrateBps',
   'desktop.clientExpiration',
   'desktop.heapSizeWarning',
   'desktop.internalUser',
@@ -396,7 +400,7 @@ export function isCountryPpmCsvBucketEnabled(
   e164: string | undefined,
   aci: AciString | undefined
 ): boolean {
-  if (e164 == null || aci == null) {
+  if (aci == null) {
     return false;
   }
 

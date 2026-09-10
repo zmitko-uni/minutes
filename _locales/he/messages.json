@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "וודא מספר ביטחון"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "מספר הביטחון השתנה"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "שינויי מספר בטיחות"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "ביטול השתקה"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "השתקת צ׳אט זה למשך…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "השתקת הצ׳אטים האלה למשך…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "שעה"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 שעות"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "יום"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "שבוע"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "עד…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "תמיד"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "בחירת תאריך"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "בחירת שעה"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "השתקת צ׳אט זה עד…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "תאריך"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "שעה"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "כל הזמנים ב–{timeZone}"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "מושתק תמיד"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "השמעת צליל התראה עבור הודעות שנשלחו והתקבלו בזמן שנמצאים בצ׳אט."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "התראות על תגובות"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "התראה כשמשיבים להודעות שלך"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "כללי"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "מתקדם"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "PIN של Signal"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "תזכורות PIN"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "תישאל לעיתים פחות תכופות עם הזמן"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "תוכן התראה"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "קלט טקסט"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "תיקיות צ׳אטים"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "צלילים"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "הוספת תג"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "ייצוא היסטוריית צ׳אט"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "אם האפשרות הזו מושבתת, לא יוצגו לך מחווני הקלדה מאחרים."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "לראות ולשתף כשהודעות נקראות ומוקלדות. אם האפשרות הזו מושבתת, לא יוצגו לך אישורי קריאה ומחווני הקלדה מאחרים."
   },
   "icu:Preferences--updates": {
     "messageformat": "עדכונים"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "ביטול"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "וודא את Signal PIN שלך"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "נבקש ממך מדי פעם לוודא את ה־PIN שלך כך שתזכור אותו."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "אימות"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "לא עכשיו"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "הכנס את Signal PIN שלך"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "כדי לעזור לך לשנן את ה־PIN שלך, נבקש ממך להכניס אותו מעת לעת. נבקש פחות עם הזמן."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "הכנס את ה־PIN שלך"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "PIN שגוי נסה שוב"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "אישור"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN נכון. נזכיר לך שוב מאוחר יותר."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal לשולחן עבודה בקרוב תפסיק לתמוך בגרסת {OS} של המחשב שלך. כדי להמשיך להשתמש ב–Signal, צריך לעדכן את מערכת ההפעלה של המחשב שלך עד {expirationDate}. <learnMoreLink>למידע נוסף</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "פעם אחת"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "תודה על התמיכה ב–Signal. התרומה שלך עוזרת להמשיך להניע את המשימה שלנו להגן על חופש הביטוי ולאפשר תקשורת גלובלית מאובטחת עבור מיליונים ברחבי העולם, באמצעות טכנולוגיית פרטיות בקוד פתוח. אם מקום המגורים שלך הוא ארה״ב, יש לשמור את הקבלה הזו לצורך רישומי המס שלך. Signal Technology Foundation היא עמותה ללא מטרות רווח פטורה ממס בארה״ב תחת סעיף 501c3 של קוד מס ההכנסה האמריקאי. מזהה המס הפדרלי שלנו הוא 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "תודה על התמיכה ב–Signal. התרומה שלך עוזרת להמשיך לקדם את המשימה שלנו להגן על חופש הביטוי ולאפשר תקשורת גלובלית מאובטחת עבור מיליונים ברחבי העולם, באמצעות טכנולוגיית פרטיות בקוד פתוח. אם מקום המגורים שלך הוא ארה״ב, יש לשמור את הקבלה הזו לצורך רישומי המס שלך. Signal Technology Foundation היא עמותה ללא מטרות רווח פטורה ממס בארה״ב תחת סעיף 501c3 של קוד מס ההכנסה האמריקאי. מזהה המס הפדרלי שלנו הוא 82-4506840. Signal לא סיפקה כל מוצר או שירות בתמורה לתרומה זו."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "התאמות קטנות, תיקוני באגים ושיפורי ביצועים. תודה על השימוש ב-Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "נעים להכיר: אירועי שיחה נעלמים. שיחות יוצאות, נכנסות, ושלא נענו שיתרחשו אחרי התקנת את העדכון הזה יעלמו כעת אוטומטית בכל צ׳אט שבו מופעלות הודעות נעלמות."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "עכשיו אפשר לארגן מחדש חבילות סטיקרים שהותקנו כך שהחבילות המועדפות החדשות שלך לא ייתקעו בסוף התור."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "הפכנו את החיפוש של חברי וחברות קבוצה לקל יותר בדף הגדרות הקבוצה."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "הוספנו שני גדלים חדשים בהגדרות התצוגה (110% ו-90%)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "שיפורים בחיפוש חברי קבוצה."
   }
 }

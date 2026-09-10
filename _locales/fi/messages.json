@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Varmenna turvanumero"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Turvanumero on vaihtunut"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Turvanumeroiden vaihdot"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Poista mykistys"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Mykistä tämä keskustelu, kesto…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Mykistä nämä keskustelut. Mykistys päättyy…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 tunniksi"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 tunniksi"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 päiväksi"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 viikoksi"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Päättyy…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Toistaiseksi"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Valitse päivämäärä"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Valitse kellonaika"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Mykistä tämä keskustelu, mykistys päättyy…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Päiväys"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Aika"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "Kaikki ajat: {timeZone}"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Mykistetty aina"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Toistaa ilmoitusäänen lähetetyistä ja vastaanotetuista viesteistä keskustelussa ollessasi."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Reaktioiden ilmoitukset"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Ilmoita, kun joku reagoi viestiisi"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Yleiset"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Lisäasetukset"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal-tunnusluku"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "Tunnuslukumuistutukset"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "Kysymme harvemmin ajan kuluessa"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Ilmoituksen sisältö"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Tekstin syöttö"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Keskustelukansiot"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Äänet"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Sovelluksen merkki"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Vie keskusteluhistoria"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Jos tämä on pois käytöstä, et näe muiden käyttäjien kirjoittamisen ilmaisinta."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Näytä, milloin muut ovat lukemassa tai kirjoittamassa viestiä. Jos asetus on pois päältä, et näe muiden käyttäjien lukukuittauksia tai kirjoittamisen ilmaisinta."
   },
   "icu:Preferences--updates": {
     "messageformat": "Päivitykset"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Hylkää"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Varmenna Signal-tunnuslukusi"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Tulemme toisinaan pyytämään sinua varmentamaan tunnusluvun, jotta muistat sen."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Vahvista"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Ei nyt"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Syötä Signal-tunnuslukusi"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "Pyydämme tunnuslukua ajoittain sen muistamisen helpottamiseksi. Pyynnöt harvenevat ajan myötä."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "Syötä tunnusluku"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Väärä PIN-koodi. Yritä uudelleen"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Vahvista"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "Oikea PIN-koodi. Muistutamme sinua jälleen myöhemmin."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signalin työpöytäsovelluksen tuki tietokoneesi {OS}-versiolle päättyy pian. Jos haluat jatkaa Signalin käyttöä, päivitä tietokoneesi käyttöjärjestelmä {expirationDate} mennessä. <learnMoreLink>Lue lisää</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Kerran"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Kiitos Signalin tukemisesta. Lahjoituksesi auttaa edistämään tavoitettamme suojata sananvapautta ja mahdollistaa turvallinen maailmanlaajuinen viestintä miljoonille käyttäjille ympäri maailmaa avoimen lähdekoodin tietosuojateknologialla. Jos asut Yhdysvalloissa, säilytä tämä kuitti verotusta varten. Signal Technology Foundation on verovapaa voittoa tavoittelematon organisaatio Yhdysvaltojen Internal Revenue Code -pykälän 501c3 mukaisesti. Liittovaltion verotunnuksemme on 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Kiitos, että tuet Signalia. Lahjoituksesi auttaa edistämään tavoitettamme suojata sananvapautta ja mahdollistaa turvallinen maailmanlaajuinen viestintä miljoonille käyttäjille ympäri maailmaa avoimen lähdekoodin tietosuojateknologialla. Jos asut Yhdysvalloissa, säilytä tämä kuitti verotusta varten. Signal Technology Foundation on verovapaa voittoa tavoittelematon organisaatio Yhdysvaltojen Internal Revenue Code -pykälän 501c3 mukaisesti. Liittovaltion verotunnuksemme on 82-4506840. Signal ei ole tarjonnut lahjoituksesta tavaroita tai palveluja vastineeksi."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Pieniä säätöjä, virheenkorjauksia ja suorituskykyparannuksia. Kiitos, että käytät Signalia!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Esittelyssä katoavat puhelutapahtumat: kun olet asentanut tämän päivityksen, kaikki sen jälkeiset vastaamattomat, lähtevät ja vastatut puhelut katoavat automaattisesti keskusteluista, joissa katoavat viestit ovat käytössä."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Voit tilata asennettuja tarrapaketteja uudelleen, ettei kulu suotta aikaa nykyisten suosikkien kaivamiseen esiin."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Olemme myös helpottaneet ryhmän jäsenten hakua ryhmän asetussivulla."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Lisäsimme ulkoasuasetuksiin kaksi uutta suurennustasoa (110 % ja 90 %)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Ryhmien jäsenten haun parannuksia."
   }
 }

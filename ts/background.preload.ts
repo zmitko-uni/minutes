@@ -313,6 +313,7 @@ import { registrationJobQueue } from './jobs/registrationJobQueue.preload.ts';
 import { PartialRegistrationType } from './types/StandaloneRegistration.std.ts';
 import { PhoneNumberDiscoverability } from './util/phoneNumberDiscoverability.std.ts';
 import { getProfileData } from './state/ducks/standaloneInstaller.preload.ts';
+import { pinReminderService } from './services/pinReminder.preload.ts';
 
 const { isNumber, throttle } = lodash;
 
@@ -949,6 +950,15 @@ async function startApp(): Promise<void> {
         );
       }
 
+      if (window.isBeforeVersion(lastVersion, '8.28.0-alpha')) {
+        await removeStorageKeyJobQueue.add({
+          key: 'isDirectVp9Enabled',
+        });
+        await removeStorageKeyJobQueue.add({
+          key: 'isGroupVp9Enabled',
+        });
+      }
+
       if (window.isBeforeVersion(lastVersion, '6.45.0-alpha')) {
         await removeStorageKeyJobQueue.add({
           key: 'previousAudioDeviceModule',
@@ -1310,9 +1320,9 @@ async function startApp(): Promise<void> {
 
     window.Whisper.events.on('userChanged', (reconnect = false) => {
       const newDeviceId = itemStorage.user.getDeviceId();
-      const newNumber = itemStorage.user.getNumber();
+      const newNumber = itemStorage.user.getOptionalNumber();
       const newACI = itemStorage.user.getAci();
-      const newPNI = itemStorage.user.getPni();
+      const newPNI = itemStorage.user.getOptionalPni();
       const ourConversation =
         window.ConversationController.getOurConversation();
 
@@ -1461,7 +1471,7 @@ async function startApp(): Promise<void> {
     strictAssert(challengeHandler, 'start: challengeHandler');
     await challengeHandler.load();
 
-    if (!itemStorage.user.getNumber()) {
+    if (!itemStorage.user.getOptionalNumber()) {
       const ourConversation =
         window.ConversationController.getOurConversation();
       const ourE164 = ourConversation?.get('e164');
@@ -1856,11 +1866,6 @@ async function startApp(): Promise<void> {
         return await unlinkAndDisconnect();
       }
 
-      if (!itemStorage.user.getPni()) {
-        log.error(`${logId}: PNI not captured during registration, unlinking`);
-        return await unlinkAndDisconnect();
-      }
-
       // 2. Fetch remote config, before we process the message queue
       if (isFirstAuthSocketConnect) {
         try {
@@ -2090,6 +2095,7 @@ async function startApp(): Promise<void> {
         attachmentBackfill: true,
         spqr: true,
         usernameChangeSyncMessage: true,
+        optionalPhoneNumber: itemStorage.user.getOptionalNumber() == null,
       });
     } catch (error) {
       log.error(
@@ -2304,6 +2310,7 @@ async function startApp(): Promise<void> {
 
     drop(initializeDonationService());
     initMegaphoneCheckService();
+    pinReminderService.init();
 
     if (isFromMessageReceiver) {
       drop(
@@ -3099,7 +3106,7 @@ async function startApp(): Promise<void> {
       sendStateByConversationId,
       sent_at: timestamp,
       serverTimestamp: data.serverTimestamp,
-      source: itemStorage.user.getNumber(),
+      source: itemStorage.user.getOptionalNumber(),
       sourceDevice: data.device,
       sourceServiceId: itemStorage.user.getAci(),
       timestamp,
@@ -3190,8 +3197,6 @@ async function startApp(): Promise<void> {
   async function onSentMessage(event: SentEvent): Promise<void> {
     const { data, confirm } = event;
 
-    const source = itemStorage.user.getNumber();
-    strictAssert(source, 'Missing user number');
     const sourceServiceId = itemStorage.user.getAci();
     strictAssert(sourceServiceId, 'Missing user aci');
 
@@ -3682,7 +3687,7 @@ async function startApp(): Promise<void> {
       case FETCH_LATEST_ENUM.LOCAL_PROFILE: {
         log.info('onFetchLatestSync: fetching latest local profile');
         const ourAci = itemStorage.user.getAci() ?? null;
-        const ourE164 = itemStorage.user.getNumber() ?? null;
+        const ourE164 = itemStorage.user.getOptionalNumber() ?? null;
         await getProfile({
           serviceId: ourAci,
           e164: ourE164,

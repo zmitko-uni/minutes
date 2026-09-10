@@ -4,6 +4,8 @@
 import type { RefObject, JSX, ReactNode } from 'react';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import type { ReadonlyDeep } from 'type-fest';
+import { MuteExpiration } from '@signalapp/types';
+
 import type { BadgeType } from '../../badges/types.std.ts';
 import {
   useKeyboardShortcuts,
@@ -14,7 +16,7 @@ import type { HasStories } from '../../types/Stories.std.ts';
 import type { LocalizerType, ThemeType } from '../../types/Util.std.ts';
 import type { DurationInSeconds } from '../../util/durations/index.std.ts';
 import * as expirationTimer from '../../util/expirationTimer.std.ts';
-import { getMuteOptions } from '../../util/getMuteOptions.std.ts';
+import { getConversationMuteMenu } from '../../util/getMuteOptions.std.ts';
 import { isConversationMuted } from '../../util/isConversationMuted.std.ts';
 import { isInSystemContacts } from '../../util/isInSystemContacts.std.ts';
 import { missingCaseError } from '../../util/missingCaseError.std.ts';
@@ -33,6 +35,7 @@ import {
   InAnotherCallTooltip,
 } from './InAnotherCallTooltip.dom.tsx';
 import { DeleteMessagesConfirmationDialog } from '../DeleteMessagesConfirmationDialog.dom.tsx';
+import { MuteNotificationsSubMenu } from '../MuteNotificationsMenu.dom.tsx';
 import { AxoDropdownMenu } from '../../axo/AxoDropdownMenu.dom.tsx';
 import { strictAssert } from '../../util/assert.std.ts';
 import {
@@ -169,7 +172,7 @@ export type PropsActionsType = {
   ) => void;
   onConversationLeaveGroup: () => void;
   onConversationMarkUnread: () => void;
-  onConversationMuteExpirationChange: (seconds: number) => void;
+  onConversationMuteExpirationChange: (muteExpiresAt: MuteExpiration) => void;
   onConversationPin: () => void;
   onConversationUnpin: () => void;
   onConversationReportSpam: () => void;
@@ -366,7 +369,7 @@ export const ConversationHeader = memo(function ConversationHeader({
                   variant="implied-secondary"
                   onClick={() =>
                     onConversationMuteExpirationChange(
-                      isMuted ? 0 : Number.MAX_SAFE_INTEGER
+                      isMuted ? MuteExpiration.UNMUTED : MuteExpiration.ALWAYS
                     )
                   }
                   label={isMuted ? i18n('icu:unmute') : i18n('icu:mute')}
@@ -645,7 +648,7 @@ function HeaderDropdownMenuContent({
   isSignalConversation: boolean;
   isTerminated: boolean;
   onChangeDisappearingMessages: (seconds: DurationInSeconds) => void;
-  onChangeMuteExpiration: (seconds: number) => void;
+  onChangeMuteExpiration: (muteExpiresAt: MuteExpiration) => void;
   onConversationAccept: () => void;
   onConversationArchive: () => void;
   onConversationBlock: () => void;
@@ -664,7 +667,8 @@ function HeaderDropdownMenuContent({
   onViewAllMedia: () => void;
   onViewConversationDetails: () => void;
 }) {
-  const muteOptions = getMuteOptions(conversation.muteExpiresAt, i18n);
+  const muteMenu = getConversationMuteMenu(conversation.muteExpiresAt, i18n);
+  const isMuted = isConversationMuted(conversation);
   const isGroup = conversation.type === 'group';
   const disableTimerChanges =
     !conversation.canChangeTimer ||
@@ -699,11 +703,14 @@ function HeaderDropdownMenuContent({
     [onChangeDisappearingMessages]
   );
 
+  const onUnmute = useCallback(() => {
+    onChangeMuteExpiration(MuteExpiration.UNMUTED);
+  }, [onChangeMuteExpiration]);
+
   if (isSelectMode) {
     return null;
   }
 
-  const muteTitle = <span>{i18n('icu:muteNotificationsTitle')}</span>;
   const disappearingTitle = <span>{i18n('icu:disappearingMessages')}</span>;
 
   if (isSignalConversation) {
@@ -843,24 +850,20 @@ function HeaderDropdownMenuContent({
               </AxoDropdownMenu.SubContent>
             </AxoDropdownMenu.Sub>
           )}
-          <AxoDropdownMenu.Sub>
-            <AxoDropdownMenu.SubTrigger symbol="bell-slash">
-              {muteTitle}
-            </AxoDropdownMenu.SubTrigger>
-            <AxoDropdownMenu.SubContent>
-              {muteOptions.map(item => (
-                <AxoDropdownMenu.Item
-                  key={item.name}
-                  disabled={item.disabled}
-                  onSelect={() => {
-                    onChangeMuteExpiration(item.value);
-                  }}
-                >
-                  {item.name}
-                </AxoDropdownMenu.Item>
-              ))}
-            </AxoDropdownMenu.SubContent>
-          </AxoDropdownMenu.Sub>
+          {isMuted ? (
+            <AxoDropdownMenu.Item symbol="bell" onSelect={onUnmute}>
+              {i18n('icu:unmute')}
+            </AxoDropdownMenu.Item>
+          ) : (
+            <MuteNotificationsSubMenu
+              i18n={i18n}
+              renderer="AxoDropdownMenu"
+              title={i18n('icu:muteNotificationsTitle')}
+              label={muteMenu.label}
+              options={muteMenu.options}
+              onMuteExpiration={onChangeMuteExpiration}
+            />
+          )}
           {!isGroup || hasGV2AdminEnabled ? (
             <AxoDropdownMenu.Item
               symbol="settings"

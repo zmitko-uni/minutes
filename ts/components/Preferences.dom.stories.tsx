@@ -63,6 +63,10 @@ import { BackupLevel } from '../services/backups/types.std.ts';
 import { Emoji } from '../axo/emoji.std.ts';
 import type { BadgeType } from '../badges/types.std.ts';
 import { BadgeCategory } from '../badges/BadgeCategory.std.ts';
+import {
+  SVC_DEFAULT_MODE,
+  SVC_DEFAULT_MODE_FOR_SCREENSHARE,
+} from '../calling/constants.std.ts';
 
 const { shuffle } = lodash;
 
@@ -481,7 +485,9 @@ export default {
     hasMinimizeToSystemTray: true,
     hasNotificationAttention: false,
     hasNotifications: true,
+    hasPinReminders: false,
     hasPreferContactAvatars: true,
+    hasReactionNotifications: true,
     hasReadReceipts: true,
     hasRelayCalls: false,
     hasSealedSenderIndicators: true,
@@ -509,7 +515,6 @@ export default {
     me,
     navTabsCollapsed: false,
     notificationContent: 'name',
-    notificationProfileCount: 0,
     osName: 'windows',
     otherTabsUnreadStats: {
       unreadCount: 0,
@@ -607,6 +612,7 @@ export default {
       'onIncomingCallNotificationsChange'
     ),
     onKeepMutedChatsArchivedChange: action('onKeepMutedChatsArchivedChange'),
+    onPinRemindersChange: action('onHasPinRemindersChange'),
     onLocaleChange: action('onLocaleChange'),
     onLastSyncTimeChange: action('onLastSyncTimeChange'),
     onLinkPreviewsChange: action('onLinkPreviewsChange'),
@@ -621,6 +627,7 @@ export default {
     onNotificationContentChange: action('onNotificationContentChange'),
     onNotificationsChange: action('onNotificationsChange'),
     onPreferContactAvatarsChange: action('onPreferContactAvatarsChange'),
+    onReactionNotificationsChange: action('onReactionNotificationsChange'),
     onReadReceiptsChange: action('onReadReceiptsChange'),
     onRelayCallsChange: action('onRelayCallsChange'),
     onSealedSenderIndicatorsChange: action('onSealedSenderIndicatorsChange'),
@@ -688,14 +695,22 @@ export default {
     setCqsTestMode: action('setCqsTestMode'),
     dredDuration: 0,
     setDredDuration: action('setDredDuration'),
+    callStatsIntervalSecs: undefined,
+    setCallStatsIntervalSecs: action('setCallStatsIntervalSecs'),
     directMaxBitrate: 1000000,
     setDirectMaxBitrate: action('setDirectMaxBitrate'),
-    isDirectVp9Enabled: true,
-    setIsDirectVp9Enabled: action('setIsDirectVp9Enabled'),
-    groupMaxBitrate: 1000000,
+    enableVp9Encode: true,
+    setEnableVp9Encode: action('setEnableVp9Encode'),
+    enableVp9Decode: true,
+    setEnableVp9Decode: action('setEnableVp9Decode'),
+    groupMaxBitrate: undefined,
     setGroupMaxBitrate: action('setGroupMaxBitrate'),
-    isGroupVp9Enabled: false,
-    setIsGroupVp9Enabled: action('setIsDirectVp9Enabled'),
+    isGroupSvcEnabled: false,
+    setIsGroupSvcEnabled: action('setIsGroupSvcEnabled'),
+    groupSvcMode: SVC_DEFAULT_MODE,
+    setGroupSvcMode: action('setGroupSvcMode'),
+    groupSvcModeForScreenshare: SVC_DEFAULT_MODE_FOR_SCREENSHARE,
+    setGroupSvcModeForScreenshare: action('setGroupSvcModeForScreenshare'),
     sfuUrl: 'https://sfu.voip.signal.org',
     setSfuUrl: action('setSfuUrl'),
     forceKeyTransparencyCheck: async () => {
@@ -865,7 +880,6 @@ const threeProfiles = [
 
 NotificationsPageWithThreeProfiles.args = {
   settingsLocation: { page: SettingsPage.Notifications },
-  notificationProfileCount: threeProfiles.length,
   renderNotificationProfilesCreateFlow: (
     props: SmartNotificationProfilesProps
   ) => {
@@ -1114,6 +1128,12 @@ PrivacyBlockedManyBoth.args = {
 export const PrivacyWhenPrimary = Template.bind({});
 PrivacyWhenPrimary.args = {
   settingsLocation: { page: SettingsPage.Privacy },
+  weArePrimaryDevice: true,
+};
+
+export const GeneralWhenPrimary = Template.bind({});
+GeneralWhenPrimary.args = {
+  settingsLocation: { page: SettingsPage.General },
   weArePrimaryDevice: true,
 };
 

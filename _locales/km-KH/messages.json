@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "ផ្ទៀងផ្ទាត់លេខសុវត្ថិភាព"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "លេខសុវត្ថិភាពបានផ្លាស់ប្តូរ"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "ការផ្លាស់ប្តូរលេខសុវត្ថិភាព"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "បើកសំឡេង"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "បិទសំឡេងការជជែកនេះរយៈពេល…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "បិទសំឡេងការជជែកទាំងនេះរយៈពេល…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 ម៉ោង"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 ម៉ោង"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 ថ្ងៃ"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 សប្តាហ៍"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "រហូតដល់…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "ជានិច្ច"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "ជ្រើសរើសកាលបរិច្ឆេទ"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "ជ្រើសរើសម៉ោង"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "បិទសំឡេងការជជែកនេះរហូតដល់…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "កាលបរិច្ឆេទ"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "ម៉ោង"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "ពេលវេលាទាំងអស់គឺស្ថិតក្នុងល្វែងម៉ោង {timeZone}"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "បានបិទសំឡេងជានិច្ច"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "ស្តាប់ឮសំឡេងជូនដំណឹងសម្រាប់សារដែលបានផ្ញើ និងទទួល ពេលកំពុងជជែក។"
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "ការជូនដំណឹងអំពីប្រតិកម្ម"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "ជូនដំណឹងនៅពេលនរណាម្នាក់ប្រតិកម្មចំពោះសាររបស់អ្នក"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "ទូទៅ"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "កម្រិតខ្ពស់"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "លេខកូដសម្ងាត់ Signal"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "ការរំលឹកលេខកូដសម្ងាត់"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "គេនឹងស្នើទៅអ្នកតិចជាងមុននៅពេលខាងមុខ"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "ខ្លឹមសារ​ជូន​ដំណឹង"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "ការបញ្ចូលអត្ថបទ"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "ថតឯកសារជជែក"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "សំឡេង"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "ស្លាកកម្មវិធី"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "នាំចេញប្រវត្តិជជែក"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "ប្រសិនបើបិទ អ្នកនឹងមិនឃើញសញ្ញាវាយអក្សរពីអ្នកផ្សេងទេ។"
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "មើលឃើញ និងចែករំលែកនៅពេលដែលមានគេកំពុងអាន និងវាយបញ្ចូលសារ។ ប្រសិនបើបិទ អ្នកនឹងមិនឃើញមុខងារអានសារ ឬសញ្ញាវាយអក្សរពីអ្នកដទៃទេ។"
   },
   "icu:Preferences--updates": {
     "messageformat": "កំណែថ្មី"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "បិទ"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "ផ្ទៀងផ្ទាត់លេខកូដសម្ងាត់ Signal របស់អ្នក"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "យើងនឹងស្នើឱ្យអ្នកផ្ទៀងផ្ទាត់លេខកូដសម្ងាត់របស់អ្នកម្តងម្កាល ដើម្បីឱ្យអ្នកចងចាំវា។"
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "ផ្ទៀងផ្ទាត់"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "ឥឡូវកុំទាន់"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "បញ្ចូលលេខកូដសម្ងាត់ Signal របស់អ្នក"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "ដើម្បីជួយអ្នកឱ្យចងចាំលេខកូដសម្ងាត់របស់អ្នក យើងនឹងស្នើឱ្យអ្នកបញ្ចូលវាម្តងម្កាល។ យើងនឹងស្នើតិចជាងមុននៅពេលខាងមុខ។"
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "បញ្ចូលលេខកូដសម្ងាត់របស់អ្នក"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "លេខកូដសម្ងាត់មិនត្រឹមត្រូវ។ ព្យាយាមម្តងទៀត"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "បញ្ជាក់"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "លេខកូដសម្ងាត់ត្រឹមត្រូវ។ យើងនឹងរំលឹកអ្នកម្តងទៀតនៅពេលក្រោយ។"
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal desktop នឹងប្រើលែងបាននៅលើកំណែ {OS} របស់កុំព្យូទ័រអ្នកទៀតហើយក្នុងពេលឆាប់ៗនេះ។ ដើម្បីបន្តប្រើប្រាស់ Signal សូមដំឡើងកំណែប្រព័ន្ធប្រតិបត្តិការកុំព្យូទ័ររបស់អ្នកត្រឹម {expirationDate}។ <learnMoreLink>ស្វែងយល់បន្ថែម</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "ម្តង"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "សូមអរគុណចំពោះការគាំទ្រ Signal។ ការចូលរួមចំណែករបស់អ្នកជួយជំរុញដល់បេសកកម្មការពារការបញ្ចេញមតិដោយសេរី និងញ៉ាំងឱ្យមានការប្រាស្រ័យទាក់ទងគ្នាជាសាកលដោយសុវត្ថិភាពសម្រាប់មនុស្សរាប់លាននាក់ជុំវិញពិភពលោក តាមរយៈបច្ចេកវិទ្យាឯកជនភាពប្រភពបើកចំហ។ ប្រសិនបើអ្នកជាអ្នករស់នៅក្នុងសហរដ្ឋអាមេរិក សូមរក្សាទុកបង្កាន់ដៃនេះសម្រាប់កំណត់ត្រាពន្ធរបស់អ្នក។ Signal Technology Foundation គឺជាអង្គការមិនរកប្រាក់ចំណេញដែលទទួលបានការលើកលែងពន្ធនៅក្នុងសហរដ្ឋអាមេរិកក្រោមផ្នែក 501c3 នៃក្រមស្តីពីប្រាក់ចំណូលផ្ទៃក្នុង។ លេខអត្តសញ្ញាណកម្មពន្ធរបស់យើងគឺ 82-4506840។"
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "សូមអរគុណចំពោះការគាំទ្រ Signal។ ការចូលរួមចំណែករបស់អ្នកជួយជំរុញដល់បេសកកម្មការពារការបញ្ចេញមតិដោយសេរី និងញ៉ាំងឱ្យមានការប្រាស្រ័យទាក់ទងគ្នាជាសាកលដោយសុវត្ថិភាពសម្រាប់មនុស្សរាប់លាននាក់ជុំវិញពិភពលោក តាមរយៈបច្ចេកវិទ្យាឯកជនភាពប្រភពបើកចំហ។ ប្រសិនបើអ្នកជាអ្នករស់នៅក្នុងសហរដ្ឋអាមេរិក សូមរក្សាទុកបង្កាន់ដៃនេះសម្រាប់កំណត់ត្រាពន្ធរបស់អ្នក។ Signal Technology Foundation គឺជាអង្គការមិនរកប្រាក់ចំណេញដែលទទួលបានការលើកលែងពន្ធនៅក្នុងសហរដ្ឋអាមេរិកក្រោមផ្នែក 501c3 នៃក្រមស្តីពីចំណូលផ្ទៃក្នុង។ លេខអត្តសញ្ញាណកម្មពន្ធសហព័ន្ធរបស់យើងគឺ 82-4506840។ Signal មិនបានផ្តល់ទំនិញ ឬសេវាកម្មណាមួយជាការតបស្នងចំពោះការចូលរួមចំណែកនេះឡើយ។"
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "ការកែប្រែបន្តិចបន្តួច ការដោះស្រាយបញ្ហា និងការបង្កើនប្រតិបត្តិការ។ សូមអរគុណចំពោះការប្រើប្រាស់ Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "សូមណែនាំព្រឹត្តិការណ៍ហៅទូរសព្ទដែលបាត់ដោយស្វ័យប្រវត្តិ៖ ការហៅដែលខកខានមិនបានទទួល ការហៅចេញ និងការហៅដែលបានទទួល ដែលកើតឡើងបន្ទាប់ពីអ្នកដំឡើងកំណែថ្មីនេះនឹងបាត់ដោយស្វ័យប្រវត្តិនៅក្នុងការជជែកណាមួយដែលសារបាត់ដោយស្វ័យប្រវត្តិត្រូវបានបើក។"
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "ឥឡូវនេះ អ្នកអាចតម្រៀបឡើងវិញនូវកញ្ចប់ស្ទីកគ័រដែលបានដំឡើងហើយ ដូច្នេះស្ទីកគ័រដែលអ្នកចូលចិត្តថ្មីៗមិនគាំងនៅចុងក្រោយគេទេ។"
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "យើងបានបង្កលក្ខណៈកាន់តែស្រួលជាងមុន ក្នុងការស្វែងរកសមាជិកក្រុមនៅលើទំព័រការកំណត់ក្រុម ដើម្បីឱ្យអ្នកឆាប់ដឹងថាតើម្តាយអ្នកបានដាក់បងប្អូនជីដូនមួយទីពីររបស់អ្នកទៅក្នុងក្រុមបាប៊ីខ្ជូ (BBQ) សម្រាប់ការជួបជុំមហាគ្រួសារប្រចាំឆ្នាំលើកទីបីហើយឬនៅ។"
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "យើងបានបញ្ចូលកម្រិតពង្រីកថ្មីចំនួនពីរនៅក្នុងការកំណត់រូបរាង ដូច្នេះអ្នកនៅតែអាចពង្រីកសាររបស់អ្នកបាន 110% (ឬ 90%) ដែរ ដោយមិនសូវពិបាកឡើយ។"
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "ការស្វែងរកខ្លួនឯងអាចជាដំណើរការពេញមួយជីវិត ប៉ុន្តែឥឡូវនេះអ្នកនឹងបង្ហាញខ្លួនជា “អ្នក“ នៅក្នុងការស្វែងរកសមាជិកក្រុម ដើម្បីឱ្យវាកាន់តែងាយស្រួលបន្តិច។"
   }
 }

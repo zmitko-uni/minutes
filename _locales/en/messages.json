@@ -2160,7 +2160,7 @@
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__Title": {
     "messageformat": "Chat folders",
-    "description": "Preferences > Chats Page > Chat Folders Section > Title"
+    "description": "(Deleted 2026/08/26) Preferences > Chats Page > Chat Folders Section > Title"
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Title": {
     "messageformat": "Add a chat folder",
@@ -2180,11 +2180,11 @@
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button": {
     "messageformat": "Set up",
-    "description": "Preferences > Chats Page > Chat Folders Section > Add Chat Folder Item > Button"
+    "description": "(Deleted 2026/08/26) Preferences > Chats Page > Chat Folders Section > Add Chat Folder Item > Button"
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button--WithChatFolders": {
     "messageformat": "Manage",
-    "description": "Preferences > Chats Page > Chat Folders Section > Add Chat Folder Item > Button (with chat folders)"
+    "description": "(Deleted 2026/08/26) Preferences > Chats Page > Chat Folders Section > Add Chat Folder Item > Button (with chat folders)"
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__ChatFolderItem__ContextMenu__EditFolder": {
     "messageformat": "Edit folder",
@@ -3183,10 +3183,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Verify Safety Number",
     "description": "Title for the modal for safety number verification"
-  },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Safety Number has changed",
-    "description": "(Deleted 2026/07/22) A notification shown in the conversation when a contact reinstalls"
   },
   "icu:safetyNumberChanges": {
     "messageformat": "Safety Number Changes",
@@ -5276,27 +5272,83 @@
   },
   "icu:muteHour": {
     "messageformat": "Mute for one hour",
-    "description": "Label for muting the conversation"
+    "description": "(Deleted 2026/08/26) Label for muting the conversation"
   },
   "icu:muteEightHours": {
     "messageformat": "Mute for eight hours",
-    "description": "Label for muting the conversation"
+    "description": "(Deleted 2026/08/26) Label for muting the conversation"
   },
   "icu:muteDay": {
     "messageformat": "Mute for one day",
-    "description": "Label for muting the conversation"
+    "description": "(Deleted 2026/08/26) Label for muting the conversation"
   },
   "icu:muteWeek": {
     "messageformat": "Mute for one week",
-    "description": "Label for muting the conversation"
+    "description": "(Deleted 2026/08/26) Label for muting the conversation"
   },
   "icu:muteAlways": {
     "messageformat": "Mute always",
-    "description": "Label for muting the conversation"
+    "description": "(Deleted 2026/08/26) Label for muting the conversation"
   },
   "icu:unmute": {
     "messageformat": "Unmute",
     "description": "Label for unmuting the conversation"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Mute this chat for…",
+    "description": "Header shown at the top of the mute notifications menu when the chat is not currently muted"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Mute these chats for…",
+    "description": "(Deleted 2026/08/26) Header shown at the top of the mute notifications menu for a chat folder, which mutes every chat in the folder"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 hour",
+    "description": "Label for muting the conversation for one hour"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 hours",
+    "description": "Label for muting the conversation for eight hours"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 day",
+    "description": "Label for muting the conversation for one day"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 week",
+    "description": "Label for muting the conversation for one week"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Until…",
+    "description": "Label for muting the conversation until a date and time the user picks. Opens a dialog."
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Always",
+    "description": "Label for muting the conversation forever"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Choose a date",
+    "description": "Title of the popup for choosing a date, only read out by screen readers"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Choose a time",
+    "description": "Title of the popup for choosing a time, only read out by screen readers"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Mute this chat until…",
+    "description": "Title of the dialog where a date and time to mute the conversation until is picked"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Date",
+    "description": "Accessible label for the date field in the dialog where a date and time to mute the conversation until is picked"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Time",
+    "description": "Accessible label for the time field in the dialog where a date and time to mute the conversation until is picked"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "All times in {timeZone}",
+    "description": "Note below the date and time fields telling the user which time zone the times are in. {timeZone} is a time zone name, like 'Eastern Time'."
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Muted always",
@@ -6508,7 +6560,7 @@
   },
   "icu:ConversationDetails__unmute--title": {
     "messageformat": "Unmute this chat?",
-    "description": "Title for the modal to unmute a chat"
+    "description": "(Deleted 2026/08/26) Title for the modal to unmute a chat"
   },
   "icu:ConversationDetails--group-link": {
     "messageformat": "Group link",
@@ -7928,6 +7980,14 @@
     "messageformat": "Hear a notification sound for sent and received messages while in the chat.",
     "description": "Description for message audio setting"
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Reaction notifications",
+    "description": "Title of setting to enable/disable system notifications when someone reacts to your message"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Notify when someone reacts to your message",
+    "description": "Description of setting to enable/disable system notifications when someone reacts to your message"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "General",
     "description": "Button to switch the settings view"
@@ -8060,9 +8120,37 @@
     "messageformat": "Advanced",
     "description": "Title for advanced settings"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal PIN",
+    "description": "Title for Signal PIN settings"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "PIN reminders",
+    "description": "Header for Signal PIN reminders setting"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "You'll be asked less frequently over time",
+    "description": "Description for Signal PIN reminders setting"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Notification content",
     "description": "Label for the notification content setting select box"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Text input",
+    "description": "Preferences > Chats > Text Input Section > Title"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Chat folders",
+    "description": "Preferences > Chats > Chat Folders Section > Title"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Sounds",
+    "description": "Preferences > Notifications > Sounds Section > Title"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "App badge",
+    "description": "Preferences > Notifications > App Badge Section > Title"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Export chat history",
@@ -8266,7 +8354,7 @@
   },
   "icu:NotificationProfiles--setup": {
     "messageformat": "Set up",
-    "description": "Button text to setup notification profiles"
+    "description": "(Deleted 2026/08/26) Button text to setup notification profiles"
   },
   "icu:NotificationProfiles--title": {
     "messageformat": "Notification Profiles",
@@ -8286,7 +8374,7 @@
   },
   "icu:NotificationProfiles--manage-profiles": {
     "messageformat": "{profileCount, plural, one {One profile} other {# profiles}}",
-    "description": "Button text to take user to profile list page when they already have notification profiles"
+    "description": "(Deleted 2026/08/26) Button text to take user to profile list page when they already have notification profiles"
   },
   "icu:NotificationProfiles--create": {
     "messageformat": "Create profile",
@@ -8822,7 +8910,7 @@
   },
   "icu:Preferences__pnp__row--button": {
     "messageformat": "Change…",
-    "description": "Text of Phone Number row button in Privacy section of Preferences window"
+    "description": "(Deleted 2026/08/26) Text of Phone Number row button in Privacy section of Preferences window"
   },
   "icu:Preferences__pnp__sharing--title": {
     "messageformat": "Who can see my number",
@@ -8890,7 +8978,7 @@
   },
   "icu:Preferences--read-receipts--description": {
     "messageformat": "If disabled, you won't see read receipts from others.",
-    "description": "Description for the read receipts setting"
+    "description": "(Deleted 2026/08/26) Description for the read receipts setting"
   },
   "icu:Preferences--typing-indicators": {
     "messageformat": "Typing indicators",
@@ -8898,7 +8986,11 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "If disabled, you won't see typing indicators from others.",
-    "description": "Description for the typing indicators setting"
+    "description": "(Deleted 2026/08/26) Description for the typing indicators setting"
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "See and share when message are being read and typed. If disabled, you won’t see read receipts or typing indicators from others.",
+    "description": "Help text at the bottom of the messaging section of privacy preferences"
   },
   "icu:Preferences--updates": {
     "messageformat": "Updates",
@@ -10638,6 +10730,46 @@
     "messageformat": "Dismiss",
     "description": "Text of the secondary button on username megaphone"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Verify your Signal PIN",
+    "description": "Title of Signal PIN reminder megaphone"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "We’ll occasionally ask you to verify your PIN so that you remember it.",
+    "description": "Body of Signal PIN reminder megaphone"
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Verify",
+    "description": "Text of the primary button on Signal PIN reminder megaphone"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Not now",
+    "description": "Text of the secondary button on Signal PIN reminder megaphone"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Enter your Signal PIN",
+    "description": "Title of Signal PIN reminder dialog"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "To help you memorize your PIN, we’ll ask you to enter it periodically. We’ll ask less over time.",
+    "description": "Body of Signal PIN reminder dialog"
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "Enter your PIN",
+    "description": "Placeholder text of PIN input box in Signal PIN reminder dialog"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Incorrect PIN. Try again",
+    "description": "Error text shown in PIN input box in Signal PIN reminder dialog, when the input was incorrect"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Confirm",
+    "description": "Confirm button in Signal PIN reminder dialog"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN correct. We’ll remind you again later.",
+    "description": "Toast message when Signal PIN reminder was completed successfully."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal desktop will no longer support your computer’s version of {OS} soon. To keep using Signal, update your computer’s operating system by {expirationDate}. <learnMoreLink>Learn more</learnMoreLink>",
     "description": "Body of a dialog displayed on unsupported operating systems"
@@ -11214,10 +11346,6 @@
     "messageformat": "One time",
     "description": "Value shown for one-time donations on donation receipt"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Thank you for supporting Signal. Your contribution helps fuel the mission of protecting free expression and enabling secure global communication for millions around the world, through open source privacy technology. If you’re a resident of the United States, please retain this receipt for your tax records. Signal Technology Foundation is a tax-exempt nonprofit organization in the United States under section 501c3 of the Internal Revenue Code. Our Federal Tax ID is 82-4506840.",
-    "description": "(Deleted 2026/07/22) Footer text shown on donation receipts explaining tax deductibility and Signal's mission"
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Thank you for supporting Signal. Your contribution helps fuel the mission of protecting free expression and enabling secure global communication for millions around the world, through open source privacy technology. If you’re a resident of the United States, please retain this receipt for your tax records. Signal Technology Foundation is a tax-exempt nonprofit organization in the United States under section 501c3 of the Internal Revenue Code. Our Federal Tax ID is 82-4506840. Signal did not provide any goods or services in consideration of this contribution.",
     "description": "Footer text shown on donation receipts explaining tax deductibility and Signal's mission"
@@ -11629,20 +11757,16 @@
     "description": "Release notes for releases that only include bug fixes",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Introducing disappearing call events: Missed, outgoing, and received calls that occur after you install this update will now automatically disappear in any chat where disappearing messages are enabled.",
-    "description": "(Deleted 2026/07/22) Release notes for 8.20"
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Now you can reorder installed sticker packs so your new favorites don’t get stuck in the back of the line.",
-    "description": "(Deleted 2026/07/22) Release notes for 8.20"
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "We made it easier to search for group members on the group settings page, so you can quickly figure out if your Mom already added your second cousin to the third-annual extended family reunion BBQ group.",
     "description": "(Deleted 2026/08/19) Release notes for 8.24"
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "We added two new zoom levels in the appearance settings, so even with very little effort you can still give your messages 110% (or 90%).",
-    "description": "Release notes for 8.25"
+    "description": "(Deleted 2026/08/26) Release notes for 8.25"
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Finding yourself can be a lifelong process, but now you'll appear as “You” in the group member search to make it a little easier.",
+    "description": "Release notes for 8.26"
   }
 }

@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Güvənlik nömrəsini təsdiqlə"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Güvənlik nömrəsi dəyişdirildi"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Güvənlik Nömrəsi Dəyişiklikləri"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Səsi aç"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Bu çatın səsini bağla…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Bu çatların səsini bağla…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 saat"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 saat"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 gün"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 həftə"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Bu vaxta qədər…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Həmişə"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Tarix seç"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Vaxt seç"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "… qədər bu çatın səsini bağla"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Tarixə görə"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Vaxt"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "{timeZone} saat qurşağındakı bütün saatlar"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Həmişəlik səsi bağlandı"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Çatda ikən göndərilən və qəbul edilən mesajlar üçün bildiriş səsini eşidin."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Reaksiya bildirişləri"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Mesajıma biri reaksiya verdiyi zaman bildiriş göndər"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Ümumi"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Qabaqcıl"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal PIN-i"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "PIN xatırladıcıları"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "Vaxt keçdikcə daha az soruşulacaq"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Bildiriş məzmunu"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Mətnin daxil edilməsi"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Çat qovluqları"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Səslər"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Tətbiq nişanı"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Çat tarixçəsini ixrac et"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Qeyri-aktiv edildikdə başqaları ilə yazışarkən, onların yazma göstəricilərini görməyəcəksiniz."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Mesajlar oxunduğu və ya yazıldığı zaman baxın və paylaşın. Qeyri-aktiv edildikdə oxunma bildirişlərini və ya yazma göstəricilərini görə bilməyəcəksiniz."
   },
   "icu:Preferences--updates": {
     "messageformat": "Yeniləmələr"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Rədd et"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Signal PIN-inizi təsdiqləyin"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "PIN kodunuzu yadda saxlamağınıza kömək etmək üçün onu vaxtaşırı daxil etməyinizi xahiş edəcəyik."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Yoxla"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "İndi yox"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Signal PIN-inizi daxil edin"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "PIN kodunuzu xatırlamağınıza kömək etmək üçün onu vaxtaşırı daxil etməyinizi xahiş edəcəyik. Zaman keçdikcə bunu daha az tez-tez tələb edəcəyik."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "PIN-inizi daxil edin"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Yanlış PIN. Yenidən sına"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Təsdiqlə"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN doğrudur. Daha sonra sizə təkrar xatırladacağıq."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal desktop tezliklə kompüterinizin {OS} versiyasını artıq dəstəkləməyəcək. Signal-dan istifadəyə davam etmək üçün kompüterinizin əməliyyat sistemini {expirationDate} tarixinə qədər yeniləyin. <learnMoreLink>Daha ətraflı</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Bir dəfə"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Signal-ı dəstəklədiyiniz üçün təşəkkürlər. Töhfəniz, açıq mənbəli məxfilik texnologiyası vasitəsilə dünyadakı milyonlarla insan üçün azad ifadəni qoruyan və etibarlı qlobal ünsiyyəti təmin edən inkişaf missiyasını dəstəkləməyə kömək edir. Əgər Amerika Birləşmiş Ştatlarında yaşayırsınızsa, bu qəbzi vergi qeydlərinizin arasında saxlayın. Signal Texnologiya Fondu, Daxili Gəlir Məcəlləsinin 501c3 maddəsinə əsasən Amerika Birləşmiş Ştatlarında vergidən azad edilmiş qeyri-kommersiya təşkilatıdır. Federal Vergi Ödəyicisi Nömrəmiz: 82-4506840."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Signal-ı dəstəklədiyiniz üçün təşəkkürlər. Töhfəniz, açıq mənbəli məxfilik texnologiyası vasitəsilə dünyadakı milyonlarla insan üçün azad ifadəni qoruyan və təhlükəsiz qlobal ünsiyyəti təmin edən inkişaf missiyasını dəstəkləməyə kömək edir. Əgər Amerika Birləşmiş Ştatlarında yaşayırsınızsa, bu qəbzi vergi qeydləriniz üçün saxlayın. \"Signal Technology Foundation\", Daxili Gəlir Məcəlləsinin 501c3 maddəsinə əsasən Amerika Birləşmiş Ştatlarında vergidən azad edilmiş qeyri-kommersiya təşkilatıdır. Federal VÖEN: 82-4506840. Signal bu töhfə qarşılığında heç bir mal və ya xidmət təmin etməyib."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Kiçik spesifik tənzimləmələr, xəta düzəlişləri və məhsuldarlığın artırılması. Signal istifadə etdiyiniz üçün təşəkkürlər!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "\"Yox olan zəng etmə hadisələri\" xüsusiyyəti təqdim olunur: Bu yeniləməni quraşdırdıqdan sonra baş verən buraxılmış, çıxan və qəbul edilən zənglər, yoxa çıxan mesajların aktiv olduğu bütün çatlardan avtomatik olaraq silinəcək."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Artıq quraşdırılmış stiker paketlərinin yerini dəyişə və sevdiyiniz yeni paketləri daha ön sıralara yerləşdirə bilərsiniz."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Biz qrup parametrləri səhifəsində qrup üzvlərinin axtarışını asanlaşdırdıq, artıq bir qrupa kimin əlavə edilib-edilmədiyini asanlıqla tapa bilərsiniz."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Görünüş parametrlərinə iki yeni yaxınlaşdırma səviyyəsi əlavə etdik ki, çox az bir səylə belə mesajlarınızı 110% (və ya 90%) yaxınlaşdıra biləsiniz."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Həyatda özünü tapmaq çətin olsa da, qrup üzvü axtarışı panelində \"Sən\"i tapmaq asandır."
   }
 }

@@ -2396,9 +2396,6 @@
   "icu:SafetyNumberModal__title": {
     "messageformat": "Güvenlik Numarasını Doğrula"
   },
-  "icu:safetyNumberChanged": {
-    "messageformat": "Güvenlik Numarası değişti"
-  },
   "icu:safetyNumberChanges": {
     "messageformat": "Güvenlik Numarası Değişiklikleri"
   },
@@ -3991,6 +3988,48 @@
   },
   "icu:unmute": {
     "messageformat": "Sesi aç"
+  },
+  "icu:MuteMenu__label": {
+    "messageformat": "Bu sohbeti sessize al…"
+  },
+  "icu:MuteMenu__labelChatFolder": {
+    "messageformat": "Bu sohbetleri şu süreliğine sessize al…"
+  },
+  "icu:MuteMenu__hour": {
+    "messageformat": "1 saat"
+  },
+  "icu:MuteMenu__eightHours": {
+    "messageformat": "8 saat"
+  },
+  "icu:MuteMenu__day": {
+    "messageformat": "1 gün"
+  },
+  "icu:MuteMenu__week": {
+    "messageformat": "1 hafta"
+  },
+  "icu:MuteMenu__until": {
+    "messageformat": "Şuna kadar…"
+  },
+  "icu:MuteMenu__always": {
+    "messageformat": "Her zaman"
+  },
+  "icu:DatePicker__popupTitle": {
+    "messageformat": "Bir tarih seç"
+  },
+  "icu:TimePicker__popupTitle": {
+    "messageformat": "Bir saat seç"
+  },
+  "icu:MuteUntilDialog__title": {
+    "messageformat": "Bu sohbeti şu zamana kadar sessize al…"
+  },
+  "icu:MuteUntilDialog__dateLabel": {
+    "messageformat": "Tarih"
+  },
+  "icu:MuteUntilDialog__timeLabel": {
+    "messageformat": "Zaman"
+  },
+  "icu:MuteUntilDialog__timeZoneNote": {
+    "messageformat": "Tüm zamanlar {timeZone} zaman dilimindedir"
   },
   "icu:muteExpirationLabelAlways": {
     "messageformat": "Kalıcı olarak sessize alındı"
@@ -5965,6 +6004,12 @@
   "icu:Preferences__message-audio-description": {
     "messageformat": "Sohbet sırasında gönderilen ve alınan mesajlar için bir bildirim sesi duyarsın."
   },
+  "icu:Preferences__reaction-notifications-title": {
+    "messageformat": "Tepki bildirimleri"
+  },
+  "icu:Preferences__reaction-notifications-description": {
+    "messageformat": "Birisi mesajına tepki verdiğinde bildirim gönder"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Genel"
   },
@@ -6064,8 +6109,29 @@
   "icu:Preferences--advanced": {
     "messageformat": "Gelişmiş"
   },
+  "icu:Preferences--signal-pin": {
+    "messageformat": "Signal PIN'i"
+  },
+  "icu:Preferences--pin-reminders--header": {
+    "messageformat": "PIN hatırlatıcıları"
+  },
+  "icu:Preferences--pin-reminders--description": {
+    "messageformat": "Zaman geçtikçe daha az sorulacaktır"
+  },
   "icu:Preferences--notification-content": {
     "messageformat": "Bildirim içeriği"
+  },
+  "icu:Preferences__Chats__TextInputSection__Title": {
+    "messageformat": "Metin girişi"
+  },
+  "icu:Preferences__Chats__ChatFoldersSection__Title": {
+    "messageformat": "Sohbet klasörleri"
+  },
+  "icu:Preferences__Notifications__SoundsSection__Title": {
+    "messageformat": "Sesler"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title": {
+    "messageformat": "Uygulama rozeti"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Sohbet geçmişini dışa aktar"
@@ -6693,6 +6759,9 @@
   },
   "icu:Preferences--typing-indicators--description": {
     "messageformat": "Devre dışıysa, başkalarının yazma göstergelerini göremezsin."
+  },
+  "icu:Preferences--messaging-help": {
+    "messageformat": "Mesaj okundu bilgisini ve yazma göstergesini gör ve paylaş. Devre dışı bırakılırsa, diğer kullanıcılardan okundu bilgisi veya yazma göstergesi görmezsin."
   },
   "icu:Preferences--updates": {
     "messageformat": "Güncellemeler"
@@ -8000,6 +8069,36 @@
   "icu:UsernameMegaphone__dismiss": {
     "messageformat": "Kapat"
   },
+  "icu:PinReminderMegaphone__title": {
+    "messageformat": "Signal PIN'ini doğrula"
+  },
+  "icu:PinReminderMegaphone__body": {
+    "messageformat": "Hatırlamanız için arada sırada PIN'inizi doğrulamanızı isteyeceğiz."
+  },
+  "icu:PinReminderMegaphone__verify": {
+    "messageformat": "Doğrula"
+  },
+  "icu:PinReminderMegaphone__not-now": {
+    "messageformat": "Şimdi değil"
+  },
+  "icu:PinReminderModal__title": {
+    "messageformat": "Signal PIN'ini gir"
+  },
+  "icu:PinReminderModal__body": {
+    "messageformat": "PIN'inizi hatırlamanıza yardımcı olmak için, arada sırada girmenizi isteyeceğiz. Zaman geçtikçe daha az soracağız."
+  },
+  "icu:PinReminderModal__pin-input-placeholder": {
+    "messageformat": "PIN'ini gir"
+  },
+  "icu:PinReminderModal__pin-input-error": {
+    "messageformat": "Hatalı PIN. Tekrar dene"
+  },
+  "icu:PinReminderModal__confirm": {
+    "messageformat": "Onayla"
+  },
+  "icu:PinReminderCompletedToast": {
+    "messageformat": "PIN doğru. Sana sonra tekrar hatırlatacağız."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal masaüstü, yakında bilgisayarının {OS} sürümünü artık desteklemeyecek. Signal'i kullanmaya devam etmek için {expirationDate} tarihine kadar bilgisayarının işletim sistemini güncelle. <learnMoreLink>Daha fazlasını öğren</learnMoreLink>"
   },
@@ -8432,9 +8531,6 @@
   "icu:DonationReceipt__type-value--one-time": {
     "messageformat": "Bir kez"
   },
-  "icu:DonationReceipt__footer-text": {
-    "messageformat": "Signal'ı desteklediğin için teşekkürler. Katkın açık kaynak gizlilik teknolojisi aracılığıyla, ifade özgürlüğünü koruma ve dünya çapında milyonlarca kişi için güvenli küresel iletişim sağlama misyonunu desteklemeye yardımcı olur. Amerika Birleşik Devletleri'nde ikamet ediyorsan, lütfen bu makbuzu vergi kayıtların için sakla. Signal Technology Foundation, Amerika Birleşik Devletleri'nde İç Gelir Yasası'nın 501c3 numaralı bölümü kapsamında vergiden muaf, kar amacı gütmeyen bir kuruluştur. Federal Vergi Kimlik Numaramız 82-4506840'tır."
-  },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Signal'ı desteklediğin için teşekkürler. Katkın açık kaynak gizlilik teknolojisi aracılığıyla, ifade özgürlüğünü koruma ve dünya çapında milyonlarca kişi için güvenli küresel iletişim sağlama misyonunu desteklemeye yardımcı olur. Amerika Birleşik Devletleri'nde ikamet ediyorsan, lütfen bu makbuzu vergi kayıtların için sakla. Signal Technology Foundation, Amerika Birleşik Devletleri'nde İç Gelir Yasası'nın 501c3 numaralı bölümü kapsamında vergiden muaf, kar amacı gütmeyen bir kuruluştur. Federal Vergi Kimlik Numaramız 82-4506840'tır. Signal bu katkı karşılığında herhangi bir mal veya hizmet sağlamamıştır."
   },
@@ -8745,16 +8841,13 @@
     "messageformat": "Küçük ince ayarlar, hata düzeltmeleri ve performans geliştirmeleri yaptık. Signal'i kullandığın için teşekkürler!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.20--0": {
-    "messageformat": "Kaybolan arama etkinlikleri: Bu güncellemeyi yükledikten sonra gerçekleşen cevapsız, yapılan ve gelen arama kayıtları, kaybolan mesajların etkinleştirildiği sohbetlerde otomatik olarak kaybolur."
-  },
-  "icu:WhatsNew__8.20--1": {
-    "messageformat": "Bundan sonra yüklenen çıkartma paketlerini yeniden sipariş edebilirsin böylece yeni favorilerin sıranın gerisine düşmez."
-  },
   "icu:WhatsNew__8.24--1": {
     "messageformat": "Grup ayarları sayfasında grup üyelerini aramayı kolaylaştırdık."
   },
   "icu:WhatsNew__8.25--0": {
     "messageformat": "Görünüm ayarlarına iki yeni yakınlaştırma seviyesi ekledik (%110 ve %90)."
+  },
+  "icu:WhatsNew__8.26--0": {
+    "messageformat": "Grup üyesi arama iyileştirmeleri."
   }
 }
