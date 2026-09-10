@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.25.0-m1.3.1] - 2026-09-10
+
+### Added
 - Nahrávání **sdíleného videa** hovoru do WebM: ukládá jen prezentaci přenášenou přes Signal (ne kamery ani UI); vlastní sdílení jde z odchozího RingRTC streamu; pause/resume a automatické uložení na konci hovoru
 - Přepis a volitelné AI shrnutí **videonahrávek** (stejná Whisper a sumarizační pipeline jako u MP3)
 - Export videa WebM do kompatibilního **MP4** (H.264/AAC) z historie nahrávek, včetně průběhu, zrušení a přegenerování; přednostně systémový FFmpeg, jinak jednorázové stažení podpory
