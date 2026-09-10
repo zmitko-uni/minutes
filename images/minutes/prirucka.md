@@ -173,11 +173,13 @@ Stejné nastavení jako u chatů (**Nastavení AI** včetně **stylu shrnutí**)
 
 `Dokumenty/Minutes`
 
-Soubory: audio `.mp3`, sdílené video `.webm`, PCM a `.json` metadata, `.transcript.md` a volitelně `.summary.md`. Nové audio i video nahrávky používají stejný automatický přepis a shrnutí.
+Soubory: audio `.mp3`, sdílené video `.webm`, volitelně export `.mp4`, PCM a `.json` metadata, `.transcript.md` a volitelně `.summary.md`. Nové audio i video nahrávky používají stejný automatický přepis a shrnutí.
+
+V **Přepisy (Minutes)** u videonahrávky lze **Vytvořit MP4** (H.264/AAC) pro přehrání mimo Minutes. Převod použije systémový FFmpeg, pokud je k dispozici; jinak nabídne jednorázové stažení podpory. Původní WebM se nemění. Během převodu jde akci **zrušit** nebo později **přegenerovat**.
 
 ### Právní upozornění
 
-Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba.
+Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba. Minutes na to upozorní v potvrzení **Nahrávání se chystá spustit** před každým novým nahráváním (při obnovení pozastavené nahrávky se dialog nezobrazí).
 
 ### Zvuk nahrávky a oprávnění
 
@@ -187,6 +189,16 @@ Audio i video nahrávka používají zvuk přímo z RingRTC: vzdálený playout 
 2. **Screen Recording** je potřeba pouze tehdy, když přes Signal sdílíte obrazovku. Nahrávání žádné druhé snímání obrazovky nespouští.
 
 Příchozí zvuk se bere před operačním systémovým výstupem, takže není závislý na hlasitosti reproduktorů ani na vybraném fyzickém výstupu.
+
+### Režim mikrofonu na macOS (Izolace hlasu)
+
+Během hovoru klikněte v řádku nabídek na **oranžovou ikonu mikrofonu** (nebo **Control Center → Mic Mode**) a zvolte:
+
+- **Standard** — běžné zpracování hlasu
+- **Izolace hlasu** (Voice Isolation) — potlačí okolní hluk; vhodné v kanceláři nebo kavárně
+- **Široké spektrum** (Wide Spectrum) — zachytí i zvuky v místnosti
+
+Režim lze změnit i uprostřed hovoru. Platí pro to, co slyší ostatní účastníci (nejen nahrávka).
 
 ---
 
@@ -201,6 +213,30 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 ---
 
+## Zprávy s kontextem
+
+Pravý klik na zprávu (nebo výběr více zpráv) nabízí:
+
+- **Přeposlat s kontextem** — přeposlání včetně jména autora a času původní zprávy (odlišená ikona i titulek dialogu)
+- **Kopírovat s kontextem** — zkopíruje text se stejným kontextem do schránky
+
+Běžné přeposlání a kopírování Signálu zůstávají beze změny.
+
+---
+
+## Nastavení MCP
+
+Lokální MCP server a webhooky pro automatizaci (například AI nástroje nebo skripty). Otevřete **Menu → Minutes → Nastavení MCP**.
+
+- Zapnutí serveru, **port**, **kopírování URL** a jednorázové zobrazení **tokenu** (bez tokenu se server nepřipojí)
+- **Povolení hostů** — například `host.docker.internal` pro Docker Desktop; HTTP originy se odvodí automaticky
+- Oprávnění nástrojů po úrovních: **Pouze čtení**, **Běžné zápisy**, **Destruktivní zápisy**
+- Webhooky na události (hovor, nahrávka, přepis, zpráva)
+
+Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho má, může jménem Minutes číst nebo měnit data podle zapnutých oprávnění.
+
+---
+
 ## Menu Minutes — přehled
 
 | Položka | Co dělá |
@@ -209,10 +245,11 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 | Záložky | Seznam záložek (Ctrl+Shift+B) |
 | Přepisy (Minutes) | Fronta přepisů, historie nahrávek (Ctrl+Shift+M) |
 | Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma |
+| Nastavení MCP | Lokální MCP server, token, oprávnění nástrojů a webhooky |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Příručka | Tato nápověda |
 | O Minutes | Úvodní obrazovka s přehledem funkcí |
-| Otevřít nahrávky hovorů | Složka s MP3 a WebM |
+| Otevřít nahrávky hovorů | Složka s MP3, WebM a volitelně MP4 |
 | Otevřít sumarizace chatů | Složka s exporty chatů |
 | Zobrazit log | Diagnostika (jen z menu) |
 
@@ -233,8 +270,8 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 | Typ | Cesta |
 |-----|--------|
 | Nahrávky hovorů | `Dokumenty/Minutes` |
-| Sumáře chatů | `%APPDATA%\Minutes\minutes\summaries\` |
-| AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` |
+| Sumáře chatů | Windows `%APPDATA%\Minutes\minutes\summaries\` · macOS `~/Library/Application Support/Minutes/minutes/summaries/` |
+| AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |
 | Lokální LLM (Gemma) | `%APPDATA%\Minutes\minutes\models\llm\` |
 | Záložky | `%APPDATA%\Minutes\minutes\` |
@@ -338,6 +375,17 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 ### Nahrávání nejde
 
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
+- Na macOS: režim mikrofonu se volí v **Control Center** (oranžová ikona mikrofonu v řádku nabídek), ne v nastavení Minutes
+
+### Export MP4 selhal
+
+- V **Přepisy** zkuste **Přegenerovat MP4**, nebo nainstalujte FFmpeg do systému a akci spusťte znovu
+- Pokud Minutes nabídne stažení podpory MP4, potvrďte ho jednorázově (ukládá se do dat aplikace, instalátor se tím nezvětší)
+
+### MCP se nepřipojuje
+
+- V **Nastavení MCP** ověřte, že server **Běží**, a zkopírujte aktuální URL i token
+- Z Dockeru přidejte `host.docker.internal` mezi povolené hosty
 
 ### Skupinový hovor ve velké skupině nezvoní
 
@@ -369,4 +417,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-08-10*
+*Poslední aktualizace příručky: 2026-09-10*

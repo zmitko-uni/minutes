@@ -17,7 +17,7 @@
 | `app/SystemTrayService.main.ts` | tray ikona + tooltip minutes | 2 volání |
 | `app/menu.std.ts` | submenu Minutes + Příručka/MCP | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
-| `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru | 2 volání |
+| `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes) | 3 volání |
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
 | `ts/background.preload.ts` | init Minutes služeb, automation rendereru, IPC sumarizace, build expiration a ochrana aktivního hovoru při zamknutí obrazovky | bootstrap |
 | `ts/messages/saveAndNotify.preload.ts` | publikuje `message.received` do explicitně povolených webhooků | webhook hook |

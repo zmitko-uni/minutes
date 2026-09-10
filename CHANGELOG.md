@@ -14,7 +14,24 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- Nahrávání **sdíleného videa** hovoru do WebM: ukládá jen prezentaci přenášenou přes Signal (ne kamery ani UI); vlastní sdílení jde z odchozího RingRTC streamu; pause/resume a automatické uložení na konci hovoru
+- Přepis a volitelné AI shrnutí **videonahrávek** (stejná Whisper a sumarizační pipeline jako u MP3)
+- Export videa WebM do kompatibilního **MP4** (H.264/AAC) z historie nahrávek, včetně průběhu, zrušení a přegenerování; přednostně systémový FFmpeg, jinak jednorázové stažení podpory
+- Lokální **MCP** server a webhooky: menu **Nastavení MCP**, token, oprávnění Pouze čtení / Běžné zápisy / Destruktivní zápisy a seznam povolených hostů (včetně Docker `host.docker.internal`)
+- **Přeposlat s kontextem** a **Kopírovat s kontextem** — zachová autora a čas původní zprávy
+- Dialogy Minutes lze přesouvat myší i klávesnicí; pozice se pamatuje
+- Linux **AppImage** instalátor (x64)
+
+### Changed
+- Základ aplikace: Signal Desktop **8.25.0**
+- Zvuk nahrávek (MP3 i video) jde **přímo z RingRTC** — bez vlastního mikrofonu a systémového loopbacku; respektuje ztlumení mikrofonu v Signalu
+- Nahrávky se ukládají do **Dokumenty/Minutes**
+
+### Fixed
+- Aktivní hovor se při pouhém zamknutí obrazovky neukončí
+- Dlouhé nahrávky: PCM sidecar pro Whisper se čte po blocích (nižší spotřeba paměti)
+- RingRTC addon používá produkční konfiguraci WebRTC (stejné DTLS/SDP chování jako oficiální Signal)
+- Po merge Signálu 8.25 znovu fungují startovací hooky Minutes
 
 ## [8.25.0-m1.3.0-beta.7] - 2026-09-01
 
