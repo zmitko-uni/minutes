@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.3.1-beta.1] - 2026-09-10
+
 ### Changed
 - Základ aplikace: Signal Desktop **8.26.0** — ve vyhledávání členů skupiny se vlastní účet zobrazuje jako **Vy**
 - Electron **43.5.0**, sqlcipher **4.1.0**
