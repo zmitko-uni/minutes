@@ -13,9 +13,7 @@ const ref = process.env.MINUTES_PROD_BRANCH ?? 'main';
 
 ensureGhAuth();
 
-runGh(
-  `workflow run ${workflowFile} --repo ${repo} --ref ${ref} -f release_channel=prod`
-);
+runGh(`workflow run ${workflowFile} --repo ${repo} --ref ${ref}`);
 
 console.log(
   `Spuštěn workflow Release Minutes (prod) na branchi ${ref} v ${repo}.`
