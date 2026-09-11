@@ -202,6 +202,34 @@ Režim lze změnit i uprostřed hovoru. Platí pro to, co slyší ostatní úča
 
 ---
 
+## Odeslání zápisu do uuBT
+
+Hotové AI shrnutí hovoru lze vložit přímo do sekce **Zápis** schůzky ve vašem firemním systému (uuBT). Původní shrnutí zůstává i v Minutes — do schůzky se přidá jako nový blok na konec zápisu, nic se nepřepisuje.
+
+### Jednorázové nastavení
+
+1. **Menu → Minutes → Nastavení AI** → sekce **uuBT — odeslání zápisu do schůzky**
+2. Zapněte **Povolit odesílání do uuBT**
+3. Vyplňte **Access code 1** a **Access code 2** (přístupové kódy vašeho firemního účtu)
+4. Klikněte **Uložit kódy a otestovat připojení k uuBT** — vypíše se, pod kým jste přihlášení
+
+Kódy se ukládají **šifrovaně přes safeStorage operačního systému**, stejně jako API klíče. Přihlašovací token existuje jen v paměti běžící aplikace a nikam se neukládá.
+
+### Odeslání zápisu
+
+1. Počkejte, až je hotové **shrnutí** nahrávky (panel **Přepisy**, Ctrl+Shift+M)
+2. U nahrávky klikněte na **U→** (*Poslat zápis do schůzky v uuBT*)
+3. Minutes nabídne schůzky z vašeho kalendáře pro den nahrávky a **předvybere tu**, která se s nahrávkou časově překrývá
+4. Zkontrolujte náhled textu a klikněte **Vložit zápis**
+
+Den lze v dialogu přepnout, pokud zapisujete dodatečně. Odesílat jde i ze **historie nahrávek** ve stejném panelu.
+
+### Ochrana proti dvojímu vložení
+
+Vložený zápis má v hlavičce název hovoru a čas nahrávky. Když stejný zápis odešlete do téže schůzky podruhé, Minutes to pozná a zeptá se — teprve tlačítko **Vložit znovu** zápis přidá znovu.
+
+---
+
 ## Záložky
 
 Uloží odkaz na důležitou zprávu pro rychlý návrat.
@@ -244,7 +272,7 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 | Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
 | Záložky | Seznam záložek (Ctrl+Shift+B) |
 | Přepisy (Minutes) | Fronta přepisů, historie nahrávek (Ctrl+Shift+M) |
-| Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma |
+| Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma, přístupové kódy uuBT |
 | Nastavení MCP | Lokální MCP server, token, oprávnění nástrojů a webhooky |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Příručka | Tato nápověda |
@@ -272,6 +300,7 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 | Nahrávky hovorů | `Dokumenty/Minutes` |
 | Sumáře chatů | Windows `%APPDATA%\Minutes\minutes\summaries\` · macOS `~/Library/Application Support/Minutes/minutes/summaries/` |
 | AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) |
+| Přístupové kódy uuBT | `%APPDATA%\Minutes\minutes\uubt-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) — šifrované |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |
 | Lokální LLM (Gemma) | `%APPDATA%\Minutes\minutes\models\llm\` |
 | Záložky | `%APPDATA%\Minutes\minutes\` |
@@ -393,6 +422,14 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 - Příjemci se stock Signálem ve skupině ≥ 16 členů nezvoní — potřebují Minutes
 - Hovor lze i bez zvonění připojit tlačítkem **Připojit se k hovoru** ve skupině
 
+### Odeslání do uuBT nefunguje
+
+- V **Nastavení AI** → uuBT klikněte **Uložit kódy a otestovat připojení k uuBT** — ověří přihlášení
+- *Neplatné přístupové kódy* — zkontrolujte oba kódy (Access code 2 se kvůli bezpečnosti nezobrazuje, přepište ho celý)
+- **Prázdný seznam schůzek** — přepněte v dialogu datum; nabízejí se jen schůzky z vašeho kalendáře pro daný den, bez zrušených a odmítnutých
+- **Tlačítko U→ chybí** — nahrávka ještě nemá hotové **shrnutí** (přepis sám nestačí), nebo je uuBT v Nastavení AI vypnuté
+- Když zápis nelze vložit, podrobnosti najdete v **Menu → Minutes → Zobrazit log**
+
 ### Log pro podporu
 
 **Menu → Minutes → Zobrazit log**
@@ -417,4 +454,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-09-10*
+*Poslední aktualizace příručky: 2026-09-12*

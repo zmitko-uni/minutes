@@ -88,6 +88,15 @@
 | `ts/minutes/aiSettingsService.preload.ts` | preload IPC wrapper |
 | `ts/minutes/components/MinutesSettingsModal.dom.tsx` | dialog AI nastavení |
 | `ts/minutes/components/MinutesSummaryStyleFields.dom.tsx` | styl shrnutí (Stručný / Detailní / Smart / Vlastní) + náhled promptu |
+| `ts/minutes/uubt.std.ts` | typy, konstanty a výběr schůzky podle času nahrávky |
+| `ts/minutes/uubtSettings.main.ts` | přístupové kódy uuBT (safeStorage, `uubt-settings.json`) |
+| `ts/minutes/uubtAuth.main.ts` | přihlášení přístupovými kódy, cache tokenu v paměti |
+| `ts/minutes/uubtClient.main.ts` | HTTP klient s tokenem, mapování chyb, výčet dostupných uuCmd |
+| `ts/minutes/uubtCalendar.main.ts` | schůzky uživatele pro daný den |
+| `ts/minutes/uubtMeetingMinutes.main.ts` | vložení zápisu do sekce Zápis schůzky |
+| `ts/minutes/uubtUu5.std.ts` | Markdown shrnutí → obsah sekce |
+| `ts/minutes/uubtService.preload.ts` | preload IPC wrapper uuBT |
+| `ts/minutes/components/MinutesSendToUubtModal.dom.tsx` | dialog výběru schůzky a odeslání zápisu |
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
 | `ts/minutes/callRecordingService.preload.ts`, `callRecordingServiceCore.std.ts` | MP3 lifecycle nad jediným RingRTC audio trackem; žádný samostatný mikrofon ani systémový loopback |
 | `ts/minutes/captureCoordinator.std.ts` | vzájemné vyloučení audio/video nahrávání a společná finalizace |

@@ -37,6 +37,12 @@ import {
 import { localLlmExtensionEvents } from '../localLlmExtensionEvents.std.ts';
 import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
+import { DEFAULT_UUBT_SETTINGS, type UubtSettingsPublic } from '../uubt.std.ts';
+import {
+  getUubtSettings,
+  saveUubtSettings,
+  testUubtConnection,
+} from '../uubtService.preload.ts';
 
 type Props = Readonly<{
   open: boolean;
@@ -215,6 +221,13 @@ export function MinutesSettingsModal({
     () => getAiProviderDefinition(DEFAULT_AI_SETTINGS.provider).models
   );
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [uubtLoaded, setUubtLoaded] = useState<UubtSettingsPublic>(
+    DEFAULT_UUBT_SETTINGS
+  );
+  const [uubtEnabled, setUubtEnabled] = useState(false);
+  const [accessCode1Draft, setAccessCode1Draft] = useState('');
+  const [accessCode2Draft, setAccessCode2Draft] = useState('');
+  const [removeUubtCredentials, setRemoveUubtCredentials] = useState(false);
 
   const providerDef = useMemo(
     () => getAiProviderDefinition(provider),
@@ -289,6 +302,14 @@ export function MinutesSettingsModal({
         setApiKeyDrafts({});
         setRemoveKeyFlags({});
         setStatusMessage(null);
+
+        const uubt = await getUubtSettings();
+        setUubtLoaded(uubt);
+        setUubtEnabled(uubt.enabled);
+        setAccessCode1Draft('');
+        setAccessCode2Draft('');
+        setRemoveUubtCredentials(false);
+
         await refreshAvailableModels({
           nextProvider: settings.provider,
           loadedSettings: settings,
@@ -359,6 +380,57 @@ export function MinutesSettingsModal({
     return apiKeys;
   }, [apiKeyDrafts, removeKeyFlags]);
 
+  const persistUubtSettings =
+    useCallback(async (): Promise<UubtSettingsPublic> => {
+      const resolveDraft = (value: string): string | undefined => {
+        if (removeUubtCredentials) {
+          return '';
+        }
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : undefined;
+      };
+
+      const saved = await saveUubtSettings({
+        enabled: uubtEnabled,
+        accessCode1: resolveDraft(accessCode1Draft),
+        accessCode2: resolveDraft(accessCode2Draft),
+      });
+
+      setUubtLoaded(saved);
+      setAccessCode1Draft('');
+      setAccessCode2Draft('');
+      setRemoveUubtCredentials(false);
+      return saved;
+    }, [
+      accessCode1Draft,
+      accessCode2Draft,
+      removeUubtCredentials,
+      uubtEnabled,
+    ]);
+
+  const handleTestUubt = useCallback(() => {
+    setIsBusy(true);
+    setStatusMessage(null);
+    drop(
+      (async () => {
+        try {
+          // Test běží proti uloženým kódům, takže rozepsané nejdřív uložíme.
+          const saved = await persistUubtSettings();
+          if (!saved.hasCredentials) {
+            setStatusMessage('Doplňte access code 1 i access code 2.');
+            return;
+          }
+          const result = await testUubtConnection();
+          setStatusMessage(`uuBT: ${result.message}`);
+        } catch (error) {
+          setStatusMessage(formatUserFacingError(error));
+        } finally {
+          setIsBusy(false);
+        }
+      })()
+    );
+  }, [persistUubtSettings]);
+
   const handleSave = useCallback(() => {
     if (cannotEnableAiWithLocal) {
       setStatusMessage(AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS);
@@ -383,6 +455,7 @@ export function MinutesSettingsModal({
           setLoaded(saved);
           setApiKeyDrafts({});
           setRemoveKeyFlags({});
+          await persistUubtSettings();
           setStatusMessage('Nastavení uloženo.');
           onOpenChange(false);
         } catch (error) {
@@ -399,6 +472,7 @@ export function MinutesSettingsModal({
     model,
     onOpenChange,
     outputLanguage,
+    persistUubtSettings,
     provider,
     summaryStyle,
     customSummaryInstructions,
@@ -438,6 +512,13 @@ export function MinutesSettingsModal({
 
   const providerDraft = apiKeyDrafts[provider] ?? '';
   const providerMarkedForRemoval = removeKeyFlags[provider] ?? false;
+
+  let accessCode2Placeholder = 'Přístupový kód 2';
+  if (removeUubtCredentials) {
+    accessCode2Placeholder = 'Kódy budou po uložení odstraněny';
+  } else if (uubtLoaded.hasCredentials) {
+    accessCode2Placeholder = 'Uloženo';
+  }
 
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -657,6 +738,112 @@ export function MinutesSettingsModal({
               poskytovatele výše a doplňte klíč, pokud ho chcete používat
               později. Uložení probíhá šifrovaně přes safeStorage OS.
             </p>
+
+            <fieldset
+              className={tw(
+                'm-0 flex flex-col gap-4 rounded-md border border-solid p-4',
+                'border-label-disabled'
+              )}
+            >
+              <legend className={tw('text-label-medium px-1 font-medium')}>
+                uuBT — odeslání zápisu do schůzky
+              </legend>
+
+              <p className={tw('text-label-small opacity-70')}>
+                Po dokončení přepisu půjde AI shrnutí vložit do sekce Zápis
+                vybrané schůzky z vašeho kalendáře v uuBT. Přihlášení probíhá
+                přístupovými kódy z Plus4U; ukládají se šifrovaně přes
+                safeStorage OS.
+              </p>
+
+              <label className={tw('flex items-center justify-between gap-3')}>
+                <span>Povolit odesílání do uuBT</span>
+                <AxoSwitch.Root
+                  checked={uubtEnabled}
+                  onCheckedChange={setUubtEnabled}
+                />
+              </label>
+
+              <label className={tw('flex flex-col gap-1')}>
+                <span>Access code 1</span>
+                <input
+                  type="text"
+                  autoComplete="off"
+                  className={tw(
+                    'w-full rounded-md border border-solid px-3 py-2',
+                    'border-label-disabled bg-background-primary text-label-primary',
+                    'focus:border-label-primary not-forced-colors:outline-none'
+                  )}
+                  placeholder={
+                    removeUubtCredentials
+                      ? 'Kódy budou po uložení odstraněny'
+                      : (uubtLoaded.accessCode1Masked ?? 'Přístupový kód 1')
+                  }
+                  value={accessCode1Draft}
+                  disabled={removeUubtCredentials}
+                  onChange={event => setAccessCode1Draft(event.target.value)}
+                />
+              </label>
+
+              <label className={tw('flex flex-col gap-1')}>
+                <span>Access code 2</span>
+                <input
+                  type="password"
+                  autoComplete="off"
+                  className={tw(
+                    'w-full rounded-md border border-solid px-3 py-2',
+                    'border-label-disabled bg-background-primary text-label-primary',
+                    'focus:border-label-primary not-forced-colors:outline-none'
+                  )}
+                  placeholder={accessCode2Placeholder}
+                  value={accessCode2Draft}
+                  disabled={removeUubtCredentials}
+                  onChange={event => setAccessCode2Draft(event.target.value)}
+                />
+                <span className={tw('text-label-small opacity-70')}>
+                  Prázdná pole = ponechat uložené kódy.
+                  {uubtLoaded.hasCredentials && !removeUubtCredentials && (
+                    <>
+                      {' '}
+                      <button
+                        type="button"
+                        className={tw('underline')}
+                        onClick={() => {
+                          setRemoveUubtCredentials(true);
+                          setAccessCode1Draft('');
+                          setAccessCode2Draft('');
+                        }}
+                      >
+                        Odstranit uložené kódy
+                      </button>
+                    </>
+                  )}
+                  {removeUubtCredentials && (
+                    <>
+                      {' '}
+                      <button
+                        type="button"
+                        className={tw('underline')}
+                        onClick={() => setRemoveUubtCredentials(false)}
+                      >
+                        Zrušit odstranění
+                      </button>
+                    </>
+                  )}
+                </span>
+              </label>
+
+              <div>
+                <button
+                  type="button"
+                  className={tw('underline')}
+                  disabled={isBusy}
+                  onClick={handleTestUubt}
+                >
+                  Uložit kódy a otestovat připojení k uuBT
+                </button>
+              </div>
+            </fieldset>
           </div>
         </AxoDialog.Body>
         <AxoDialog.Footer>

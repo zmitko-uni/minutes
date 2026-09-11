@@ -40,12 +40,15 @@ import {
   subscribeVideoMp4SupportProgress,
 } from '../videoMp4ExportService.preload.ts';
 import { useMinutesDraggableSurface } from './MinutesDraggableSurface.dom.tsx';
+import type { UubtSendTarget } from './MinutesSendToUubtModal.dom.tsx';
+import { MinutesSendToUubtModal } from './MinutesSendToUubtModal.dom.tsx';
 
 type SendAction =
   | 'transcript-chat'
   | 'transcript-self'
   | 'summary-chat'
-  | 'summary-self';
+  | 'summary-self'
+  | 'summary-uubt';
 
 function formatClockDuration(ms: number): string {
   const totalSeconds = Math.max(0, Math.round(ms / 1000));
@@ -315,6 +318,13 @@ function RecordingSendActions({
               onClick={() => onSend('summary-self')}
             />
           ) : null}
+          <SendIconButton
+            label="U→"
+            tooltip="Poslat zápis do schůzky v uuBT"
+            disabled={busy}
+            active={isActive('summary-uubt')}
+            onClick={() => onSend('summary-uubt')}
+          />
         </>
       ) : null}
     </div>
@@ -987,6 +997,7 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
   });
   const [minimized, setMinimized] = useState(false);
   const [sendingKey, setSendingKey] = useState<string | null>(null);
+  const [uubtTarget, setUubtTarget] = useState<UubtSendTarget | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [historyEntries, setHistoryEntries] = useState<
     Array<CallRecordingCatalogEntry>
@@ -1115,6 +1126,16 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
         return;
       }
 
+      if (action === 'summary-uubt') {
+        setUubtTarget({
+          conversationTitle: job.metadata.conversationTitle,
+          startedAt: job.metadata.startedAt,
+          endedAt: job.metadata.endedAt,
+          summaryMarkdown: job.output.summaryText ?? '',
+        });
+        return;
+      }
+
       const key = `${job.id}:${action}`;
       setSendingKey(key);
 
@@ -1154,6 +1175,15 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
               });
               return;
             }
+            if (action === 'summary-uubt') {
+              setUubtTarget({
+                conversationTitle: entry.conversationTitle,
+                startedAt: entry.startedAt,
+                endedAt: entry.endedAt,
+                summaryMarkdown: output.summaryText ?? '',
+              });
+              return;
+            }
             await performSendAction(output, action);
           } finally {
             setSendingKey(null);
@@ -1170,27 +1200,33 @@ export function MinutesTranscriptionQueueHost(): JSX.Element | null {
   }
 
   return createPortal(
-    <TranscriptionQueuePanel
-      snapshot={snapshot}
-      minimized={minimized}
-      sendingKey={sendingKey}
-      showHistory={showHistory}
-      historyEntries={historyEntries}
-      historyLoading={historyLoading}
-      etaTick={etaTick}
-      onShowHistory={setShowHistory}
-      onRefreshHistory={() => {
-        drop(loadHistory());
-      }}
-      onEnqueueTranscription={handleEnqueueTranscription}
-      onEnqueueSummary={handleEnqueueSummary}
-      onSendHistory={handleSendHistory}
-      onSendOutput={handleSendOutput}
-      onMinimize={() => setMinimized(true)}
-      onExpand={handleExpand}
-      onClose={handleClose}
-      activeWhisperModelLabel={activeWhisperModelLabel}
-    />,
+    <>
+      <MinutesSendToUubtModal
+        target={uubtTarget}
+        onClose={() => setUubtTarget(null)}
+      />
+      <TranscriptionQueuePanel
+        snapshot={snapshot}
+        minimized={minimized}
+        sendingKey={sendingKey}
+        showHistory={showHistory}
+        historyEntries={historyEntries}
+        historyLoading={historyLoading}
+        etaTick={etaTick}
+        onShowHistory={setShowHistory}
+        onRefreshHistory={() => {
+          drop(loadHistory());
+        }}
+        onEnqueueTranscription={handleEnqueueTranscription}
+        onEnqueueSummary={handleEnqueueSummary}
+        onSendHistory={handleSendHistory}
+        onSendOutput={handleSendOutput}
+        onMinimize={() => setMinimized(true)}
+        onExpand={handleExpand}
+        onClose={handleClose}
+        activeWhisperModelLabel={activeWhisperModelLabel}
+      />
+    </>,
     document.body
   );
 }

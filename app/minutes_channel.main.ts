@@ -67,6 +67,25 @@ import {
   generateAiOpinionForProvider,
   generateUnreadConversationSummaryForProvider,
 } from '../ts/minutes/aiSummaryService.main.ts';
+import type {
+  UubtAppendResponse,
+  UubtMeeting,
+  UubtSettingsSaveInput,
+} from '../ts/minutes/uubt.std.ts';
+import {
+  getUubtSettingsPublic,
+  saveUubtSettings,
+} from '../ts/minutes/uubtSettings.main.ts';
+import { clearUubtTokenCache } from '../ts/minutes/uubtAuth.main.ts';
+import {
+  clearUubtCalendarCache,
+  getUubtConnectionInfo,
+  listUubtMeetingsForDay,
+} from '../ts/minutes/uubtCalendar.main.ts';
+import {
+  UubtDuplicateMinutesError,
+  appendMinutesToMeeting,
+} from '../ts/minutes/uubtMeetingMinutes.main.ts';
 import { readMinutesReadmeContent } from './minutes_readme.main.ts';
 import {
   checkForAppUpdate,
@@ -760,6 +779,66 @@ export async function initializeMinutesChannel(automationOptions?: {
         unreadCount: options.unreadCount,
         transcript: options.transcript,
       });
+    }
+  );
+
+  ipcMain.handle('minutes:uubt-get-settings', async () => {
+    return getUubtSettingsPublic();
+  });
+
+  ipcMain.handle(
+    'minutes:uubt-save-settings',
+    async (_event, input: UubtSettingsSaveInput) => {
+      const saved = await saveUubtSettings(input);
+      // Přihlašovací údaje se mohly změnit — starý token i dwUri zahodíme.
+      clearUubtTokenCache();
+      clearUubtCalendarCache();
+      return saved;
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubt-test-connection',
+    async (): Promise<{ ok: true; message: string }> => {
+      const info = await getUubtConnectionInfo();
+      const who = info.personName ?? info.uuIdentity;
+      return { ok: true, message: `přihlášen jako ${who}` };
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubt-list-meetings',
+    async (
+      _event,
+      options: { day: string }
+    ): Promise<ReadonlyArray<UubtMeeting>> => {
+      return listUubtMeetingsForDay(options.day);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubt-append-minutes',
+    async (
+      _event,
+      options: {
+        meetingBaseUri: string;
+        meetingId: string;
+        meetingUrl: string | null;
+        conversationTitle: string;
+        recordedAt: number;
+        summaryMarkdown: string;
+        allowDuplicate?: boolean;
+      }
+    ): Promise<UubtAppendResponse> => {
+      try {
+        const result = await appendMinutesToMeeting(options);
+        return { status: 'ok', result };
+      } catch (error) {
+        if (error instanceof UubtDuplicateMinutesError) {
+          return { status: 'duplicate', message: error.message };
+        }
+        throw error;
+      }
     }
   );
 

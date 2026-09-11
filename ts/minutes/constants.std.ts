@@ -16,6 +16,9 @@ export const AI_SETTINGS_DIR_NAME = 'minutes';
 /** Filename for AI provider settings (API key encrypted via OS safeStorage). */
 export const AI_SETTINGS_FILE_NAME = 'ai-settings.json';
 
+/** Filename for uuBT settings (access codes encrypted via OS safeStorage). */
+export const UUBT_SETTINGS_FILE_NAME = 'uubt-settings.json';
+
 /** Default number of recent messages included in a chat summary. */
 export const CHAT_SUMMARY_MESSAGE_LIMIT = 200;
 

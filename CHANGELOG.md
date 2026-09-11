@@ -14,7 +14,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- Odeslání zápisu do uuBT: v panelu **Přepisy** přibylo u hotového shrnutí tlačítko **U→**, které nabídne schůzky z vašeho kalendáře pro daný den a vloží AI shrnutí na konec sekce Zápis vybrané schůzky. Přihlášení přístupovými kódy se nastavuje v **Nastavení AI**; kódy se ukládají šifrovaně přes safeStorage operačního systému.
 
 ## [8.26.0-m1.3.1-beta.1] - 2026-09-10
 
