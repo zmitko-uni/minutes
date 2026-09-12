@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.3.1-beta.3] - 2026-09-12
+
+### Added
 - **Záložky**: po najetí na položku v seznamu se vpravo objeví dvě tlačítka — **Otevřít v chatu** a **Odebrat záložku**
 - **Přepisy → Shrnutí**: pod ikonou voleb si můžete pro jedno přegenerování vybrat **jiný AI model** (z těch, co máte nastavené) a **jiný styl** (Stručný, Detailní, Smart, Vlastní), aniž byste měnili Nastavení AI
 - **Přepisy → Shrnutí**: tlačítko pro **úpravu textu shrnutí** — jednoduchý editor s tučně, kurzívou, odrážkami, číslováním a odkazy; uloží se zpátky do souboru shrnutí u nahrávky
