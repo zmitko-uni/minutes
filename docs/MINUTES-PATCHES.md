@@ -28,6 +28,8 @@
 | `ts/components/NavTabs.dom.tsx` | taby Přepisy a Záložky za Hovory — 2× `NavTabsItem` + 2× `TabPanel` + 2 render props. Popisky z `ts/minutes/navTabs.std.ts` (bez zásahu do `_locales`) | import + 2 položky |
 | `ts/components/Inbox.dom.tsx`, `ts/state/smart/Inbox.preload.tsx`, `ts/state/smart/NavTabs.preload.tsx` | protažení render props `renderMinutesTranscriptsTab` / `renderMinutesBookmarksTab` | plumbing |
 | `ts/components/NavTabs.dom.stories.tsx` | mock nových render props | 2 řádky |
+| `ts/components/conversation/ConversationHeader.dom.tsx` | `MinutesDropdownMenuItems` ve 3 variantách nabídky + `<MinutesConversationHeaderButton />` v liště akcí (tlačítko „M“ → Přepisy daného chatu) | 2 importy + 4 řádky |
+| `ts/components/leftPane/LeftPaneConversationListItemContextMenu.dom.tsx` | `MinutesContextMenuItems` v kontextové nabídce chatu v levém seznamu | import + 1 řádek |
 | `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere`, `onAskAiOpinion` + kontextové copy/forward | props + items |
 | `ts/components/conversation/TimelineMessage.dom.tsx` | callback záložky, nepřečteno, názor AI a kontextové copy/forward | callbacks |
 | `ts/components/conversation/SelectModeActions.dom.tsx` | Minutes akce kopírování a přeposlání vybraných zpráv s autorem a časem | 1 komponenta |
@@ -46,7 +48,24 @@
 | `config/minutes-beta.json` | konfigurace profilu minutes-beta |
 | `ts/minutes/components/MinutesBookmarksTab.dom.tsx` | tab Záložky (seznam + hledání + náhled zprávy) |
 | `ts/minutes/components/MinutesTranscriptsTab.dom.tsx` | tab Přepisy — seznam nahrávek s frontou, hledáním a filtry |
-| `ts/minutes/components/MinutesRecordingDetail.dom.tsx` | detail nahrávky: přehled, akce, taby Shrnutí / Přepis / Nahrávka |
+| `ts/minutes/components/MinutesRecordingDetail.dom.tsx` | detail nahrávky: přehled, akce, taby Shrnutí / Přepis / Nahrávka / Schůzka |
+| `ts/minutes/components/MinutesTranscriptView.dom.tsx` | vizualizace přepisu — barvy řečníků a `**tučně**` |
+| `ts/minutes/components/MinutesSummaryEditor.dom.tsx` | richtext editace shrnutí (tučně, kurzíva, odrážky, odkazy) → zpět do Markdownu |
+| `ts/minutes/components/MinutesRecordingMeetingPane.dom.tsx` | tab Schůzka — informace o schůzce Plus4U, do které šel zápis |
+| `ts/minutes/components/MinutesIcon.dom.tsx`, `ts/minutes/components/MinutesIconButton.dom.tsx` | inline ikony, čtverečková tlačítka a popover s volbami |
+| `ts/minutes/transcriptDisplay.std.ts` | rozpad přepisu na segmenty (řečník, čas, text) a stabilní barvy řečníků |
+| `ts/minutes/richTextMarkdown.dom.ts` | Markdown ↔ HTML pro `contenteditable` v editoru shrnutí |
+| `ts/minutes/aiModelChoices.std.ts` | seznam nastavených AI modelů pro jednorázovou volbu při přegenerování |
+| `ts/minutes/recordingMeeting.std.ts` | typ vazby nahrávky na schůzku Plus4U (`<nahrávka>.meeting.json`), včetně odkazu na elementární aktivitu |
+| `ts/minutes/components/MinutesConfirmDialog.dom.tsx` | jedno potvrzení nevratných akcí (mazání nahrávky, odebrání záložky, uzavření schůzky) |
+| `ts/minutes/components/MinutesConversationHeaderButton.dom.tsx` | tlačítko „M“ v hlavičce chatu → Přepisy zúžené na daný chat |
+| `ts/minutes/components/MinutesMeetingTasksPanel.dom.tsx` | návrh úkolů ze zápisu — editace, mazání, výběr příjemce, odeslání jednoho i všech |
+| `ts/minutes/meetingTasks.std.ts` | parsování návrhů AI, seskupení podle osoby a formát zprávy s úkoly |
+| `ts/minutes/meetingTaskPrompts.std.ts` | prompt pro návrh úkolů (vyžaduje čisté JSON pole) |
+| `ts/minutes/meetingTasksService.preload.ts` | IPC `minutes:propose-meeting-tasks` |
+| `ts/minutes/taskRecipients.preload.ts` | seznam chatů pro příjemce úkolu a párování jména na chat |
+| `ts/minutes/uubtMeetingActivity.main.ts` | uzavření schůzky přes `uuArtifactIfc/activity/elementary/setState` (`solvedActive`) |
+| `ts/minutes/recordingFiles.main.ts`, `ts/minutes/recordingFilesService.preload.ts` | smazání nahrávky se všemi soubory, uložení upraveného shrnutí, čtení/zápis vazby na schůzku |
 | `ts/minutes/components/MinutesRecordingPlayer.dom.tsx` | přehrávač audia a videa nad schématem `minutesmedia` |
 | `ts/minutes/recordingsListModel.std.ts` | sloučení katalogu s běžícími joby, řazení a filtry seznamu |
 | `ts/minutes/transcriptionStatusFormat.std.ts` | společné formátování stavu, ETA a délky (tab i plovoucí pilulka) |
@@ -56,7 +75,8 @@
 | `ts/minutes/navTabs.std.ts`, `ts/minutes/navTabsService.preload.ts` | popisky tabů + přepnutí lokace z rendereru |
 | `stylesheets/components/MinutesNavTabs.scss` | řádky gridu a ikony tabů; **musí se načítat za** upstream `NavTabs.scss` |
 | `stylesheets/components/MinutesBookmarksTab.scss` | styly tabu Záložky |
-| `stylesheets/components/MinutesTranscriptsTab.scss` | styly tabu Přepisy (seznam, detail, přehrávač) |
+| `stylesheets/components/MinutesTranscriptsTab.scss` | styly tabu Přepisy (seznam, detail, přehrávač, přepis, editor shrnutí, tab Schůzka) |
+| `stylesheets/components/MinutesControls.scss` | ikonová tlačítka a popover s volbami (Přepisy i Záložky) |
 | `ts/minutes/buildExpiration.preload.ts` | vypnutí expirace buildu |
 | `ts/minutes/welcomeContent.std.ts` | texty uvítací obrazovky + dlaždice |
 | `ts/minutes/components/MinutesWelcomeSplash.dom.tsx` | uvítání + 4 dlaždice |
@@ -108,8 +128,8 @@
 | `ts/minutes/uubtAuth.main.ts` | přihlášení přístupovými kódy, cache tokenu v paměti |
 | `ts/minutes/uubtClient.main.ts` | HTTP klient s tokenem, mapování chyb, výčet dostupných uuCmd |
 | `ts/minutes/uubtCalendar.main.ts` | schůzky uživatele pro daný den |
-| `ts/minutes/uubtMeetingMinutes.main.ts` | vložení zápisu do sekce Zápis schůzky |
-| `ts/minutes/uubtUu5.std.ts` | Markdown shrnutí → obsah sekce |
+| `ts/minutes/uubtMeetingMinutes.main.ts` | vložení zápisu do sekce Zápis schůzky + čtení textu přípravy a zápisu |
+| `ts/minutes/uubtUu5.std.ts` | Markdown shrnutí → obsah sekce, uu5string → čitelný text |
 | `ts/minutes/uubtService.preload.ts` | preload IPC wrapper uuBT |
 | `ts/minutes/components/MinutesSendToUubtModal.dom.tsx` | dialog výběru schůzky a odeslání zápisu |
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |

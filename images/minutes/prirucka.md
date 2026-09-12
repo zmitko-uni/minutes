@@ -176,16 +176,30 @@ Tab **Přepisy** (ikona **M** v levé liště nebo **Ctrl+Shift+M**) vypadá pod
 - Co se právě zpracovává nebo čeká ve frontě, je **nahoře, modře zvýrazněné** a s ukazatelem průběhu a odhadem zbývajícího času. Pod tím jsou hotové nahrávky od nejnovější
 - **Vyhledávací pole** hledá v názvech chatů **i uvnitř přepisů a shrnutí**. Když se výraz najde v textu, ukáže se pod nahrávkou úryvek
 - **Filtry Vše / Zpracovává se / Video / Bez přepisu** zúží seznam
+- **Rychlé akce** — po najetí myší na položku se vpravo objeví ikony **Otevřít chat této nahrávky** a **Smazat nahrávku** (smazání se nejdřív zeptá na potvrzení)
 - Když se něco zpracovává, objeví se nad seznamem ovládání fronty — **Pozastavit** a **Zrušit vše**
 
 **Vpravo — detail vybrané nahrávky:**
 
-- Nahoře název, datum, délka, typ (Audio / Video), použitý Whisper model a odznaky **Přepis / Shrnutí / MP4**
-- Pod tím akce: **Spustit přepis** nebo **Vygenerovat shrnutí**, **Přepsat znovu**, a rozbalovací nabídky **Sdílet** (přepis nebo shrnutí do chatu, sobě, nebo zápis do uuBT) a **Soubory** (otevřít nahrávku, přepis, shrnutí, MP4, složku nahrávek)
-- Dole tři záložky:
-  - **Shrnutí** — formátovaný text AI shrnutí
-  - **Přepis** — celý text přepisu
+- Nahoře název, datum, délka, typ (Audio / Video), použitý Whisper model a odznaky **MP4 / Schůzka** (že je hotový přepis nebo shrnutí poznáte přímo z obsahu záložek)
+- Pod tím vpravo **ikona koše** pro smazání nahrávky (a během zpracování tlačítka **Zrušit** / **Zkusit znovu**)
+- Dole záložky a na konci jejich řady **Soubory** — vypadá jako další záložka, ale rozbalí nabídku (otevřít nahrávku, přepis, shrnutí, MP4, vytvořit či přegenerovat MP4, složka nahrávek):
+  - **Shrnutí** — formátovaný text AI shrnutí, tlačítka **Zapsat ke schůzce Plus4U** a **Vygenerovat / Přegenerovat shrnutí**, ikona **voleb** (model a styl jsou předvyplněné podle Nastavení AI, změna platí jen pro toto přegenerování), ikona **tužky** pro úpravu textu (tučně, kurzíva, odrážky, číslovaný seznam, odkaz — odkaz obalí označený text, bez označení se vloží jako adresa) a ikona **sdílení** (**Do chatu** / **Sobě**)
+  - **Přepis** — přepis jako dialog s barvami řečníků, tlačítko **Spustit přepis / Přepsat znovu**, ikona **voleb** pro výběr staženého modelu a ikona **sdílení** (**Do chatu** / **Sobě**)
   - **Nahrávka** / **Video** — přehrávač přímo v aplikaci
+  - **Schůzka** — jen u nahrávek, které už mají zápis v Plus4U
+
+**Otevření chatu:** po najetí myší na nahrávku v seznamu se vpravo objeví ikona **Otevřít chat této nahrávky**.
+
+**Nahrávky jednoho chatu:** v hlavičce každého chatu je tlačítko **M**, které otevře **Přepisy** zúžené jen na nahrávky z toho chatu. Nad seznamem se ukáže lišta *Jen chat: …* s tlačítkem **Zobrazit vše**.
+
+**Volba modelu a stylu shrnutí:** ikona voleb v tabu Shrnutí nabídne modely od všech poskytovatelů, které máte v **Nastavení AI** nastavené, a styl (Stručný, Detailní, Smart, Vlastní). Volba platí jen pro jedno přegenerování — nastavení aplikace nemění.
+
+**Úprava shrnutí:** ikona tužky otevře editor s tučně, kurzívou, odrážkami, číslováním a odkazy. Po **Uložit shrnutí** se text zapíše do souboru `*.summary.md` u nahrávky, takže se pošle i do chatu nebo ke schůzce.
+
+**Volba modelu přepisu:** ikona voleb v tabu Přepis nabídne jen **stažené** modely. Když není stažený žádný, je ikona zašedlá a tooltip odkáže na **Menu → Minutes → Nastavení přepisů**, kde se model stahuje.
+
+**Smazání nahrávky:** ikona koše vpravo v hlavičce smaže **nahrávku i všechny její soubory** — zvuk nebo video, PCM, přepis, shrnutí, MP4, metadata a vazbu na schůzku. Aplikace se nejdřív zeptá a akci nelze vzít zpět.
 
 **Přehrávání:** audio (`.mp3`) jde přetáčet bez omezení. U sdíleného videa (`.webm`) přetáčení spolehlivě nefunguje — vytvořte přes **Soubory → Vytvořit MP4** verzi MP4, přehrávač ji pak použije automaticky.
 
@@ -228,14 +242,14 @@ Režim lze změnit i uprostřed hovoru. Platí pro to, co slyší ostatní úča
 
 ---
 
-## Odeslání zápisu do uuBT
+## Zápis ke schůzce Plus4U
 
-Hotové AI shrnutí hovoru lze vložit přímo do sekce **Zápis** schůzky ve vašem firemním systému (uuBT). Původní shrnutí zůstává i v Minutes — do schůzky se přidá jako nový blok na konec zápisu, nic se nepřepisuje.
+Hotové AI shrnutí hovoru lze vložit přímo do sekce **Zápis** schůzky ve vašem firemním systému (Plus4U). Původní shrnutí zůstává i v Minutes — do schůzky se přidá jako nový blok na konec zápisu, nic se nepřepisuje.
 
 ### Jednorázové nastavení
 
-1. **Menu → Minutes → Nastavení AI** → sekce **uuBT — odeslání zápisu do schůzky**
-2. Zapněte **Povolit odesílání do uuBT**
+1. **Menu → Minutes → Nastavení AI** → sekce **Plus4U integrace**
+2. Zapněte **Povolit zápis ke schůzkám Plus4U**
 3. Vyplňte **Access code 1** a **Access code 2** (přístupové kódy vašeho firemního účtu)
 4. Klikněte **Uložit kódy** a pak **Otestovat připojení** — vypíše se, pod kým jste přihlášení
 
@@ -244,11 +258,45 @@ Kódy se ukládají **šifrovaně přes safeStorage operačního systému**, ste
 ### Odeslání zápisu
 
 1. Počkejte, až je hotové **shrnutí** nahrávky (tab **Přepisy**, Ctrl+Shift+M)
-2. Vyberte nahrávku a v detailu klikněte **Sdílet → Zápis do schůzky v uuBT**
+2. Vyberte nahrávku a v tabu **Shrnutí** klikněte **Zapsat ke schůzce Plus4U**
 3. Minutes nabídne schůzky z vašeho kalendáře pro den nahrávky a **předvybere tu**, která se s nahrávkou časově překrývá
 4. Zkontrolujte náhled textu a klikněte **Vložit zápis**
 
 Den lze v dialogu přepnout, pokud zapisujete dodatečně.
+
+### Tab Schůzka
+
+Po úspěšném zápisu se v detailu nahrávky objeví tab **Schůzka** se základními informacemi — název, den, čas, místo, organizátor a kdy se zápis vložil.
+
+Tlačítka v tabu:
+
+| Tlačítko | Co dělá |
+|---|---|
+| **Potvrdit zápis ze schůzky** (zelené) | Objeví se jen když máte schůzku vyřešit vy — tedy máte na ni v Plus4U nevyřešenou aktivitu. Po potvrzení se schůzka v Plus4U označí za **vyřešenou** a zmizí vám z úkolů. |
+| ikona **sdílení** | Pošle **Zápis** nebo **Přípravu** — u obou na výběr **Do chatu** (ten, ze kterého nahrávka je) nebo **Sobě**. |
+| ikona **odkazu** | Otevře schůzku v Plus4U v prohlížeči. |
+| ikona **obnovení** | Načte údaje o schůzce i text přípravy znovu — třeba když se schůzka přesunula. |
+
+V tabulce nad tlačítky je kromě dne, času, místa a organizátora i řádek **Zápis provede** (kdo má schůzku v Plus4U uzavřít) a **Účastníci** načtení ze schůzky. Pod tlačítky jsou sekce **Příprava** a **Zápis ze schůzky** — texty přímo z Plus4U. Když je schůzka nemá vyplněné, Minutes to napíšou.
+
+Pokud zápis máte provést vy, objeví se nad tlačítky zelená informace a zelené tlačítko **Potvrdit zápis ze schůzky**.
+
+Vazba se ukládá souborově k nahrávce jako `*.meeting.json`, takže zůstane i po restartu aplikace.
+
+### Navrhnout úkoly
+
+V tabu **Schůzka** je tlačítko **Navrhnout úkoly** (s ikonou AI). AI projde zápis a navrhne, jaké úkoly z něj komu vyplývají — nic si nevymýšlí, vychází jen z textu zápisu.
+
+Návrhy jsou seskupené podle člověka a jdou volně upravit:
+
+1. **Upravit** — název, popis i termín přepíšete přímo v seznamu
+2. **Příjemce** — u každého úkolu vyberete chat, kam se má poslat. Minutes ho předvyplní podle jména, pokud ho v kontaktech najdou
+3. **Smazat** — ikona koše u úkolu
+4. **Přidat** — ikona plus u osoby přidá další úkol jí, tlačítko **Přidat úkol** přidá úkol bez řešitele
+5. **Odeslat úkol** — pošle danému člověku formální zprávu, že na něj na základě chatu a zápisu vychází tento úkol
+6. **Odeslat všechny** — pošle jednou zprávou všechny úkoly téhož člověka
+
+Návrhy se nikam neukládají — jsou jen podklad pro odeslání. Zavřením nahrávky zmizí.
 
 ### Ochrana proti dvojímu vložení
 
@@ -263,8 +311,9 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 1. **Přidat** — pravý klik na zprávu → **Minutes: Přidat do záložek**
 2. **Seznam** — tab **Záložky** (ikona záložky v levé liště), **Ctrl+Shift+B** nebo menu Minutes → Záložky
 3. **Hledání** — pole nad seznamem hledá v názvu chatu i v textu zprávy
-4. Klik na položku → vpravo se zobrazí celá zpráva s autorem a časem; **Otevřít v chatu** (nebo dvojklik v seznamu) skočí do chatu na danou zprávu
-5. **Odebrat záložku** — tlačítko u náhledu vpravo
+4. Klik na položku → vpravo se zobrazí celá zpráva s autorem a časem. Akce jsou **nahoře pod názvem** stejně jako v Přepisech: tlačítko **Otevřít chat této zprávy** (nebo dvojklik v seznamu) a vpravo **ikona koše**
+5. **Rychlé akce** — po najetí myší na položku v seznamu se vpravo objeví dvě ikony: **Otevřít chat této zprávy** a **Odebrat záložku** (stejné ikony jako v Přepisech)
+6. **Odebrat záložku** — obě cesty se nejdřív zeptají na potvrzení
 
 ---
 
@@ -299,7 +348,7 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 | Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
 | Záložky | Tab se seznamem záložek a náhledem zprávy (Ctrl+Shift+B) |
 | Přepisy (Minutes) | Tab se seznamem nahrávek, přepisy, shrnutími a přehrávačem (Ctrl+Shift+M, nebo ikona **M** v levé liště) |
-| Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma, přístupové kódy uuBT |
+| Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma, Plus4U integrace |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Nastavení MCP | Lokální MCP server, token, oprávnění nástrojů a webhooky |
 | Příručka | Tato nápověda |
@@ -327,7 +376,8 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 | Nahrávky hovorů | `Dokumenty/Minutes` |
 | Sumáře chatů | Windows `%APPDATA%\Minutes\minutes\summaries\` · macOS `~/Library/Application Support/Minutes/minutes/summaries/` |
 | AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) |
-| Přístupové kódy uuBT | `%APPDATA%\Minutes\minutes\uubt-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) — šifrované |
+| Přístupové kódy Plus4U | `%APPDATA%\Minutes\minutes\uubt-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) — šifrované |
+| Vazba nahrávky na schůzku | `Dokumenty/Minutes/<nahrávka>.meeting.json` |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |
 | Lokální LLM (Gemma) | `%APPDATA%\Minutes\minutes\models\llm\` |
 | Záložky | `%APPDATA%\Minutes\minutes\` |
@@ -460,13 +510,27 @@ V tabu **Přepisy** je u nahrávky v seznamu jen krátké **Přepis selhal** / *
 - Příjemci se stock Signálem ve skupině ≥ 16 členů nezvoní — potřebují Minutes
 - Hovor lze i bez zvonění připojit tlačítkem **Připojit se k hovoru** ve skupině
 
-### Odeslání do uuBT nefunguje
+### Zápis ke schůzce Plus4U nefunguje
 
-- V **Nastavení AI** → uuBT klikněte **Otestovat připojení** — ověří přihlášení
+- V **Nastavení AI** → **Plus4U integrace** klikněte **Otestovat připojení** — ověří přihlášení
 - *Neplatné přístupové kódy* — zkontrolujte oba kódy (Access code 2 se kvůli bezpečnosti nezobrazuje, přepište ho celý)
 - **Prázdný seznam schůzek** — přepněte v dialogu datum; nabízejí se jen schůzky z vašeho kalendáře pro daný den, bez zrušených a odmítnutých
-- **Položka Zápis do schůzky v uuBT chybí** — nahrávka ještě nemá hotové **shrnutí** (přepis sám nestačí), nebo je uuBT v Nastavení AI vypnuté
+- **Tlačítko Zapsat ke schůzce Plus4U je zašedlé** — tlačítko najdete v tabu **Shrnutí**. Zašedlé je, dokud nahrávka nemá hotové **shrnutí** (přepis sám nestačí), nebo dokud v **Nastavení AI → Plus4U integrace** není zapnutá integrace **a uložené oba přístupové kódy** (stačí jeden chybějící a tlačítko zůstane neaktivní). Tooltip nad tlačítkem řekne který případ to je
 - Když zápis nelze vložit, podrobnosti najdete v **Menu → Minutes → Zobrazit log**
+
+### Nejde vybrat model přepisu
+
+Ikona voleb v tabu **Přepis** je zašedlá, dokud není stažený aspoň jeden model. Stáhněte ho v **Menu → Minutes → Nastavení přepisů**; pak se v nabídce objeví všechny stažené modely.
+
+### Chybí zelené tlačítko Potvrdit zápis ze schůzky
+
+Tlačítko se ukáže jen tehdy, když schůzku máte vyřešit vy — v Plus4U na ni musíte mít **nevyřešenou aktivitu**. Když jste jen účastník, schůzku uzavírá její řešitel. Klikněte ikonu **obnovení**; pokud se stav změnil, tlačítko se objeví. Jestli Plus4U uzavření přes API odmítne, Minutes to řeknou a schůzku uzavřete ručně v prohlížeči.
+
+### Navrhnout úkoly nic nenavrhlo
+
+- Nahrávka musí mít hotové **shrnutí** — úkoly se čtou z něj, ne z přepisu
+- Když zápis žádné konkrétní úkoly neobsahuje, AI záměrně nic nevymyslí; úkoly si přidejte tlačítkem **Přidat úkol**
+- **Odeslat úkol** je zašedlé, dokud úkol nemá název a vybraného příjemce
 
 ### Log pro podporu
 

@@ -14,7 +14,40 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- **Záložky**: po najetí na položku v seznamu se vpravo objeví dvě tlačítka — **Otevřít v chatu** a **Odebrat záložku**
+- **Přepisy → Shrnutí**: pod ikonou voleb si můžete pro jedno přegenerování vybrat **jiný AI model** (z těch, co máte nastavené) a **jiný styl** (Stručný, Detailní, Smart, Vlastní), aniž byste měnili Nastavení AI
+- **Přepisy → Shrnutí**: tlačítko pro **úpravu textu shrnutí** — jednoduchý editor s tučně, kurzívou, odrážkami, číslováním a odkazy; uloží se zpátky do souboru shrnutí u nahrávky
+- **Přepisy → Přepis**: pod ikonou voleb se dá vybrat **konkrétní stažený model přepisu**; když není stažený žádný, je ikona zašedlá a tooltip řekne, kde ho v nastavení přidat
+- **Přepisy → Přepis**: přepis se zobrazuje jako dialog — každý **řečník má svou barvu**, nad textem je legenda a `**text**` se vykreslí tučně
+- **Přepisy**: nové tlačítko **koše** smaže nahrávku včetně všech souborů (zvuk/video, přepis, shrnutí, MP4, metadata) — vždy se nejdřív zeptá
+- **Přepisy**: po zápisu ke schůzce se v detailu objeví tab **Schůzka** se základními informacemi (den, čas, místo, organizátor, kdy se zápis vložil) a odkazem do prohlížeče; informace jdou znovu načíst z Plus4U
+- **Chat**: v hlavičce každého chatu je nové tlačítko **M**, které otevře **Přepisy** zúžené jen na nahrávky z toho chatu (jeden chat jich může mít víc); zúžení se zruší tlačítkem **Zobrazit vše**
+- **Přepisy**: po najetí na nahrávku v seznamu se vpravo objeví tlačítko **Otevřít chat této nahrávky**
+- **Přepisy → Schůzka**: tlačítko **Nasdílet zápis do chatu** pošle zápis do chatu, ze kterého nahrávka je
+- **Přepisy → Schůzka**: pokud máte schůzku vyřešit vy (v Plus4U je na vás nevyřešená aktivita), je tam zelené tlačítko **Potvrdit zápis ze schůzky** — po potvrzení se schůzka v Plus4U označí za vyřešenou
+- **Přepisy → Schůzka**: tlačítko **Navrhnout úkoly** — AI projde zápis a navrhne, jaké úkoly z něj komu vyplývají. Návrhy jde upravit, smazat i přidat vlastní, ke každému vybrat příjemce a poslat mu ho jako formální zprávu do chatu; u jednoho člověka se dají poslat i všechny jeho úkoly naráz
+
+### Changed
+- Nastavení AI: sekce **uuBT — odeslání zápisu do schůzky** se jmenuje **Plus4U integrace**; hlášky napříč aplikací mluví o Plus4U místo uuBT
+- **Přepisy**: **Zapsat ke schůzce Plus4U** (dřív „Zápis do schůzky v uuBT") je samostatné tlačítko v tabu **Shrnutí** před **Přegenerovat shrnutí**, ne položka v nabídce **Sdílet**. Aktivní je jen se zapnutou Plus4U integrací a **oběma** uloženými přístupovými kódy
+- **Přepisy**: akce se přesunuly k obsahu, ke kterému patří — **Přegenerovat shrnutí** je v tabu **Shrnutí** a **Přepsat znovu** v tabu **Přepis**; v hlavičce zůstalo sdílení, soubory a mazání
+- **Záložky**: odebrání záložky se teď ptá na potvrzení — u tlačítka v seznamu i u tlačítka v náhledu zprávy
+- **Záložky**: tlačítka v náhledu zprávy vypadají stejně jako v Přepisech a jsou **nahoře pod názvem**, ne dole — **Otevřít chat této zprávy** vlevo, ikona koše vpravo
+- **Přepisy**: volby přegenerování shrnutí rovnou ukazují **konkrétní model a styl** z Nastavení AI místo neurčité položky „Podle Nastavení AI"
+- **Přepisy**: sdílení se přesunulo z hlavičky do jednotlivých tabů — ikona **sdílení** v tabu **Shrnutí** pošle shrnutí, v tabu **Přepis** přepis, u obou na výběr **Do chatu** nebo **Sobě**
+- **Přepisy**: z hlavičky detailu zmizely štítky **Přepis** a **Shrnutí** — totéž je vidět z tabů
+- **Přepisy**: nabídka **Soubory** se přesunula do řady záložek (za **Nahrávka**) — vypadá jako záložka, ale rozbalí nabídku
+- **Přepisy**: v seznamu nahrávek je na hover i **ikona koše** (s potvrzením), stejně jako v Záložkách; nadpis panelu se přejmenoval z **Přepisy** na **Minutes**
+- **Schůzka**: tab načítá i **Přípravu**, **Zápis ze schůzky** a **Účastníky** z Plus4U
+- **Schůzka**: řádek **Zápis provede** ukazuje, kdo má schůzku uzavřít; když jste to vy, přidá se k tomu vysvětlení u zeleného tlačítka **Potvrdit zápis ze schůzky**
+- **Schůzka**: sdílení je pod **ikonou sdílení** a umí poslat **zápis i přípravu**, do chatu i sobě
+- **Schůzka**: **Otevřít schůzku v prohlížeči** a **Aktualizovat informace** jsou ikony, **Navrhnout úkoly** má ikonu AI
+
+### Fixed
+- **Přepisy**: nahrávka, která se zpracovává, je v seznamu skutečně modře zvýrazněná a chyba přepisu červeně — kvůli chybě ve skládání CSS třídy se zvýraznění dřív nezobrazovalo
+- **Přepisy**: panel s volbami modelu (v tabu Shrnutí i Přepis) byl průhledný a nešlo v něm nic přečíst — používal neexistující barvu tématu
+- **Přepisy → Shrnutí**: v editoru shrnutí nefungovalo tučně, kurzíva ani odrážky — kliknutí na lištu vzalo editoru výběr textu a celý Signal navíc drží editovatelná pole v režimu bez formátování
+- **Přepisy → Shrnutí**: odrážky a číslování nebyly vidět (ani v hotovém shrnutí, ani v editoru) a odkaz se nevložil, dokud nebyl označený text
 
 ## [8.26.0-m1.3.1-beta.2] - 2026-09-12
 
