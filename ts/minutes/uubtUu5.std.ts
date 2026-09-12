@@ -159,6 +159,62 @@ export function buildMinutesSectionContent(
   ];
 }
 
+function collectUu5Strings(content: unknown, out: Array<string>): void {
+  if (Array.isArray(content)) {
+    for (const item of content) {
+      collectUu5Strings(item, out);
+    }
+    return;
+  }
+  if (content == null || typeof content !== 'object') {
+    return;
+  }
+
+  const props = (content as { props?: Record<string, unknown> }).props;
+  const value = props?.uu5string;
+  if (typeof value === 'string') {
+    out.push(value);
+  } else if (Array.isArray(value)) {
+    for (const item of value) {
+      if (typeof item === 'string') {
+        out.push(item);
+      }
+    }
+  }
+
+  for (const nested of Object.values(content as Record<string, unknown>)) {
+    if (nested != null && typeof nested === 'object') {
+      collectUu5Strings(nested, out);
+    }
+  }
+}
+
+/**
+ * Čitelný text sekce schůzky — z uu5string se udělá prostý text s odřádkováním
+ * a odrážkami, aby šel zobrazit v Minutes a poslat do chatu.
+ */
+export function extractSectionDisplayText(content: unknown): string {
+  const parts: Array<string> = [];
+  collectUu5Strings(content, parts);
+
+  return parts
+    .join('\n')
+    .replace(/<uu5string[^>]*\/?>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '\n- ')
+    .replace(/<\/(p|div|li|h[1-6]|ul|ol|tr)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /** Prostý text obsahu sekce — pro detekci duplicit. */
 export function extractSectionPlainText(content: unknown): string {
   if (typeof content === 'string') {

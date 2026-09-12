@@ -28,6 +28,7 @@ export const RECORDING_LIST_FILTERS: ReadonlyArray<
 export type RecordingListItem = Readonly<{
   recordingPath: string;
   basePath: string;
+  conversationId: string;
   conversationTitle: string;
   startedAt: number;
   endedAt: number;
@@ -75,6 +76,7 @@ function itemFromEntry(
   return {
     recordingPath: entry.recordingPath,
     basePath: getRecordingBasePath(entry.recordingPath),
+    conversationId: entry.conversationId,
     conversationTitle: entry.conversationTitle,
     startedAt: entry.startedAt,
     endedAt: entry.endedAt,
@@ -94,6 +96,7 @@ function itemFromJob(job: TranscriptionJob): RecordingListItem {
   return {
     recordingPath: metadata.filePath,
     basePath: getRecordingBasePath(metadata.filePath),
+    conversationId: metadata.conversationId,
     conversationTitle: metadata.conversationTitle,
     startedAt: metadata.startedAt,
     endedAt: metadata.endedAt,
@@ -143,6 +146,8 @@ export function buildRecordingListItems(
     textMatches: ReadonlyArray<RecordingTextMatch>;
     query: string;
     filter: RecordingListFilter;
+    /** Zúžení jen na nahrávky jednoho chatu (tlačítko „M“ v chatu). */
+    conversationId?: string | null;
   }>
 ): ReadonlyArray<RecordingListItem> {
   const snippets = new Map(
@@ -170,9 +175,14 @@ export function buildRecordingListItems(
 
   const needle = options.query.trim().toLowerCase();
 
+  const conversationId = options.conversationId ?? null;
+
   return [...items.values()]
     .filter(
-      item => matchesFilter(item, options.filter) && matchesQuery(item, needle)
+      item =>
+        (conversationId == null || item.conversationId === conversationId) &&
+        matchesFilter(item, options.filter) &&
+        matchesQuery(item, needle)
     )
     .sort((a, b) => {
       if (a.isPinned !== b.isPinned) {

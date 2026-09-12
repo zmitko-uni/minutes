@@ -58,12 +58,25 @@
   line-height: 1.5;
 }
 
+// Tailwind preflight seznamům odebírá odrážky, proto je vracíme explicitně.
 .MinutesMarkdown__ul,
 .MinutesMarkdown__ol {
   margin-block: 0 12px;
   margin-inline: 0;
   padding-inline-start: 22px;
   line-height: 1.5;
+
+  li {
+    display: list-item;
+  }
+}
+
+.MinutesMarkdown__ul {
+  list-style: disc outside;
+}
+
+.MinutesMarkdown__ol {
+  list-style: decimal outside;
 }
 
 .MinutesMarkdown__quote {

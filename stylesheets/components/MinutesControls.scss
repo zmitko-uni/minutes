@@ -1,0 +1,147 @@
+// Copyright 2026 minutes contributors
+// SPDX-License-Identifier: AGPL-3.0-only
+
+@use '../mixins';
+
+/* Čtvereček s ikonou — akce u položek seznamu a v panelových lištách. */
+.MinutesIconButton {
+  @include mixins.button-reset;
+
+  & {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex: none;
+    border-radius: 8px;
+    background: var(--axo-color-fill-primary);
+    color: var(--axo-color-label-secondary);
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary-pressed);
+    color: var(--axo-color-label-primary);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--axo-color-fill-accent);
+    color: var(--axo-color-label-primary-oncolor);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesIconButton--danger:hover {
+  background: var(--axo-color-fill-primary-pressed);
+  color: var(--axo-color-label-destructive);
+}
+
+.MinutesIcon {
+  display: block;
+}
+
+.MinutesConversationHeaderButton {
+  @include mixins.button-reset;
+
+  & {
+    align-self: center;
+    flex-shrink: 0;
+    inline-size: 28px;
+    block-size: 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    color: var(--axo-color-label-secondary);
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary);
+    color: var(--axo-color-label-accent);
+  }
+}
+
+.MinutesOptionsPopover {
+  position: relative;
+  display: inline-flex;
+}
+
+.MinutesOptionsPopover__panel {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 100;
+  min-width: 280px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--axo-color-surface-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--axo-color-border-secondary);
+}
+
+.MinutesOptionsPopover__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.MinutesOptionsPopover__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  > span {
+    @include mixins.font-body-small;
+    opacity: 0.75;
+  }
+
+  > select {
+    @include mixins.font-body-2;
+    padding-block: 6px;
+    padding-inline: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--axo-color-border-tertiary);
+    background: var(--axo-color-surface-tertiary);
+    color: var(--axo-color-label-primary);
+
+    option {
+      background: var(--axo-color-surface-primary);
+      color: var(--axo-color-label-primary);
+    }
+  }
+}
+
+.MinutesOptionsPopover__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.MinutesOptionsPopover__actionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.MinutesOptionsPopover__actionLabel {
+  @include mixins.font-body-small;
+  flex: 1;
+  color: var(--axo-color-label-secondary);
+}
+
+.MinutesOptionsPopover__hint {
+  @include mixins.font-body-small;
+  margin: 0;
+  opacity: 0.7;
+}

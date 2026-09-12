@@ -1,14 +1,28 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { useCallback, useEffect, useState, type JSX } from 'react';
+import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { ipcRenderer } from 'electron';
 
 import { AxoButton } from '../../axo/AxoButton.dom.tsx';
+import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
 import { AxoDropdownMenu } from '../../axo/AxoDropdownMenu.dom.tsx';
+import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
+import {
+  AI_SUMMARY_STYLE_OPTIONS,
+  type AiProvider,
+  type AiSettingsPublic,
+  type AiSummaryStyle,
+} from '../aiSettings.std.ts';
+import { buildConfiguredAiModelChoices } from '../aiModelChoices.std.ts';
+import { getAiSettings } from '../aiSettingsService.preload.ts';
+import { getCallSummaryExtensionState } from '../callSummaryExtensionService.preload.ts';
+import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
 import { toFriendlyError } from '../friendlyError.std.ts';
 import { getRecordingArtifactPaths } from '../recordingArtifacts.std.ts';
+import type { RecordingMeetingLink } from '../recordingMeeting.std.ts';
+import { saveRecordingSummary } from '../recordingFilesService.preload.ts';
 import type { RecordingListItem } from '../recordingsListModel.std.ts';
 import { loadCallRecordingOutputFromEntry } from '../sendCallRecordingToChat.preload.ts';
 import { transcriptionQueue } from '../transcriptionQueueService.preload.ts';
@@ -18,7 +32,10 @@ import {
   formatRecordingDuration,
   formatRecordingWhen,
 } from '../transcriptionStatusFormat.std.ts';
-import type { TranscriptionJob } from '../transcriptionQueue.std.ts';
+import type {
+  TranscriptionJob,
+  TranscriptionJobOptions,
+} from '../transcriptionQueue.std.ts';
 import {
   cancelRecordingMp4Export,
   exportRecordingToMp4,
@@ -28,17 +45,47 @@ import {
   subscribeVideoMp4SupportProgress,
 } from '../videoMp4ExportService.preload.ts';
 import { getWhisperModelLabel } from '../whisperSettings.std.ts';
+import {
+  MinutesIconButton,
+  MinutesOptionsPopover,
+} from './MinutesIconButton.dom.tsx';
+import { MinutesIcon } from './MinutesIcon.dom.tsx';
 import { MinutesMarkdown } from './MinutesMarkdown.dom.tsx';
+import { MinutesRecordingMeetingPane } from './MinutesRecordingMeetingPane.dom.tsx';
 import { MinutesRecordingPlayer } from './MinutesRecordingPlayer.dom.tsx';
+import { MinutesSummaryEditor } from './MinutesSummaryEditor.dom.tsx';
+import { MinutesTranscriptView } from './MinutesTranscriptView.dom.tsx';
+import {
+  listTranscriptSpeakers,
+  parseTranscriptSegments,
+} from '../transcriptDisplay.std.ts';
+import {
+  UUBT_ACTIVITY_STATE_SOLVED,
+  isUubtMeetingSolvableByMe,
+} from '../uubt.std.ts';
+import { markUubtMeetingSolved } from '../uubtService.preload.ts';
 
 export type RecordingSendAction =
   | 'transcript-chat'
   | 'transcript-self'
   | 'summary-chat'
-  | 'summary-self'
-  | 'summary-uubt';
+  | 'summary-self';
 
-type DetailTab = 'summary' | 'transcript' | 'media';
+type DetailTab = 'summary' | 'transcript' | 'media' | 'meeting';
+
+const NO_WHISPER_MODEL_HINT =
+  'Není stažený žádný model přepisu. Přidejte ho v Minutes → Nastavení přepisů…';
+
+function formatTranscribeModelLabel(
+  selected: string | null,
+  active: string | null
+): string {
+  const fileName = selected ?? active;
+  if (fileName == null) {
+    return 'aktivní model';
+  }
+  return getWhisperModelLabel(fileName);
+}
 
 type Mp4ExportState = Readonly<{
   status: 'running' | 'failed';
@@ -64,6 +111,71 @@ function ArtifactBadge({
     >
       {label} {ready ? '✓' : '—'}
     </span>
+  );
+}
+
+/**
+ * Sdílení patří k obsahu tabu, ne k celé nahrávce — v tabu Shrnutí nabízí
+ * shrnutí, v tabu Přepis přepis, a u obou volbu do chatu nebo sobě.
+ */
+function SharePanel({
+  kind,
+  item,
+  isSelfChat,
+  isSending,
+  onSend,
+}: Readonly<{
+  kind: 'summary' | 'transcript';
+  item: RecordingListItem;
+  isSelfChat: boolean;
+  isSending: boolean;
+  onSend: (item: RecordingListItem, action: RecordingSendAction) => void;
+}>): JSX.Element {
+  const isReady = kind === 'summary' ? item.hasSummary : item.hasTranscript;
+  const what = kind === 'summary' ? 'shrnutí' : 'přepis';
+
+  return (
+    <MinutesOptionsPopover
+      icon="share"
+      label={isSending ? 'Odesílám…' : `Sdílet ${what}`}
+      disabled={!isReady || isSending}
+    >
+      {close => (
+        <div className="MinutesOptionsPopover__actions">
+          <AxoButton.Root
+            variant="subtle-primary"
+            size="sm"
+            width="full"
+            onClick={() => {
+              close();
+              onSend(item, `${kind}-chat`);
+            }}
+          >
+            Do chatu
+          </AxoButton.Root>
+
+          {!isSelfChat && (
+            <AxoButton.Root
+              variant="subtle-primary"
+              size="sm"
+              width="full"
+              onClick={() => {
+                close();
+                onSend(item, `${kind}-self`);
+              }}
+            >
+              Sobě
+            </AxoButton.Root>
+          )}
+
+          <p className="MinutesOptionsPopover__hint">
+            {isSelfChat
+              ? `Odešle ${what} jako zprávu do tohoto chatu.`
+              : `Do chatu = ${item.conversationTitle}. Sobě = vaše poznámky.`}
+          </p>
+        </div>
+      )}
+    </MinutesOptionsPopover>
   );
 }
 
@@ -207,6 +319,29 @@ function useRecordingTexts(item: RecordingListItem): RecordingTexts | null {
   return texts;
 }
 
+/** Whisper modely, které jsou reálně stažené — jen z nich jde vybírat. */
+function useInstalledWhisperModels(): Readonly<{
+  models: ReadonlyArray<Readonly<{ fileName: string; label: string }>>;
+  activeFileName: string | null;
+}> {
+  const [state, setState] = useState(() => getCallSummaryExtensionState());
+
+  useEffect(() => {
+    setState(getCallSummaryExtensionState());
+    return callSummaryExtensionEvents.on(setState);
+  }, []);
+
+  return useMemo(
+    () => ({
+      models: state.availableModels
+        .filter(model => model.installed && model.ready)
+        .map(model => ({ fileName: model.fileName, label: model.label })),
+      activeFileName: state.modelFileName,
+    }),
+    [state]
+  );
+}
+
 /** Chybová hláška s doporučením; technický text je schovaný pod odkazem. */
 function ErrorNotice({
   title,
@@ -281,51 +416,169 @@ function JobProgress({
   );
 }
 
-function SummaryPane({
-  texts,
-  hasTranscript,
+function DeleteConfirmDialog({
+  item,
+  onConfirm,
+  onCancel,
 }: Readonly<{
-  texts: RecordingTexts | null;
-  hasTranscript: boolean;
+  item: RecordingListItem;
+  onConfirm: () => void;
+  onCancel: () => void;
 }>): JSX.Element {
-  if (texts == null) {
-    return <p className="MinutesTranscriptsTab__note">Načítám shrnutí…</p>;
-  }
-  if (texts.summary.length > 0) {
-    return <MinutesMarkdown source={texts.summary} />;
-  }
   return (
-    <p className="MinutesTranscriptsTab__note">
-      {hasTranscript
-        ? 'Shrnutí zatím není. Vygenerujte ho tlačítkem nahoře — použije se aktuální styl z Nastavení AI.'
-        : 'Shrnutí vzniká z přepisu. Nejdřív nahrávku přepište.'}
-    </p>
+    <AxoDialog.Root
+      open
+      onOpenChange={nextOpen => {
+        if (!nextOpen) {
+          onCancel();
+        }
+      }}
+    >
+      <AxoDialog.Content size="md" escape="cancel-is-noop">
+        <AxoDialog.Header>
+          <AxoDialog.Title>Smazat nahrávku?</AxoDialog.Title>
+          <AxoDialog.Close />
+        </AxoDialog.Header>
+        <AxoDialog.Body>
+          <AxoDialog.Description>
+            <p className={tw('text-label-medium')}>
+              Smaže se záznam &bdquo;{item.conversationTitle}&ldquo; včetně
+              zvuku nebo videa, přepisu, shrnutí, MP4 i metadat. Tuhle akci
+              nelze vzít zpět.
+            </p>
+          </AxoDialog.Description>
+        </AxoDialog.Body>
+        <AxoDialog.Footer>
+          <AxoDialog.Actions>
+            <AxoDialog.Action variant="subtle-secondary" onClick={onCancel}>
+              Ponechat
+            </AxoDialog.Action>
+            <AxoDialog.Action variant="strong-destructive" onClick={onConfirm}>
+              Smazat vše
+            </AxoDialog.Action>
+          </AxoDialog.Actions>
+        </AxoDialog.Footer>
+      </AxoDialog.Content>
+    </AxoDialog.Root>
   );
 }
 
-function TranscriptPane({
-  texts,
-  canTranscribe,
+function SummaryOptionsPanel({
+  aiSettings,
+  provider,
+  model,
+  style,
+  onProviderModelChange,
+  onStyleChange,
 }: Readonly<{
-  texts: RecordingTexts | null;
-  canTranscribe: boolean;
+  aiSettings: AiSettingsPublic | null;
+  provider: AiProvider | null;
+  model: string | null;
+  style: AiSummaryStyle | null;
+  onProviderModelChange: (
+    provider: AiProvider | null,
+    model: string | null
+  ) => void;
+  onStyleChange: (style: AiSummaryStyle | null) => void;
 }>): JSX.Element {
-  if (texts == null) {
-    return <p className="MinutesTranscriptsTab__note">Načítám přepis…</p>;
-  }
-  if (texts.transcript.length > 0) {
-    return (
-      <pre className="MinutesTranscriptsTab__transcript">
-        {texts.transcript}
-      </pre>
-    );
-  }
+  const choices = useMemo(
+    () => (aiSettings != null ? buildConfiguredAiModelChoices(aiSettings) : []),
+    [aiSettings]
+  );
+
   return (
-    <p className="MinutesTranscriptsTab__note">
-      {canTranscribe
-        ? 'Přepis zatím není. Spusťte ho tlačítkem nahoře.'
-        : 'K nahrávce chybí PCM sidecar, takže ji tato verze Minutes neumí přepsat.'}
-    </p>
+    <div className="MinutesOptionsPopover__form">
+      <label className="MinutesOptionsPopover__field">
+        <span>Model</span>
+        <select
+          value={
+            provider != null && model != null ? `${provider}::${model}` : ''
+          }
+          onChange={event => {
+            const [nextProvider, nextModel] = event.target.value.split('::');
+            onProviderModelChange(
+              (nextProvider as AiProvider | undefined) ?? null,
+              nextModel ?? null
+            );
+          }}
+        >
+          {choices.map(choice => (
+            <option
+              key={`${choice.provider}::${choice.model}`}
+              value={`${choice.provider}::${choice.model}`}
+            >
+              {choice.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="MinutesOptionsPopover__field">
+        <span>Styl</span>
+        <select
+          value={style ?? ''}
+          onChange={event =>
+            onStyleChange(
+              event.target.value === ''
+                ? null
+                : (event.target.value as AiSummaryStyle)
+            )
+          }
+        >
+          {AI_SUMMARY_STYLE_OPTIONS.map(option => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <p className="MinutesOptionsPopover__hint">
+        Předvyplněno z Nastavení AI. Změna platí jen pro tohle přegenerování,
+        nastavení nepřepíše. Instrukce pro styl Vlastní se berou z Nastavení AI.
+      </p>
+    </div>
+  );
+}
+
+function WhisperModelPanel({
+  models,
+  activeFileName,
+  selected,
+  onSelect,
+}: Readonly<{
+  models: ReadonlyArray<Readonly<{ fileName: string; label: string }>>;
+  activeFileName: string | null;
+  selected: string | null;
+  onSelect: (fileName: string | null) => void;
+}>): JSX.Element {
+  return (
+    <div className="MinutesOptionsPopover__form">
+      <label className="MinutesOptionsPopover__field">
+        <span>Model přepisu</span>
+        <select
+          value={selected ?? ''}
+          onChange={event =>
+            onSelect(event.target.value === '' ? null : event.target.value)
+          }
+        >
+          <option value="">
+            {activeFileName != null
+              ? `Aktivní model (${getWhisperModelLabel(activeFileName)})`
+              : 'Aktivní model'}
+          </option>
+          {models.map(model => (
+            <option key={model.fileName} value={model.fileName}>
+              {model.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className="MinutesOptionsPopover__hint">
+        Vybírat lze jen ze stažených modelů. Další se stahují v Nastavení
+        přepisů.
+      </p>
+    </div>
   );
 }
 
@@ -333,26 +586,53 @@ export function MinutesRecordingDetail({
   item,
   jobs,
   sendingKey,
-  activeWhisperModelLabel,
   isSelfChat,
+  isUubtEnabled,
+  meetingLink,
   onEnqueueTranscription,
   onEnqueueSummary,
   onSend,
+  onWriteToMeeting,
+  onDelete,
+  onMeetingLinkChange,
   onRefresh,
 }: Readonly<{
   item: RecordingListItem;
   jobs: ReadonlyArray<TranscriptionJob>;
   sendingKey: string | null;
-  activeWhisperModelLabel: string;
   isSelfChat: boolean;
-  onEnqueueTranscription: (item: RecordingListItem) => void;
-  onEnqueueSummary: (item: RecordingListItem) => void;
+  isUubtEnabled: boolean;
+  meetingLink: RecordingMeetingLink | null;
+  onEnqueueTranscription: (
+    item: RecordingListItem,
+    options?: TranscriptionJobOptions
+  ) => void;
+  onEnqueueSummary: (
+    item: RecordingListItem,
+    options?: TranscriptionJobOptions
+  ) => void;
   onSend: (item: RecordingListItem, action: RecordingSendAction) => void;
+  onWriteToMeeting: (item: RecordingListItem) => void;
+  onDelete: (item: RecordingListItem) => void;
+  onMeetingLinkChange: (link: RecordingMeetingLink) => void;
   onRefresh: () => void;
 }>): JSX.Element {
   const [activeTab, setActiveTab] = useState<DetailTab>('summary');
+  const [aiSettings, setAiSettings] = useState<AiSettingsPublic | null>(null);
+  const [summaryProvider, setSummaryProvider] = useState<AiProvider | null>(
+    null
+  );
+  const [summaryModel, setSummaryModel] = useState<string | null>(null);
+  const [summaryStyle, setSummaryStyle] = useState<AiSummaryStyle | null>(null);
+  const [whisperModel, setWhisperModel] = useState<string | null>(null);
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
+  const [isSavingSummary, setIsSavingSummary] = useState(false);
+  const [saveError, setSaveError] = useState<unknown>(null);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
   const texts = useRecordingTexts(item);
   const mp4 = useMp4Export(item, onRefresh);
+  const whisper = useInstalledWhisperModels();
 
   const { entry, job } = item;
   const mp4Path = entry?.mp4Path ?? null;
@@ -362,23 +642,137 @@ export function MinutesRecordingDetail({
   const isSending = sendingKey != null;
   const canTranscribe = entry?.hasPcmSidecar ?? false;
   const isVideo = item.mediaKind === 'screen-share-video';
+  const hasWhisperModels = whisper.models.length > 0;
   const usedModelLabel =
     entry?.transcriptWhisperModelLabel ??
     (entry?.transcriptWhisperModelFileName != null
       ? getWhisperModelLabel(entry.transcriptWhisperModelFileName)
       : null);
+  const transcribeModelLabel = formatTranscribeModelLabel(
+    whisperModel,
+    whisper.activeFileName
+  );
+
+  // Volby přegenerování startují na tom, co má uživatel v Nastavení AI —
+  // ať v nabídce vidí konkrétní model a styl, ne odkaz na nastavení.
+  useEffect(() => {
+    drop(
+      (async () => {
+        try {
+          const settings = await getAiSettings();
+          setAiSettings(settings);
+          setSummaryProvider(settings.provider);
+          setSummaryModel(settings.model);
+          setSummaryStyle(settings.summaryStyle);
+        } catch {
+          setAiSettings(null);
+        }
+      })()
+    );
+  }, []);
 
   // Nahrávka bez přepisu nemá co ukazovat ve výchozím tabu.
   useEffect(() => {
     setActiveTab(item.hasSummary ? 'summary' : 'transcript');
+    setIsEditingSummary(false);
+    setSaveError(null);
   }, [item.recordingPath, item.hasSummary]);
 
   const openInFolder = useCallback((path: string) => {
     ipcRenderer.send('show-item-in-folder', path);
   }, []);
 
+  const regenerateSummary = useCallback(() => {
+    onEnqueueSummary(item, {
+      summaryProvider: summaryProvider ?? undefined,
+      summaryModel: summaryModel ?? undefined,
+      summaryStyle: summaryStyle ?? undefined,
+    });
+  }, [item, onEnqueueSummary, summaryModel, summaryProvider, summaryStyle]);
+
+  const startTranscription = useCallback(() => {
+    onEnqueueTranscription(item, {
+      whisperModelFileName: whisperModel ?? undefined,
+    });
+  }, [item, onEnqueueTranscription, whisperModel]);
+
+  const handleSaveSummary = useCallback(
+    (markdown: string) => {
+      setIsSavingSummary(true);
+      setSaveError(null);
+      drop(
+        (async () => {
+          try {
+            await saveRecordingSummary(item.recordingPath, markdown);
+            setIsEditingSummary(false);
+            onRefresh();
+          } catch (error) {
+            setSaveError(error);
+          } finally {
+            setIsSavingSummary(false);
+          }
+        })()
+      );
+    },
+    [item.recordingPath, onRefresh]
+  );
+
+  const detailTabs = useMemo(() => {
+    const tabs: Array<readonly [DetailTab, string]> = [
+      ['summary', 'Shrnutí'],
+      ['transcript', 'Přepis'],
+      ['media', isVideo ? 'Video' : 'Nahrávka'],
+    ];
+    if (meetingLink != null) {
+      tabs.push(['meeting', 'Schůzka']);
+    }
+    return tabs;
+  }, [isVideo, meetingLink]);
+
+  // Jména řečníků slouží AI jako seznam možných řešitelů úkolů.
+  const transcriptSpeakers = useMemo(
+    () =>
+      listTranscriptSpeakers(parseTranscriptSegments(texts?.transcript ?? '')),
+    [texts?.transcript]
+  );
+
+  const isMeetingConfirmable =
+    meetingLink?.activity != null &&
+    isUubtMeetingSolvableByMe(meetingLink.activity);
+
+  const confirmMeetingMinutes = useCallback(async () => {
+    const activity = meetingLink?.activity;
+    if (activity == null || meetingLink == null) {
+      return;
+    }
+
+    await markUubtMeetingSolved(
+      activity,
+      'Zápis vložen z Minutes a schůzka uzavřena.'
+    );
+    onMeetingLinkChange({
+      ...meetingLink,
+      activity: { ...activity, stateCode: UUBT_ACTIVITY_STATE_SOLVED },
+    });
+  }, [meetingLink, onMeetingLinkChange]);
+
+  const meetingButtonHint = !item.hasSummary
+    ? 'Zápis se posílá ze shrnutí — nejdřív ho vygenerujte.'
+    : 'Zapněte Plus4U integraci a uložte oba přístupové kódy v Nastavení AI.';
+
   return (
     <div className="MinutesTranscriptsTab__detail">
+      {isConfirmingDelete && (
+        <DeleteConfirmDialog
+          item={item}
+          onCancel={() => setIsConfirmingDelete(false)}
+          onConfirm={() => {
+            setIsConfirmingDelete(false);
+            onDelete(item);
+          }}
+        />
+      )}
+
       <header className="MinutesTranscriptsTab__detailHeader">
         <h2 className="MinutesTranscriptsTab__detailTitle">
           {item.conversationTitle}
@@ -395,10 +789,13 @@ export function MinutesRecordingDetail({
         </p>
 
         <div className="MinutesTranscriptsTab__badges">
-          <ArtifactBadge label="Přepis" ready={item.hasTranscript} />
-          <ArtifactBadge label="Shrnutí" ready={item.hasSummary} />
           {isVideo && (
             <ArtifactBadge label="MP4" ready={entry?.hasMp4Export ?? false} />
+          )}
+          {meetingLink != null && (
+            <span className="MinutesTranscriptsTab__badge MinutesTranscriptsTab__badge--ready">
+              Schůzka ✓
+            </span>
           )}
           {entry != null && !entry.hasPcmSidecar && (
             <span className="MinutesTranscriptsTab__badge MinutesTranscriptsTab__badge--warn">
@@ -408,96 +805,98 @@ export function MinutesRecordingDetail({
         </div>
 
         <div className="MinutesTranscriptsTab__actions">
-          {!item.hasTranscript ? (
-            <AxoButton.Root
-              variant="strong-primary"
-              size="sm"
-              disabled={isBusy || !canTranscribe}
-              onClick={() => onEnqueueTranscription(item)}
-            >
-              Spustit přepis
-            </AxoButton.Root>
-          ) : (
-            <AxoButton.Root
-              variant={item.hasSummary ? 'subtle-primary' : 'strong-primary'}
-              size="sm"
-              disabled={isBusy}
-              onClick={() => onEnqueueSummary(item)}
-            >
-              {item.hasSummary ? 'Přegenerovat shrnutí' : 'Vygenerovat shrnutí'}
-            </AxoButton.Root>
-          )}
-
-          {item.hasTranscript && (
+          {job != null && isBusy && (
             <AxoButton.Root
               variant="subtle-primary"
               size="sm"
-              disabled={isBusy || !canTranscribe}
-              onClick={() => onEnqueueTranscription(item)}
+              disabled={job.status === 'processing' && job.cancelRequested}
+              onClick={() => transcriptionQueue.cancelJob(job.id)}
             >
-              {`Přepsat znovu (${activeWhisperModelLabel})`}
+              {job.status === 'processing' && job.cancelRequested
+                ? 'Rušení…'
+                : 'Zrušit'}
             </AxoButton.Root>
           )}
 
-          <AxoDropdownMenu.Root>
-            <AxoDropdownMenu.Trigger>
-              <AxoButton.Root
-                variant="subtle-primary"
-                size="sm"
-                disabled={
-                  (!item.hasTranscript && !item.hasSummary) || isSending
-                }
-              >
-                {isSending ? 'Odesílám…' : 'Sdílet'}
-              </AxoButton.Root>
-            </AxoDropdownMenu.Trigger>
-            <AxoDropdownMenu.Content>
-              {item.hasTranscript && (
-                <AxoDropdownMenu.Item
-                  onSelect={() => onSend(item, 'transcript-chat')}
-                >
-                  Přepis do chatu
-                </AxoDropdownMenu.Item>
-              )}
-              {item.hasTranscript && !isSelfChat && (
-                <AxoDropdownMenu.Item
-                  onSelect={() => onSend(item, 'transcript-self')}
-                >
-                  Přepis sobě
-                </AxoDropdownMenu.Item>
-              )}
-              {item.hasSummary && (
-                <AxoDropdownMenu.Item
-                  onSelect={() => onSend(item, 'summary-chat')}
-                >
-                  Shrnutí do chatu
-                </AxoDropdownMenu.Item>
-              )}
-              {item.hasSummary && !isSelfChat && (
-                <AxoDropdownMenu.Item
-                  onSelect={() => onSend(item, 'summary-self')}
-                >
-                  Shrnutí sobě
-                </AxoDropdownMenu.Item>
-              )}
-              {item.hasSummary && (
-                <>
-                  <AxoDropdownMenu.Separator />
-                  <AxoDropdownMenu.Item
-                    onSelect={() => onSend(item, 'summary-uubt')}
-                  >
-                    Zápis do schůzky v uuBT
-                  </AxoDropdownMenu.Item>
-                </>
-              )}
-            </AxoDropdownMenu.Content>
-          </AxoDropdownMenu.Root>
+          {job?.status === 'failed' && (
+            <AxoButton.Root
+              variant="subtle-primary"
+              size="sm"
+              onClick={() => transcriptionQueue.retryJob(job.id)}
+            >
+              Zkusit znovu
+            </AxoButton.Root>
+          )}
 
+          <span className="MinutesTranscriptsTab__actionsSpacer" />
+
+          <MinutesIconButton
+            icon="trash"
+            tone="danger"
+            label="Smazat nahrávku i všechny soubory"
+            disabled={isBusy}
+            onClick={() => setIsConfirmingDelete(true)}
+          />
+        </div>
+
+        {job != null && job.status !== 'completed' && (
+          <JobProgress job={job} jobs={jobs} />
+        )}
+
+        {mp4.state?.status === 'failed' && (
+          <ErrorNotice
+            title="Převod do MP4 selhal"
+            error={mp4.state.error ?? ''}
+          />
+        )}
+
+        {mp4.state?.status === 'running' && (
+          <div className="MinutesTranscriptsTab__jobStatus MinutesTranscriptsTab__jobStatus--processing">
+            <div className="MinutesTranscriptsTab__jobStatusRow">
+              <span>
+                {`${mp4.state.detail ?? 'Převod do MP4'} ${mp4.state.percent} %`}
+              </span>
+            </div>
+            <div className="MinutesTranscriptsTab__progress">
+              <div
+                className="MinutesTranscriptsTab__progressBar"
+                style={{ width: `${mp4.state.percent}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="MinutesTranscriptsTab__detailTabs">
+          <div
+            className="MinutesTranscriptsTab__detailTabList"
+            role="tablist"
+            aria-label="Obsah nahrávky"
+          >
+            {detailTabs.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === value}
+                className="MinutesTranscriptsTab__detailTab"
+                onClick={() => setActiveTab(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Soubory nejsou obsah nahrávky, proto jen vypadají jako další
+              záložka a rozbalí nabídku — do tablistu tedy nepatří. */}
           <AxoDropdownMenu.Root>
             <AxoDropdownMenu.Trigger>
-              <AxoButton.Root variant="subtle-primary" size="sm">
+              <button
+                type="button"
+                className="MinutesTranscriptsTab__detailTab MinutesTranscriptsTab__detailTab--menu"
+              >
+                <MinutesIcon name="folder" />
                 Soubory
-              </AxoButton.Root>
+              </button>
             </AxoDropdownMenu.Trigger>
             <AxoDropdownMenu.Content>
               <AxoDropdownMenu.Item
@@ -550,93 +949,210 @@ export function MinutesRecordingDetail({
               </AxoDropdownMenu.Item>
             </AxoDropdownMenu.Content>
           </AxoDropdownMenu.Root>
-
-          {job != null && isBusy && (
-            <AxoButton.Root
-              variant="subtle-primary"
-              size="sm"
-              disabled={job.status === 'processing' && job.cancelRequested}
-              onClick={() => transcriptionQueue.cancelJob(job.id)}
-            >
-              {job.status === 'processing' && job.cancelRequested
-                ? 'Rušení…'
-                : 'Zrušit'}
-            </AxoButton.Root>
-          )}
-
-          {job?.status === 'failed' && (
-            <AxoButton.Root
-              variant="subtle-primary"
-              size="sm"
-              onClick={() => transcriptionQueue.retryJob(job.id)}
-            >
-              Zkusit znovu
-            </AxoButton.Root>
-          )}
-        </div>
-
-        {job != null && job.status !== 'completed' && (
-          <JobProgress job={job} jobs={jobs} />
-        )}
-
-        {mp4.state?.status === 'failed' && (
-          <ErrorNotice
-            title="Převod do MP4 selhal"
-            error={mp4.state.error ?? ''}
-          />
-        )}
-
-        {mp4.state?.status === 'running' && (
-          <div className="MinutesTranscriptsTab__jobStatus MinutesTranscriptsTab__jobStatus--processing">
-            <div className="MinutesTranscriptsTab__jobStatusRow">
-              <span>
-                {`${mp4.state.detail ?? 'Převod do MP4'} ${mp4.state.percent} %`}
-              </span>
-            </div>
-            <div className="MinutesTranscriptsTab__progress">
-              <div
-                className="MinutesTranscriptsTab__progressBar"
-                style={{ width: `${mp4.state.percent}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        <div
-          className="MinutesTranscriptsTab__detailTabs"
-          role="tablist"
-          aria-label="Obsah nahrávky"
-        >
-          {(
-            [
-              ['summary', 'Shrnutí'],
-              ['transcript', 'Přepis'],
-              ['media', isVideo ? 'Video' : 'Nahrávka'],
-            ] as ReadonlyArray<readonly [DetailTab, string]>
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === value}
-              className="MinutesTranscriptsTab__detailTab"
-              onClick={() => setActiveTab(value)}
-            >
-              {label}
-            </button>
-          ))}
         </div>
       </header>
 
       <div className="MinutesTranscriptsTab__detailBody">
-        {activeTab === 'media' && <MinutesRecordingPlayer item={item} />}
         {activeTab === 'summary' && (
-          <SummaryPane texts={texts} hasTranscript={item.hasTranscript} />
+          <>
+            <div className="MinutesTranscriptsTab__paneToolbar">
+              <span
+                className="MinutesTranscriptsTab__hintWrap"
+                title={
+                  item.hasSummary && isUubtEnabled
+                    ? undefined
+                    : meetingButtonHint
+                }
+              >
+                <AxoButton.Root
+                  variant="subtle-primary"
+                  size="sm"
+                  disabled={!item.hasSummary || !isUubtEnabled || isSending}
+                  onClick={() => onWriteToMeeting(item)}
+                >
+                  Zapsat ke schůzce Plus4U
+                </AxoButton.Root>
+              </span>
+
+              <AxoButton.Root
+                variant={item.hasSummary ? 'subtle-primary' : 'strong-primary'}
+                size="sm"
+                disabled={isBusy || !item.hasTranscript}
+                onClick={regenerateSummary}
+              >
+                {item.hasSummary
+                  ? 'Přegenerovat shrnutí'
+                  : 'Vygenerovat shrnutí'}
+              </AxoButton.Root>
+
+              <MinutesOptionsPopover icon="options" label="Volby shrnutí">
+                {() => (
+                  <SummaryOptionsPanel
+                    aiSettings={aiSettings}
+                    provider={summaryProvider}
+                    model={summaryModel}
+                    style={summaryStyle}
+                    onProviderModelChange={(provider, model) => {
+                      setSummaryProvider(provider);
+                      setSummaryModel(model);
+                    }}
+                    onStyleChange={setSummaryStyle}
+                  />
+                )}
+              </MinutesOptionsPopover>
+
+              {item.hasSummary && (
+                <MinutesIconButton
+                  icon="pencil"
+                  label={
+                    isEditingSummary
+                      ? 'Zavřít editaci shrnutí'
+                      : 'Upravit text shrnutí'
+                  }
+                  isActive={isEditingSummary}
+                  onClick={() => setIsEditingSummary(value => !value)}
+                />
+              )}
+
+              <SharePanel
+                kind="summary"
+                item={item}
+                isSelfChat={isSelfChat}
+                isSending={isSending}
+                onSend={onSend}
+              />
+            </div>
+
+            {saveError != null && (
+              <ErrorNotice title="Shrnutí se neuložilo" error={saveError} />
+            )}
+
+            {isEditingSummary ? (
+              <MinutesSummaryEditor
+                markdown={texts?.summary ?? ''}
+                isSaving={isSavingSummary}
+                onSave={handleSaveSummary}
+                onCancel={() => setIsEditingSummary(false)}
+              />
+            ) : (
+              <SummaryPane texts={texts} hasTranscript={item.hasTranscript} />
+            )}
+          </>
         )}
+
         {activeTab === 'transcript' && (
-          <TranscriptPane texts={texts} canTranscribe={canTranscribe} />
+          <>
+            <div className="MinutesTranscriptsTab__paneToolbar">
+              <AxoButton.Root
+                variant={
+                  item.hasTranscript ? 'subtle-primary' : 'strong-primary'
+                }
+                size="sm"
+                disabled={isBusy || !canTranscribe}
+                onClick={startTranscription}
+              >
+                {item.hasTranscript
+                  ? `Přepsat znovu (${transcribeModelLabel})`
+                  : 'Spustit přepis'}
+              </AxoButton.Root>
+
+              <span
+                className="MinutesTranscriptsTab__hintWrap"
+                title={hasWhisperModels ? undefined : NO_WHISPER_MODEL_HINT}
+              >
+                <MinutesOptionsPopover
+                  icon="options"
+                  label="Volba modelu přepisu"
+                  disabled={!hasWhisperModels}
+                >
+                  {() => (
+                    <WhisperModelPanel
+                      models={whisper.models}
+                      activeFileName={whisper.activeFileName}
+                      selected={whisperModel}
+                      onSelect={setWhisperModel}
+                    />
+                  )}
+                </MinutesOptionsPopover>
+              </span>
+
+              <SharePanel
+                kind="transcript"
+                item={item}
+                isSelfChat={isSelfChat}
+                isSending={isSending}
+                onSend={onSend}
+              />
+            </div>
+
+            <TranscriptPane texts={texts} canTranscribe={canTranscribe} />
+          </>
+        )}
+
+        {activeTab === 'media' && <MinutesRecordingPlayer item={item} />}
+
+        {activeTab === 'meeting' && meetingLink != null && (
+          <MinutesRecordingMeetingPane
+            link={meetingLink}
+            conversationId={item.conversationId}
+            sourceChatTitle={item.conversationTitle}
+            isSelfChat={isSelfChat}
+            summaryMarkdown={texts?.summary ?? ''}
+            participants={transcriptSpeakers}
+            isSharing={isSending}
+            isConfirmable={isMeetingConfirmable}
+            onUpdated={onMeetingLinkChange}
+            onShareSummary={target =>
+              onSend(item, target === 'self' ? 'summary-self' : 'summary-chat')
+            }
+            onConfirmMinutes={confirmMeetingMinutes}
+          />
         )}
       </div>
     </div>
+  );
+}
+
+function SummaryPane({
+  texts,
+  hasTranscript,
+}: Readonly<{
+  texts: RecordingTexts | null;
+  hasTranscript: boolean;
+}>): JSX.Element {
+  if (texts == null) {
+    return <p className="MinutesTranscriptsTab__note">Načítám shrnutí…</p>;
+  }
+  if (texts.summary.length > 0) {
+    return <MinutesMarkdown source={texts.summary} />;
+  }
+  return (
+    <p className="MinutesTranscriptsTab__note">
+      {hasTranscript
+        ? 'Shrnutí zatím není. Vygenerujte ho tlačítkem nahoře — pod ikonou voleb si můžete vybrat model i styl.'
+        : 'Shrnutí vzniká z přepisu. Nejdřív nahrávku přepište.'}
+    </p>
+  );
+}
+
+function TranscriptPane({
+  texts,
+  canTranscribe,
+}: Readonly<{
+  texts: RecordingTexts | null;
+  canTranscribe: boolean;
+}>): JSX.Element {
+  if (texts == null) {
+    return <p className="MinutesTranscriptsTab__note">Načítám přepis…</p>;
+  }
+  if (texts.transcript.length > 0) {
+    return <MinutesTranscriptView transcript={texts.transcript} />;
+  }
+  return (
+    <p className="MinutesTranscriptsTab__note">
+      {canTranscribe
+        ? 'Přepis zatím není. Spusťte ho tlačítkem nahoře.'
+        : 'K nahrávce chybí PCM sidecar, takže ji tato verze Minutes neumí přepsat.'}
+    </p>
   );
 }

@@ -14,6 +14,7 @@ import { summaryUi } from './summaryUiEvents.std.ts';
 import { isTranscriptionCancelledError } from './transcriptionCancel.std.ts';
 import type {
   TranscriptionJobKind,
+  TranscriptionJobOptions,
   TranscriptionJobStatus,
   TranscriptionQueueSnapshot,
 } from './transcriptionQueue.std.ts';
@@ -30,6 +31,7 @@ type MutableJob = {
   id: string;
   kind: TranscriptionJobKind;
   metadata: CallRecordingMetadata;
+  options?: TranscriptionJobOptions;
   status: TranscriptionJobStatus;
   progress: number;
   progressPhase?: TranscriptionProgressPhase;
@@ -63,7 +65,8 @@ class TranscriptionQueueService {
 
   enqueue(
     metadata: CallRecordingMetadata,
-    kind: TranscriptionJobKind = 'transcription'
+    kind: TranscriptionJobKind = 'transcription',
+    options?: TranscriptionJobOptions
   ): void {
     if (kind === 'transcription' && !isCallSummaryExtensionActive()) {
       return;
@@ -84,6 +87,7 @@ class TranscriptionQueueService {
       id: `${kind}-${metadata.startedAt}-${metadata.conversationId}-${Date.now()}`,
       kind,
       metadata,
+      options,
       status: 'queued',
       progress: 0,
       createdAt: Date.now(),
@@ -96,7 +100,8 @@ class TranscriptionQueueService {
 
   enqueueFromCatalog(
     entry: CallRecordingCatalogEntry,
-    kind: TranscriptionJobKind
+    kind: TranscriptionJobKind,
+    options?: TranscriptionJobOptions
   ): boolean {
     const metadata: CallRecordingMetadata = {
       conversationId: entry.conversationId,
@@ -114,7 +119,7 @@ class TranscriptionQueueService {
       return false;
     }
 
-    this.enqueue(metadata, kind);
+    this.enqueue(metadata, kind, options);
     return true;
   }
 
@@ -285,7 +290,7 @@ class TranscriptionQueueService {
     this.#emit();
 
     try {
-      const { metadata, kind } = job;
+      const { metadata, kind, options } = job;
 
       if (kind === 'summary') {
         const result = (await ipcRenderer.invoke(
@@ -295,6 +300,9 @@ class TranscriptionQueueService {
             recordingPath: metadata.filePath,
             conversationTitle: metadata.conversationTitle,
             localSpeakerDisplayName: getLocalSpeakerDisplayName(),
+            summaryProvider: options?.summaryProvider,
+            summaryModel: options?.summaryModel,
+            summaryStyle: options?.summaryStyle,
           }
         )) as {
           summaryPath?: string;
@@ -338,6 +346,7 @@ class TranscriptionQueueService {
           endedAt: metadata.endedAt,
           background: true,
           localSpeakerDisplayName: getLocalSpeakerDisplayName(),
+          whisperModelFileName: options?.whisperModelFileName,
         }
       )) as {
         transcriptPath?: string;

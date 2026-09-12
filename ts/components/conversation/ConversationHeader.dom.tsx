@@ -60,6 +60,7 @@ import { AxoIconButton } from '../../axo/AxoIconButton.dom.tsx';
 import { AxoButton } from '../../axo/AxoButton.dom.tsx';
 import { AxoConfirmDialog } from '../../axo/AxoConfirmDialog.dom.tsx';
 import { MinutesDropdownMenuItems } from '../../minutes/components/MinutesConversationMenuItems.dom.tsx';
+import { MinutesConversationHeaderButton } from '../../minutes/components/MinutesConversationHeaderButton.dom.tsx';
 
 function HeaderInfoTitle({
   name,
@@ -349,6 +350,9 @@ export const ConversationHeader = memo(function ConversationHeader({
               isSignalConversation={isSignalConversation ?? false}
             />
             <div className={tw(`flex flex-row gap-1 px-4 @min-[500px]:gap-3`)}>
+              <MinutesConversationHeaderButton
+                conversationId={conversation.id}
+              />
               {!isSmsOnlyOrUnregistered &&
                 !isSignalConversation &&
                 !isTerminated && (

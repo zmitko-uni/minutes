@@ -116,10 +116,10 @@ function describeApiFailure(
   }
 
   if (status === 401) {
-    return 'uuBT odmítl token (401). Zkuste znovu uložit přístupové kódy v Nastavení AI.';
+    return 'Plus4U odmítl token (401). Zkuste znovu uložit přístupové kódy v Nastavení AI.';
   }
   if (status === 403) {
-    return 'K tomuto artefaktu v uuBT nemáte oprávnění (403).';
+    return 'K tomuto artefaktu v Plus4U nemáte oprávnění (403).';
   }
 
   return `uuApp ${new URL(url).pathname} vrátil chybu ${status}`;
@@ -160,7 +160,7 @@ async function call<T>(
       signal: AbortSignal.timeout(UUBT_REQUEST_TIMEOUT_MS),
     });
   } catch (error) {
-    throw new Error(`Volání uuBT selhalo (${url}): ${String(error)}`);
+    throw new Error(`Volání Plus4U selhalo (${url}): ${String(error)}`);
   }
 
   const body = await parseBody(response);

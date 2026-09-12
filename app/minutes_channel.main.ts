@@ -32,6 +32,7 @@ import {
 import type {
   AiSettingsSaveInput,
   AiProvider,
+  AiSummaryStyle,
 } from '../ts/minutes/aiSettings.std.ts';
 import {
   addBookmark,
@@ -61,19 +62,34 @@ import {
 } from '../ts/minutes/recordingsCatalog.main.ts';
 import { searchRecordingTexts } from '../ts/minutes/recordingsSearch.main.ts';
 import { registerRecordingMediaProtocol } from '../ts/minutes/recordingMediaProtocol.main.ts';
+import {
+  deleteCallRecording,
+  readRecordingMeeting,
+  saveRecordingSummary,
+  writeRecordingMeeting,
+} from '../ts/minutes/recordingFiles.main.ts';
+import type { RecordingMeetingLink } from '../ts/minutes/recordingMeeting.std.ts';
 import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
   listAiModelsForProvider,
   generateAiSummaryForProvider,
   generateAiOpinionForProvider,
+  generateAiTextForProvider,
   generateUnreadConversationSummaryForProvider,
 } from '../ts/minutes/aiSummaryService.main.ts';
+import {
+  MEETING_TASKS_MAX_TOKENS,
+  buildMeetingTaskPrompts,
+} from '../ts/minutes/meetingTaskPrompts.std.ts';
 import type {
   UubtAppendResponse,
   UubtMeeting,
+  UubtMeetingActivity,
+  UubtMeetingTexts,
   UubtSettingsSaveInput,
 } from '../ts/minutes/uubt.std.ts';
+import { markUubtMeetingSolved } from '../ts/minutes/uubtMeetingActivity.main.ts';
 import {
   getUubtSettingsPublic,
   saveUubtSettings,
@@ -87,6 +103,7 @@ import {
 import {
   UubtDuplicateMinutesError,
   appendMinutesToMeeting,
+  loadUubtMeetingTexts,
 } from '../ts/minutes/uubtMeetingMinutes.main.ts';
 import { readMinutesReadmeContent } from './minutes_readme.main.ts';
 import {
@@ -374,6 +391,48 @@ export async function initializeMinutesChannel(automationOptions?: {
     }
   );
 
+  ipcMain.handle(
+    'minutes:delete-call-recording',
+    async (_event, options: { recordingPath: string }) => {
+      return deleteCallRecording(recordingsDir, options.recordingPath);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:save-recording-summary',
+    async (
+      _event,
+      options: { recordingPath: string; summaryMarkdown: string }
+    ) => {
+      return saveRecordingSummary(
+        recordingsDir,
+        options.recordingPath,
+        options.summaryMarkdown
+      );
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:get-recording-meeting',
+    async (_event, options: { recordingPath: string }) => {
+      return readRecordingMeeting(options.recordingPath);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:save-recording-meeting',
+    async (
+      _event,
+      options: { recordingPath: string; link: RecordingMeetingLink }
+    ) => {
+      return writeRecordingMeeting(
+        recordingsDir,
+        options.recordingPath,
+        options.link
+      );
+    }
+  );
+
   ipcMain.handle('minutes:get-recording-mp4-support', async () => {
     return videoMp4Support.getPublic();
   });
@@ -549,6 +608,7 @@ export async function initializeMinutesChannel(automationOptions?: {
         endedAt: number;
         localSpeakerDisplayName?: string;
         background?: boolean;
+        whisperModelFileName?: string;
       }
     ) => {
       const result = await transcribeCallRecording({
@@ -603,6 +663,9 @@ export async function initializeMinutesChannel(automationOptions?: {
         recordingPath: string;
         conversationTitle: string;
         localSpeakerDisplayName?: string;
+        summaryProvider?: AiProvider;
+        summaryModel?: string;
+        summaryStyle?: AiSummaryStyle;
       }
     ) => {
       const result = await generateCallRecordingSummary({
@@ -792,6 +855,59 @@ export async function initializeMinutesChannel(automationOptions?: {
     }
   );
 
+  ipcMain.handle(
+    'minutes:propose-meeting-tasks',
+    async (
+      _event,
+      options: {
+        meetingName: string;
+        meetingWhen: string;
+        sourceChatTitle: string;
+        participants: Array<string>;
+        minutesMarkdown: string;
+      }
+    ): Promise<string> => {
+      await assertAiSummaryReady();
+
+      const settings = await getAiSettingsPublic();
+      const apiKey =
+        settings.provider === 'local'
+          ? ''
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
+      if (settings.provider !== 'local' && !apiKey) {
+        throw new Error('API klíč není nastaven');
+      }
+
+      const { systemPrompt, userPrompt } = buildMeetingTaskPrompts({
+        meetingName: options.meetingName,
+        meetingWhen: options.meetingWhen,
+        sourceChatTitle: options.sourceChatTitle,
+        participants: options.participants,
+        minutesMarkdown: options.minutesMarkdown,
+      });
+
+      return generateAiTextForProvider({
+        provider: settings.provider,
+        apiKey: apiKey ?? '',
+        model: settings.model,
+        systemPrompt,
+        userPrompt,
+        temperature: 0.15,
+        maxTokens: MEETING_TASKS_MAX_TOKENS,
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubt-mark-meeting-solved',
+    async (
+      _event,
+      options: { activity: UubtMeetingActivity; note?: string }
+    ): Promise<void> => {
+      await markUubtMeetingSolved(options.activity, options.note);
+    }
+  );
+
   ipcMain.handle('minutes:uubt-get-settings', async () => {
     return getUubtSettingsPublic();
   });
@@ -823,6 +939,16 @@ export async function initializeMinutesChannel(automationOptions?: {
       options: { day: string }
     ): Promise<ReadonlyArray<UubtMeeting>> => {
       return listUubtMeetingsForDay(options.day);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubt-load-meeting-texts',
+    async (
+      _event,
+      options: { meetingBaseUri: string; meetingId: string }
+    ): Promise<UubtMeetingTexts> => {
+      return loadUubtMeetingTexts(options.meetingBaseUri, options.meetingId);
     }
   );
 

@@ -1,6 +1,7 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import type { AiProvider, AiSummaryStyle } from './aiSettings.std.ts';
 import type {
   CallRecordingMetadata,
   CallRecordingOutput,
@@ -8,6 +9,17 @@ import type {
 import type { TranscriptionProgressPhase } from './transcriptionProgress.std.ts';
 
 export type TranscriptionJobKind = 'transcription' | 'summary';
+
+/**
+ * Jednorázová volba z detailu nahrávky — jinak se použije to,
+ * co je v Nastavení AI a v Nastavení přepisů.
+ */
+export type TranscriptionJobOptions = Readonly<{
+  whisperModelFileName?: string;
+  summaryProvider?: AiProvider;
+  summaryModel?: string;
+  summaryStyle?: AiSummaryStyle;
+}>;
 
 export type TranscriptionJobStatus =
   | 'queued'
@@ -20,6 +32,7 @@ export type TranscriptionJob = Readonly<{
   id: string;
   kind: TranscriptionJobKind;
   metadata: CallRecordingMetadata;
+  options?: TranscriptionJobOptions;
   status: TranscriptionJobStatus;
   progress: number;
   progressPhase?: TranscriptionProgressPhase;

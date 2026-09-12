@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createLogger } from '../logging/log.std.ts';
-import type { UubtAppendResult } from './uubt.std.ts';
+import type { UubtAppendResult, UubtMeetingTexts } from './uubt.std.ts';
 import {
+  describeValueShape,
   UUBT_SECTION_TAG_BOTTOM,
   UUBT_SECTION_TAG_MINUTES,
   UUBT_SECTION_TAG_PREPARATION,
@@ -19,6 +20,7 @@ import type { UubtSectionContentItem } from './uubtUu5.std.ts';
 import {
   buildMinutesMarker,
   buildMinutesSectionContent,
+  extractSectionDisplayText,
   extractSectionPlainText,
 } from './uubtUu5.std.ts';
 
@@ -143,7 +145,7 @@ async function loadMeetingContext(
   const pageOid = detail.uuEccMainPage;
   if (!bid || !pageOid) {
     throw new Error(
-      'Schůzka nemá stránku se zápisem (chybí uuEcc data). Otevřete ji v uuBT a zkuste to znovu.'
+      'Schůzka nemá stránku se zápisem (chybí uuEcc data). Otevřete ji v Plus4U a zkuste to znovu.'
     );
   }
 
@@ -169,7 +171,7 @@ async function loadMeetingContext(
     throw new Error(
       `Stránka schůzky je jen pro čtení (stav schůzky: ${String(
         detail.state ?? 'neznámý'
-      )}). Zápis lze doplnit jen do schůzky, kterou můžete v uuBT editovat.`
+      )}). Zápis lze doplnit jen do schůzky, kterou můžete v Plus4U editovat.`
     );
   }
 
@@ -225,6 +227,142 @@ async function loadMeetingContext(
     insertOrderIndex,
     predecessorOid: predecessor?.oid ?? null,
     predecessorId: predecessor?.id ?? null,
+  };
+}
+
+/**
+ * Klíče, pod kterými uuElementaryManagement vrací účastníky. Tvar dtoOut není
+ * dokumentovaný, proto zkoušíme víc názvů a tolerujeme text i objekt.
+ */
+const PARTICIPANT_KEYS: ReadonlyArray<string> = [
+  'participantList',
+  'participants',
+  'attendeeList',
+  'attendees',
+  'invitedList',
+  'personList',
+];
+
+const PARTICIPANT_NAME_KEYS: ReadonlyArray<string> = [
+  'name',
+  'fullName',
+  'uuIdentityName',
+  'mainUuIdentityName',
+  'personName',
+];
+
+function toParticipantName(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return value.trim().length > 0 ? value.trim() : null;
+  }
+  if (value == null || typeof value !== 'object') {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  for (const key of PARTICIPANT_NAME_KEYS) {
+    const nested = record[key];
+    if (typeof nested === 'string' && nested.trim().length > 0) {
+      return nested.trim();
+    }
+  }
+  return null;
+}
+
+function readParticipants(
+  detail: Record<string, unknown>
+): ReadonlyArray<string> {
+  for (const key of PARTICIPANT_KEYS) {
+    const value = detail[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    const names = value
+      .map(toParticipantName)
+      .filter((name): name is string => name != null);
+    if (names.length > 0) {
+      return [...new Set(names)];
+    }
+  }
+
+  log.info(
+    `uubt: schůzka nevrátila účastníky — tvar: ${describeValueShape(detail, 2)}`
+  );
+  return [];
+}
+
+/**
+ * Přečte přípravu, zápis a účastníky ze schůzky. Na rozdíl od
+ * `loadMeetingContext` nevyžaduje editovatelnou stránku — jen čte.
+ */
+export async function loadUubtMeetingTexts(
+  meetingBaseUri: string,
+  meetingId: string
+): Promise<UubtMeetingTexts> {
+  const detail = unwrap<MeetingDetail>(
+    await uubtGet(meetingBaseUri, 'meeting/load', { id: meetingId })
+  );
+
+  const participants = readParticipants(detail);
+
+  const bid = detail.uuEccRoot?.bid;
+  const pageOid = detail.uuEccMainPage;
+  if (!bid || !pageOid) {
+    return { preparation: '', minutes: '', participants };
+  }
+
+  const page = unwrap<MeetingPage>(
+    await uubtGet(meetingBaseUri, 'meeting/page/load', {
+      meetingId,
+      id: meetingId,
+      'uuEccPage.oid': pageOid,
+      'uuEccPage.bid': bid,
+      oid: pageOid,
+      bid,
+    })
+  );
+
+  const panelName = page.panels?.mainPanel
+    ? 'mainPanel'
+    : (Object.keys(page.panels ?? {})[0] ?? 'mainPanel');
+  const sectionRefs = page.panels?.[panelName]?.sectionList ?? [];
+
+  let region: 'before' | 'preparation' | 'minutes' | 'after' = 'before';
+  const preparation: Array<string> = [];
+  const minutes: Array<string> = [];
+
+  for (const ref of sectionRefs) {
+    const section = ref.section;
+    if (!section) {
+      continue;
+    }
+
+    if (isSystemSection(section)) {
+      if (sectionHasTag(section, UUBT_SECTION_TAG_PREPARATION)) {
+        region = 'preparation';
+      } else if (sectionHasTag(section, UUBT_SECTION_TAG_MINUTES)) {
+        region = 'minutes';
+      } else if (sectionHasTag(section, UUBT_SECTION_TAG_BOTTOM)) {
+        region = 'after';
+      }
+      continue;
+    }
+
+    const text = extractSectionDisplayText(section.content);
+    if (text.length === 0) {
+      continue;
+    }
+    if (region === 'preparation') {
+      preparation.push(text);
+    } else if (region === 'minutes') {
+      minutes.push(text);
+    }
+  }
+
+  return {
+    preparation: preparation.join('\n\n'),
+    minutes: minutes.join('\n\n'),
+    participants,
   };
 }
 
@@ -594,6 +732,6 @@ export async function appendMinutesToMeeting(
 
   await logWriteApiDiagnostics(options.meetingBaseUri);
   throw new Error(
-    'uuBT odmítlo všechny známé způsoby zápisu do sekce Zápis. Podrobnosti jsou v logu (Minutes → Log).'
+    'Plus4U odmítlo všechny známé způsoby zápisu do sekce Zápis. Podrobnosti jsou v logu (Minutes → Log).'
   );
 }

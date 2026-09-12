@@ -8,7 +8,8 @@ import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
 import { openLinkInWebBrowser } from '../../util/openLinkInWebBrowser.dom.ts';
 import { formatAppDialogTitle } from '../branding.std.ts';
-import type { UubtMeeting } from '../uubt.std.ts';
+import { formatUserFacingError } from '../friendlyError.std.ts';
+import type { UubtAppendResult, UubtMeeting } from '../uubt.std.ts';
 import {
   formatUubtMeetingTimeRange,
   pickMeetingForRecording,
@@ -17,6 +18,7 @@ import {
 import { appendUubtMinutes, listUubtMeetings } from '../uubtService.preload.ts';
 
 export type UubtSendTarget = Readonly<{
+  recordingPath: string;
   conversationTitle: string;
   startedAt: number;
   endedAt: number;
@@ -26,15 +28,13 @@ export type UubtSendTarget = Readonly<{
 type Props = Readonly<{
   target: UubtSendTarget | null;
   onClose: () => void;
+  /** Zápis prošel — nadřazený tab si uloží vazbu nahrávky na schůzku. */
+  onWritten?: (
+    target: UubtSendTarget,
+    meeting: UubtMeeting,
+    mode: UubtAppendResult['mode']
+  ) => void;
 }>;
-
-function formatUserFacingError(error: unknown): string {
-  const raw = error instanceof Error ? error.message : 'Neznámá chyba';
-  const ipcMatch = raw.match(
-    /Error invoking remote method[^:]*:\s*(?:Error:\s*)?(.+)/s
-  );
-  return (ipcMatch?.[1] ?? raw).trim();
-}
 
 function describeMeeting(meeting: UubtMeeting): string {
   const time = formatUubtMeetingTimeRange(meeting);
@@ -47,6 +47,7 @@ function describeMeeting(meeting: UubtMeeting): string {
 export function MinutesSendToUubtModal({
   target,
   onClose,
+  onWritten,
 }: Props): JSX.Element | null {
   const [day, setDay] = useState('');
   const [meetings, setMeetings] = useState<ReadonlyArray<UubtMeeting>>([]);
@@ -90,7 +91,7 @@ export function MinutesSendToUubtModal({
           });
           setSelectedMeetingId(preselected?.meetingId ?? '');
           if (loaded.length === 0) {
-            setStatusMessage('Pro tento den nemáte v uuBT žádnou schůzku.');
+            setStatusMessage('Pro tento den nemáte v Plus4U žádnou schůzku.');
           }
         } catch (error) {
           if (!cancelled) {
@@ -144,6 +145,7 @@ export function MinutesSendToUubtModal({
             setStatusMessage(
               `Zápis vložen do schůzky „${response.result.meetingName}".`
             );
+            onWritten?.(target, meeting, response.result.mode);
             onClose();
           } catch (error) {
             setStatusMessage(formatUserFacingError(error));
@@ -153,7 +155,7 @@ export function MinutesSendToUubtModal({
         })()
       );
     },
-    [meetings, onClose, selectedMeetingId, target]
+    [meetings, onClose, onWritten, selectedMeetingId, target]
   );
 
   if (!target) {
@@ -176,7 +178,7 @@ export function MinutesSendToUubtModal({
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
         <AxoDialog.Header>
           <AxoDialog.Title>
-            {formatAppDialogTitle('Poslat zápis do uuBT')}
+            {formatAppDialogTitle('Zapsat ke schůzce Plus4U')}
           </AxoDialog.Title>
           <AxoDialog.Close />
         </AxoDialog.Header>

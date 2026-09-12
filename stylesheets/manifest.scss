@@ -55,6 +55,7 @@ $is-storybook: false !default;
 @use 'components/MinutesAppUpdateBanner.scss';
 @use 'components/MinutesTranscriptionQueue.scss';
 @use 'components/MinutesTranscriptsTab.scss';
+@use 'components/MinutesControls.scss';
 @use 'components/CallControls.scss';
 @use 'components/CallingLobby.scss';
 @use 'components/CallingPendingParticipants.scss';

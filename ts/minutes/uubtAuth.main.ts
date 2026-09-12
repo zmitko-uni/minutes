@@ -146,7 +146,7 @@ function extractIdToken(body: string): { idToken: string; raw: unknown } {
 
 function describeGrantFailure(status: number): string {
   if (status === 400 || status === 401) {
-    return 'Přihlášení do uuBT selhalo — zkontrolujte access code 1 a access code 2 v Nastavení AI.';
+    return 'Přihlášení do Plus4U selhalo — zkontrolujte access code 1 a access code 2 v Nastavení AI.';
   }
   if (status === 403) {
     return 'uuOIDC odmítl přihlášení (403). Ověřte, že účet smí používat přihlášení přístupovými kódy.';
@@ -218,7 +218,7 @@ export async function getUubtToken(
   const credentials = options.credentials ?? (await getUubtCredentials());
   if (!credentials) {
     throw new Error(
-      'uuBT není nastaveno — doplňte access code 1 a 2 v Nastavení AI.'
+      'Plus4U integrace není nastavená — doplňte access code 1 a 2 v Nastavení AI.'
     );
   }
 

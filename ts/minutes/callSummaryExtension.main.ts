@@ -49,6 +49,9 @@ import {
 import {
   formatAiModelDisplayLabel,
   formatAiSummaryProgressMessage,
+  getAiProviderDefinition,
+  type AiProvider,
+  type AiSummaryStyle,
 } from './aiSettings.std.ts';
 import { generateAiSummaryForProvider } from './aiSummaryService.main.ts';
 import { resolveCallSummaryCredential } from './callSummaryCredentials.std.ts';
@@ -578,6 +581,8 @@ export async function transcribeCallRecording(options: {
   recordingPath: string;
   background?: boolean;
   localSpeakerDisplayName?: string;
+  /** Jednorázově jiný stažený Whisper model než ten aktivní. */
+  whisperModelFileName?: string;
   onProgress?: TranscriptionProgressCallback;
 }): Promise<{
   transcriptPath: string;
@@ -603,7 +608,14 @@ export async function transcribeCallRecording(options: {
 
     report({ percent: 1, phase: 'prepare', detail: 'Načítám audio nahrávky…' });
 
-    const modelPath = await getModelPath(extension.modelFileName);
+    const requestedModel = options.whisperModelFileName;
+    if (requestedModel != null && !(await isModelReady(requestedModel)).ready) {
+      throw new Error(
+        `Model ${getWhisperModelLabel(requestedModel)} není stažený. Stáhněte ho v Nastavení přepisů.`
+      );
+    }
+    const activeModelFileName = requestedModel ?? extension.modelFileName;
+    const modelPath = await getModelPath(activeModelFileName);
     throwIfTranscriptionCancelled(options.jobId);
     const activityLog = await loadSpeakerActivityLog(options.recordingPath);
     const pcmf32 = await loadRecordingPcmSidecar(options.recordingPath);
@@ -739,7 +751,7 @@ export async function transcribeCallRecording(options: {
         ? formatAlignedSegmentsForDisplay(alignedSegments)
         : result.text;
 
-    const whisperModelFileName = extension.modelFileName;
+    const whisperModelFileName = activeModelFileName;
     const whisperModelLabel = getWhisperModelLabel(whisperModelFileName);
 
     const whisperMarkdown = formatTranscriptMarkdown({
@@ -902,6 +914,10 @@ export async function generateCallRecordingSummary(options: {
   recordingPath: string;
   conversationTitle: string;
   localSpeakerDisplayName?: string;
+  /** Jednorázová volba poskytovatele, modelu a stylu místo Nastavení AI. */
+  summaryProvider?: AiProvider;
+  summaryModel?: string;
+  summaryStyle?: AiSummaryStyle;
   onProgress?: TranscriptionProgressCallback;
 }): Promise<{ summaryPath: string; summaryText: string }> {
   try {
@@ -912,10 +928,15 @@ export async function generateCallRecordingSummary(options: {
     }
 
     const settings = await getAiSettingsPublic();
-    const apiKey = await resolveCallSummaryCredential(
-      settings.provider,
-      getAiApiKey
-    );
+    const provider = options.summaryProvider ?? settings.provider;
+    const model =
+      options.summaryModel ??
+      (provider === settings.provider
+        ? settings.model
+        : (settings.modelsByProvider[provider] ??
+          getAiProviderDefinition(provider).defaultModel));
+    const style = options.summaryStyle ?? settings.summaryStyle;
+    const apiKey = await resolveCallSummaryCredential(provider, getAiApiKey);
     if (apiKey == null) {
       throw new Error('Chybí API klíč pro AI shrnutí.');
     }
@@ -943,20 +964,20 @@ export async function generateCallRecordingSummary(options: {
     options.onProgress?.({
       percent: 20,
       phase: 'ai-correction',
-      detail: formatAiSummaryProgressMessage(settings.provider, settings.model),
+      detail: formatAiSummaryProgressMessage(provider, model),
     });
     throwIfTranscriptionCancelled(options.jobId);
 
     const summaryText = requireNonEmptySummaryText(
       await generateAiSummaryForProvider({
-        provider: settings.provider,
+        provider,
         apiKey,
-        model: settings.model,
+        model,
         outputLanguage: settings.outputLanguage,
         conversationTitle: options.conversationTitle,
         scopeLabel: 'Přepis hovoru',
         transcript,
-        style: settings.summaryStyle,
+        style,
         customInstructions: settings.customSummaryInstructions,
       })
     );

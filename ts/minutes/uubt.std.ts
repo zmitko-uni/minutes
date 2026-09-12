@@ -132,6 +132,29 @@ export const DEFAULT_UUBT_SETTINGS: UubtSettingsPublic = {
   oidcBaseUri: UUBT_DEFAULT_OIDC_BASE_URI,
 };
 
+/**
+ * Elementární aktivita schůzky v uuDigitalWorkspace. `notSolvedActive`
+ * znamená, že schůzku má vyřešit přihlášený uživatel — tedy udělat zápis
+ * a nastavit ji na splněno.
+ */
+export const UUBT_ACTIVITY_STATE_NOT_SOLVED = 'notSolvedActive';
+export const UUBT_ACTIVITY_STATE_SOLVED = 'solvedActive';
+
+/**
+ * Odkaz na elementární aktivitu, přes kterou se schůzka uzavírá.
+ * Bez těchto tří údajů `activity/elementary/setState` zavolat nejde.
+ */
+export type UubtMeetingActivity = Readonly<{
+  sourceAppBaseUri: string;
+  activityRefId: string;
+  elementaryActivity: string;
+  stateCode: string | null;
+  /** Jméno řešitele, tedy toho, kdo má zápis provést. */
+  solverName: string | null;
+  /** Řešitelem schůzky je přihlášený uživatel. */
+  isMine: boolean;
+}>;
+
 /** Schůzka z uuDigitalWorkspace kalendáře, do které lze zapsat zápis. */
 export type UubtMeeting = Readonly<{
   id: string;
@@ -145,12 +168,42 @@ export type UubtMeeting = Readonly<{
   meetingId: string;
   meetingBaseUri: string;
   meetingUrl: string | null;
+  /** `null`, pokud kalendář vazbu na aktivitu nevrátil. */
+  activity: UubtMeetingActivity | null;
 }>;
+
+export function isUubtMeetingSolvableByMe(
+  activity: UubtMeetingActivity | null
+): boolean {
+  return (
+    activity != null &&
+    activity.isMine &&
+    activity.stateCode === UUBT_ACTIVITY_STATE_NOT_SOLVED
+  );
+}
+
+/** Porovnání uuIdentity napříč zápisem s pomlčkami i bez nich. */
+export function isSameUuIdentity(
+  left: string | null | undefined,
+  right: string | null | undefined
+): boolean {
+  const normalize = (value: string | null | undefined): string =>
+    (value ?? '').replace(/\D/g, '');
+  const a = normalize(left);
+  return a.length > 0 && a === normalize(right);
+}
 
 export type UubtConnectionInfo = Readonly<{
   uuIdentity: string;
   personName: string | null;
   dwUri: string;
+}>;
+
+/** Obsah stránky schůzky — příprava, už vložený zápis a účastníci. */
+export type UubtMeetingTexts = Readonly<{
+  preparation: string;
+  minutes: string;
+  participants: ReadonlyArray<string>;
 }>;
 
 export type UubtAppendResult = Readonly<{
@@ -168,7 +221,9 @@ export type UubtAppendResponse =
   | Readonly<{ status: 'ok'; result: UubtAppendResult }>
   | Readonly<{ status: 'duplicate'; message: string }>;
 
-export function formatUubtMeetingTimeRange(meeting: UubtMeeting): string {
+export function formatUubtMeetingTimeRange(
+  meeting: Readonly<{ startTime: string; endTime: string }>
+): string {
   const format = (value: string): string => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {

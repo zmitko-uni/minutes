@@ -8,6 +8,7 @@ import {
   NavSidebar,
   NavSidebarSearchHeader,
 } from '../../components/NavSidebar.dom.tsx';
+import { AxoButton } from '../../axo/AxoButton.dom.tsx';
 import { SearchInput } from '../../components/SearchInput.dom.tsx';
 import { getIntl } from '../../state/selectors/user.std.ts';
 import {
@@ -29,6 +30,8 @@ import {
   removeBookmarkById,
   subscribeBookmarksOpen,
 } from '../bookmarksService.preload.ts';
+import { MinutesConfirmDialog } from './MinutesConfirmDialog.dom.tsx';
+import { MinutesIconButton } from './MinutesIconButton.dom.tsx';
 
 type BookmarkDetail = Readonly<{
   body: string;
@@ -110,6 +113,21 @@ function BookmarkPreview({
           {detail ? `${detail.authorTitle} · ` : ''}
           {formatWhen(bookmark.messageTimestamp)}
         </p>
+
+        <div className="MinutesBookmarksTab__previewActions">
+          <AxoButton.Root variant="subtle-primary" size="sm" onClick={onOpen}>
+            Otevřít chat této zprávy
+          </AxoButton.Root>
+
+          <span className="MinutesBookmarksTab__actionsSpacer" />
+
+          <MinutesIconButton
+            icon="trash"
+            tone="danger"
+            label="Odebrat záložku"
+            onClick={onRemove}
+          />
+        </div>
       </header>
 
       <div className="MinutesBookmarksTab__previewBody">
@@ -122,23 +140,6 @@ function BookmarkPreview({
           (detail?.body ?? bookmark.messagePreview)
         )}
       </div>
-
-      <footer className="MinutesBookmarksTab__previewActions">
-        <button
-          type="button"
-          className="MinutesBookmarksTab__button MinutesBookmarksTab__button--primary"
-          onClick={onOpen}
-        >
-          Otevřít v chatu
-        </button>
-        <button
-          type="button"
-          className="MinutesBookmarksTab__button"
-          onClick={onRemove}
-        >
-          Odebrat záložku
-        </button>
-      </footer>
     </div>
   );
 }
@@ -159,6 +160,9 @@ export function MinutesBookmarksTab(): JSX.Element {
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pendingRemoval, setPendingRemoval] = useState<MinutesBookmark | null>(
+    null
+  );
 
   const refresh = useCallback(() => {
     setErrorMessage(null);
@@ -193,6 +197,7 @@ export function MinutesBookmarksTab(): JSX.Element {
 
   const handleRemove = useCallback(
     (bookmark: MinutesBookmark) => {
+      setPendingRemoval(null);
       drop(
         (async () => {
           await removeBookmarkById(bookmark.id);
@@ -206,6 +211,17 @@ export function MinutesBookmarksTab(): JSX.Element {
 
   return (
     <div className="MinutesBookmarksTab">
+      {pendingRemoval != null && (
+        <MinutesConfirmDialog
+          title="Odebrat záložku?"
+          description={`Záložka na zprávu z chatu „${pendingRemoval.conversationTitle}“ se odebere. Samotná zpráva v chatu zůstane.`}
+          confirmLabel="Odebrat záložku"
+          cancelLabel="Ponechat"
+          onCancel={() => setPendingRemoval(null)}
+          onConfirm={() => handleRemove(pendingRemoval)}
+        />
+      )}
+
       <NavSidebar
         i18n={i18n}
         title="Záložky"
@@ -243,7 +259,7 @@ export function MinutesBookmarksTab(): JSX.Element {
         ) : (
           <ul className="MinutesBookmarksTab__list">
             {visibleBookmarks.map(bookmark => (
-              <li key={bookmark.id}>
+              <li key={bookmark.id} className="MinutesBookmarksTab__row">
                 <button
                   type="button"
                   className="MinutesBookmarksTab__item"
@@ -261,6 +277,20 @@ export function MinutesBookmarksTab(): JSX.Element {
                     {formatWhen(bookmark.messageTimestamp)}
                   </span>
                 </button>
+
+                <span className="MinutesBookmarksTab__rowActions">
+                  <MinutesIconButton
+                    icon="chat"
+                    label="Otevřít chat této zprávy"
+                    onClick={() => navigateToBookmark(bookmark)}
+                  />
+                  <MinutesIconButton
+                    icon="trash"
+                    tone="danger"
+                    label="Odebrat záložku"
+                    onClick={() => setPendingRemoval(bookmark)}
+                  />
+                </span>
               </li>
             ))}
           </ul>
@@ -276,7 +306,7 @@ export function MinutesBookmarksTab(): JSX.Element {
           key={selectedBookmark.id}
           bookmark={selectedBookmark}
           onOpen={() => navigateToBookmark(selectedBookmark)}
-          onRemove={() => handleRemove(selectedBookmark)}
+          onRemove={() => setPendingRemoval(selectedBookmark)}
         />
       )}
     </div>

@@ -414,8 +414,8 @@ export function MinutesSettingsModal({
           const saved = await persistUubtSettings();
           setStatusMessage(
             saved.hasCredentials
-              ? 'uuBT: přístupové kódy uloženy.'
-              : 'uuBT: uložené kódy odstraněny.'
+              ? 'Plus4U: přístupové kódy uloženy.'
+              : 'Plus4U: uložené kódy odstraněny.'
           );
         } catch (error) {
           setStatusMessage(formatUserFacingError(error));
@@ -439,7 +439,7 @@ export function MinutesSettingsModal({
             return;
           }
           const result = await testUubtConnection();
-          setStatusMessage(`uuBT: ${result.message}`);
+          setStatusMessage(`Plus4U: ${result.message}`);
         } catch (error) {
           setStatusMessage(formatUserFacingError(error));
         } finally {
@@ -783,18 +783,18 @@ export function MinutesSettingsModal({
               )}
             >
               <legend className={tw('text-label-medium px-1 font-medium')}>
-                uuBT — odeslání zápisu do schůzky
+                Plus4U integrace
               </legend>
 
               <p className={tw('text-label-small opacity-70')}>
-                Po dokončení přepisu půjde AI shrnutí vložit do sekce Zápis
-                vybrané schůzky z vašeho kalendáře v uuBT. Přihlášení probíhá
+                Po dokončení přepisu půjde AI shrnutí zapsat ke schůzce z vašeho
+                kalendáře v Plus4U — vloží se do sekce Zápis. Přihlášení probíhá
                 přístupovými kódy z Plus4U; ukládají se šifrovaně přes
                 safeStorage OS.
               </p>
 
               <label className={tw('flex items-center justify-between gap-3')}>
-                <span>Povolit odesílání do uuBT</span>
+                <span>Povolit zápis ke schůzkám Plus4U</span>
                 <AxoSwitch.Root
                   checked={uubtEnabled}
                   onCheckedChange={setUubtEnabled}

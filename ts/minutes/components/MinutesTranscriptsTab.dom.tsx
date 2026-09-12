@@ -22,8 +22,17 @@ import { useItemsActions } from '../../state/ducks/items.preload.ts';
 import { renderToastManagerWithoutMegaphone } from '../../state/smart/ToastManager.preload.tsx';
 import { ToastType } from '../../types/Toast.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
-import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
-import { getCallSummaryExtensionState } from '../callSummaryExtensionService.preload.ts';
+import {
+  clearMinutesConversationFilter,
+  getMinutesConversationFilter,
+  subscribeMinutesConversationFilter,
+} from '../navTabsService.preload.ts';
+import type { RecordingMeetingLink } from '../recordingMeeting.std.ts';
+import {
+  deleteCallRecording,
+  getRecordingMeeting,
+  saveRecordingMeeting,
+} from '../recordingFilesService.preload.ts';
 import type { CallRecordingCatalogEntry } from '../recordingsCatalog.std.ts';
 import {
   buildRecordingListItems,
@@ -46,15 +55,21 @@ import {
 } from '../transcriptionStatusFormat.std.ts';
 import { subscribeTranscriptionQueue } from '../transcriptionQueueEvents.std.ts';
 import { transcriptionQueue } from '../transcriptionQueueService.preload.ts';
-import type { TranscriptionQueueSnapshot } from '../transcriptionQueue.std.ts';
+import type {
+  TranscriptionJobOptions,
+  TranscriptionQueueSnapshot,
+} from '../transcriptionQueue.std.ts';
 import type { CallRecordingOutput } from '../types.std.ts';
-import { getWhisperModelLabel } from '../whisperSettings.std.ts';
+import { getUubtSettings } from '../uubtService.preload.ts';
 import {
   MinutesRecordingDetail,
   type RecordingSendAction,
 } from './MinutesRecordingDetail.dom.tsx';
+import { MinutesIconButton } from './MinutesIconButton.dom.tsx';
+import { MinutesConfirmDialog } from './MinutesConfirmDialog.dom.tsx';
 import { MinutesSendToUubtModal } from './MinutesSendToUubtModal.dom.tsx';
 import type { UubtSendTarget } from './MinutesSendToUubtModal.dom.tsx';
+import type { UubtMeeting } from '../uubt.std.ts';
 
 const EMPTY_SNAPSHOT: TranscriptionQueueSnapshot = {
   jobs: [],
@@ -85,6 +100,26 @@ async function performSendAction(
   }
 }
 
+function toMeetingLink(
+  meeting: UubtMeeting,
+  mode: RecordingMeetingLink['mode']
+): RecordingMeetingLink {
+  return {
+    version: 1,
+    meetingId: meeting.meetingId,
+    meetingBaseUri: meeting.meetingBaseUri,
+    meetingUrl: meeting.meetingUrl,
+    name: meeting.name,
+    startTime: meeting.startTime,
+    endTime: meeting.endTime,
+    location: meeting.location,
+    organizer: meeting.organizer,
+    insertedAt: Date.now(),
+    mode,
+    activity: meeting.activity,
+  };
+}
+
 async function resolveOutput(
   item: RecordingListItem
 ): Promise<CallRecordingOutput | null> {
@@ -112,22 +147,27 @@ function RecordingListRow({
   jobs,
   isSelected,
   onSelect,
+  onOpenChat,
+  onDelete,
 }: Readonly<{
   item: RecordingListItem;
   jobs: ReadonlyArray<TranscriptionQueueSnapshot['jobs'][number]>;
   isSelected: boolean;
   onSelect: () => void;
+  onOpenChat: (() => void) | null;
+  onDelete: () => void;
 }>): JSX.Element {
   const { job } = item;
   const eta = job != null ? formatEta(job) : null;
+  const itemClassName = ['MinutesTranscriptsTab__item']
+    .concat(item.isPinned ? ['MinutesTranscriptsTab__item--pinned'] : [])
+    .join(' ');
 
   return (
-    <li>
+    <li className="MinutesTranscriptsTab__row">
       <button
         type="button"
-        className={`MinutesTranscriptsTab__item${
-          item.isPinned ? 'MinutesTranscriptsTab__item--pinned' : ''
-        }`}
+        className={itemClassName}
         aria-current={isSelected}
         onClick={onSelect}
       >
@@ -146,11 +186,13 @@ function RecordingListRow({
         {item.isPinned && job != null ? (
           <>
             <span
-              className={`MinutesTranscriptsTab__itemStatus${
-                job.status === 'failed'
-                  ? 'MinutesTranscriptsTab__itemStatus--failed'
-                  : ''
-              }`}
+              className={['MinutesTranscriptsTab__itemStatus']
+                .concat(
+                  job.status === 'failed'
+                    ? ['MinutesTranscriptsTab__itemStatus--failed']
+                    : []
+                )
+                .join(' ')}
             >
               {formatJobStatus(job, jobs)}
               {eta != null ? ` · ${eta}` : ''}
@@ -186,6 +228,22 @@ function RecordingListRow({
           </span>
         )}
       </button>
+
+      <span className="MinutesTranscriptsTab__rowActions">
+        {onOpenChat != null && (
+          <MinutesIconButton
+            icon="chat"
+            label="Otevřít chat této nahrávky"
+            onClick={onOpenChat}
+          />
+        )}
+        <MinutesIconButton
+          icon="trash"
+          tone="danger"
+          label="Smazat nahrávku i všechny soubory"
+          onClick={onDelete}
+        />
+      </span>
     </li>
   );
 }
@@ -214,15 +272,20 @@ export function MinutesTranscriptsTab(): JSX.Element {
   const [filter, setFilter] = useState<RecordingListFilter>('all');
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [sendingKey, setSendingKey] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<RecordingListItem | null>(
+    null
+  );
   const [uubtTarget, setUubtTarget] = useState<UubtSendTarget | null>(null);
+  const [isUubtEnabled, setIsUubtEnabled] = useState(false);
+  const [meetingLink, setMeetingLink] = useState<RecordingMeetingLink | null>(
+    null
+  );
+  // Tlačítko „M“ v chatu otevře tab zúžený jen na nahrávky toho chatu.
+  const [conversationFilter, setConversationFilter] = useState<string | null>(
+    () => getMinutesConversationFilter()
+  );
   // Překresluje odhady zbývajícího času v seznamu i v detailu.
   const [, setEtaTick] = useState(0);
-  const [activeWhisperModelLabel, setActiveWhisperModelLabel] = useState(() => {
-    const state = getCallSummaryExtensionState();
-    return state.modelFileName
-      ? getWhisperModelLabel(state.modelFileName)
-      : 'Medium';
-  });
 
   const refresh = useCallback(() => {
     drop(
@@ -242,18 +305,52 @@ export function MinutesTranscriptsTab(): JSX.Element {
 
   useEffect(() => subscribeTranscriptionQueue(setSnapshot), []);
 
+  useEffect(
+    () => subscribeMinutesConversationFilter(setConversationFilter),
+    []
+  );
+
+  // Zápis ke schůzce vyžaduje zapnutou integraci i oba uložené přístupové kódy.
+  // Čte se při přepnutí nahrávky a po návratu do okna, aby se změna v
+  // Nastavení AI projevila bez restartu.
   useEffect(() => {
-    const syncActiveModel = (): void => {
-      const state = getCallSummaryExtensionState();
-      setActiveWhisperModelLabel(
-        state.modelFileName
-          ? getWhisperModelLabel(state.modelFileName)
-          : 'Medium'
+    const readSettings = (): void => {
+      drop(
+        (async () => {
+          try {
+            const settings = await getUubtSettings();
+            setIsUubtEnabled(settings.enabled && settings.hasCredentials);
+          } catch {
+            setIsUubtEnabled(false);
+          }
+        })()
       );
     };
-    syncActiveModel();
-    return callSummaryExtensionEvents.on(syncActiveModel);
-  }, []);
+
+    readSettings();
+    window.addEventListener('focus', readSettings);
+    return () => window.removeEventListener('focus', readSettings);
+  }, [selectedPath]);
+
+  // Vazba na schůzku je souborová, čte se při přepnutí nahrávky.
+  useEffect(() => {
+    let cancelled = false;
+    setMeetingLink(null);
+    if (selectedPath == null) {
+      return;
+    }
+    drop(
+      (async () => {
+        const link = await getRecordingMeeting(selectedPath);
+        if (!cancelled) {
+          setMeetingLink(link);
+        }
+      })()
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPath]);
 
   const activeCount = useMemo(
     () =>
@@ -314,26 +411,128 @@ export function MinutesTranscriptsTab(): JSX.Element {
         textMatches,
         query: debouncedQuery,
         filter,
+        conversationId: conversationFilter,
       }),
-    [entries, snapshot.jobs, textMatches, debouncedQuery, filter]
+    [
+      entries,
+      snapshot.jobs,
+      textMatches,
+      debouncedQuery,
+      filter,
+      conversationFilter,
+    ]
   );
+
+  const conversationFilterTitle = useMemo(() => {
+    if (conversationFilter == null) {
+      return null;
+    }
+    return (
+      window.ConversationController?.get(conversationFilter)?.getTitle() ??
+      'vybraný chat'
+    );
+  }, [conversationFilter]);
+
+  const clearConversationFilter = useCallback(() => {
+    clearMinutesConversationFilter();
+    setConversationFilter(null);
+  }, []);
+
+  const handleOpenChat = useCallback((item: RecordingListItem) => {
+    window.reduxActions.conversations.showConversation({
+      conversationId: item.conversationId,
+    });
+  }, []);
 
   const selectedItem = useMemo(
     () => items.find(item => item.recordingPath === selectedPath) ?? null,
     [items, selectedPath]
   );
 
-  const handleEnqueueTranscription = useCallback((item: RecordingListItem) => {
-    if (item.entry != null) {
-      transcriptionQueue.enqueueFromCatalog(item.entry, 'transcription');
-    }
+  const handleEnqueueTranscription = useCallback(
+    (item: RecordingListItem, options?: TranscriptionJobOptions) => {
+      if (item.entry != null) {
+        transcriptionQueue.enqueueFromCatalog(
+          item.entry,
+          'transcription',
+          options
+        );
+      }
+    },
+    []
+  );
+
+  const handleEnqueueSummary = useCallback(
+    (item: RecordingListItem, options?: TranscriptionJobOptions) => {
+      if (item.entry != null) {
+        transcriptionQueue.enqueueFromCatalog(item.entry, 'summary', options);
+      }
+    },
+    []
+  );
+
+  const handleWriteToMeeting = useCallback((item: RecordingListItem) => {
+    drop(
+      (async () => {
+        const output = await resolveOutput(item);
+        if (output?.summaryText == null) {
+          window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+          return;
+        }
+        setUubtTarget({
+          recordingPath: item.recordingPath,
+          conversationTitle: item.conversationTitle,
+          startedAt: item.startedAt,
+          endedAt: item.endedAt,
+          summaryMarkdown: output.summaryText,
+        });
+      })()
+    );
   }, []);
 
-  const handleEnqueueSummary = useCallback((item: RecordingListItem) => {
-    if (item.entry != null) {
-      transcriptionQueue.enqueueFromCatalog(item.entry, 'summary');
-    }
-  }, []);
+  const handleMeetingWritten = useCallback(
+    (
+      target: UubtSendTarget,
+      meeting: UubtMeeting,
+      mode: RecordingMeetingLink['mode']
+    ) => {
+      const link = toMeetingLink(meeting, mode);
+      setMeetingLink(link);
+      drop(saveRecordingMeeting(target.recordingPath, link));
+    },
+    []
+  );
+
+  const handleMeetingLinkChange = useCallback(
+    (link: RecordingMeetingLink) => {
+      setMeetingLink(link);
+      if (selectedPath != null) {
+        drop(saveRecordingMeeting(selectedPath, link));
+      }
+    },
+    [selectedPath]
+  );
+
+  const handleDelete = useCallback(
+    (item: RecordingListItem) => {
+      setPendingDelete(null);
+      drop(
+        (async () => {
+          try {
+            await deleteCallRecording(item.recordingPath);
+            setSelectedPath(current =>
+              current === item.recordingPath ? null : current
+            );
+          } catch {
+            window.reduxActions.toast.showToast({ toastType: ToastType.Error });
+          } finally {
+            refresh();
+          }
+        })()
+      );
+    },
+    [refresh]
+  );
 
   const handleSend = useCallback(
     (item: RecordingListItem, action: RecordingSendAction) => {
@@ -349,15 +548,6 @@ export function MinutesTranscriptsTab(): JSX.Element {
             if (output == null) {
               window.reduxActions.toast.showToast({
                 toastType: ToastType.Error,
-              });
-              return;
-            }
-            if (action === 'summary-uubt') {
-              setUubtTarget({
-                conversationTitle: item.conversationTitle,
-                startedAt: item.startedAt,
-                endedAt: item.endedAt,
-                summaryMarkdown: output.summaryText ?? '',
               });
               return;
             }
@@ -379,11 +569,23 @@ export function MinutesTranscriptsTab(): JSX.Element {
       <MinutesSendToUubtModal
         target={uubtTarget}
         onClose={() => setUubtTarget(null)}
+        onWritten={handleMeetingWritten}
       />
+
+      {pendingDelete != null && (
+        <MinutesConfirmDialog
+          title="Smazat nahrávku?"
+          description={`Smaže se záznam „${pendingDelete.conversationTitle}“ včetně zvuku nebo videa, přepisu, shrnutí, MP4 i metadat. Tuhle akci nelze vzít zpět.`}
+          confirmLabel="Smazat"
+          cancelLabel="Ponechat"
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => handleDelete(pendingDelete)}
+        />
+      )}
 
       <NavSidebar
         i18n={i18n}
-        title="Přepisy"
+        title="Minutes"
         hasFailedStorySends={hasFailedStorySends}
         hasPendingUpdate={hasPendingUpdate}
         navTabsCollapsed={navTabsCollapsed}
@@ -404,6 +606,15 @@ export function MinutesTranscriptsTab(): JSX.Element {
             onClear={() => setQuery('')}
           />
         </NavSidebarSearchHeader>
+
+        {conversationFilterTitle != null && (
+          <div className="MinutesTranscriptsTab__scopeBar">
+            <span>{`Jen chat: ${conversationFilterTitle}`}</span>
+            <button type="button" onClick={clearConversationFilter}>
+              Zobrazit vše
+            </button>
+          </div>
+        )}
 
         <div className="MinutesTranscriptsTab__filters">
           {RECORDING_LIST_FILTERS.map(option => (
@@ -454,6 +665,12 @@ export function MinutesTranscriptsTab(): JSX.Element {
                 jobs={snapshot.jobs}
                 isSelected={item.recordingPath === selectedPath}
                 onSelect={() => setSelectedPath(item.recordingPath)}
+                onOpenChat={
+                  item.conversationId.length > 0
+                    ? () => handleOpenChat(item)
+                    : null
+                }
+                onDelete={() => setPendingDelete(item)}
               />
             ))}
           </ul>
@@ -472,14 +689,18 @@ export function MinutesTranscriptsTab(): JSX.Element {
           item={selectedItem}
           jobs={snapshot.jobs}
           sendingKey={sendingKey}
-          activeWhisperModelLabel={activeWhisperModelLabel}
           isSelfChat={
             selfConversationId != null &&
             selfConversationId === selectedItem.entry?.conversationId
           }
+          isUubtEnabled={isUubtEnabled}
+          meetingLink={meetingLink}
           onEnqueueTranscription={handleEnqueueTranscription}
           onEnqueueSummary={handleEnqueueSummary}
           onSend={handleSend}
+          onWriteToMeeting={handleWriteToMeeting}
+          onDelete={handleDelete}
+          onMeetingLinkChange={handleMeetingLinkChange}
           onRefresh={refresh}
         />
       )}

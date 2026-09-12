@@ -2,8 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createLogger } from '../logging/log.std.ts';
-import type { UubtConnectionInfo, UubtMeeting } from './uubt.std.ts';
+import type {
+  UubtConnectionInfo,
+  UubtMeeting,
+  UubtMeetingActivity,
+} from './uubt.std.ts';
 import {
+  describeValueShape,
+  isSameUuIdentity,
   maskUuValueShape,
   UUBT_PEOPLE_BASE_URI,
   uuIdentityCandidates,
@@ -36,7 +42,8 @@ type DiaryRecord = Readonly<{
     submitterMainUuIdentityName?: string;
     artifact?: Readonly<{ stateName?: string }>;
   }>;
-}>;
+}> &
+  Record<string, unknown>;
 
 const dwUriCache = new Map<string, ResolvedPerson>();
 
@@ -112,7 +119,7 @@ async function loadPerson(
 
   if (rejected) {
     throw new Error(
-      'uuBT nepřijal identitu z přihlašovacího tokenu. Podrobnosti (názvy claimů) jsou v Menu → Minutes → Zobrazit log.'
+      'Plus4U nepřijal identitu z přihlašovacího tokenu. Podrobnosti (názvy claimů) jsou v Menu → Minutes → Zobrazit log.'
     );
   }
 
@@ -152,7 +159,74 @@ function stripUu5Tags(value: string | undefined): string {
     .trim();
 }
 
-function toMeeting(record: DiaryRecord): UubtMeeting | null {
+function readNestedString(
+  record: Record<string, unknown>,
+  keys: ReadonlyArray<string>
+): string | null {
+  const containers: ReadonlyArray<unknown> = [
+    record,
+    record.tileProps,
+    record.activity,
+    record.elementaryActivityData,
+  ];
+
+  for (const container of containers) {
+    if (container == null || typeof container !== 'object') {
+      continue;
+    }
+    for (const key of keys) {
+      const value = (container as Record<string, unknown>)[key];
+      if (typeof value === 'string' && value.length > 0) {
+        return value;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Vazba na elementární aktivitu, přes kterou se schůzka uzavírá. uuDW API
+ * ji nedokumentuje; názvy polí odpovídají tvaru `uuDwRecord/listMyDiaryRecords`
+ * (`id` záznamu + `tileProps.elementaryActivity*`).
+ */
+function toActivity(
+  record: DiaryRecord,
+  myUuIdentity: string
+): UubtMeetingActivity | null {
+  const sourceAppBaseUri = readNestedString(record, [
+    'sourceAppBaseUri',
+    'sourceAppUri',
+  ]);
+  const activityRefId = readNestedString(record, ['activityRefId', 'id']);
+  const elementaryActivity = readNestedString(record, [
+    'elementaryActivity',
+    'elementaryActivityTypeCode',
+  ]);
+
+  if (!sourceAppBaseUri || !activityRefId || !elementaryActivity) {
+    return null;
+  }
+
+  // Řešitel schůzky = ten, kdo má udělat zápis a schůzku uzavřít.
+  const solverUuIdentity = readNestedString(record, ['solverMainUuIdentityId']);
+
+  return {
+    sourceAppBaseUri: sourceAppBaseUri.replace(/\/+$/, ''),
+    activityRefId,
+    elementaryActivity,
+    stateCode: readNestedString(record, [
+      'elementaryActivityStateCode',
+      'activityStateCode',
+    ]),
+    solverName: readNestedString(record, ['solverMainUuIdentityName']),
+    isMine: isSameUuIdentity(solverUuIdentity, myUuIdentity),
+  };
+}
+
+function toMeeting(
+  record: DiaryRecord,
+  myUuIdentity: string
+): UubtMeeting | null {
   const appUriString = record.tileProps?.appUri;
   if (!appUriString) {
     // Legacy záznam bez vazby na uuElementaryManagement — zápis tam vložit nelze.
@@ -195,6 +269,7 @@ function toMeeting(record: DiaryRecord): UubtMeeting | null {
     meetingId,
     meetingBaseUri,
     meetingUrl: appUriString,
+    activity: toActivity(record, myUuIdentity),
   };
 }
 
@@ -205,7 +280,7 @@ function toMeeting(record: DiaryRecord): UubtMeeting | null {
 export async function listUubtMeetingsForDay(
   day: string
 ): Promise<ReadonlyArray<UubtMeeting>> {
-  const { dwUri } = await getUubtConnectionInfo();
+  const { dwUri, uuIdentity } = await getUubtConnectionInfo();
 
   const response = await uubtGet<{
     uuDwrActiveList?: ReadonlyArray<DiaryRecord>;
@@ -222,9 +297,18 @@ export async function listUubtMeetingsForDay(
   ];
 
   const meetings = records
-    .map(toMeeting)
+    .map(record => toMeeting(record, uuIdentity))
     .filter((meeting): meeting is UubtMeeting => meeting != null)
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+  // Bez vazby na aktivitu nejde schůzku uzavřít — tvar záznamu si zalogujeme.
+  const withoutActivity = meetings.find(meeting => meeting.activity == null);
+  if (withoutActivity != null) {
+    const raw = records.find(record => record.id === withoutActivity.id);
+    log.warn(
+      `uubt: záznam kalendáře nemá vazbu na elementární aktivitu — tvar: ${describeValueShape(raw, 2)}`
+    );
+  }
 
   log.info(`uubt: ${meetings.length} schůzek pro ${day}`);
   return meetings;

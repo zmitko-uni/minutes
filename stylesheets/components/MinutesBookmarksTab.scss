@@ -19,6 +19,28 @@
   overflow-x: hidden;
 }
 
+/* Akce se ukazují až na hoveru, aby seznam zůstal klidný. */
+.MinutesBookmarksTab__row {
+  position: relative;
+
+  &:hover .MinutesBookmarksTab__rowActions,
+  &:focus-within .MinutesBookmarksTab__rowActions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.MinutesBookmarksTab__rowActions {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease-in-out;
+}
+
 .MinutesBookmarksTab__item {
   @include mixins.button-reset;
 
@@ -60,8 +82,10 @@
   overflow-wrap: anywhere;
 }
 
+/* Místo pro dvě ikony vpravo, aby text nešel pod ně. */
 .MinutesBookmarksTab__itemTitle {
   @include mixins.font-body-2-bold;
+  padding-inline-end: 68px;
 }
 
 .MinutesBookmarksTab__itemPreview {
@@ -139,37 +163,11 @@
 .MinutesBookmarksTab__previewActions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  margin-block-start: 12px;
 }
 
-.MinutesBookmarksTab__button {
-  @include mixins.button-reset;
-
-  & {
-    padding-block: 6px;
-    padding-inline: 14px;
-    border-radius: 8px;
-    background: var(--axo-color-fill-primary);
-    color: var(--axo-color-label-primary);
-  }
-
-  &:hover {
-    background: var(--axo-color-fill-primary-pressed);
-  }
-
-  &:focus {
-    outline: none;
-    @include mixins.keyboard-mode {
-      @include mixins.axo-focus-ring;
-    }
-  }
-}
-
-.MinutesBookmarksTab__button--primary {
-  background: var(--axo-color-fill-accent);
-  color: var(--axo-color-label-primary-oncolor);
-
-  &:hover {
-    background: var(--axo-color-fill-accent-pressed);
-  }
+.MinutesBookmarksTab__actionsSpacer {
+  flex: 1;
 }

@@ -6,6 +6,8 @@ import { ipcRenderer } from 'electron';
 import type {
   UubtAppendResponse,
   UubtMeeting,
+  UubtMeetingActivity,
+  UubtMeetingTexts,
   UubtSettingsPublic,
   UubtSettingsSaveInput,
 } from './uubt.std.ts';
@@ -45,4 +47,22 @@ export async function appendUubtMinutes(
   }>
 ): Promise<UubtAppendResponse> {
   return ipcRenderer.invoke('minutes:uubt-append-minutes', options);
+}
+
+/** Přečte text přípravy a zápisu ze stránky schůzky. */
+export async function loadUubtMeetingTexts(
+  options: Readonly<{ meetingBaseUri: string; meetingId: string }>
+): Promise<UubtMeetingTexts> {
+  return ipcRenderer.invoke('minutes:uubt-load-meeting-texts', options);
+}
+
+/** Označí schůzku v Plus4U za vyřešenou (zápis je hotový). */
+export async function markUubtMeetingSolved(
+  activity: UubtMeetingActivity,
+  note?: string
+): Promise<void> {
+  await ipcRenderer.invoke('minutes:uubt-mark-meeting-solved', {
+    activity,
+    note,
+  });
 }

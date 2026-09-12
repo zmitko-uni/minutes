@@ -15,7 +15,8 @@
 
 .app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128,
 .About .module-splash-screen__logo.module-splash-screen__logo--128,
-.module-splash-screen .module-splash-screen__logo.module-splash-screen__logo--128 {
+.module-splash-screen
+  .module-splash-screen__logo.module-splash-screen__logo--128 {
   @include minutes-app-logo-background;
 }
 
@@ -26,9 +27,11 @@
 }
 
 @media (forced-colors: active) {
-  .app-loading-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+  .app-loading-screen
+    .module-splash-screen__logo.module-splash-screen__logo--128,
   .About .module-splash-screen__logo.module-splash-screen__logo--128,
-  .module-splash-screen .module-splash-screen__logo.module-splash-screen__logo--128,
+  .module-splash-screen
+    .module-splash-screen__logo.module-splash-screen__logo--128,
   .InstallScreenSignalLogo::before {
     background-color: Canvas !important;
   }

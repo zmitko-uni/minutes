@@ -72,6 +72,38 @@
   }
 }
 
+.MinutesTranscriptsTab__scopeBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block: 0 8px;
+  margin-inline: 16px;
+  padding-block: 8px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  background: var(--axo-color-fill-accent-tint);
+
+  @include mixins.font-body-small;
+
+  > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  button {
+    @include mixins.button-reset;
+
+    & {
+      flex-shrink: 0;
+      color: var(--axo-color-label-accent);
+      font-weight: 600;
+    }
+  }
+}
+
 .MinutesTranscriptsTab__list {
   list-style: none;
   margin: 0;
@@ -80,6 +112,27 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.MinutesTranscriptsTab__row {
+  position: relative;
+
+  &:hover .MinutesTranscriptsTab__rowActions,
+  &:focus-within .MinutesTranscriptsTab__rowActions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.MinutesTranscriptsTab__rowActions {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease-in-out;
 }
 
 .MinutesTranscriptsTab__item {
@@ -133,6 +186,7 @@
 
 .MinutesTranscriptsTab__itemTitle {
   @include mixins.font-body-2-bold;
+  padding-inline-end: 34px;
 }
 
 .MinutesTranscriptsTab__itemMeta {
@@ -360,6 +414,12 @@
 
 .MinutesTranscriptsTab__detailTabs {
   display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.MinutesTranscriptsTab__detailTabList {
+  display: flex;
   gap: 4px;
 }
 
@@ -392,6 +452,16 @@
   }
 }
 
+.MinutesTranscriptsTab__detailTab--menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &[data-axo-dropdownmenu-state='open'] {
+    color: var(--axo-color-label-primary);
+  }
+}
+
 .MinutesTranscriptsTab__detailBody {
   flex: 1;
   min-height: 0;
@@ -407,13 +477,449 @@
   opacity: 0.75;
 }
 
-.MinutesTranscriptsTab__transcript {
+/* Lišta akcí, které patří k obsahu konkrétního tabu. */
+.MinutesTranscriptsTab__paneToolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 16px;
+}
+
+/* Tooltip musí držet obal — zakázané tlačítko samo události nedostane. */
+.MinutesTranscriptsTab__hintWrap {
+  display: inline-flex;
+}
+
+.MinutesTranscriptsTab__actionsSpacer {
+  flex: 1;
+}
+
+/* ---------- vizualizace přepisu ---------- */
+
+.MinutesTranscriptView {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 860px;
+}
+
+.MinutesTranscriptView__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.MinutesTranscriptView__legendItem {
+  @include mixins.font-body-small;
+  padding-block: 2px;
+  padding-inline: 10px;
+  border-radius: 999px;
+  background: var(--axo-color-fill-secondary);
+  border-inline-start: 3px solid var(--speaker-color);
+}
+
+.MinutesTranscriptView__segments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.MinutesTranscriptView__segment {
+  padding-inline-start: 12px;
+  border-inline-start: 3px solid var(--speaker-color);
+}
+
+.MinutesTranscriptView__speaker {
+  @include mixins.font-body-2-bold;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--speaker-color);
+}
+
+.MinutesTranscriptView__time {
+  @include mixins.font-body-small;
+  font-weight: 400;
+  color: var(--axo-color-label-secondary);
+  opacity: 0.8;
+}
+
+.MinutesTranscriptView__text {
   @include mixins.font-body-2;
   margin: 0;
-  max-width: 860px;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* Barvy řečníků — index přiřazuje transcriptDisplay.std.ts. */
+.MinutesTranscriptView__legendItem,
+.MinutesTranscriptView__segment {
+  --speaker-color: var(--axo-color-label-secondary);
+
+  &[data-speaker='0'] {
+    --speaker-color: #3b6ef6;
+  }
+  &[data-speaker='1'] {
+    --speaker-color: #1f9d6d;
+  }
+  &[data-speaker='2'] {
+    --speaker-color: #c2561f;
+  }
+  &[data-speaker='3'] {
+    --speaker-color: #8d51d4;
+  }
+  &[data-speaker='4'] {
+    --speaker-color: #b8306c;
+  }
+  &[data-speaker='5'] {
+    --speaker-color: #0c8a99;
+  }
+  &[data-speaker='6'] {
+    --speaker-color: #7a7f22;
+  }
+  &[data-speaker='7'] {
+    --speaker-color: #5a6b8c;
+  }
+}
+
+/* ---------- editor shrnutí ---------- */
+
+.MinutesSummaryEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 860px;
+}
+
+.MinutesSummaryEditor__toolbar {
+  display: flex;
+  gap: 4px;
+}
+
+.MinutesSummaryEditor__linkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.MinutesSummaryEditor__linkInput {
+  @include mixins.font-body-2;
+  flex: 1;
+  min-width: 0;
+  padding-block: 6px;
+  padding-inline: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--axo-color-border-tertiary);
+  background: var(--axo-color-surface-tertiary);
+  color: var(--axo-color-label-primary);
+}
+
+.MinutesSummaryEditor__surface {
+  @include mixins.font-body-2;
+  min-height: 220px;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--axo-color-border-tertiary);
+  background: var(--axo-color-surface-card);
+
+  // Globální pravidlo pro [contenteditable] v _global.scss drží celý Signal
+  // v plaintext-only režimu, ve kterém Chromium formátování ignoruje. Má dva
+  // atributové selektory, takže ho samotná třída nepřebije — musíme použít
+  // stejně specifický zápis.
+  &[contenteditable]:not([contenteditable='false']) {
+    /* stylelint-disable-next-line property-no-deprecated */
+    -webkit-user-modify: read-write;
+  }
+
+  strong,
+  b {
+    font-weight: 700;
+  }
+
+  em,
+  i {
+    font-style: italic;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--axo-color-fill-accent);
+  }
+
+  // Tailwind preflight seznamům odebírá odrážky, takže je editoru vracíme —
+  // jinak `insertUnorderedList` vypadá, jako by nic neudělal.
+  ul,
+  ol {
+    margin-block: 6px;
+    padding-inline-start: 22px;
+  }
+
+  ul {
+    list-style: disc outside;
+  }
+
+  ol {
+    list-style: decimal outside;
+  }
+
+  li {
+    display: list-item;
+  }
+
+  a {
+    color: var(--axo-color-label-accent);
+    text-decoration: underline;
+  }
+}
+
+.MinutesSummaryEditor__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.MinutesSummaryEditor__hint {
+  @include mixins.font-body-small;
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* ---------- tab Schůzka ---------- */
+
+.MinutesMeetingPane {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.MinutesMeetingPane__title {
+  @include mixins.font-title-2;
+  margin: 0;
+}
+
+.MinutesMeetingPane__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.MinutesMeetingPane__row {
+  display: flex;
+  gap: 12px;
+}
+
+.MinutesMeetingPane__label {
+  @include mixins.font-body-2;
+  flex: none;
+  width: 120px;
+  opacity: 0.7;
+}
+
+.MinutesMeetingPane__value {
+  @include mixins.font-body-2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.MinutesMeetingPane__error {
+  @include mixins.font-body-2;
+  margin: 0;
+  color: var(--axo-color-label-destructive);
+}
+
+.MinutesMeetingPane__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.MinutesMeetingPane__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.MinutesMeetingPane__sectionTitle {
+  @include mixins.font-body-2-bold;
+  margin: 0;
+}
+
+.MinutesMeetingPane__text {
+  @include mixins.font-body-2;
+  margin: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-block: 10px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--axo-color-border-tertiary);
+  background: var(--axo-color-surface-card);
+  white-space: pre-wrap;
+}
+
+.MinutesMeetingPane__note {
+  @include mixins.font-body-small;
+  margin: 0;
+  color: var(--axo-color-label-secondary);
+}
+
+.MinutesMeetingPane__solverNote {
+  @include mixins.font-body-2;
+  margin: 0;
+  padding-block: 8px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  background: var(--axo-color-fill-affirmative-tint);
+  color: var(--axo-color-label-primary);
+}
+
+.MinutesMeetingPane__confirmButton {
+  @include mixins.button-reset;
+
+  & {
+    padding-block: 6px;
+    padding-inline: 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: var(--axo-color-fill-affirmative);
+    color: var(--axo-color-label-primary-oncolor);
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--axo-color-fill-affirmative-pressed);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.MinutesMeetingTasks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-block-start: 8px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--axo-color-border-secondary);
+}
+
+.MinutesMeetingTasks__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.MinutesMeetingTasks__heading {
+  @include mixins.font-body-1-bold;
+  margin: 0;
+}
+
+.MinutesMeetingTasks__buttonLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.MinutesMeetingTasks__hint,
+.MinutesMeetingTasks__status {
+  @include mixins.font-body-small;
+  margin: 0;
+  opacity: 0.75;
+}
+
+.MinutesMeetingTasks__status {
+  color: var(--axo-color-label-affirmative);
+  opacity: 1;
+}
+
+.MinutesMeetingTasks__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--axo-color-fill-primary);
+}
+
+.MinutesMeetingTasks__groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.MinutesMeetingTasks__assignee {
+  @include mixins.font-body-2-bold;
+}
+
+.MinutesMeetingTasks__groupActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.MinutesMeetingTasks__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.MinutesMeetingTasks__task {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--axo-color-surface-card);
+  border: 1px solid var(--axo-color-border-secondary);
+}
+
+.MinutesMeetingTasks__taskMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.MinutesMeetingTasks__title,
+.MinutesMeetingTasks__detail,
+.MinutesMeetingTasks__due,
+.MinutesMeetingTasks__recipient {
+  @include mixins.font-body-2;
+  padding-block: 6px;
+  padding-inline: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--axo-color-border-tertiary);
+  background: var(--axo-color-surface-tertiary);
+  color: var(--axo-color-label-primary);
+}
+
+.MinutesMeetingTasks__title {
+  font-weight: 600;
+}
+
+.MinutesMeetingTasks__detail {
+  resize: vertical;
   font-family: inherit;
+}
+
+.MinutesMeetingTasks__due {
+  flex: 0 1 160px;
+  min-width: 120px;
+}
+
+.MinutesMeetingTasks__recipient {
+  flex: 1 1 180px;
+  min-width: 140px;
 }
 
 .MinutesTranscriptsTab__player {
