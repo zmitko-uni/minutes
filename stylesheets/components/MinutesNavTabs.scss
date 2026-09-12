@@ -1,0 +1,43 @@
+// Copyright 2026 minutes contributors
+// SPDX-License-Identifier: AGPL-3.0-only
+
+@use '../mixins';
+
+/*
+ * Taby Minutes v levé liště. Grid řádky přepisujeme tady, ať se nemusí
+ * patchovat upstream NavTabs.scss — proto se tento soubor v manifestu
+ * načítá až za ním. Při merge upstreamu zkontrolovat, že se řádky
+ * `grid-template-rows` v NavTabs.scss nezměnily.
+ */
+.NavTabs__TabList {
+  grid-template-rows:
+    [Chats] auto
+    [Calls] auto
+    [MinutesTranscripts] auto
+    [MinutesBookmarks] auto
+    [Stories] auto
+    1fr
+    [Settings] auto;
+}
+
+.NavTabs__Item--MinutesTranscripts {
+  grid-row: MinutesTranscripts;
+}
+
+.NavTabs__Item--MinutesBookmarks {
+  grid-row: MinutesBookmarks;
+}
+
+.NavTabs__ItemIcon--MinutesTranscripts {
+  @include mixins.color-svg(
+    '../images/minutes/icons/transcripts.svg',
+    var(--axo-color-label-primary)
+  );
+}
+
+.NavTabs__ItemIcon--MinutesBookmarks {
+  @include mixins.color-svg(
+    '../images/minutes/icons/bookmark.svg',
+    var(--axo-color-label-primary)
+  );
+}

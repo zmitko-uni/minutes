@@ -102,7 +102,8 @@ function parseCorrectedSegments(
       continue;
     }
     if (current) {
-      current.text = current.text.length > 0 ? `${current.text}\n${line}` : line;
+      current.text =
+        current.text.length > 0 ? `${current.text}\n${line}` : line;
     }
   }
   if (current) {
@@ -244,9 +245,7 @@ export async function correctTranscriptWithAi(options: {
       !/\*\*\[/.test(trimmed);
 
     if (headersMissing) {
-      log.warn(
-        'discarding AI transcript correction (missing segment headers)'
-      );
+      log.warn('discarding AI transcript correction (missing segment headers)');
       return keepOriginal(options);
     }
 

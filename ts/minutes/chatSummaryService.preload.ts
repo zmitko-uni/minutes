@@ -16,8 +16,14 @@ import { getSelectedConversationId } from '../state/selectors/nav.std.ts';
 import { APP_DISPLAY_NAME, formatExportHeader } from './branding.std.ts';
 import { CHAT_SUMMARY_MESSAGE_LIMIT } from './constants.std.ts';
 import type { ChatSummaryResult, ChatSummaryScope } from './types.std.ts';
-import { openRecordingsFolder, openSummariesFolder } from './navigation.preload.ts';
-import { generateAiSummary, getAiSettings } from './aiSettingsService.preload.ts';
+import {
+  openRecordingsFolder,
+  openSummariesFolder,
+} from './navigation.preload.ts';
+import {
+  generateAiSummary,
+  getAiSettings,
+} from './aiSettingsService.preload.ts';
 import { formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 
@@ -70,7 +76,9 @@ function buildSummaryMarkdown(
   }>
 ): string {
   const header = `${formatExportHeader('chat-summary')}\n\n**Chat:** ${conversationTitle}\n**Scope:** ${scopeLabelText}\n**Messages:** ${lines.length}\n`;
-  const modelLine = options?.aiModel ? `\n**AI model:** ${options.aiModel}` : '';
+  const modelLine = options?.aiModel
+    ? `\n**AI model:** ${options.aiModel}`
+    : '';
   const body = lines.join('\n\n');
 
   if (options?.aiSummary) {
@@ -133,8 +141,7 @@ async function maybeGenerateAiSummary(
     ]);
     return { aiSummary, aiModel: settings.model };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Unknown AI error';
+    const message = error instanceof Error ? error.message : 'Unknown AI error';
     log.warn(`maybeGenerateAiSummary failed: ${message}`);
     return { aiError: message, aiModel: settings.model };
   }
@@ -149,7 +156,11 @@ async function loadMessagesSince(
   let receivedAt = Number.MAX_VALUE;
   let sentAt = Number.MAX_VALUE;
 
-  for (let batchIndex = 0; batchIndex < MAX_MESSAGE_SCAN_BATCHES; batchIndex += 1) {
+  for (
+    let batchIndex = 0;
+    batchIndex < MAX_MESSAGE_SCAN_BATCHES;
+    batchIndex += 1
+  ) {
     if (result.length >= limit) {
       break;
     }

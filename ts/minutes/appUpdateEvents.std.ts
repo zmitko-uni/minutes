@@ -90,7 +90,9 @@ export const appUpdateUi = {
 
 export function isAppUpdateBannerDismissed(version: string): boolean {
   try {
-    return sessionStorage.getItem(`minutes-dismissed-update-${version}`) === '1';
+    return (
+      sessionStorage.getItem(`minutes-dismissed-update-${version}`) === '1'
+    );
   } catch {
     return false;
   }

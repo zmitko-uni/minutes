@@ -69,13 +69,14 @@ export const AI_PROVIDER_DEFINITIONS: ReadonlyArray<AiProviderDefinition> = [
     keyHelpUrl: 'https://console.anthropic.com/settings/keys',
     keyHelpLabel: 'console.anthropic.com',
     models: [
-      'claude-3-5-haiku-latest',
-      'claude-3-5-sonnet-latest',
-      'claude-sonnet-4-20250514',
+      'claude-haiku-4-5',
+      'claude-sonnet-5',
+      'claude-sonnet-4-6',
+      'claude-opus-5',
     ],
-    defaultModel: 'claude-3-5-haiku-latest',
+    defaultModel: 'claude-haiku-4-5',
     billingNote:
-      'Fakturace na Anthropic účtu. Haiku je nejlevnější volba.',
+      'Fakturace na Anthropic účtu. Haiku je nejlevnější volba, Opus nejdražší.',
     requiresApiKey: true,
   },
   {
@@ -255,7 +256,9 @@ export type AiSettingsPublic = Readonly<{
   hasApiKey: boolean;
   apiKeyMasked: string | null;
   /** Stav klíčů pro všechny poskytovatele */
-  keyStatusByProvider: Readonly<Partial<Record<AiProvider, AiProviderKeyStatus>>>;
+  keyStatusByProvider: Readonly<
+    Partial<Record<AiProvider, AiProviderKeyStatus>>
+  >;
   /** Naposledy zvolený model pro každého poskytovatele */
   modelsByProvider: Readonly<Partial<Record<AiProvider, string>>>;
   /** Po přepisu Whisperem opravit zjevné chyby rozpoznání pomocí AI */

@@ -429,8 +429,7 @@ export function buildUnreadConversationPrompts(
   return { systemPrompt, userPrompt };
 }
 
-const HALLUCINATED_TASK_PATTERN_CS =
-  /^-\s*.+?:\s*Zajistit,?\s*že\s+/i;
+const HALLUCINATED_TASK_PATTERN_CS = /^-\s*.+?:\s*Zajistit,?\s*že\s+/i;
 const HALLUCINATED_TASK_PATTERN_EN =
   /^-\s*.+?:\s*(Ensure|Ensuring|Make sure)\s+(that\s+)?/i;
 
@@ -458,8 +457,7 @@ function isActionSectionHeader(line: string): boolean {
 function isOpenSectionHeader(line: string): boolean {
   const trimmed = line.trim();
   return (
-    /^Otevřené body:\s*$/i.test(trimmed) ||
-    /^Open items:\s*$/i.test(trimmed)
+    /^Otevřené body:\s*$/i.test(trimmed) || /^Open items:\s*$/i.test(trimmed)
   );
 }
 
@@ -571,13 +569,17 @@ export function sanitizeAiChatSummary(
     limits.maxOpenItems
   );
   if (openBullets.length > 0) {
-    const header = buffers.open.find(l => !l.startsWith('-')) ?? 'Otevřené body:';
+    const header =
+      buffers.open.find(l => !l.startsWith('-')) ?? 'Otevřené body:';
     rebuilt.push('');
     rebuilt.push(header);
     rebuilt.push(...openBullets);
   }
 
-  let result = rebuilt.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  let result = rebuilt
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 
   if (result.length > limits.maxOutputChars) {
     result = `${result.slice(0, limits.maxOutputChars - 1)}…`;

@@ -10,6 +10,7 @@ import type { Location } from '../types/Nav.std.ts';
 import { Tooltip, TooltipPlacement } from './Tooltip.dom.tsx';
 import { Theme } from '../util/theme.std.ts';
 import type { UnreadStats } from '../util/countUnreadStats.std.ts';
+import { MINUTES_NAV_TAB_LABELS } from '../minutes/navTabs.std.ts';
 
 type NavTabsItemBadgesProps = Readonly<{
   i18n: LocalizerType;
@@ -198,6 +199,8 @@ export type NavTabsProps = Readonly<{
   onToggleNavTabsCollapse: (collapsed: boolean) => void;
   renderCallsTab: () => ReactNode;
   renderChatsTab: () => ReactNode;
+  renderMinutesTranscriptsTab: () => ReactNode;
+  renderMinutesBookmarksTab: () => ReactNode;
   renderStoriesTab: () => ReactNode;
   renderSettingsTab: () => ReactNode;
   selectedNavTab: NavTab;
@@ -216,6 +219,8 @@ export function NavTabs({
   onToggleNavTabsCollapse,
   renderCallsTab,
   renderChatsTab,
+  renderMinutesTranscriptsTab,
+  renderMinutesBookmarksTab,
   renderStoriesTab,
   renderSettingsTab,
   selectedNavTab,
@@ -289,6 +294,22 @@ export function NavTabs({
               readChatsMarkedUnreadCount: 0,
             }}
           />
+          <NavTabsItem
+            i18n={i18n}
+            id={NavTab.MinutesTranscripts}
+            label={MINUTES_NAV_TAB_LABELS.transcripts}
+            iconClassName="NavTabs__ItemIcon--MinutesTranscripts"
+            navTabClassName="NavTabs__Item--MinutesTranscripts"
+            unreadStats={null}
+          />
+          <NavTabsItem
+            i18n={i18n}
+            id={NavTab.MinutesBookmarks}
+            label={MINUTES_NAV_TAB_LABELS.bookmarks}
+            iconClassName="NavTabs__ItemIcon--MinutesBookmarks"
+            navTabClassName="NavTabs__Item--MinutesBookmarks"
+            unreadStats={null}
+          />
           {storiesEnabled && (
             <NavTabsItem
               i18n={i18n}
@@ -320,6 +341,12 @@ export function NavTabs({
       </TabPanel>
       <TabPanel id={NavTab.Calls} className="NavTabs__TabPanel">
         {renderCallsTab}
+      </TabPanel>
+      <TabPanel id={NavTab.MinutesTranscripts} className="NavTabs__TabPanel">
+        {renderMinutesTranscriptsTab}
+      </TabPanel>
+      <TabPanel id={NavTab.MinutesBookmarks} className="NavTabs__TabPanel">
+        {renderMinutesBookmarksTab}
       </TabPanel>
       <TabPanel id={NavTab.Stories} className="NavTabs__TabPanel">
         {renderStoriesTab}

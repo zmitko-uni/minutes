@@ -8,11 +8,13 @@ export const MINUTES_WELCOME_TITLE = `Vítá vás ${APP_DISPLAY_NAME}`;
 export const MINUTES_WELCOME_TAGLINE =
   'Rozšíření Signalu pro nahrávání hovorů, sumarizaci konverzací a AI asistenci u schůzek a chatů.';
 
-export const MINUTES_WELCOME_FEATURES_HEADING =
-  `Hlavní předností ${APP_DISPLAY_NAME} je:`;
+export const MINUTES_WELCOME_FEATURES_HEADING = `Hlavní předností ${APP_DISPLAY_NAME} je:`;
 
 /** @deprecated Import from ./version.std.ts */
-export { formatMinutesVersionLabel, MINUTES_SIGNAL_BASE_VERSION } from './version.std.ts';
+export {
+  formatMinutesVersionLabel,
+  MINUTES_SIGNAL_BASE_VERSION,
+} from './version.std.ts';
 
 export type MinutesWelcomeTileId =
   | 'chat-summary'

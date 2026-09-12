@@ -135,12 +135,12 @@ export const createTemplate = (
           click: minutesOpenSettings,
         },
         {
-          label: MINUTES_MENU_MCP_SETTINGS,
-          click: minutesOpenAutomationSettings,
-        },
-        {
           label: MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
           click: minutesOpenCallSummaryExtension,
+        },
+        {
+          label: MINUTES_MENU_MCP_SETTINGS,
+          click: minutesOpenAutomationSettings,
         },
         {
           type: 'separator',

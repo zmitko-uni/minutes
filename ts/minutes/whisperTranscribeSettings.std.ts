@@ -59,7 +59,8 @@ export const WHISPER_DECODE_MODE_OPTIONS: ReadonlyArray<
   {
     id: 'quality',
     label: 'Kvalitní',
-    description: 'Až 3 decode profily (beam 8) — nejpomalejší, nejvyšší přesnost.',
+    description:
+      'Až 3 decode profily (beam 8) — nejpomalejší, nejvyšší přesnost.',
   },
   {
     id: 'balanced',
@@ -69,7 +70,8 @@ export const WHISPER_DECODE_MODE_OPTIONS: ReadonlyArray<
   {
     id: 'fast',
     label: 'Rychlý',
-    description: 'Jeden lehký profil (beam 3) — nejrychlejší, mírně horší přesnost.',
+    description:
+      'Jeden lehký profil (beam 3) — nejrychlejší, mírně horší přesnost.',
   },
 ];
 

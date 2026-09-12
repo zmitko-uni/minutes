@@ -21,6 +21,8 @@ const createProps = (
   onToggleNavTabsCollapse: action('onToggleNavTabsCollapse'),
   renderCallsTab: () => <div>Calls Tab goes here</div>,
   renderChatsTab: () => <div>Chats Tab goes here</div>,
+  renderMinutesTranscriptsTab: () => <div>Transcripts Tab goes here</div>,
+  renderMinutesBookmarksTab: () => <div>Bookmarks Tab goes here</div>,
   renderStoriesTab: () => <div>Stories Tab goes here</div>,
   renderSettingsTab: () => <div>Settings Tab goes here</div>,
   selectedNavTab: overrideProps.selectedNavTab ?? NavTab.Chats,

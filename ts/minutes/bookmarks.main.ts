@@ -20,7 +20,11 @@ type StoredBookmarks = {
 };
 
 function getBookmarksPath(): string {
-  return join(app.getPath('userData'), AI_SETTINGS_DIR_NAME, BOOKMARKS_FILE_NAME);
+  return join(
+    app.getPath('userData'),
+    AI_SETTINGS_DIR_NAME,
+    BOOKMARKS_FILE_NAME
+  );
 }
 
 async function readStored(): Promise<StoredBookmarks> {

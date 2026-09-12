@@ -27,7 +27,10 @@ import {
   getMinutesReleaseChannel,
   isMinutesVersionNewerInChannel,
 } from './releaseChannel.std.ts';
-import { normalizeVersionTag, parseMinutesSemverVersion } from './version.std.ts';
+import {
+  normalizeVersionTag,
+  parseMinutesSemverVersion,
+} from './version.std.ts';
 
 const log = createLogger('minutes/appUpdate');
 
@@ -95,7 +98,9 @@ function fetchHttpsJson<T>(url: string): Promise<T> {
           response.statusCode < 400 &&
           response.headers.location
         ) {
-          fetchHttpsJson<T>(response.headers.location).then(resolve).catch(reject);
+          fetchHttpsJson<T>(response.headers.location)
+            .then(resolve)
+            .catch(reject);
           response.resume();
           return;
         }
@@ -165,9 +170,7 @@ async function fetchLatestReleaseForChannel(): Promise<GitHubLatestRelease> {
   return latestBeta;
 }
 
-export function broadcastAppUpdateProgress(
-  progress: AppUpdateProgress
-): void {
+export function broadcastAppUpdateProgress(progress: AppUpdateProgress): void {
   for (const window of BrowserWindow.getAllWindows()) {
     if (!window.isDestroyed()) {
       window.webContents.send('minutes:app-update-progress', progress);
@@ -212,10 +215,7 @@ export async function checkForAppUpdate(
       throw new Error('Release na GitHubu nemá platný tag verze.');
     }
 
-    const updateAvailable = isRemoteVersionNewer(
-      latestVersion,
-      currentVersion
-    );
+    const updateAvailable = isRemoteVersionNewer(latestVersion, currentVersion);
 
     return {
       currentVersion,
@@ -242,11 +242,13 @@ export async function checkForAppUpdate(
   }
 }
 
-async function writePendingAppUpdate(
-  pending: PendingAppUpdate
-): Promise<void> {
+async function writePendingAppUpdate(pending: PendingAppUpdate): Promise<void> {
   await mkdir(getUpdatesDir(), { recursive: true });
-  await writeFile(getPendingUpdateFilePath(), JSON.stringify(pending, null, 2), 'utf8');
+  await writeFile(
+    getPendingUpdateFilePath(),
+    JSON.stringify(pending, null, 2),
+    'utf8'
+  );
 }
 
 export async function getPendingAppUpdate(): Promise<PendingAppUpdate | null> {
@@ -489,7 +491,8 @@ export async function resolveStartupAppUpdateState(
 
   if (
     pending &&
-    (!check.latestVersion || !isRemoteVersionNewer(pending.version, currentVersion))
+    (!check.latestVersion ||
+      !isRemoteVersionNewer(pending.version, currentVersion))
   ) {
     try {
       await unlink(pending.installerPath);

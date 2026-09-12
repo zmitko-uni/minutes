@@ -7,7 +7,10 @@ import {
   type AiProvider,
   type AiSummaryStyle,
 } from './aiSettings.std.ts';
-import { generateAnthropicSummary, testAnthropicConnection } from './anthropicSummary.main.ts';
+import {
+  generateAnthropicSummary,
+  testAnthropicConnection,
+} from './anthropicSummary.main.ts';
 import {
   generateGeminiSummary,
   listGeminiModels,

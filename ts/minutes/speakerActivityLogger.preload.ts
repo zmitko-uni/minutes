@@ -88,11 +88,7 @@ class SpeakerActivityLogger {
    * Keeps speaker timeline aligned with recorded audio (immune to setInterval throttling).
    */
   onRecordingPcm(sampleCount: number): void {
-    if (
-      this.#conversationId == null ||
-      this.#isPaused ||
-      sampleCount <= 0
-    ) {
+    if (this.#conversationId == null || this.#isPaused || sampleCount <= 0) {
       return;
     }
 
@@ -212,7 +208,10 @@ class SpeakerActivityLogger {
       speaking: isSignalSpeaking(localLevel),
     });
 
-    if (this.#callMode === CallMode.Direct && call.callMode === CallMode.Direct) {
+    if (
+      this.#callMode === CallMode.Direct &&
+      call.callMode === CallMode.Direct
+    ) {
       const remoteLevel = call.remoteAudioLevel ?? 0;
       levels.push({
         id: REMOTE_SPEAKER_ID,
@@ -222,10 +221,7 @@ class SpeakerActivityLogger {
       return levels;
     }
 
-    if (
-      this.#callMode === CallMode.Group &&
-      isGroupOrAdhocCallState(call)
-    ) {
+    if (this.#callMode === CallMode.Group && isGroupOrAdhocCallState(call)) {
       for (const participant of call.remoteParticipants) {
         const id = participant.aci;
         const displayName = this.#resolveParticipantName(participant.aci);

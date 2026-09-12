@@ -13,7 +13,10 @@ import {
   AI_MISSING_API_KEY_MESSAGE_CS,
   formatAiFeatureError,
 } from './aiUserMessages.std.ts';
-import { generateAiOpinion, getAiSettings } from './aiSettingsService.preload.ts';
+import {
+  generateAiOpinion,
+  getAiSettings,
+} from './aiSettingsService.preload.ts';
 import { formatMenuActionLabel } from './branding.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 
@@ -59,7 +62,9 @@ export async function askAiOpinionFromMessage(
 
   const messageText = getMessageBody(message);
   if (!messageText) {
-    summaryUi.showError('Zpráva nemá text — názor AI lze použít jen u textové zprávy.');
+    summaryUi.showError(
+      'Zpráva nemá text — názor AI lze použít jen u textové zprávy.'
+    );
     return;
   }
 
@@ -70,9 +75,7 @@ export async function askAiOpinionFromMessage(
     'neznámý';
   const conversationTitle = conversation.getTitle();
 
-  summaryUi.showWorking(
-    formatMenuActionLabel('Generuji názor AI…')
-  );
+  summaryUi.showWorking(formatMenuActionLabel('Generuji názor AI…'));
 
   let settings;
   try {
@@ -111,7 +114,10 @@ export async function askAiOpinionFromMessage(
         isNoteToSelf,
       }),
       new Promise<never>((_resolve, reject) => {
-        setTimeout(() => reject(new Error('Časový limit AI vypršel')), timeoutMs);
+        setTimeout(
+          () => reject(new Error('Časový limit AI vypršel')),
+          timeoutMs
+        );
       }),
     ]);
 

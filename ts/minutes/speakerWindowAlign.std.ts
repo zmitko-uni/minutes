@@ -25,9 +25,7 @@ export function formatMsAsWhisperTimestamp(ms: number): string {
   return `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)},${String(millis).padStart(3, '0')}`;
 }
 
-function dominantSpeakerAtSample(
-  sample: SpeakerActivitySample
-): string | null {
+function dominantSpeakerAtSample(sample: SpeakerActivitySample): string | null {
   let winner: string | null = null;
   let bestLevel = 0;
 

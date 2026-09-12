@@ -64,7 +64,9 @@ export type TranscribePcmOptions = Readonly<{
 
 export type TranscribePcmResult = Readonly<{
   text: string;
-  segments: ReadonlyArray<Readonly<{ start: string; end: string; text: string }>>;
+  segments: ReadonlyArray<
+    Readonly<{ start: string; end: string; text: string }>
+  >;
   language?: string;
 }>;
 
@@ -104,7 +106,9 @@ export async function checkWhisperRuntime(): Promise<WhisperRuntimeStatus> {
     return { ready: true };
   } catch (error) {
     runtimeError =
-      error instanceof Error ? error.message : 'whisper-cpp-node failed to load';
+      error instanceof Error
+        ? error.message
+        : 'whisper-cpp-node failed to load';
     log.error(`whisper runtime check failed: ${runtimeError}`);
     return { ready: false, error: runtimeError };
   }
@@ -129,7 +133,8 @@ function toGpuDevicePublic(device: {
   const type =
     device.type === 'gpu' || device.type === 'igpu' ? device.type : 'unknown';
   const memoryTotalBytes =
-    typeof device.memory_total === 'number' && Number.isFinite(device.memory_total)
+    typeof device.memory_total === 'number' &&
+    Number.isFinite(device.memory_total)
       ? device.memory_total
       : 0;
   const typeLabel =
@@ -366,7 +371,11 @@ export async function transcribePcm(
 
   let bestResult: TranscribePcmResult | null = null;
 
-  for (let profileIndex = 0; profileIndex < profiles.length; profileIndex += 1) {
+  for (
+    let profileIndex = 0;
+    profileIndex < profiles.length;
+    profileIndex += 1
+  ) {
     throwIfTranscriptionCancelled(options.jobId);
 
     const profile = profiles[profileIndex];

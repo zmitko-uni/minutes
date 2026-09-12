@@ -14,6 +14,8 @@ import { useItemsActions } from '../ducks/items.preload.ts';
 import { getNavTabsCollapsed } from '../selectors/items.dom.ts';
 import { SmartChatsTab } from './ChatsTab.preload.tsx';
 import { SmartPreferences } from './Preferences.preload.tsx';
+import { MinutesTranscriptsTab } from '../../minutes/components/MinutesTranscriptsTab.dom.tsx';
+import { MinutesBookmarksTab } from '../../minutes/components/MinutesBookmarksTab.dom.tsx';
 
 function renderChatsTab() {
   return <SmartChatsTab />;
@@ -25,6 +27,14 @@ function renderCallsTab() {
 
 function renderCustomizingPreferredReactionsModal() {
   return <SmartCustomizingPreferredReactionsModal />;
+}
+
+function renderMinutesTranscriptsTab() {
+  return <MinutesTranscriptsTab />;
+}
+
+function renderMinutesBookmarksTab() {
+  return <MinutesBookmarksTab />;
 }
 
 function renderNavTabs(props: SmartNavTabsProps) {
@@ -57,6 +67,8 @@ export const SmartInbox = memo(function SmartInbox(): JSX.Element {
       renderCustomizingPreferredReactionsModal={
         renderCustomizingPreferredReactionsModal
       }
+      renderMinutesTranscriptsTab={renderMinutesTranscriptsTab}
+      renderMinutesBookmarksTab={renderMinutesBookmarksTab}
       renderNavTabs={renderNavTabs}
       renderStoriesTab={renderStoriesTab}
       renderSettingsTab={renderSettingsTab}

@@ -17,8 +17,7 @@ type InlineToken =
 
 function parseInline(text: string): ReadonlyArray<InlineToken> {
   const tokens: Array<InlineToken> = [];
-  const pattern =
-    /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
+  const pattern = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
   let lastIndex = 0;
   let match = pattern.exec(text);
 
@@ -141,7 +140,10 @@ function parseBlocks(source: string): ReadonlyArray<Block> {
 
     if (trimmed.startsWith('> ')) {
       const quoteLines: Array<string> = [];
-      while (index < lines.length && trimmedLine(lines, index).startsWith('> ')) {
+      while (
+        index < lines.length &&
+        trimmedLine(lines, index).startsWith('> ')
+      ) {
         quoteLines.push(trimmedLine(lines, index).slice(2));
         index += 1;
       }
@@ -166,7 +168,10 @@ function parseBlocks(source: string): ReadonlyArray<Block> {
 
     if (/^[-*]\s+/.test(trimmed)) {
       const items: Array<string> = [];
-      while (index < lines.length && /^[-*]\s+/.test(trimmedLine(lines, index))) {
+      while (
+        index < lines.length &&
+        /^[-*]\s+/.test(trimmedLine(lines, index))
+      ) {
         items.push(trimmedLine(lines, index).replace(/^[-*]\s+/, ''));
         index += 1;
       }
@@ -176,7 +181,10 @@ function parseBlocks(source: string): ReadonlyArray<Block> {
 
     if (/^\d+\.\s+/.test(trimmed)) {
       const items: Array<string> = [];
-      while (index < lines.length && /^\d+\.\s+/.test(trimmedLine(lines, index))) {
+      while (
+        index < lines.length &&
+        /^\d+\.\s+/.test(trimmedLine(lines, index))
+      ) {
         items.push(trimmedLine(lines, index).replace(/^\d+\.\s+/, ''));
         index += 1;
       }
@@ -225,7 +233,9 @@ function renderBlock(block: Block, index: number): JSX.Element {
       return (
         <ul key={index} className="MinutesMarkdown__ul">
           {block.items.map((item, itemIndex) => (
-            <li key={itemIndex}>{renderInline(item, `ul-${index}-${itemIndex}`)}</li>
+            <li key={itemIndex}>
+              {renderInline(item, `ul-${index}-${itemIndex}`)}
+            </li>
           ))}
         </ul>
       );
@@ -233,7 +243,9 @@ function renderBlock(block: Block, index: number): JSX.Element {
       return (
         <ol key={index} className="MinutesMarkdown__ol">
           {block.items.map((item, itemIndex) => (
-            <li key={itemIndex}>{renderInline(item, `ol-${index}-${itemIndex}`)}</li>
+            <li key={itemIndex}>
+              {renderInline(item, `ol-${index}-${itemIndex}`)}
+            </li>
           ))}
         </ol>
       );
@@ -256,7 +268,10 @@ function renderBlock(block: Block, index: number): JSX.Element {
                     const CellTag = rowIndex === 0 ? 'th' : 'td';
                     return (
                       <CellTag key={cellIndex}>
-                        {renderInline(cell, `t-${index}-${rowIndex}-${cellIndex}`)}
+                        {renderInline(
+                          cell,
+                          `t-${index}-${rowIndex}-${cellIndex}`
+                        )}
                       </CellTag>
                     );
                   })}

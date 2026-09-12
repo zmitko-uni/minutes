@@ -177,7 +177,9 @@ function ActivityBanner({
               <button
                 type="button"
                 disabled={isSending}
-                onClick={() => onSendCall(callOutput, 'transcript', 'conversation')}
+                onClick={() =>
+                  onSendCall(callOutput, 'transcript', 'conversation')
+                }
               >
                 {isSending ? 'Odesílám…' : 'Odeslat přepis do chatu'}
               </button>
@@ -195,7 +197,9 @@ function ActivityBanner({
                   <button
                     type="button"
                     disabled={isSending}
-                    onClick={() => onSendCall(callOutput, 'summary', 'conversation')}
+                    onClick={() =>
+                      onSendCall(callOutput, 'summary', 'conversation')
+                    }
                   >
                     {isSending ? 'Odesílám…' : 'Odeslat shrnutí do chatu'}
                   </button>

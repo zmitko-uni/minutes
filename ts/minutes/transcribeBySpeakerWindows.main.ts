@@ -33,7 +33,9 @@ export async function transcribePcmWithSpeakerWindows(options: {
   localSpeakerDisplayName?: string;
   runtime?: WhisperTranscribeRuntimeOptions;
   onProgress?: (percent: number, detail?: string) => void;
-}): Promise<TranscribePcmResult & { alignedSegments: Array<AlignedTranscriptSegment> }> {
+}): Promise<
+  TranscribePcmResult & { alignedSegments: Array<AlignedTranscriptSegment> }
+> {
   const pcmDurationMs =
     (options.pcmf32.length / WHISPER_PCM_SAMPLE_RATE) * 1000;
   const windows = buildSpeakerWindows(options.activityLog).filter(
@@ -98,7 +100,8 @@ export async function transcribePcmWithSpeakerWindows(options: {
       jobId: options.jobId,
       runtime: options.runtime,
       onProgress: (chunkPercent, chunkDetail) => {
-        const windowBase = ((completed + chunkPercent / 100) / windows.length) * 100;
+        const windowBase =
+          ((completed + chunkPercent / 100) / windows.length) * 100;
         options.onProgress?.(
           Math.round(windowBase),
           chunkDetail
@@ -134,7 +137,10 @@ export async function transcribePcmWithSpeakerWindows(options: {
     );
   }
 
-  const text = alignedSegments.map(segment => segment.text).join('\n\n').trim();
+  const text = alignedSegments
+    .map(segment => segment.text)
+    .join('\n\n')
+    .trim();
 
   return {
     text,

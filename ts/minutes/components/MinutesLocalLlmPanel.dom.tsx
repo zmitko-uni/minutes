@@ -311,11 +311,11 @@ export function MinutesLocalLlmPanel({
             progress.phase === 'downloading' && (
               <div
                 className={tw(
-                  'mt-2 h-1.5 overflow-hidden rounded-full bg-fill-secondary'
+                  'bg-fill-secondary mt-2 h-1.5 overflow-hidden rounded-full'
                 )}
               >
                 <div
-                  className={tw('h-full bg-label-primary')}
+                  className={tw('bg-label-primary h-full')}
                   style={{ width: `${progress.percent}%` }}
                 />
               </div>

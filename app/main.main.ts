@@ -145,6 +145,7 @@ import { sendDummyKeystroke } from './WindowsNotifications.main.ts';
 import { maybeMigrateSafeStorageBackend } from '../ts/util/linuxPasswordStoreMigration.main.ts';
 import { SUMMARIES_DIR_NAME } from '../ts/minutes/constants.std.ts';
 import { resolveMinutesRecordingsDir } from '../ts/minutes/recordingsDirectory.node.ts';
+import { RECORDING_MEDIA_SCHEME } from '../ts/minutes/recordingMedia.std.ts';
 
 const { chmod, realpath, writeFile } = fsExtra;
 const { get, pick, isNumber, isBoolean, some, debounce, noop } = lodash;
@@ -2192,6 +2193,16 @@ electronProtocol.registerSchemesAsPrivileged([
   },
   {
     scheme: 'attachment',
+    privileges: {
+      standard: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+    },
+  },
+  // minutes: přehrávání uložených nahrávek hovorů v tabu Přepisy
+  {
+    scheme: RECORDING_MEDIA_SCHEME,
     privileges: {
       standard: true,
       supportFetchAPI: true,

@@ -30,9 +30,7 @@ function handleOpenReadme(event: MouseEvent<HTMLAnchorElement>): void {
   void window.minutes?.openReadme();
 }
 
-export function MinutesWelcomeSplash({
-  isStaging,
-}: Props): JSX.Element {
+export function MinutesWelcomeSplash({ isStaging }: Props): JSX.Element {
   const appVersion =
     typeof window.getVersion === 'function'
       ? window.getVersion()

@@ -24,6 +24,8 @@ export type SmartNavTabsProps = Readonly<{
   onToggleNavTabsCollapse: (navTabsCollapsed: boolean) => void;
   renderCallsTab: () => ReactNode;
   renderChatsTab: () => ReactNode;
+  renderMinutesTranscriptsTab: () => ReactNode;
+  renderMinutesBookmarksTab: () => ReactNode;
   renderStoriesTab: () => ReactNode;
   renderSettingsTab: () => ReactNode;
 }>;
@@ -33,6 +35,8 @@ export const SmartNavTabs = memo(function SmartNavTabs({
   onToggleNavTabsCollapse,
   renderCallsTab,
   renderChatsTab,
+  renderMinutesTranscriptsTab,
+  renderMinutesBookmarksTab,
   renderStoriesTab,
   renderSettingsTab,
 }: SmartNavTabsProps): JSX.Element {
@@ -68,6 +72,8 @@ export const SmartNavTabs = memo(function SmartNavTabs({
       onToggleNavTabsCollapse={onToggleNavTabsCollapse}
       renderCallsTab={renderCallsTab}
       renderChatsTab={renderChatsTab}
+      renderMinutesTranscriptsTab={renderMinutesTranscriptsTab}
+      renderMinutesBookmarksTab={renderMinutesBookmarksTab}
       renderStoriesTab={renderStoriesTab}
       renderSettingsTab={renderSettingsTab}
       selectedNavTab={selectedNavTab}

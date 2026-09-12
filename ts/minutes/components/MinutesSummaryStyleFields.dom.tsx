@@ -53,9 +53,9 @@ export function MinutesSummaryStyleFields({
         'border-label-disabled'
       )}
     >
-      <p className={tw('m-0 text-label-medium font-medium')}>Styl shrnutí</p>
+      <p className={tw('text-label-medium m-0 font-medium')}>Styl shrnutí</p>
 
-      <p className={tw('m-0 text-label-small opacity-70')}>
+      <p className={tw('text-label-small m-0 opacity-70')}>
         Platí pro shrnutí chatů i hovorů. Nepřečtené zprávy mají vlastní krátký
         formát.
       </p>
@@ -76,7 +76,7 @@ export function MinutesSummaryStyleFields({
             />
             <span>
               <span className={tw('font-medium')}>{option.label}</span>
-              <span className={tw('block text-label-small opacity-70')}>
+              <span className={tw('text-label-small block opacity-70')}>
                 {option.description}
               </span>
             </span>
@@ -91,14 +91,16 @@ export function MinutesSummaryStyleFields({
             rows={6}
             className={tw(
               'w-full resize-y rounded-md border border-solid px-3 py-2',
-              'border-label-disabled bg-background-primary font-mono text-label-small'
+              'border-label-disabled bg-background-primary text-label-small font-mono'
             )}
             value={customInstructions}
             maxLength={AI_CUSTOM_SUMMARY_INSTRUCTIONS_MAX_CHARS}
             placeholder="Např. tykej, ignoruj small talk, úkoly jen pro mě…"
             onChange={event => onCustomInstructionsChange(event.target.value)}
           />
-          <span className={tw('flex justify-between text-label-small opacity-70')}>
+          <span
+            className={tw('text-label-small flex justify-between opacity-70')}
+          >
             <span>
               Přidají se na konec system promptu. Formát Signalu nelze změnit.
             </span>
@@ -113,16 +115,14 @@ export function MinutesSummaryStyleFields({
       <div className={tw('flex flex-col gap-2')}>
         <button
           type="button"
-          className={tw('self-start text-label-small underline')}
+          className={tw('text-label-small self-start underline')}
           onClick={() => setPromptPreviewOpen(open => !open)}
         >
-          {promptPreviewOpen
-            ? 'Skrýt prompt'
-            : 'Zobrazit prompt tohoto režimu'}
+          {promptPreviewOpen ? 'Skrýt prompt' : 'Zobrazit prompt tohoto režimu'}
         </button>
         {promptPreviewOpen ? (
           <>
-            <p className={tw('m-0 text-label-small opacity-70')}>
+            <p className={tw('text-label-small m-0 opacity-70')}>
               Co model vždy dostane. Tuto část nelze měnit — drží formát zprávy
               v Signalu.
               {summaryStyle === 'custom'
@@ -134,7 +134,7 @@ export function MinutesSummaryStyleFields({
               rows={16}
               className={tw(
                 'w-full resize-y rounded-md border border-solid px-3 py-2',
-                'border-label-disabled bg-background-secondary font-mono text-label-small'
+                'border-label-disabled bg-background-secondary text-label-small font-mono'
               )}
               value={systemPromptPreview}
             />

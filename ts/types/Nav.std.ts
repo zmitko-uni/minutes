@@ -60,6 +60,9 @@ export type SettingsLocation = ReadonlyDeep<
 export enum NavTab {
   Chats = 'Chats',
   Calls = 'Calls',
+  // minutes: vlastní taby Přepisy a Záložky
+  MinutesTranscripts = 'MinutesTranscripts',
+  MinutesBookmarks = 'MinutesBookmarks',
   Stories = 'Stories',
   Settings = 'Settings',
 }

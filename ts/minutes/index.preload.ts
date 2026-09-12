@@ -13,6 +13,7 @@ import { MINUTES_BUILD_ID } from './constants.std.ts';
 import { showMinutesHome } from './homeNavigation.preload.ts';
 import { openMinutesLog } from './navigation.preload.ts';
 import { openReadmeModal } from './readmeService.preload.ts';
+import { openMinutesBookmarks } from './bookmarksService.preload.ts';
 import { initializeAppUpdate } from './appUpdateService.preload.ts';
 import { initializeMinutesKeyboardShortcuts } from './keyboardShortcuts.preload.ts';
 import { initializeAutomationRenderer } from './automation/automationRenderer.preload.ts';
@@ -56,6 +57,11 @@ export function initializeMinutes(): void {
   ipcRenderer.on('minutes:show-home', () => {
     showMinutesHome();
   });
+
+  // Záložky i Přepisy jsou taby levé navigace; menu jen přepne lokaci.
+  ipcRenderer.on('minutes:open-bookmarks', () => {
+    openMinutesBookmarks();
+  });
 }
 
 export {
@@ -75,15 +81,12 @@ export { MinutesCallRecordingControls } from './components/MinutesCallRecordingC
 export { MinutesSettingsHost } from './components/MinutesSettingsModal.dom.tsx';
 export { MinutesAutomationSettingsHost } from './components/MinutesAutomationSettingsModal.dom.tsx';
 export { MinutesCallSummaryExtensionHost } from './components/MinutesCallSummaryExtensionModal.dom.tsx';
-export { MinutesBookmarksHost } from './components/MinutesBookmarksModal.dom.tsx';
-export { openBookmarksModal } from './bookmarksService.preload.ts';
+export { openMinutesBookmarks } from './bookmarksService.preload.ts';
 export { MinutesSummaryToastHost } from './components/MinutesSummaryToastHost.dom.tsx';
 export { MinutesLogHost } from './components/MinutesLogModal.dom.tsx';
 export { MinutesTranscriptionQueueHost } from './components/MinutesTranscriptionQueueHost.dom.tsx';
-export {
-  openTranscriptionQueuePanel,
-  transcriptionQueue,
-} from './transcriptionQueueService.preload.ts';
+export { transcriptionQueue } from './transcriptionQueueService.preload.ts';
+export { showMinutesTranscriptsTab } from './navTabsService.preload.ts';
 export { markUnreadFromMessage } from './markUnreadFromMessage.preload.ts';
 export {
   sendSummaryToChat,

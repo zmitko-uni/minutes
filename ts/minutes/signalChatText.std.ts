@@ -47,7 +47,9 @@ function pushBoldRange(
 /**
  * Converts markdown-ish AI/export text to Signal message body + optional bold ranges.
  */
-export function formatMarkdownForSignalMessage(source: string): SignalChatMessage {
+export function formatMarkdownForSignalMessage(
+  source: string
+): SignalChatMessage {
   const normalized = source.replace(/\r\n/g, '\n').trim();
   if (!normalized) {
     return { body: '' };
@@ -62,10 +64,7 @@ export function formatMarkdownForSignalMessage(source: string): SignalChatMessag
   let index = 0;
 
   while (index < withoutHeadings.length) {
-    if (
-      withoutHeadings[index] === '*' &&
-      withoutHeadings[index + 1] === '*'
-    ) {
+    if (withoutHeadings[index] === '*' && withoutHeadings[index + 1] === '*') {
       const close = withoutHeadings.indexOf('**', index + 2);
       if (close !== -1) {
         const content = withoutHeadings.slice(index + 2, close);
@@ -77,10 +76,7 @@ export function formatMarkdownForSignalMessage(source: string): SignalChatMessag
       }
     }
 
-    if (
-      withoutHeadings[index] === '_' &&
-      withoutHeadings[index + 1] === '_'
-    ) {
+    if (withoutHeadings[index] === '_' && withoutHeadings[index + 1] === '_') {
       const close = withoutHeadings.indexOf('__', index + 2);
       if (close !== -1) {
         const content = withoutHeadings.slice(index + 2, close);

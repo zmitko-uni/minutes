@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
 import { ipcRenderer } from 'electron';
 
+import { AxoButton } from '../../axo/AxoButton.dom.tsx';
 import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
 import { AxoSwitch } from '../../axo/AxoSwitch.dom.tsx';
 import { tw } from '../../axo/tw.dom.tsx';
@@ -23,6 +24,7 @@ import {
   type AiSummaryStyle,
 } from '../aiSettings.std.ts';
 import { AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS } from '../aiUserMessages.std.ts';
+import { formatUserFacingError } from '../friendlyError.std.ts';
 import { MinutesSummaryStyleFields } from './MinutesSummaryStyleFields.dom.tsx';
 import {
   getAiSettings,
@@ -52,28 +54,23 @@ type Props = Readonly<{
 type ApiKeyDrafts = Partial<Record<AiProvider, string>>;
 type RemoveKeyFlags = Partial<Record<AiProvider, boolean>>;
 
-function formatUserFacingError(error: unknown): string {
-  const raw = error instanceof Error ? error.message : 'Neznámá chyba';
-  const ipcMatch = raw.match(
-    /Error invoking remote method[^:]*:\s*(?:Error:\s*)?(.+)/s
-  );
-  const message = (ipcMatch?.[1] ?? raw).trim();
-
-  if (/exceeded your current quota/i.test(message)) {
-    return `${message} Doplňte kredit u poskytovatele. Klíč je platný — uložení funguje.`;
+/**
+ * Test posílá modelu jen „Reply with exactly: OK“, takže jeho odpověď sama
+ * uživateli nic neřekne. Hlásíme proto poskytovatele, model a dobu odezvy.
+ */
+function formatSummaryTestResult(options: {
+  providerLabel: string;
+  model: string;
+  durationMs: number;
+  reply: string;
+}): string {
+  const seconds = (options.durationMs / 1000).toFixed(1).replace('.', ',');
+  const base = `Sumarizace funguje — ${options.providerLabel}, model ${options.model} odpověděl za ${seconds} s.`;
+  const reply = options.reply.trim();
+  if (reply.length === 0 || /\bok\b/i.test(reply)) {
+    return base;
   }
-  if (/invalid_api_key|incorrect api key|API key not valid/i.test(message)) {
-    return `${message} Zkontrolujte API klíč u zvoleného poskytovatele.`;
-  }
-  if (
-    /no longer available to new users|is deprecated|has been shut down/i.test(
-      message
-    )
-  ) {
-    return `${message} Zvolte novější model Gemini (např. gemini-3.5-flash-lite nebo gemini-3.6-flash) a uložte nastavení.`;
-  }
-
-  return message;
+  return `${base} Odpověď modelu: „${reply}“`;
 }
 
 function resolveModelForProvider(
@@ -408,6 +405,27 @@ export function MinutesSettingsModal({
       uubtEnabled,
     ]);
 
+  const handleSaveUubtCredentials = useCallback(() => {
+    setIsBusy(true);
+    setStatusMessage(null);
+    drop(
+      (async () => {
+        try {
+          const saved = await persistUubtSettings();
+          setStatusMessage(
+            saved.hasCredentials
+              ? 'uuBT: přístupové kódy uloženy.'
+              : 'uuBT: uložené kódy odstraněny.'
+          );
+        } catch (error) {
+          setStatusMessage(formatUserFacingError(error));
+        } finally {
+          setIsBusy(false);
+        }
+      })()
+    );
+  }, [persistUubtSettings]);
+
   const handleTestUubt = useCallback(() => {
     setIsBusy(true);
     setStatusMessage(null);
@@ -491,12 +509,20 @@ export function MinutesSettingsModal({
       (async () => {
         try {
           const draftKey = apiKeyDrafts[provider]?.trim();
+          const startedAt = Date.now();
           const result = await testAiSettings({
             provider,
             model,
             apiKey: draftKey && draftKey.length > 0 ? draftKey : undefined,
           });
-          setStatusMessage(`Připojení OK (${result.message})`);
+          setStatusMessage(
+            formatSummaryTestResult({
+              providerLabel: getAiProviderDefinition(provider).label,
+              model,
+              durationMs: Date.now() - startedAt,
+              reply: result.message,
+            })
+          );
         } catch (error) {
           setStatusMessage(formatUserFacingError(error));
         } finally {
@@ -731,6 +757,17 @@ export function MinutesSettingsModal({
                   />
                 </div>
               )}
+
+              <div className={tw('flex flex-wrap gap-2')}>
+                <AxoButton.Root
+                  variant="strong-secondary"
+                  size="sm"
+                  disabled={isBusy}
+                  onClick={handleTest}
+                >
+                  Otestovat summarizaci
+                </AxoButton.Root>
+              </div>
             </fieldset>
 
             <p className={tw('text-label-small opacity-70')}>
@@ -833,15 +870,23 @@ export function MinutesSettingsModal({
                 </span>
               </label>
 
-              <div>
-                <button
-                  type="button"
-                  className={tw('underline')}
+              <div className={tw('flex flex-wrap gap-2')}>
+                <AxoButton.Root
+                  variant="strong-secondary"
+                  size="sm"
+                  disabled={isBusy}
+                  onClick={handleSaveUubtCredentials}
+                >
+                  Uložit kódy
+                </AxoButton.Root>
+                <AxoButton.Root
+                  variant="subtle-secondary"
+                  size="sm"
                   disabled={isBusy}
                   onClick={handleTestUubt}
                 >
-                  Uložit kódy a otestovat připojení k uuBT
-                </button>
+                  Otestovat připojení
+                </AxoButton.Root>
               </div>
             </fieldset>
           </div>
@@ -855,13 +900,6 @@ export function MinutesSettingsModal({
             </AxoDialog.FooterContent>
           )}
           <AxoDialog.Actions>
-            <AxoDialog.Action
-              variant="strong-secondary"
-              disabled={isBusy}
-              onClick={handleTest}
-            >
-              Otestovat aktivního
-            </AxoDialog.Action>
             <AxoDialog.Action
               variant="strong-primary"
               disabled={isBusy || cannotEnableAiWithLocal}

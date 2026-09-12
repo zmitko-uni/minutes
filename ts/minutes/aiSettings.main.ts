@@ -117,9 +117,9 @@ function normalizeProvider(value: unknown): AiProvider {
   return DEFAULT_AI_SETTINGS.provider;
 }
 
-function migrateStoredKeys(parsed: Partial<StoredAiSettings>): Partial<
-  Record<AiProvider, string>
-> {
+function migrateStoredKeys(
+  parsed: Partial<StoredAiSettings>
+): Partial<Record<AiProvider, string>> {
   const keys = { ...(parsed.encryptedApiKeys ?? {}) };
   if (parsed.encryptedApiKey && !keys.openai) {
     keys.openai = parsed.encryptedApiKey;
@@ -239,7 +239,8 @@ async function readStoredSettings(): Promise<StoredAiSettings> {
       aiEnabled: false,
       provider: DEFAULT_AI_SETTINGS.provider,
       outputLanguage: DEFAULT_AI_SETTINGS.outputLanguage,
-      transcriptCorrectionEnabled: DEFAULT_AI_SETTINGS.transcriptCorrectionEnabled,
+      transcriptCorrectionEnabled:
+        DEFAULT_AI_SETTINGS.transcriptCorrectionEnabled,
       summaryStyle: DEFAULT_AI_SETTINGS.summaryStyle,
       customSummaryInstructions: DEFAULT_AI_SETTINGS.customSummaryInstructions,
       encryptedApiKeys: {},
@@ -419,10 +420,7 @@ export async function assertAiSummaryReady(): Promise<void> {
 
 export async function isTranscriptCorrectionEnabled(): Promise<boolean> {
   const stored = await readStoredSettings();
-  if (
-    stored.transcriptCorrectionEnabled === false ||
-    !stored.aiEnabled
-  ) {
+  if (stored.transcriptCorrectionEnabled === false || !stored.aiEnabled) {
     return false;
   }
   const provider = normalizeProvider(stored.provider);

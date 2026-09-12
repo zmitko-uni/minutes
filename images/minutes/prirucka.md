@@ -4,6 +4,8 @@ Minutes rozšiřuje Signal Desktop o **nahrávání hovorů**, **přepisy**, **A
 
 Vaše data (nahrávky, exporty, modely) zůstávají **primárně u vás na disku**. Cloud AI je volitelné — používáte vlastní API klíč, nebo můžete shrnovat **lokálně** bez internetu.
 
+V levé liště s ikonami jsou hned za Chaty a Hovory dva taby Minutes: **M** = **Přepisy** a ikona **záložky** = **Záložky**. Oba se otevřou na celé obrazovce.
+
 ---
 
 ## Za 5 minut — rychlý start
@@ -17,7 +19,7 @@ Vaše data (nahrávky, exporty, modely) zůstávají **primárně u vás na disk
    - **Styl shrnutí** — nechte **Stručný**, nebo zvolte Detailní / Smart / Vlastní
    - **Poskytovatel** — vyberte, kdo bude tvořit shrnutí
    - Podle poskytovatele doplňte **model** a **API klíč**, nebo u lokálního Gemma **stáhněte model**
-4. Klikněte **Otestovat aktivního**, pak **Uložit**
+4. Klikněte **Otestovat summarizaci**, pak **Uložit**
 
 ### 2. Sumarizujte chat
 
@@ -76,7 +78,7 @@ Po přepisu hovoru se použije aktuálně uložený styl. V **Přepisy (Minutes)
 1. Zvolte poskytovatele
 2. Vyberte **model** (levnější modely jsou v seznamu první). U **Google Gemini** lze seznam obnovit z API tlačítkem **Obnovit seznam modelů** (vyžaduje vyplněný nebo již uložený API klíč) — objeví se i novější Flash modely (např. `gemini-3.6-flash`, `gemini-3.5-flash-lite`).
 3. Vložte **API klíč** — odkaz „kde klíč získat“ je přímo pod polem
-4. **Otestovat aktivního** → **Uložit**
+4. **Otestovat summarizaci** → **Uložit**
 
 Klíče u ostatních poskytovatelů zůstávají uložené. Chcete-li později přepnout na Gemini, stačí změnit poskytovatele a doplnit jeho klíč.
 
@@ -84,7 +86,7 @@ Klíče u ostatních poskytovatelů zůstávají uložené. Chcete-li později p
 |--------------|-----------------|------------------------|
 | OpenAI (ChatGPT) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | `gpt-4o-mini` |
 | Google Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | `gemini-3.5-flash-lite` |
-| Anthropic (Claude) | [console.anthropic.com](https://console.anthropic.com/settings/keys) | `claude-3-5-haiku-latest` |
+| Anthropic (Claude) | [console.anthropic.com](https://console.anthropic.com/settings/keys) | `claude-haiku-4-5` |
 | Perplexity | [perplexity.ai → API](https://www.perplexity.ai/settings/api) | `sonar` |
 
 > **Poznámka:** Předplatné ChatGPT Plus, Claude Pro nebo Cursor **není** totéž co API klíč. Minutes potřebuje pay-as-you-go API účet u poskytovatele.
@@ -165,6 +167,30 @@ Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u 
 
 Přepis probíhá **lokálně** — audio se do cloudu neposílá. Do cloudu jde až text, pokud zapnete **AI shrnutí** nebo **AI korekci přepisu**.
 
+### Tab Přepisy — práce s nahrávkami
+
+Tab **Přepisy** (ikona **M** v levé liště nebo **Ctrl+Shift+M**) vypadá podobně jako Chaty a Hovory — vlevo seznam, vpravo detail.
+
+**Vlevo — seznam všech nahrávek:**
+
+- Co se právě zpracovává nebo čeká ve frontě, je **nahoře, modře zvýrazněné** a s ukazatelem průběhu a odhadem zbývajícího času. Pod tím jsou hotové nahrávky od nejnovější
+- **Vyhledávací pole** hledá v názvech chatů **i uvnitř přepisů a shrnutí**. Když se výraz najde v textu, ukáže se pod nahrávkou úryvek
+- **Filtry Vše / Zpracovává se / Video / Bez přepisu** zúží seznam
+- Když se něco zpracovává, objeví se nad seznamem ovládání fronty — **Pozastavit** a **Zrušit vše**
+
+**Vpravo — detail vybrané nahrávky:**
+
+- Nahoře název, datum, délka, typ (Audio / Video), použitý Whisper model a odznaky **Přepis / Shrnutí / MP4**
+- Pod tím akce: **Spustit přepis** nebo **Vygenerovat shrnutí**, **Přepsat znovu**, a rozbalovací nabídky **Sdílet** (přepis nebo shrnutí do chatu, sobě, nebo zápis do uuBT) a **Soubory** (otevřít nahrávku, přepis, shrnutí, MP4, složku nahrávek)
+- Dole tři záložky:
+  - **Shrnutí** — formátovaný text AI shrnutí
+  - **Přepis** — celý text přepisu
+  - **Nahrávka** / **Video** — přehrávač přímo v aplikaci
+
+**Přehrávání:** audio (`.mp3`) jde přetáčet bez omezení. U sdíleného videa (`.webm`) přetáčení spolehlivě nefunguje — vytvořte přes **Soubory → Vytvořit MP4** verzi MP4, přehrávač ji pak použije automaticky.
+
+Během přepisu se vpravo dole ve zbytku aplikace ukazuje malá **pilulka s průběhem**; kliknutím přepne na tento tab.
+
 ### AI shrnutí hovoru
 
 Stejné nastavení jako u chatů (**Nastavení AI** včetně **stylu shrnutí**). Shrnutí vznikne nad hotovým přepisem a může obsahovat jména řečníků. Chcete-li jiný styl, změňte ho v Nastavení AI a v **Přepisy** klikněte **Přegenerovat shrnutí**.
@@ -175,7 +201,7 @@ Stejné nastavení jako u chatů (**Nastavení AI** včetně **stylu shrnutí**)
 
 Soubory: audio `.mp3`, sdílené video `.webm`, volitelně export `.mp4`, PCM a `.json` metadata, `.transcript.md` a volitelně `.summary.md`. Nové audio i video nahrávky používají stejný automatický přepis a shrnutí.
 
-V **Přepisy (Minutes)** u videonahrávky lze **Vytvořit MP4** (H.264/AAC) pro přehrání mimo Minutes. Převod použije systémový FFmpeg, pokud je k dispozici; jinak nabídne jednorázové stažení podpory. Původní WebM se nemění. Během převodu jde akci **zrušit** nebo později **přegenerovat**.
+V tabu **Přepisy** lze u videonahrávky přes nabídku **Soubory → Vytvořit MP4** vyrobit MP4 (H.264/AAC) pro přehrání mimo Minutes i pro přetáčení v zabudovaném přehrávači. Převod použije systémový FFmpeg, pokud je k dispozici; jinak nabídne jednorázové stažení podpory. Původní WebM se nemění. Během převodu jde akci **zrušit** nebo později **přegenerovat**.
 
 ### Právní upozornění
 
@@ -211,18 +237,18 @@ Hotové AI shrnutí hovoru lze vložit přímo do sekce **Zápis** schůzky ve v
 1. **Menu → Minutes → Nastavení AI** → sekce **uuBT — odeslání zápisu do schůzky**
 2. Zapněte **Povolit odesílání do uuBT**
 3. Vyplňte **Access code 1** a **Access code 2** (přístupové kódy vašeho firemního účtu)
-4. Klikněte **Uložit kódy a otestovat připojení k uuBT** — vypíše se, pod kým jste přihlášení
+4. Klikněte **Uložit kódy** a pak **Otestovat připojení** — vypíše se, pod kým jste přihlášení
 
 Kódy se ukládají **šifrovaně přes safeStorage operačního systému**, stejně jako API klíče. Přihlašovací token existuje jen v paměti běžící aplikace a nikam se neukládá.
 
 ### Odeslání zápisu
 
-1. Počkejte, až je hotové **shrnutí** nahrávky (panel **Přepisy**, Ctrl+Shift+M)
-2. U nahrávky klikněte na **U→** (*Poslat zápis do schůzky v uuBT*)
+1. Počkejte, až je hotové **shrnutí** nahrávky (tab **Přepisy**, Ctrl+Shift+M)
+2. Vyberte nahrávku a v detailu klikněte **Sdílet → Zápis do schůzky v uuBT**
 3. Minutes nabídne schůzky z vašeho kalendáře pro den nahrávky a **předvybere tu**, která se s nahrávkou časově překrývá
 4. Zkontrolujte náhled textu a klikněte **Vložit zápis**
 
-Den lze v dialogu přepnout, pokud zapisujete dodatečně. Odesílat jde i ze **historie nahrávek** ve stejném panelu.
+Den lze v dialogu přepnout, pokud zapisujete dodatečně.
 
 ### Ochrana proti dvojímu vložení
 
@@ -235,9 +261,10 @@ Vložený zápis má v hlavičce název hovoru a čas nahrávky. Když stejný z
 Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 1. **Přidat** — pravý klik na zprávu → **Minutes: Přidat do záložek**
-2. **Seznam** — **Ctrl+Shift+B** nebo menu Minutes → Záložky
-3. Klik na položku → skok do chatu na danou zprávu
-4. **Odebrat** — v dialogu Záložky u konkrétní položky
+2. **Seznam** — tab **Záložky** (ikona záložky v levé liště), **Ctrl+Shift+B** nebo menu Minutes → Záložky
+3. **Hledání** — pole nad seznamem hledá v názvu chatu i v textu zprávy
+4. Klik na položku → vpravo se zobrazí celá zpráva s autorem a časem; **Otevřít v chatu** (nebo dvojklik v seznamu) skočí do chatu na danou zprávu
+5. **Odebrat záložku** — tlačítko u náhledu vpravo
 
 ---
 
@@ -270,11 +297,11 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 | Položka | Co dělá |
 |---------|---------|
 | Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
-| Záložky | Seznam záložek (Ctrl+Shift+B) |
-| Přepisy (Minutes) | Fronta přepisů, historie nahrávek (Ctrl+Shift+M) |
+| Záložky | Tab se seznamem záložek a náhledem zprávy (Ctrl+Shift+B) |
+| Přepisy (Minutes) | Tab se seznamem nahrávek, přepisy, shrnutími a přehrávačem (Ctrl+Shift+M, nebo ikona **M** v levé liště) |
 | Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma, přístupové kódy uuBT |
-| Nastavení MCP | Lokální MCP server, token, oprávnění nástrojů a webhooky |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
+| Nastavení MCP | Lokální MCP server, token, oprávnění nástrojů a webhooky |
 | Příručka | Tato nápověda |
 | O Minutes | Úvodní obrazovka s přehledem funkcí |
 | Otevřít nahrávky hovorů | Složka s MP3, WebM a volitelně MP4 |
@@ -353,9 +380,20 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 ## Řešení problémů
 
+Minutes se snaží u chyb rovnou napsat, co se stalo a co udělat — třeba *Vyčerpaný kredit u poskytovatele AI* nebo *Neplatný API klíč*. Původní technický text zůstává dostupný pod odkazem **Technické podrobnosti** u dané chyby a v **Menu → Minutes → Zobrazit log**.
+
+### Přepis nebo shrnutí selhalo
+
+V tabu **Přepisy** je u nahrávky v seznamu jen krátké **Přepis selhal** / **Shrnutí selhalo**; celé vysvětlení je v detailu vpravo, spolu s tlačítkem **Zkusit znovu**.
+
+- **Vyčerpaný kredit u poskytovatele AI** — doplňte kredit u poskytovatele; API klíč je v pořádku
+- **Poskytovatel AI odmítá další požadavky** — překročený limit požadavků za minutu, zkuste to za chvíli
+- **Neplatný API klíč** — zkontrolujte klíč v **Nastavení AI**
+- **Model už není dostupný** — zvolte v **Nastavení AI** jiný model a uložte
+
 ### AI shrnutí nefunguje
 
-- Otevřete **Nastavení AI** → **Otestovat aktivního**
+- Otevřete **Nastavení AI** → **Otestovat summarizaci** (tlačítko je v sekci *Aktivní poskytovatel pro sumarizaci*)
 - U cloudu: zkontrolujte API klíč, kredit u poskytovatele a internet
 - U Gemini: pokud model hlásí deprecaci, klikněte **Obnovit seznam modelů** a zvolte novější Flash (např. `gemini-3.5-flash-lite`)
 - U lokálního Gemma: stáhněte a aktivujte model (**Stáhnout a aktivovat**)
@@ -408,7 +446,7 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 ### Export MP4 selhal
 
-- V **Přepisy** zkuste **Přegenerovat MP4**, nebo nainstalujte FFmpeg do systému a akci spusťte znovu
+- V tabu **Přepisy** zkuste **Soubory → Přegenerovat MP4**, nebo nainstalujte FFmpeg do systému a akci spusťte znovu
 - Pokud Minutes nabídne stažení podpory MP4, potvrďte ho jednorázově (ukládá se do dat aplikace, instalátor se tím nezvětší)
 
 ### MCP se nepřipojuje
@@ -424,10 +462,10 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 ### Odeslání do uuBT nefunguje
 
-- V **Nastavení AI** → uuBT klikněte **Uložit kódy a otestovat připojení k uuBT** — ověří přihlášení
+- V **Nastavení AI** → uuBT klikněte **Otestovat připojení** — ověří přihlášení
 - *Neplatné přístupové kódy* — zkontrolujte oba kódy (Access code 2 se kvůli bezpečnosti nezobrazuje, přepište ho celý)
 - **Prázdný seznam schůzek** — přepněte v dialogu datum; nabízejí se jen schůzky z vašeho kalendáře pro daný den, bez zrušených a odmítnutých
-- **Tlačítko U→ chybí** — nahrávka ještě nemá hotové **shrnutí** (přepis sám nestačí), nebo je uuBT v Nastavení AI vypnuté
+- **Položka Zápis do schůzky v uuBT chybí** — nahrávka ještě nemá hotové **shrnutí** (přepis sám nestačí), nebo je uuBT v Nastavení AI vypnuté
 - Když zápis nelze vložit, podrobnosti najdete v **Menu → Minutes → Zobrazit log**
 
 ### Log pro podporu

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import * as KeyboardLayout from '../services/keyboardLayout.dom.ts';
-import { openTranscriptionQueuePanel } from './transcriptionQueueService.preload.ts';
+import { showMinutesTranscriptsTab } from './navTabsService.preload.ts';
 
 function isOpenTranscriptionQueueShortcut(event: KeyboardEvent): boolean {
   const isMacOS = window.platform === 'darwin';
@@ -28,7 +28,7 @@ export function initializeMinutesKeyboardShortcuts(): void {
         return;
       }
 
-      openTranscriptionQueuePanel();
+      showMinutesTranscriptsTab();
       event.preventDefault();
       event.stopImmediatePropagation();
     },

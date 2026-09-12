@@ -89,10 +89,13 @@ export const DEFAULT_CALL_SUMMARY_EXTENSION: CallSummaryExtensionPublic = {
   cpuCount: 1,
 };
 
-export const EXTENSION_REQUIRED_TOAST_CS =
-  `Aktivujte funkcionalitu a stáhněte potřebné rozšíření v menu ${APP_DISPLAY_NAME} → Nastavení přepisů…`;
+export const EXTENSION_REQUIRED_TOAST_CS = `Aktivujte funkcionalitu a stáhněte potřebné rozšíření v menu ${APP_DISPLAY_NAME} → Nastavení přepisů…`;
 
-export { getWhisperModelMinBytes, getWhisperModelDownloadUrl, WHISPER_MODEL_CATALOG };
+export {
+  getWhisperModelMinBytes,
+  getWhisperModelDownloadUrl,
+  WHISPER_MODEL_CATALOG,
+};
 export { getWhisperModelDownloadLabel } from './whisperSettings.std.ts';
 export type { WhisperModelDefinition };
 export type { WhisperTranscribeSettingsPublic } from './whisperTranscribeSettings.std.ts';

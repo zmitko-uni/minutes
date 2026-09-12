@@ -61,7 +61,8 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
       }
     }
 
-    const check = state.kind === 'available' || state.kind === 'error' ? state.check : null;
+    const check =
+      state.kind === 'available' || state.kind === 'error' ? state.check : null;
 
     if (
       !check?.updateAvailable ||
@@ -151,7 +152,9 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
         <span className={tw('MinutesVersionFooter__label')}>Verze:</span>{' '}
         {versionLabel}
       </p>
-      <p className={tw('MinutesVersionFooter__status')}>{getStatusText(state)}</p>
+      <p className={tw('MinutesVersionFooter__status')}>
+        {getStatusText(state)}
+      </p>
 
       {showUpdateActions && (
         <div className={tw('MinutesVersionFooter__actions')}>
@@ -189,16 +192,17 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
         </div>
       )}
 
-      {state.kind === 'downloading' && typeof state.progress.percent === 'number' && (
-        <div className={tw('MinutesVersionFooter__progress')}>
-          <div className={tw('MinutesVersionFooter__progressBar')}>
-            <div
-              className={tw('MinutesVersionFooter__progressFill')}
-              style={{ width: `${state.progress.percent}%` }}
-            />
+      {state.kind === 'downloading' &&
+        typeof state.progress.percent === 'number' && (
+          <div className={tw('MinutesVersionFooter__progress')}>
+            <div className={tw('MinutesVersionFooter__progressBar')}>
+              <div
+                className={tw('MinutesVersionFooter__progressFill')}
+                style={{ width: `${state.progress.percent}%` }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {actionError && (
         <p className={tw('MinutesVersionFooter__error')}>{actionError}</p>

@@ -14,7 +14,29 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- Levá navigace: nové taby **Přepisy** (ikona M) a **Záložky** (ikona záložky) hned za Hovory — otevřou se na celé hlavní obrazovce, ne v malém dialogu
+- **Přepisy** mají nově dvousloupcový layout jako Chaty a Hovory: vlevo jeden seznam všech nahrávek (co se zpracovává, je nahoře, modře zvýrazněné a s ukazatelem průběhu), vpravo detail vybrané nahrávky
+- **Přepisy**: vyhledávání hledá i **uvnitř přepisů a shrnutí**, ne jen v názvech — u nalezené nahrávky se rovnou ukáže úryvek s hledaným výrazem
+- **Přepisy**: rychlé filtry **Vše / Zpracovává se / Video / Bez přepisu** nad seznamem
+- **Přepisy**: detail nahrávky má záložky **Shrnutí** (formátovaný text), **Přepis** (celý text) a **Nahrávka** — audio i video se dá přehrát rovnou v aplikaci, včetně posunu v čase (u videa po vytvoření MP4)
+- **Záložky** mají nově sloupec se seznamem a vyhledáváním (hledá v názvu chatu i v textu zprávy) a vpravo náhled celé zprávy s autorem, časem a tlačítky **Otevřít v chatu** / **Odebrat záložku**
 - Odeslání zápisu do uuBT: v panelu **Přepisy** přibylo u hotového shrnutí tlačítko **U→**, které nabídne schůzky z vašeho kalendáře pro daný den a vloží AI shrnutí na konec sekce Zápis vybrané schůzky. Přihlášení přístupovými kódy se nastavuje v **Nastavení AI**; kódy se ukládají šifrovaně přes safeStorage operačního systému.
+
+### Changed
+- **Přepisy** se otevírají jako tab v levé navigaci (menu i **Ctrl+Shift+M** vedou tam). Plovoucí okno zmizelo; během přepisu zůstává vpravo dole jen malá pilulka s průběhem, kliknutím přepne na tab
+- **Přepisy**: ovládání nahrávky je přehlednější — místo řady zkratkových tlačítek (P→, S↩, U→) jsou nahoře v detailu akce **Spustit přepis** / **Vygenerovat shrnutí** a rozbalovací nabídky **Sdílet** (přepis i shrnutí do chatu, sobě, nebo zápis do uuBT) a **Soubory** (otevřít nahrávku, přepis, shrnutí, MP4, složku)
+- **Přepisy**: zmizelo oddělené přepínání *Fronta* / *Historie nahrávek* — všechno je v jednom seznamu, ovládání fronty (pozastavit, zrušit) se ukáže jen když se něco zpracovává
+- **Záložky** se otevírají jako tab (menu i **Ctrl+Shift+B**) místo dialogu
+- Menu **Minutes**: **Nastavení Přepisů (Minutes)** je nově hned pod **Nastavení AI**, **Nastavení MCP** je až poslední z nastavení
+- Nastavení AI: test poskytovatele se přesunul ze spodní lišty dialogu přímo do sekce **Aktivní poskytovatel pro sumarizaci** a jmenuje se **Otestovat summarizaci**
+- Nastavení AI: u uuBT jsou nově dvě tlačítka — **Uložit kódy** a **Otestovat připojení** (dřív jedno společné)
+- Nastavení AI: **Otestovat summarizaci** místo nicneříkajícího „Připojení OK (OK)“ hlásí poskytovatele, model a dobu odezvy
+
+### Fixed
+- Chybové hlášky jsou srozumitelné a na jednom místě: místo technického výpisu (`Error invoking remote method '…'`) se ukáže, co se stalo a co udělat — např. vyčerpaný kredit u AI, neplatný API klíč, vypnutý model, chybějící soubor nebo plný disk. Původní text zůstává pod odkazem **Technické podrobnosti**
+- **Přepisy**: v seznamu vlevo už chybová hláška nezaplaví celý řádek — je tam jen **Přepis selhal** / **Shrnutí selhalo** a podrobnosti se ukážou v detailu vpravo
+- **Záložky**: dlouhé odkazy ve zprávách už nepřetékají mimo okno, náhled se zalomí a zkrátí
+- Nastavení AI: aktualizovaný seznam modelů u **Anthropic (Claude)** — `claude-haiku-4-5` (nový výchozí), `claude-sonnet-5`, `claude-sonnet-4-6`, `claude-opus-5`. Dosavadní Claude 3.5 modely už Anthropic API nenabízí; kdo je měl uložené, přepne se automaticky na Haiku 4.5
 
 ## [8.26.0-m1.3.1-beta.1] - 2026-09-10
 

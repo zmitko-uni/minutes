@@ -25,10 +25,7 @@ import {
 
 const log = createLogger('minutes/menu');
 
-function runSummarize(
-  conversationId: string,
-  hours: 1 | 8 | 24
-): void {
+function runSummarize(conversationId: string, hours: 1 | 8 | 24): void {
   log.info(`summarize clicked: conversation=${conversationId} hours=${hours}`);
   drop(
     summarizeLastHours(conversationId, hours).catch(error => {
@@ -59,22 +56,13 @@ export function MinutesDropdownMenuItems({
     <>
       <AxoDropdownMenu.Separator />
       <AxoDropdownMenu.Label>{MINUTES_MENU_LABEL}</AxoDropdownMenu.Label>
-      <AxoDropdownMenu.Item
-        symbol="note"
-        onSelect={handlers.onSummarize1h}
-      >
+      <AxoDropdownMenu.Item symbol="note" onSelect={handlers.onSummarize1h}>
         {MINUTES_MENU_SUMMARIZE_1H}
       </AxoDropdownMenu.Item>
-      <AxoDropdownMenu.Item
-        symbol="note"
-        onSelect={handlers.onSummarize8h}
-      >
+      <AxoDropdownMenu.Item symbol="note" onSelect={handlers.onSummarize8h}>
         {MINUTES_MENU_SUMMARIZE_8H}
       </AxoDropdownMenu.Item>
-      <AxoDropdownMenu.Item
-        symbol="note"
-        onSelect={handlers.onSummarize24h}
-      >
+      <AxoDropdownMenu.Item symbol="note" onSelect={handlers.onSummarize24h}>
         {MINUTES_MENU_SUMMARIZE_24H}
       </AxoDropdownMenu.Item>
       <AxoDropdownMenu.Separator />
@@ -103,29 +91,17 @@ export function MinutesContextMenuItems({
     <>
       <AxoContextMenu.Separator />
       <AxoContextMenu.Label>{MINUTES_MENU_LABEL}</AxoContextMenu.Label>
-      <AxoContextMenu.Item
-        symbol="note"
-        onSelect={handlers.onSummarize1h}
-      >
+      <AxoContextMenu.Item symbol="note" onSelect={handlers.onSummarize1h}>
         {MINUTES_MENU_SUMMARIZE_1H}
       </AxoContextMenu.Item>
-      <AxoContextMenu.Item
-        symbol="note"
-        onSelect={handlers.onSummarize8h}
-      >
+      <AxoContextMenu.Item symbol="note" onSelect={handlers.onSummarize8h}>
         {MINUTES_MENU_SUMMARIZE_8H}
       </AxoContextMenu.Item>
-      <AxoContextMenu.Item
-        symbol="note"
-        onSelect={handlers.onSummarize24h}
-      >
+      <AxoContextMenu.Item symbol="note" onSelect={handlers.onSummarize24h}>
         {MINUTES_MENU_SUMMARIZE_24H}
       </AxoContextMenu.Item>
       <AxoContextMenu.Separator />
-      <AxoContextMenu.Item
-        symbol="folder"
-        onSelect={handlers.onOpenRecordings}
-      >
+      <AxoContextMenu.Item symbol="folder" onSelect={handlers.onOpenRecordings}>
         {MINUTES_MENU_OPEN_RECORDINGS}
       </AxoContextMenu.Item>
       <AxoContextMenu.Item symbol="folder" onSelect={handlers.onOpenSummaries}>

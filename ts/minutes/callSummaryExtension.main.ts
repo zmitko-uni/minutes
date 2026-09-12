@@ -20,10 +20,11 @@ import {
   type CallSummaryExtensionPublic,
   type WhisperModelPublic,
 } from './callSummaryExtension.std.ts';
-import { DEFAULT_WHISPER_MODEL, getWhisperModelLabel } from './whisperSettings.std.ts';
 import {
-  AI_SETTINGS_DIR_NAME,
-} from './constants.std.ts';
+  DEFAULT_WHISPER_MODEL,
+  getWhisperModelLabel,
+} from './whisperSettings.std.ts';
+import { AI_SETTINGS_DIR_NAME } from './constants.std.ts';
 import {
   checkWhisperRuntime,
   resetWhisperRuntimeCheck,
@@ -39,13 +40,26 @@ import {
   getPrivateRecordingPcmPath,
   resolveRecordingPcmPath,
 } from './recordingPcmStorage.node.ts';
-import { isAiSummaryEnabled, getAiSettingsPublic, getAiApiKey, isTranscriptCorrectionEnabled } from './aiSettings.main.ts';
-import { formatAiModelDisplayLabel, formatAiSummaryProgressMessage } from './aiSettings.std.ts';
+import {
+  isAiSummaryEnabled,
+  getAiSettingsPublic,
+  getAiApiKey,
+  isTranscriptCorrectionEnabled,
+} from './aiSettings.main.ts';
+import {
+  formatAiModelDisplayLabel,
+  formatAiSummaryProgressMessage,
+} from './aiSettings.std.ts';
 import { generateAiSummaryForProvider } from './aiSummaryService.main.ts';
 import { resolveCallSummaryCredential } from './callSummaryCredentials.std.ts';
 import { requireNonEmptySummaryText } from './generatedTextValidation.std.ts';
 import { correctTranscriptWithAi } from './transcriptCorrection.main.ts';
-import { DEFAULT_WHISPER_LANGUAGE, WHISPER_VAD_MODEL_FILE, WHISPER_VAD_MODEL_MIN_BYTES, WHISPER_VAD_MODEL_URL } from './whisperSettings.std.ts';
+import {
+  DEFAULT_WHISPER_LANGUAGE,
+  WHISPER_VAD_MODEL_FILE,
+  WHISPER_VAD_MODEL_MIN_BYTES,
+  WHISPER_VAD_MODEL_URL,
+} from './whisperSettings.std.ts';
 import {
   isSpeakerActivityCoverageSufficient,
   replaceLegacyLocalSpeakerLabels,
@@ -63,7 +77,8 @@ import {
   clampProgressPercent,
   type TranscriptionProgressCallback,
 } from './transcriptionProgress.std.ts';
-import { clearTranscriptionJobCancellation,
+import {
+  clearTranscriptionJobCancellation,
   throwIfTranscriptionCancelled,
 } from './transcriptionCancel.main.ts';
 import { writeCallTranscriptMetadata } from './transcriptMetadata.main.ts';
@@ -100,7 +115,9 @@ type TranscriptionPipelineResult =
 function getSpeakerAlignedSegments(
   transcription: TranscriptionPipelineResult
 ): ReadonlyArray<AlignedTranscriptSegment> {
-  return 'alignedSegments' in transcription ? transcription.alignedSegments : [];
+  return 'alignedSegments' in transcription
+    ? transcription.alignedSegments
+    : [];
 }
 
 function toTranscribePcmResult(
@@ -118,7 +135,11 @@ function getModelsDir(): string {
 }
 
 function getExtensionSettingsPath(): string {
-  return join(app.getPath('userData'), AI_SETTINGS_DIR_NAME, EXTENSION_FILE_NAME);
+  return join(
+    app.getPath('userData'),
+    AI_SETTINGS_DIR_NAME,
+    EXTENSION_FILE_NAME
+  );
 }
 
 async function readStoredExtension(): Promise<StoredExtension | null> {
@@ -404,8 +425,7 @@ export async function installCallSummaryExtension(
     throw new Error(message);
   }
 
-  const modelFileName =
-    options.modelFileName ?? DEFAULT_WHISPER_MODEL.fileName;
+  const modelFileName = options.modelFileName ?? DEFAULT_WHISPER_MODEL.fileName;
   if (!WHISPER_MODEL_CATALOG.some(model => model.fileName === modelFileName)) {
     throw new Error(`Neznámý Whisper model: ${modelFileName}`);
   }
@@ -440,7 +460,9 @@ export async function installCallSummaryExtension(
 
     await downloadFile(downloadUrl, modelPath, (loaded, total) => {
       const percent =
-        total && total > 0 ? Math.min(99, Math.round((loaded / total) * 100)) : undefined;
+        total && total > 0
+          ? Math.min(99, Math.round((loaded / total) * 100))
+          : undefined;
       sendProgress({
         phase: 'downloading',
         message: `Stahuji ${modelFileName}…`,
@@ -564,296 +586,312 @@ export async function transcribeCallRecording(options: {
   summaryText?: string;
 }> {
   try {
-  const extension = await getCallSummaryExtensionPublic();
-  if (!extension.activated || !extension.modelFileName) {
-    throw new Error('Rozšíření Sumarizace hovoru není aktivní.');
-  }
-
-  throwIfTranscriptionCancelled(options.jobId);
-
-  const report: TranscriptionProgressCallback = update => {
-    options.onProgress?.({
-      percent: clampProgressPercent(update.percent),
-      phase: update.phase,
-      detail: update.detail,
-    });
-  };
-
-  report({ percent: 1, phase: 'prepare', detail: 'Načítám audio nahrávky…' });
-
-  const modelPath = await getModelPath(extension.modelFileName);
-  throwIfTranscriptionCancelled(options.jobId);
-  const activityLog = await loadSpeakerActivityLog(options.recordingPath);
-  const pcmf32 = await loadRecordingPcmSidecar(options.recordingPath);
-  const background = options.background === true;
-
-  report({ percent: 4, phase: 'prepare', detail: 'Audio připraveno k přepisu' });
-  throwIfTranscriptionCancelled(options.jobId);
-
-  if (!(await isVadModelReady())) {
-    try {
-      await ensureVadModel();
-    } catch (error) {
-      log.warn('VAD model download skipped', error);
+    const extension = await getCallSummaryExtensionPublic();
+    if (!extension.activated || !extension.modelFileName) {
+      throw new Error('Rozšíření Sumarizace hovoru není aktivní.');
     }
-  }
 
-  const pcmDurationMs = (pcmf32.length / 16_000) * 1000;
-  const transcribeSettings = extension.transcribeSettings;
-  const whisperRuntime = buildWhisperRuntimeOptions(
-    transcribeSettings,
-    pcmDurationMs
-  );
-  const speakerActivityCoversRecording =
-    activityLog != null &&
-    isSpeakerActivityCoverageSufficient(activityLog, pcmDurationMs);
+    throwIfTranscriptionCancelled(options.jobId);
 
-  if (
-    activityLog != null &&
-    activityLog.samples.length > 0 &&
-    !speakerActivityCoversRecording
-  ) {
-    const coveredSec = Math.round(
-      Math.max(
-        activityLog.recordingDurationMs,
-        activityLog.samples.at(-1)?.tMs ?? 0
-      ) / 1000
+    const report: TranscriptionProgressCallback = update => {
+      options.onProgress?.({
+        percent: clampProgressPercent(update.percent),
+        phase: update.phase,
+        detail: update.detail,
+      });
+    };
+
+    report({ percent: 1, phase: 'prepare', detail: 'Načítám audio nahrávky…' });
+
+    const modelPath = await getModelPath(extension.modelFileName);
+    throwIfTranscriptionCancelled(options.jobId);
+    const activityLog = await loadSpeakerActivityLog(options.recordingPath);
+    const pcmf32 = await loadRecordingPcmSidecar(options.recordingPath);
+    const background = options.background === true;
+
+    report({
+      percent: 4,
+      phase: 'prepare',
+      detail: 'Audio připraveno k přepisu',
+    });
+    throwIfTranscriptionCancelled(options.jobId);
+
+    if (!(await isVadModelReady())) {
+      try {
+        await ensureVadModel();
+      } catch (error) {
+        log.warn('VAD model download skipped', error);
+      }
+    }
+
+    const pcmDurationMs = (pcmf32.length / 16_000) * 1000;
+    const transcribeSettings = extension.transcribeSettings;
+    const whisperRuntime = buildWhisperRuntimeOptions(
+      transcribeSettings,
+      pcmDurationMs
     );
-    const totalSec = Math.round(pcmDurationMs / 1000);
-    log.warn(
-      `speaker activity covers only ${coveredSec}s of ${totalSec}s — names only where log exists`
-    );
+    const speakerActivityCoversRecording =
+      activityLog != null &&
+      isSpeakerActivityCoverageSufficient(activityLog, pcmDurationMs);
+
+    if (
+      activityLog != null &&
+      activityLog.samples.length > 0 &&
+      !speakerActivityCoversRecording
+    ) {
+      const coveredSec = Math.round(
+        Math.max(
+          activityLog.recordingDurationMs,
+          activityLog.samples.at(-1)?.tMs ?? 0
+        ) / 1000
+      );
+      const totalSec = Math.round(pcmDurationMs / 1000);
+      log.warn(
+        `speaker activity covers only ${coveredSec}s of ${totalSec}s — names only where log exists`
+      );
+      report({
+        percent: 5,
+        phase: 'whisper',
+        detail: `Speaker log pokrývá jen ${coveredSec} s z ${totalSec} s — přepis celého audia…`,
+      });
+    }
+
+    const whisperOnProgress = (innerPercent: number, detail?: string): void => {
+      report({
+        percent: 5 + (innerPercent / 100) * 85,
+        phase: 'whisper',
+        detail: detail ?? 'Whisper přepis',
+      });
+    };
+
     report({
       percent: 5,
       phase: 'whisper',
-      detail: `Speaker log pokrývá jen ${coveredSec} s z ${totalSec} s — přepis celého audia…`,
+      detail: 'Přepis celého audia…',
     });
-  }
 
-  const whisperOnProgress = (innerPercent: number, detail?: string): void => {
-    report({
-      percent: 5 + (innerPercent / 100) * 85,
-      phase: 'whisper',
-      detail: detail ?? 'Whisper přepis',
-    });
-  };
-
-  report({
-    percent: 5,
-    phase: 'whisper',
-    detail: 'Přepis celého audia…',
-  });
-
-  let transcription: TranscriptionPipelineResult = await transcribePcm({
-    modelPath,
-    pcmf32,
-    language: DEFAULT_WHISPER_LANGUAGE,
-    background,
-    jobId: options.jobId,
-    runtime: whisperRuntime,
-    onProgress: whisperOnProgress,
-  });
-
-  const canRetryWithSpeakerWindows =
-    activityLog != null &&
-    speakerActivityCoversRecording &&
-    pcmDurationMs < WHISPER_MEDIUM_RECORDING_MS &&
-    isFullFileTranscriptSuspiciouslyWeak(transcription.text, pcmDurationMs);
-
-  if (canRetryWithSpeakerWindows) {
-    log.info(
-      'full-file transcript looks weak on short recording — trying speaker windows'
-    );
-    report({
-      percent: 40,
-      phase: 'whisper',
-      detail: 'Slabý přepis — zkouším úseky podle řečníků…',
-    });
-    transcription = await transcribePcmWithSpeakerWindows({
+    let transcription: TranscriptionPipelineResult = await transcribePcm({
       modelPath,
       pcmf32,
-      activityLog,
       language: DEFAULT_WHISPER_LANGUAGE,
       background,
       jobId: options.jobId,
-      localSpeakerDisplayName: options.localSpeakerDisplayName,
       runtime: whisperRuntime,
-      onProgress: (innerPercent, detail) => {
-        whisperOnProgress(innerPercent, detail);
-      },
+      onProgress: whisperOnProgress,
     });
-  }
 
-  throwIfTranscriptionCancelled(options.jobId);
-  report({ percent: 90, phase: 'finalize', detail: 'Sestavuji přepis…' });
+    const canRetryWithSpeakerWindows =
+      activityLog != null &&
+      speakerActivityCoversRecording &&
+      pcmDurationMs < WHISPER_MEDIUM_RECORDING_MS &&
+      isFullFileTranscriptSuspiciouslyWeak(transcription.text, pcmDurationMs);
 
-  const speakerAlignedSegments = getSpeakerAlignedSegments(transcription);
-  const result = toTranscribePcmResult(transcription);
+    if (canRetryWithSpeakerWindows) {
+      log.info(
+        'full-file transcript looks weak on short recording — trying speaker windows'
+      );
+      report({
+        percent: 40,
+        phase: 'whisper',
+        detail: 'Slabý přepis — zkouším úseky podle řečníků…',
+      });
+      transcription = await transcribePcmWithSpeakerWindows({
+        modelPath,
+        pcmf32,
+        activityLog,
+        language: DEFAULT_WHISPER_LANGUAGE,
+        background,
+        jobId: options.jobId,
+        localSpeakerDisplayName: options.localSpeakerDisplayName,
+        runtime: whisperRuntime,
+        onProgress: (innerPercent, detail) => {
+          whisperOnProgress(innerPercent, detail);
+        },
+      });
+    }
 
-  const { basePath } = getRecordingArtifactPaths(options.recordingPath);
-  const transcriptPath = `${basePath}.transcript.md`;
-  const alignedSegments: Array<AlignedTranscriptSegment> =
-    speakerAlignedSegments.length > 0
-      ? [...speakerAlignedSegments]
-      : [
-          ...alignWhisperSegmentsWithSpeakerActivity(result.segments, activityLog, {
-            localSpeakerDisplayName: options.localSpeakerDisplayName,
-          }),
-        ];
-  const transcriptForAi =
-    alignedSegments.length > 0
-      ? formatAlignedSegmentsForAi(alignedSegments)
-      : result.text;
-  let transcriptForDisplay =
-    alignedSegments.length > 0
-      ? formatAlignedSegmentsForDisplay(alignedSegments)
-      : result.text;
-
-  const whisperModelFileName = extension.modelFileName;
-  const whisperModelLabel = getWhisperModelLabel(whisperModelFileName);
-
-  const whisperMarkdown = formatTranscriptMarkdown({
-    conversationTitle: options.conversationTitle,
-    startedAt: options.startedAt,
-    endedAt: options.endedAt,
-    result,
-    activityLog,
-    alignedSegments: [...alignedSegments],
-    localSpeakerDisplayName: options.localSpeakerDisplayName,
-    whisperModelLabel,
-  });
-  report({ percent: 92, phase: 'finalize', detail: 'Ukládám soubory přepisu…' });
-  throwIfTranscriptionCancelled(options.jobId);
-  await writeFile(`${basePath}.transcript.whisper.md`, whisperMarkdown, 'utf8');
-
-  if (await isTranscriptCorrectionEnabled()) {
     throwIfTranscriptionCancelled(options.jobId);
-    const settings = await getAiSettingsPublic();
-    report({
-      percent: 94,
-      phase: 'ai-correction',
-      detail: `AI korekce přepisu… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
+    report({ percent: 90, phase: 'finalize', detail: 'Sestavuji přepis…' });
+
+    const speakerAlignedSegments = getSpeakerAlignedSegments(transcription);
+    const result = toTranscribePcmResult(transcription);
+
+    const { basePath } = getRecordingArtifactPaths(options.recordingPath);
+    const transcriptPath = `${basePath}.transcript.md`;
+    const alignedSegments: Array<AlignedTranscriptSegment> =
+      speakerAlignedSegments.length > 0
+        ? [...speakerAlignedSegments]
+        : [
+            ...alignWhisperSegmentsWithSpeakerActivity(
+              result.segments,
+              activityLog,
+              {
+                localSpeakerDisplayName: options.localSpeakerDisplayName,
+              }
+            ),
+          ];
+    const transcriptForAi =
+      alignedSegments.length > 0
+        ? formatAlignedSegmentsForAi(alignedSegments)
+        : result.text;
+    let transcriptForDisplay =
+      alignedSegments.length > 0
+        ? formatAlignedSegmentsForDisplay(alignedSegments)
+        : result.text;
+
+    const whisperModelFileName = extension.modelFileName;
+    const whisperModelLabel = getWhisperModelLabel(whisperModelFileName);
+
+    const whisperMarkdown = formatTranscriptMarkdown({
+      conversationTitle: options.conversationTitle,
+      startedAt: options.startedAt,
+      endedAt: options.endedAt,
+      result,
+      activityLog,
+      alignedSegments: [...alignedSegments],
+      localSpeakerDisplayName: options.localSpeakerDisplayName,
+      whisperModelLabel,
     });
-    const apiKey = await resolveCallSummaryCredential(
-      settings.provider,
-      getAiApiKey
+    report({
+      percent: 92,
+      phase: 'finalize',
+      detail: 'Ukládám soubory přepisu…',
+    });
+    throwIfTranscriptionCancelled(options.jobId);
+    await writeFile(
+      `${basePath}.transcript.whisper.md`,
+      whisperMarkdown,
+      'utf8'
     );
-    if (apiKey != null && transcriptForAi.length > 0) {
-      try {
-        const corrected = await correctTranscriptWithAi({
-          provider: settings.provider,
-          apiKey,
-          model: settings.model,
-          outputLanguage: settings.outputLanguage,
-          conversationTitle: options.conversationTitle,
-          rawTranscript: transcriptForDisplay,
-          alignedSegments:
-            alignedSegments.length > 0 ? alignedSegments : undefined,
-        });
-        if (corrected.alignedSegments.length > 0) {
-          alignedSegments.splice(
-            0,
-            alignedSegments.length,
-            ...corrected.alignedSegments
-          );
-          transcriptForDisplay = formatAlignedSegmentsForDisplay(
-            corrected.alignedSegments
-          );
-        } else if (corrected.text.length > 0) {
-          transcriptForDisplay = corrected.text;
-        }
-        await writeFile(
-          `${basePath}.transcript.corrected.md`,
-          formatTranscriptMarkdown({
+
+    if (await isTranscriptCorrectionEnabled()) {
+      throwIfTranscriptionCancelled(options.jobId);
+      const settings = await getAiSettingsPublic();
+      report({
+        percent: 94,
+        phase: 'ai-correction',
+        detail: `AI korekce přepisu… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
+      });
+      const apiKey = await resolveCallSummaryCredential(
+        settings.provider,
+        getAiApiKey
+      );
+      if (apiKey != null && transcriptForAi.length > 0) {
+        try {
+          const corrected = await correctTranscriptWithAi({
+            provider: settings.provider,
+            apiKey,
+            model: settings.model,
+            outputLanguage: settings.outputLanguage,
             conversationTitle: options.conversationTitle,
-            startedAt: options.startedAt,
-            endedAt: options.endedAt,
-            result,
-            activityLog,
-            alignedSegments,
-            localSpeakerDisplayName: options.localSpeakerDisplayName,
-            whisperModelLabel,
-          }),
-          'utf8'
-        );
-      } catch (error) {
-        log.warn('transcript AI correction failed', error);
+            rawTranscript: transcriptForDisplay,
+            alignedSegments:
+              alignedSegments.length > 0 ? alignedSegments : undefined,
+          });
+          if (corrected.alignedSegments.length > 0) {
+            alignedSegments.splice(
+              0,
+              alignedSegments.length,
+              ...corrected.alignedSegments
+            );
+            transcriptForDisplay = formatAlignedSegmentsForDisplay(
+              corrected.alignedSegments
+            );
+          } else if (corrected.text.length > 0) {
+            transcriptForDisplay = corrected.text;
+          }
+          await writeFile(
+            `${basePath}.transcript.corrected.md`,
+            formatTranscriptMarkdown({
+              conversationTitle: options.conversationTitle,
+              startedAt: options.startedAt,
+              endedAt: options.endedAt,
+              result,
+              activityLog,
+              alignedSegments,
+              localSpeakerDisplayName: options.localSpeakerDisplayName,
+              whisperModelLabel,
+            }),
+            'utf8'
+          );
+        } catch (error) {
+          log.warn('transcript AI correction failed', error);
+        }
       }
     }
-  }
 
-  throwIfTranscriptionCancelled(options.jobId);
-  const markdown = formatTranscriptMarkdown({
-    conversationTitle: options.conversationTitle,
-    startedAt: options.startedAt,
-    endedAt: options.endedAt,
-    result,
-    activityLog,
-    alignedSegments,
-    localSpeakerDisplayName: options.localSpeakerDisplayName,
-    whisperModelLabel,
-  });
-  await writeFile(transcriptPath, markdown, 'utf8');
-  await writeCallTranscriptMetadata(basePath, {
-    whisperModelFileName,
-    whisperModelLabel,
-    transcribedAt: Date.now(),
-  });
-
-  const correctedTranscriptForAi =
-    alignedSegments.length > 0
-      ? formatAlignedSegmentsForAi(alignedSegments)
-      : transcriptForDisplay;
-
-  let summaryPath: string | undefined;
-  if (await isAiSummaryEnabled()) {
     throwIfTranscriptionCancelled(options.jobId);
-    const settings = await getAiSettingsPublic();
-    report({
-      percent: 97,
-      phase: 'ai-correction',
-      detail: `AI shrnutí hovoru… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
+    const markdown = formatTranscriptMarkdown({
+      conversationTitle: options.conversationTitle,
+      startedAt: options.startedAt,
+      endedAt: options.endedAt,
+      result,
+      activityLog,
+      alignedSegments,
+      localSpeakerDisplayName: options.localSpeakerDisplayName,
+      whisperModelLabel,
     });
-    const apiKey = await resolveCallSummaryCredential(
-      settings.provider,
-      getAiApiKey
-    );
-    if (apiKey != null && correctedTranscriptForAi.length > 0) {
-      const summaryText = requireNonEmptySummaryText(
-        await generateAiSummaryForProvider({
-          provider: settings.provider,
-          apiKey,
-          model: settings.model,
-          outputLanguage: settings.outputLanguage,
-          conversationTitle: options.conversationTitle,
-          scopeLabel: 'Přepis hovoru',
-          transcript: correctedTranscriptForAi,
-          style: settings.summaryStyle,
-          customInstructions: settings.customSummaryInstructions,
-        })
+    await writeFile(transcriptPath, markdown, 'utf8');
+    await writeCallTranscriptMetadata(basePath, {
+      whisperModelFileName,
+      whisperModelLabel,
+      transcribedAt: Date.now(),
+    });
+
+    const correctedTranscriptForAi =
+      alignedSegments.length > 0
+        ? formatAlignedSegmentsForAi(alignedSegments)
+        : transcriptForDisplay;
+
+    let summaryPath: string | undefined;
+    if (await isAiSummaryEnabled()) {
+      throwIfTranscriptionCancelled(options.jobId);
+      const settings = await getAiSettingsPublic();
+      report({
+        percent: 97,
+        phase: 'ai-correction',
+        detail: `AI shrnutí hovoru… (${formatAiModelDisplayLabel(settings.provider, settings.model)})`,
+      });
+      const apiKey = await resolveCallSummaryCredential(
+        settings.provider,
+        getAiApiKey
       );
-      summaryPath = `${basePath}.summary.md`;
-      await writeFile(summaryPath, summaryText, 'utf8');
+      if (apiKey != null && correctedTranscriptForAi.length > 0) {
+        const summaryText = requireNonEmptySummaryText(
+          await generateAiSummaryForProvider({
+            provider: settings.provider,
+            apiKey,
+            model: settings.model,
+            outputLanguage: settings.outputLanguage,
+            conversationTitle: options.conversationTitle,
+            scopeLabel: 'Přepis hovoru',
+            transcript: correctedTranscriptForAi,
+            style: settings.summaryStyle,
+            customInstructions: settings.customSummaryInstructions,
+          })
+        );
+        summaryPath = `${basePath}.summary.md`;
+        await writeFile(summaryPath, summaryText, 'utf8');
+      }
     }
-  }
 
-  report({ percent: 100, phase: 'finalize', detail: 'Přepis dokončen' });
+    report({ percent: 100, phase: 'finalize', detail: 'Přepis dokončen' });
 
-  let summaryText: string | undefined;
-  if (summaryPath) {
-    try {
-      summaryText = (await readFile(summaryPath, 'utf8')).trim();
-    } catch {
-      summaryText = undefined;
+    let summaryText: string | undefined;
+    if (summaryPath) {
+      try {
+        summaryText = (await readFile(summaryPath, 'utf8')).trim();
+      } catch {
+        summaryText = undefined;
+      }
     }
-  }
 
-  return {
-    transcriptPath,
-    transcriptText: transcriptForDisplay,
-    summaryPath,
-    summaryText,
-  };
+    return {
+      transcriptPath,
+      transcriptText: transcriptForDisplay,
+      summaryPath,
+      summaryText,
+    };
   } finally {
     clearTranscriptionJobCancellation(options.jobId);
   }

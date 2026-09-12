@@ -27,9 +27,10 @@ export type BuildAiOpinionPromptsOptions = Readonly<{
   isNoteToSelf: boolean;
 }>;
 
-export function buildAiOpinionPrompts(
-  options: BuildAiOpinionPromptsOptions
-): { systemPrompt: string; userPrompt: string } {
+export function buildAiOpinionPrompts(options: BuildAiOpinionPromptsOptions): {
+  systemPrompt: string;
+  userPrompt: string;
+} {
   const messageText = options.messageText
     .trim()
     .slice(0, AI_OPINION_MAX_INPUT_CHARS);

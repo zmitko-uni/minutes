@@ -71,7 +71,9 @@ export function downloadHttpsFile(
           signal,
         })
           .then(() => finish())
-          .catch(error => finish(error instanceof Error ? error : new Error(String(error))));
+          .catch(error =>
+            finish(error instanceof Error ? error : new Error(String(error)))
+          );
         response.resume();
         return;
       }

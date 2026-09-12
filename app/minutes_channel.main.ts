@@ -59,6 +59,8 @@ import {
   listCallRecordings,
   loadCallRecordingOutput,
 } from '../ts/minutes/recordingsCatalog.main.ts';
+import { searchRecordingTexts } from '../ts/minutes/recordingsSearch.main.ts';
+import { registerRecordingMediaProtocol } from '../ts/minutes/recordingMediaProtocol.main.ts';
 import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
@@ -156,6 +158,7 @@ export async function initializeMinutesChannel(automationOptions?: {
   app.once('before-quit', () => {
     videoMp4Exporter.cancelActive();
   });
+  registerRecordingMediaProtocol(recordingsDir);
   if (migrationError) {
     log.error(
       'failed to migrate recordings to Documents; using app storage',
@@ -363,6 +366,13 @@ export async function initializeMinutesChannel(automationOptions?: {
     await ensureDir(recordingsDir);
     return listCallRecordings(recordingsDir);
   });
+
+  ipcMain.handle(
+    'minutes:search-call-recordings',
+    async (_event, options: { query: string }) => {
+      return searchRecordingTexts(recordingsDir, options.query);
+    }
+  );
 
   ipcMain.handle('minutes:get-recording-mp4-support', async () => {
     return videoMp4Support.getPublic();

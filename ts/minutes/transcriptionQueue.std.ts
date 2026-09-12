@@ -1,7 +1,10 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { CallRecordingMetadata, CallRecordingOutput } from './types.std.ts';
+import type {
+  CallRecordingMetadata,
+  CallRecordingOutput,
+} from './types.std.ts';
 import type { TranscriptionProgressPhase } from './transcriptionProgress.std.ts';
 
 export type TranscriptionJobKind = 'transcription' | 'summary';

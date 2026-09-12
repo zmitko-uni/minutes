@@ -83,10 +83,7 @@ function pickSpeakerForSegment(
     for (const entry of sample.levels) {
       const speaking = entry.speaking ?? entry.level > 0;
       if (speaking) {
-        speakingSamples.set(
-          entry.id,
-          (speakingSamples.get(entry.id) ?? 0) + 1
-        );
+        speakingSamples.set(entry.id, (speakingSamples.get(entry.id) ?? 0) + 1);
       }
       levelTotals.set(entry.id, (levelTotals.get(entry.id) ?? 0) + entry.level);
 
@@ -187,7 +184,11 @@ export function alignWhisperSegmentsWithSpeakerActivity(
 
       let speakerId = LOCAL_SPEAKER_ID;
       if (activityLog && activityLog.samples.length > 0) {
-        speakerId = pickSpeakerForSegment(activityLog, startMs, endMs).speakerId;
+        speakerId = pickSpeakerForSegment(
+          activityLog,
+          startMs,
+          endMs
+        ).speakerId;
       }
 
       const speakerLabel = activityLog

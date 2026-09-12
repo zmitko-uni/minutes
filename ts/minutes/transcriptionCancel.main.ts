@@ -16,7 +16,9 @@ export function cancelTranscriptionJob(jobId: string): void {
   cancelledJobIds.add(jobId);
 }
 
-export function isTranscriptionJobCancelled(jobId: string | undefined): boolean {
+export function isTranscriptionJobCancelled(
+  jobId: string | undefined
+): boolean {
   return jobId != null && cancelledJobIds.has(jobId);
 }
 

@@ -1,0 +1,435 @@
+// Copyright 2026 minutes contributors
+// SPDX-License-Identifier: AGPL-3.0-only
+
+@use '../mixins';
+
+.MinutesTranscriptsTab {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- levý sloupec: filtry, fronta, seznam ---------- */
+
+.MinutesTranscriptsTab__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-block: 0 8px;
+  padding-inline: 16px;
+}
+
+.MinutesTranscriptsTab__filter {
+  @include mixins.button-reset;
+
+  & {
+    @include mixins.font-body-small;
+    padding-block: 4px;
+    padding-inline: 10px;
+    border-radius: 999px;
+    background: var(--axo-color-fill-primary);
+    color: var(--axo-color-label-secondary);
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary-pressed);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--axo-color-fill-accent);
+    color: var(--axo-color-label-primary-oncolor);
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesTranscriptsTab__queueBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 0 8px;
+  margin-inline: 16px;
+  padding-block: 8px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  background: var(--axo-color-fill-secondary);
+
+  @include mixins.font-body-small;
+
+  button {
+    @include mixins.button-reset;
+
+    & {
+      color: var(--axo-color-label-accent);
+      font-weight: 600;
+    }
+  }
+}
+
+.MinutesTranscriptsTab__list {
+  list-style: none;
+  margin: 0;
+  padding-block: 0 8px;
+  padding-inline: 8px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.MinutesTranscriptsTab__item {
+  @include mixins.button-reset;
+
+  & {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    width: 100%;
+    min-width: 0;
+    padding-block: 9px;
+    padding-inline: 12px;
+    border-radius: 10px;
+    text-align: start;
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary);
+  }
+
+  &[aria-current='true'] {
+    background: var(--axo-color-fill-primary-pressed);
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+/* Nahrávka ve frontě nebo v chybě je vidět na první pohled. */
+.MinutesTranscriptsTab__item--pinned {
+  border-inline-start: 3px solid var(--axo-color-fill-accent);
+  border-start-start-radius: 4px;
+  border-end-start-radius: 4px;
+  background: var(--axo-color-fill-secondary);
+}
+
+.MinutesTranscriptsTab__itemTitle,
+.MinutesTranscriptsTab__itemMeta,
+.MinutesTranscriptsTab__itemStatus,
+.MinutesTranscriptsTab__itemSnippet {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.MinutesTranscriptsTab__itemTitle {
+  @include mixins.font-body-2-bold;
+}
+
+.MinutesTranscriptsTab__itemMeta {
+  @include mixins.font-body-small;
+  opacity: 0.65;
+}
+
+.MinutesTranscriptsTab__itemStatus {
+  @include mixins.font-body-small;
+  color: var(--axo-color-label-accent);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.MinutesTranscriptsTab__itemStatus--failed {
+  color: var(--axo-color-label-destructive);
+}
+
+.MinutesTranscriptsTab__itemSnippet {
+  @include mixins.font-body-small;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-style: italic;
+}
+
+.MinutesTranscriptsTab__itemTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.MinutesTranscriptsTab__tag {
+  @include mixins.font-caption;
+  padding-block: 1px;
+  padding-inline: 7px;
+  border-radius: 999px;
+  background: var(--axo-color-fill-secondary);
+  color: var(--axo-color-label-secondary);
+}
+
+.MinutesTranscriptsTab__tag--muted {
+  opacity: 0.65;
+}
+
+.MinutesTranscriptsTab__empty {
+  @include mixins.font-body-2;
+  margin-block: 8px;
+  margin-inline: 16px;
+  opacity: 0.75;
+}
+
+/* ---------- pravý sloupec: detail nahrávky ---------- */
+
+.MinutesTranscriptsTab__placeholder {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.MinutesTranscriptsTab__detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.MinutesTranscriptsTab__detailHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block: 56px 0;
+  padding-inline: 32px;
+  border-bottom: 1px solid var(--axo-color-border-secondary);
+}
+
+.MinutesTranscriptsTab__detailTitle {
+  @include mixins.font-title-2;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.MinutesTranscriptsTab__detailMeta {
+  @include mixins.font-body-2;
+  margin: 0;
+  margin-block-start: -6px;
+  opacity: 0.7;
+}
+
+.MinutesTranscriptsTab__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.MinutesTranscriptsTab__badge {
+  @include mixins.font-caption;
+  padding-block: 2px;
+  padding-inline: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--axo-color-border-secondary);
+  color: var(--axo-color-label-secondary);
+}
+
+.MinutesTranscriptsTab__badge--ready {
+  border-color: var(--axo-color-label-accent);
+  color: var(--axo-color-label-accent);
+}
+
+.MinutesTranscriptsTab__badge--warn {
+  border-color: var(--axo-color-label-destructive);
+  color: var(--axo-color-label-destructive);
+}
+
+.MinutesTranscriptsTab__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.MinutesTranscriptsTab__jobStatus {
+  @include mixins.font-body-small;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.MinutesTranscriptsTab__jobStatusRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.MinutesTranscriptsTab__jobStatus--processing {
+  color: var(--axo-color-label-accent);
+}
+
+.MinutesTranscriptsTab__jobStatus--failed {
+  color: var(--axo-color-label-destructive);
+}
+
+.MinutesTranscriptsTab__jobDetail {
+  margin: 0;
+  opacity: 0.75;
+}
+
+/* Chyba se čte jako rada, ne jako výpis z konzole. */
+.MinutesTranscriptsTab__error {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 720px;
+  padding-block: 10px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  border-inline-start: 3px solid var(--axo-color-label-destructive);
+  background: var(--axo-color-fill-secondary);
+}
+
+.MinutesTranscriptsTab__errorTitle {
+  @include mixins.font-body-2-bold;
+  margin: 0;
+  color: var(--axo-color-label-destructive);
+}
+
+.MinutesTranscriptsTab__errorMessage {
+  @include mixins.font-body-2;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.MinutesTranscriptsTab__errorToggle {
+  @include mixins.button-reset;
+
+  & {
+    @include mixins.font-body-small;
+    align-self: flex-start;
+    color: var(--axo-color-label-accent);
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesTranscriptsTab__errorDetail {
+  @include mixins.font-body-small;
+  margin: 0;
+  max-height: 140px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  opacity: 0.75;
+  font-family: monospace;
+}
+
+.MinutesTranscriptsTab__progress {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--axo-color-fill-secondary);
+  overflow: hidden;
+}
+
+.MinutesTranscriptsTab__progressBar {
+  display: block;
+  height: 100%;
+  background: var(--axo-color-fill-accent);
+  transition: width 0.2s ease;
+}
+
+.MinutesTranscriptsTab__detailTabs {
+  display: flex;
+  gap: 4px;
+}
+
+.MinutesTranscriptsTab__detailTab {
+  @include mixins.button-reset;
+
+  & {
+    @include mixins.font-body-2;
+    padding-block: 8px;
+    padding-inline: 12px;
+    border-block-end: 2px solid transparent;
+    color: var(--axo-color-label-secondary);
+  }
+
+  &:hover {
+    color: var(--axo-color-label-primary);
+  }
+
+  &[aria-selected='true'] {
+    border-block-end-color: var(--axo-color-fill-accent);
+    color: var(--axo-color-label-primary);
+    font-weight: 600;
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesTranscriptsTab__detailBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-block: 20px 32px;
+  padding-inline: 32px;
+}
+
+.MinutesTranscriptsTab__note {
+  @include mixins.font-body-2;
+  margin: 0;
+  max-width: 640px;
+  opacity: 0.75;
+}
+
+.MinutesTranscriptsTab__transcript {
+  @include mixins.font-body-2;
+  margin: 0;
+  max-width: 860px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+}
+
+.MinutesTranscriptsTab__player {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 960px;
+}
+
+.MinutesTranscriptsTab__video {
+  width: 100%;
+  max-height: 60vh;
+  border-radius: 10px;
+  background: black;
+}
+
+.MinutesTranscriptsTab__audio {
+  width: 100%;
+}

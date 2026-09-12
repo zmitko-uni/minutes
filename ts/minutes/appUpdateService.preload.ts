@@ -47,9 +47,11 @@ export async function downloadAppUpdate(options: {
   return ipcRenderer.invoke('minutes:download-app-update', options);
 }
 
-export async function installPendingAppUpdate(options: {
-  version?: string;
-} = {}): Promise<{ installerPath: string }> {
+export async function installPendingAppUpdate(
+  options: {
+    version?: string;
+  } = {}
+): Promise<{ installerPath: string }> {
   return ipcRenderer.invoke('minutes:install-pending-app-update', options);
 }
 
@@ -78,7 +80,9 @@ export function subscribeAppUpdateProgress(
 
 export { subscribeAppUpdateUi, getAppUpdateUiState, appUpdateUi };
 
-async function runBackgroundDownload(check: AppUpdateCheckResult): Promise<void> {
+async function runBackgroundDownload(
+  check: AppUpdateCheckResult
+): Promise<void> {
   if (
     !check.updateAvailable ||
     !check.latestVersion ||

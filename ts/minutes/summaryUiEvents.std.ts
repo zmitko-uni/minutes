@@ -22,9 +22,7 @@ function setState(state: SummaryUiState): void {
   }
 }
 
-export function subscribeSummaryUi(
-  listener: SummaryUiListener
-): () => void {
+export function subscribeSummaryUi(listener: SummaryUiListener): () => void {
   listeners.add(listener);
   listener(currentState);
   return () => {

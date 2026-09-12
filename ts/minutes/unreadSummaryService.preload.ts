@@ -15,7 +15,10 @@ import {
   UNREAD_SUMMARY_MAX_CONVERSATIONS,
   UNREAD_SUMMARY_PER_CHAT_LIMIT,
 } from './constants.std.ts';
-import { generateUnreadConversationSummary, getAiSettings } from './aiSettingsService.preload.ts';
+import {
+  generateUnreadConversationSummary,
+  getAiSettings,
+} from './aiSettingsService.preload.ts';
 import {
   AI_DISABLED_MESSAGE_CS,
   AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS,
@@ -85,7 +88,11 @@ function normalizeConversationType(rawType: string | undefined): string {
   if (value.includes('neform') || value.includes('informal')) {
     return 'neformální';
   }
-  if (value.includes('běž') || value.includes('bez') || value.includes('normal')) {
+  if (
+    value.includes('běž') ||
+    value.includes('bez') ||
+    value.includes('normal')
+  ) {
     return 'běžná';
   }
   if (value.includes('important')) {
@@ -266,15 +273,17 @@ async function summarizeUnreadConversation(
   target: UnreadConversationTarget,
   timeoutMs: number
 ): Promise<
-  Readonly<{
-    kind: 'summary';
-    text: string;
-  }> | Readonly<{
-    kind: 'skipped';
-  }> | Readonly<{
-    kind: 'error';
-    message: string;
-  }>
+  | Readonly<{
+      kind: 'summary';
+      text: string;
+    }>
+  | Readonly<{
+      kind: 'skipped';
+    }>
+  | Readonly<{
+      kind: 'error';
+      message: string;
+    }>
 > {
   const messages = await loadUnreadMessagesForConversation(
     target.id,
@@ -318,11 +327,8 @@ async function summarizeUnreadConversation(
       text: formatUnreadConversationBlock(target.title, aiSummary),
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Unknown AI error';
-    log.warn(
-      `summarizeUnreadConversation failed for ${target.id}: ${message}`
-    );
+    const message = error instanceof Error ? error.message : 'Unknown AI error';
+    log.warn(`summarizeUnreadConversation failed for ${target.id}: ${message}`);
     return { kind: 'error', message };
   }
 }
@@ -376,11 +382,7 @@ async function sendDigestToSelf(message: string): Promise<boolean> {
     return false;
   }
 
-  return sendSignalChatMessage(
-    selfConversationId,
-    message,
-    'sendDigestToSelf'
-  );
+  return sendSignalChatMessage(selfConversationId, message, 'sendDigestToSelf');
 }
 
 export async function summarizeUnreadConversations(): Promise<void> {

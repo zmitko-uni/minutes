@@ -41,8 +41,7 @@ export type WhisperModelDefinition = Readonly<{
   recommended?: boolean;
 }>;
 
-const HF_BASE =
-  'https://huggingface.co/ggerganov/whisper.cpp/resolve/main';
+const HF_BASE = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main';
 
 /** Modely ke stažení — doporučený první, pořadí v UI. */
 export const WHISPER_MODEL_CATALOG: ReadonlyArray<WhisperModelDefinition> = [
@@ -81,7 +80,8 @@ export const WHISPER_MODEL_CATALOG: ReadonlyArray<WhisperModelDefinition> = [
     id: 'base',
     fileName: 'ggml-base.bin',
     label: 'Base',
-    description: 'Nejrychlejší, ale u hovorů v češtině často chyby — spíš pro test',
+    description:
+      'Nejrychlejší, ale u hovorů v češtině často chyby — spíš pro test',
     downloadUrl: `${HF_BASE}/ggml-base.bin`,
     minBytes: 100_000_000,
     downloadLabel: 'cca 150 MB',

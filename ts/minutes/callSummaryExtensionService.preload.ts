@@ -24,9 +24,7 @@ export function getCallSummaryExtensionState(): CallSummaryExtensionPublic {
 }
 
 export function isCallSummaryExtensionActive(): boolean {
-  return (
-    cached.activated && cached.modelReady && cached.whisperRuntimeReady
-  );
+  return cached.activated && cached.modelReady && cached.whisperRuntimeReady;
 }
 
 export async function refreshCallSummaryExtension(): Promise<CallSummaryExtensionPublic> {

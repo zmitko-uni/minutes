@@ -8,6 +8,7 @@ import { getMessageById } from '../messages/getMessageById.preload.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
 import type { AddBookmarkInput, MinutesBookmark } from './bookmarks.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
+import { showMinutesBookmarksTab } from './navTabsService.preload.ts';
 
 const log = createLogger('minutes/bookmarksService');
 
@@ -83,6 +84,19 @@ export function navigateToBookmark(bookmark: MinutesBookmark): void {
   });
 }
 
-export function openBookmarksModal(): void {
-  ipcRenderer.send('minutes:open-bookmarks');
+const openListeners = new Set<() => void>();
+
+/** Už otevřený tab Záložky se při vyvolání akce jen obnoví. */
+export function subscribeBookmarksOpen(listener: () => void): () => void {
+  openListeners.add(listener);
+  return () => {
+    openListeners.delete(listener);
+  };
+}
+
+export function openMinutesBookmarks(): void {
+  showMinutesBookmarksTab();
+  for (const listener of openListeners) {
+    listener();
+  }
 }

@@ -418,13 +418,3 @@ export function enqueueRecordingTranscription(
 ): void {
   transcriptionQueue.enqueue(metadata);
 }
-
-export function openTranscriptionQueuePanel(): void {
-  transcriptionQueue.setPanelOpen(true);
-  emitTranscriptionQueueSnapshot(transcriptionQueue.getSnapshot());
-}
-
-export function closeTranscriptionQueuePanel(): void {
-  transcriptionQueue.setPanelOpen(false);
-  emitTranscriptionQueueSnapshot(transcriptionQueue.getSnapshot());
-}

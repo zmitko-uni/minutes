@@ -24,7 +24,9 @@ export function formatMinutesScopedMenuLabel(action: string): string {
   return `${action} (${APP_DISPLAY_NAME})`;
 }
 
-export function formatExportHeader(kind: 'chat-summary' | 'call-transcript'): string {
+export function formatExportHeader(
+  kind: 'chat-summary' | 'call-transcript'
+): string {
   if (kind === 'call-transcript') {
     return `# ${APP_DISPLAY_NAME} — přepis hovoru`;
   }

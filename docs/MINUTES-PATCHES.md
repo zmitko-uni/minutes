@@ -13,7 +13,7 @@
 | `app/startup_config.main.ts` | minutes AUMID + název aplikace | pár řádků |
 | `app/WindowsNotifications.main.ts` | fallback toast + log AUMID | minutes |
 | `app/minutes_readme.main.ts` | načtení příručky z disku |
-| `app/main.main.ts` | IPC init, menu akce, minutes ikona, test pipeline hook (`MINUTES_TEST_PIPELINE=1`) | registrace |
+| `app/main.main.ts` | IPC init, menu akce, minutes ikona, test pipeline hook (`MINUTES_TEST_PIPELINE=1`), schéma `minutesmedia` v `registerSchemesAsPrivileged` | registrace |
 | `app/SystemTrayService.main.ts` | tray ikona + tooltip minutes | 2 volání |
 | `app/menu.std.ts` | submenu Minutes + Příručka/MCP | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
@@ -24,6 +24,10 @@
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
 | `ts/components/App.dom.tsx` | minutes host komponenty | +TranscriptionQueueHost, bez update banneru |
+| `ts/types/Nav.std.ts` | hodnoty `NavTab.MinutesTranscripts` a `NavTab.MinutesBookmarks` (spadnou do obecné větve `Location` bez `details`) | 2 řádky enumu |
+| `ts/components/NavTabs.dom.tsx` | taby Přepisy a Záložky za Hovory — 2× `NavTabsItem` + 2× `TabPanel` + 2 render props. Popisky z `ts/minutes/navTabs.std.ts` (bez zásahu do `_locales`) | import + 2 položky |
+| `ts/components/Inbox.dom.tsx`, `ts/state/smart/Inbox.preload.tsx`, `ts/state/smart/NavTabs.preload.tsx` | protažení render props `renderMinutesTranscriptsTab` / `renderMinutesBookmarksTab` | plumbing |
+| `ts/components/NavTabs.dom.stories.tsx` | mock nových render props | 2 řádky |
 | `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere`, `onAskAiOpinion` + kontextové copy/forward | props + items |
 | `ts/components/conversation/TimelineMessage.dom.tsx` | callback záložky, nepřečteno, názor AI a kontextové copy/forward | callbacks |
 | `ts/components/conversation/SelectModeActions.dom.tsx` | Minutes akce kopírování a přeposlání vybraných zpráv s autorem a časem | 1 komponenta |
@@ -40,8 +44,19 @@
 | `ts/minutes/aiSummaryPrompts.std.ts` | prompty + sanitizace shrnutí chatu |
 | `ts/minutes/releaseChannel.std.ts` | prod/beta kanál, data dir, updaty |
 | `config/minutes-beta.json` | konfigurace profilu minutes-beta |
-| `ts/minutes/components/MinutesBookmarksModal.dom.tsx` | dialog Záložky |
-| `stylesheets/components/MinutesBookmarks.scss` | styly záložek |
+| `ts/minutes/components/MinutesBookmarksTab.dom.tsx` | tab Záložky (seznam + hledání + náhled zprávy) |
+| `ts/minutes/components/MinutesTranscriptsTab.dom.tsx` | tab Přepisy — seznam nahrávek s frontou, hledáním a filtry |
+| `ts/minutes/components/MinutesRecordingDetail.dom.tsx` | detail nahrávky: přehled, akce, taby Shrnutí / Přepis / Nahrávka |
+| `ts/minutes/components/MinutesRecordingPlayer.dom.tsx` | přehrávač audia a videa nad schématem `minutesmedia` |
+| `ts/minutes/recordingsListModel.std.ts` | sloučení katalogu s běžícími joby, řazení a filtry seznamu |
+| `ts/minutes/transcriptionStatusFormat.std.ts` | společné formátování stavu, ETA a délky (tab i plovoucí pilulka) |
+| `ts/minutes/friendlyError.std.ts` | jedno místo pro překlad technických chyb (IPC, AI poskytovatelé, fs) na hlášky s doporučením |
+| `ts/minutes/recordingMedia.std.ts`, `ts/minutes/recordingMediaProtocol.main.ts` | schéma `minutesmedia` s podporou Range; cesty jsou omezené na složku nahrávek |
+| `ts/minutes/recordingsSearch.std.ts`, `ts/minutes/recordingsSearch.main.ts`, `ts/minutes/recordingsSearchService.preload.ts` | fulltext v `.transcript.md` / `.summary.md` s cache podle mtime |
+| `ts/minutes/navTabs.std.ts`, `ts/minutes/navTabsService.preload.ts` | popisky tabů + přepnutí lokace z rendereru |
+| `stylesheets/components/MinutesNavTabs.scss` | řádky gridu a ikony tabů; **musí se načítat za** upstream `NavTabs.scss` |
+| `stylesheets/components/MinutesBookmarksTab.scss` | styly tabu Záložky |
+| `stylesheets/components/MinutesTranscriptsTab.scss` | styly tabu Přepisy (seznam, detail, přehrávač) |
 | `ts/minutes/buildExpiration.preload.ts` | vypnutí expirace buildu |
 | `ts/minutes/welcomeContent.std.ts` | texty uvítací obrazovky + dlaždice |
 | `ts/minutes/components/MinutesWelcomeSplash.dom.tsx` | uvítání + 4 dlaždice |
@@ -51,7 +66,7 @@
 | `stylesheets/components/MinutesReadme.scss` | styly příručky |
 | `stylesheets/components/MinutesStartupSplash.scss` | logo při startu aplikace |
 | `images/minutes/prirucka.md` | uživatelská příručka (součást balíčku) |
-| `background.html` | preload + title Minutes | startup logo |
+| `background.html` | preload + title Minutes; `minutesmedia:` v CSP `media-src` (přehrávání nahrávek v tabu Přepisy) | startup logo |
 | `loading.html` | preload ikony Minutes | migrace |
 
 ## Nové soubory (ne upstream)

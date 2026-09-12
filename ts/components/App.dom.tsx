@@ -16,7 +16,6 @@ import { MinutesAutomationSettingsHost } from '../minutes/components/MinutesAuto
 import { MinutesCallSummaryExtensionHost } from '../minutes/components/MinutesCallSummaryExtensionModal.dom.tsx';
 import { MinutesSummaryToastHost } from '../minutes/components/MinutesSummaryToastHost.dom.tsx';
 import { MinutesLogHost } from '../minutes/components/MinutesLogModal.dom.tsx';
-import { MinutesBookmarksHost } from '../minutes/components/MinutesBookmarksModal.dom.tsx';
 import { MinutesReadmeHost } from '../minutes/components/MinutesReadmeModal.dom.tsx';
 import { MinutesTranscriptionQueueHost } from '../minutes/components/MinutesTranscriptionQueueHost.dom.tsx';
 
@@ -120,7 +119,6 @@ export function App({
       <MinutesCallSummaryExtensionHost />
       <MinutesSummaryToastHost />
       <MinutesLogHost />
-      <MinutesBookmarksHost />
       <MinutesReadmeHost />
       <MinutesTranscriptionQueueHost />
       {renderLightbox()}
