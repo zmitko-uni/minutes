@@ -9,6 +9,7 @@ import {
   UUBT_SECTION_TAG_PREPARATION,
 } from './uubt.std.ts';
 import {
+  logUubtErrorMap,
   UubtApiError,
   uubtGet,
   uubtListUseCases,
@@ -29,25 +30,25 @@ const log = createLogger('minutes/uubtMinutes');
  * uvedené varianty se zkoušejí v tomto pořadí.
  */
 const CREATE_SECTION_USE_CASES: ReadonlyArray<string> = [
-  'meeting/page/panel/createSection',
-  'meeting/page/section/create',
-  'meeting/page/panel/addSection',
-  'meeting/panel/createSection',
-  'meeting/section/create',
+  'meeting/panel/section/add',
 ];
 
 const UPDATE_SECTION_USE_CASES: ReadonlyArray<string> = [
-  'meeting/page/section/update',
-  'meeting/page/section/updateByOid',
   'meeting/section/update',
-  'meeting/section/updateByOid',
+  'meeting/panel/section/update',
 ];
+
+/** Sekce zápisu patří ke schůzce — uuCmd jiných artefaktů nezkoušíme. */
+const MEETING_USE_CASE_PREFIX = /^meeting\//;
 
 type RawSection = Record<string, unknown> & {
   oid?: string;
   bid?: string;
   id?: string;
+  _id?: string;
+  commitTs?: string;
   content?: unknown;
+  readOnly?: boolean;
   sys?: { rev?: number };
 };
 
@@ -59,25 +60,43 @@ type SectionRef = Record<string, unknown> & {
 
 type MeetingDetail = Record<string, unknown> & {
   name?: string;
-  uuEccRoot?: { bid?: string };
+  state?: string;
+  uuEccRoot?: { oid?: string; bid?: string };
   uuEccMainPage?: string;
 };
 
 type MeetingPage = Record<string, unknown> & {
+  commitTs?: string;
+  readOnly?: boolean;
   panels?: Record<
     string,
-    { sectionList?: ReadonlyArray<SectionRef>; oid?: string }
+    {
+      sectionList?: ReadonlyArray<SectionRef>;
+      oid?: string;
+      id?: string;
+      bid?: string;
+      commitTs?: string;
+      readOnly?: boolean;
+    }
   >;
 };
 
 type MeetingContext = Readonly<{
   meetingName: string;
   pageOid: string;
+  pageId: string | null;
+  pageCommitTs: string | null;
   bid: string;
   panelName: string;
   panelOid: string | null;
+  panelId: string | null;
+  panelBid: string | null;
+  panelCommitTs: string | null;
   minutesSections: ReadonlyArray<RawSection>;
   insertOrderIndex: number;
+  /** Sekce, za kterou se nový zápis vloží — sekce jsou spojený seznam. */
+  predecessorOid: string | null;
+  predecessorId: string | null;
 }>;
 
 const useCaseCache = new Map<string, ReadonlyArray<string>>();
@@ -145,6 +164,15 @@ async function loadMeetingContext(
   const panel = page.panels?.[panelName];
   const sectionRefs = panel?.sectionList ?? [];
 
+  // Do sekce jen pro čtení selže každá uuEcc operace bez bližší příčiny.
+  if (page.readOnly === true || panel?.readOnly === true) {
+    throw new Error(
+      `Stránka schůzky je jen pro čtení (stav schůzky: ${String(
+        detail.state ?? 'neznámý'
+      )}). Zápis lze doplnit jen do schůzky, kterou můžete v uuBT editovat.`
+    );
+  }
+
   let region: 'before' | 'preparation' | 'minutes' | 'after' = 'before';
   const minutesSections: Array<RawSection> = [];
   let insertOrderIndex = sectionRefs.length;
@@ -180,14 +208,23 @@ async function loadMeetingContext(
     );
   }
 
+  const predecessor = sectionRefs[insertOrderIndex - 1]?.section;
+
   return {
     meetingName: typeof detail.name === 'string' ? detail.name : 'Schůzka',
     pageOid,
+    pageId: typeof page.id === 'string' ? page.id : null,
+    pageCommitTs: typeof page.commitTs === 'string' ? page.commitTs : null,
     bid,
     panelName,
     panelOid: typeof panel?.oid === 'string' ? panel.oid : null,
+    panelId: typeof panel?.id === 'string' ? panel.id : null,
+    panelBid: typeof panel?.bid === 'string' ? panel.bid : null,
+    panelCommitTs: typeof panel?.commitTs === 'string' ? panel.commitTs : null,
     minutesSections,
     insertOrderIndex,
+    predecessorOid: predecessor?.oid ?? null,
+    predecessorId: predecessor?.id ?? null,
   };
 }
 
@@ -220,7 +257,10 @@ function orderCandidates(
 
   const known = candidates.filter(candidate => supported.includes(candidate));
   const discovered = supported.filter(
-    useCase => extraPattern.test(useCase) && !known.includes(useCase)
+    useCase =>
+      MEETING_USE_CASE_PREFIX.test(useCase) &&
+      extraPattern.test(useCase) &&
+      !known.includes(useCase)
   );
 
   return known.length > 0 || discovered.length > 0
@@ -228,38 +268,81 @@ function orderCandidates(
     : candidates;
 }
 
+/** Tvar dtoIn se mezi verzemi uuEcc liší, proto zkoušíme víc variant. */
+type DtoInVariant = Readonly<{ label: string; dtoIn: unknown }>;
+
 /**
- * Zkusí kandidátní uuCmd, dokud jeden neprojde. Přeskakuje jen chyby
- * "příkaz neexistuje" a "špatný dtoIn" — ostatní chyby (oprávnění, stav
- * artefaktu) hlásí hned, opakování by nepomohlo.
+ * Zkouší kombinace uuCmd a tvarů dtoIn, dokud jedna neprojde. Přeskakuje jen
+ * chyby "příkaz neexistuje", "špatný dtoIn" a "operace selhala" — ostatní
+ * chyby (oprávnění, stav artefaktu) hlásí hned, opakování by nepomohlo.
  */
 async function tryUseCases(
   meetingBaseUri: string,
   useCases: ReadonlyArray<string>,
-  buildDtoIn: (useCase: string) => unknown
+  buildVariants: (useCase: string) => ReadonlyArray<DtoInVariant>
 ): Promise<boolean> {
   for (const useCase of useCases) {
-    try {
-      // Záměrně sériově — paralelní pokus by zápis vložil vícekrát.
-      // oxlint-disable-next-line no-await-in-loop
-      await uubtPost(meetingBaseUri, useCase, buildDtoIn(useCase));
-      log.info(`uubt: zápis vložen přes ${useCase}`);
-      return true;
-    } catch (error) {
-      if (
-        error instanceof UubtApiError &&
-        (error.isUnsupportedCommand || error.isInvalidDtoIn)
-      ) {
-        log.warn(`uubt: ${useCase} nepoužitelné — ${error.message}`);
-        continue;
+    for (const variant of buildVariants(useCase)) {
+      try {
+        // Záměrně sériově — paralelní pokus by zápis vložil vícekrát.
+        // oxlint-disable-next-line no-await-in-loop
+        await uubtPost(meetingBaseUri, useCase, variant.dtoIn);
+        log.info(`uubt: zápis vložen přes ${useCase} (${variant.label})`);
+        return true;
+      } catch (error) {
+        if (
+          error instanceof UubtApiError &&
+          (error.isUnsupportedCommand ||
+            error.isInvalidDtoIn ||
+            error.isOperationFailed)
+        ) {
+          log.warn(
+            `uubt: ${useCase} / ${variant.label} nepoužitelné — ${error.message}`
+          );
+          continue;
+        }
+        throw error;
       }
-      throw error;
     }
   }
   return false;
 }
 
+/**
+ * Validátor uuApp je jediná dokumentace, kterou k zápisovému API máme:
+ * prázdný dtoIn vrátí seznam povinných klíčů, přeplněný dtoIn zas seznam
+ * klíčů, které schéma nezná. Z obojího jde tvar dtoIn odvodit.
+ */
+async function probeDtoInSchema(
+  meetingBaseUri: string,
+  useCase: string,
+  dtoIn: unknown,
+  label: string
+): Promise<void> {
+  try {
+    const response = await uubtPost<unknown>(meetingBaseUri, useCase, dtoIn);
+    log.info(`uubt probe ${useCase} (${label}): prošlo`);
+    logUubtErrorMap(`probe ${useCase} (${label})`, response);
+  } catch (error) {
+    log.info(
+      `uubt probe ${useCase} (${label}) selhalo — ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    if (error instanceof UubtApiError) {
+      logUubtErrorMap(`probe ${useCase} (${label})`, error.body);
+    }
+  }
+}
+
 async function logWriteApiDiagnostics(meetingBaseUri: string): Promise<void> {
+  await probeDtoInSchema(
+    meetingBaseUri,
+    'meeting/section/lock',
+    {},
+    'prázdný dtoIn'
+  );
+
   const supported = await resolveSupportedUseCases(meetingBaseUri);
   if (!supported) {
     log.warn('uubt: diagnostika zápisového API není dostupná');
@@ -286,24 +369,93 @@ async function createMinutesSection(
     /section\/(create|add)|panel\/(create|add)Section/i
   );
 
-  return tryUseCases(meetingBaseUri, useCases, () => ({
-    id: meetingId,
-    meetingId,
-    oid: context.pageOid,
-    bid: context.bid,
-    uuEccPage: { oid: context.pageOid, bid: context.bid },
-    uuEccData: {
-      pageOid: context.pageOid,
-      panelOid: context.panelOid ?? undefined,
-      panelName: context.panelName,
-      orderIndex: context.insertOrderIndex,
-      content,
+  const panelOid = context.panelOid;
+  if (!panelOid) {
+    return false;
+  }
+
+  const panel = { meetingId, bid: context.bid, oid: panelOid };
+
+  return tryUseCases(meetingBaseUri, useCases, () => [
+    {
+      label: 'panel + order + content',
+      dtoIn: buildEccDtoIn({
+        ...panel,
+        payload: {
+          commitTs: context.panelCommitTs ?? undefined,
+          order: context.insertOrderIndex,
+          content,
+        },
+      }),
     },
-    panelName: context.panelName,
-    panelOid: context.panelOid ?? undefined,
-    orderIndex: context.insertOrderIndex,
-    content,
-  }));
+    {
+      label: 'panel + content',
+      dtoIn: buildEccDtoIn({ ...panel, payload: { content } }),
+    },
+  ]);
+}
+
+/**
+ * Tvar dtoIn podle skutečného webového klienta uuBT: `id` je identifikátor
+ * schůzky, cílová uuEcc entita se adresuje přes `oid` + `bid` a tentýž blok
+ * se duplikuje do obálek `uuEccData`, `uuEccDtoIn` a `uuEccPage`.
+ */
+function buildEccDtoIn(
+  options: Readonly<{
+    meetingId: string;
+    bid: string;
+    oid: string;
+    payload?: Readonly<Record<string, unknown>>;
+  }>
+): Record<string, unknown> {
+  const ecc = { oid: options.oid, bid: options.bid, ...options.payload };
+
+  return {
+    meetingId: options.meetingId,
+    id: options.meetingId,
+    ...ecc,
+    uuEccData: ecc,
+    uuEccDtoIn: ecc,
+    uuEccPage: ecc,
+  };
+}
+
+/** Zamkne sekci pro úpravu; vrací její aktuální data, nebo null. */
+async function lockSection(
+  meetingBaseUri: string,
+  dtoIn: Record<string, unknown>
+): Promise<RawSection | null> {
+  try {
+    const response = await uubtPost<unknown>(
+      meetingBaseUri,
+      'meeting/section/lock',
+      dtoIn
+    );
+    return unwrap<RawSection>(response);
+  } catch (error) {
+    if (
+      error instanceof UubtApiError &&
+      (error.isUnsupportedCommand ||
+        error.isInvalidDtoIn ||
+        error.isOperationFailed)
+    ) {
+      log.warn(`uubt: zamknutí sekce selhalo — ${error.message}`);
+      return null;
+    }
+    throw error;
+  }
+}
+
+async function unlockSection(
+  meetingBaseUri: string,
+  dtoIn: Record<string, unknown>
+): Promise<void> {
+  try {
+    await uubtPost(meetingBaseUri, 'meeting/section/unlock', dtoIn);
+  } catch (error) {
+    // Zámek vyprší sám, takže tohle uživatele nemusí zajímat.
+    log.warn(`uubt: odemknutí sekce selhalo — ${String(error)}`);
+  }
 }
 
 async function appendToLastMinutesSection(
@@ -314,12 +466,8 @@ async function appendToLastMinutesSection(
   supported: ReadonlyArray<string> | null
 ): Promise<boolean> {
   const target = context.minutesSections[context.minutesSections.length - 1];
-  if (!target) {
-    return false;
-  }
-
-  const sectionOid = target.oid ?? target.id;
-  if (!sectionOid) {
+  const sectionOid = target?.oid;
+  if (!target || !sectionOid) {
     return false;
   }
 
@@ -331,22 +479,33 @@ async function appendToLastMinutesSection(
     /section\/update/i
   );
 
-  return tryUseCases(meetingBaseUri, useCases, () => ({
-    id: meetingId,
-    meetingId,
-    oid: context.pageOid,
-    bid: context.bid,
-    uuEccPage: { oid: context.pageOid, bid: context.bid },
-    uuEccSection: { oid: sectionOid, bid: target.bid ?? context.bid },
-    uuEccData: {
-      pageOid: context.pageOid,
-      sectionOid,
-      content: mergedContent,
-    },
-    sectionOid,
-    revision: target.sys?.rev,
-    content: mergedContent,
-  }));
+  const identity = { meetingId, bid: context.bid, oid: sectionOid };
+  const locked = await lockSection(
+    meetingBaseUri,
+    buildEccDtoIn({ ...identity })
+  );
+  const commitTs = locked?.commitTs ?? target.commitTs;
+
+  try {
+    return await tryUseCases(meetingBaseUri, useCases, () => [
+      {
+        label: 'uuEcc obálky + commitTs',
+        dtoIn: buildEccDtoIn({
+          ...identity,
+          payload: { commitTs, content: mergedContent },
+        }),
+      },
+      {
+        label: 'uuEcc obálky bez commitTs',
+        dtoIn: buildEccDtoIn({
+          ...identity,
+          payload: { content: mergedContent },
+        }),
+      },
+    ]);
+  } finally {
+    await unlockSection(meetingBaseUri, buildEccDtoIn({ ...identity }));
+  }
 }
 
 export class UubtDuplicateMinutesError extends Error {
@@ -400,22 +559,7 @@ export async function appendMinutesToMeeting(
 
   const supported = await resolveSupportedUseCases(options.meetingBaseUri);
 
-  if (
-    await createMinutesSection(
-      options.meetingBaseUri,
-      options.meetingId,
-      context,
-      content,
-      supported
-    )
-  ) {
-    return {
-      meetingName: context.meetingName,
-      meetingUrl: options.meetingUrl,
-      mode: 'created-section',
-    };
-  }
-
+  // Přednostně doplnit stávající sekci Zápis — nová sekce jen když žádná není.
   if (
     await appendToLastMinutesSection(
       options.meetingBaseUri,
@@ -429,6 +573,22 @@ export async function appendMinutesToMeeting(
       meetingName: context.meetingName,
       meetingUrl: options.meetingUrl,
       mode: 'appended-to-section',
+    };
+  }
+
+  if (
+    await createMinutesSection(
+      options.meetingBaseUri,
+      options.meetingId,
+      context,
+      content,
+      supported
+    )
+  ) {
+    return {
+      meetingName: context.meetingName,
+      meetingUrl: options.meetingUrl,
+      mode: 'created-section',
     };
   }
 

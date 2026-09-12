@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createLogger } from '../logging/log.std.ts';
-import { UUBT_REQUEST_TIMEOUT_MS } from './uubt.std.ts';
+import { maskUuValueShape, UUBT_REQUEST_TIMEOUT_MS } from './uubt.std.ts';
 import type { UubtCredentials } from './uubtSettings.main.ts';
 import { getUubtCredentials } from './uubtSettings.main.ts';
 
@@ -13,7 +13,10 @@ const TOKEN_EXPIRY_SAFETY_MS = 60_000;
 
 export type UubtToken = Readonly<{
   token: string;
+  /** První kandidát na uuIdentity — jen pro zobrazení. */
   uuIdentity: string;
+  /** Hodnoty z tokenu, které mohou být uuIdentity, v pořadí podle pravděpodobnosti. */
+  identityCandidates: ReadonlyArray<string>;
   expiresAt: number;
 }>;
 
@@ -43,14 +46,69 @@ function decodeJwtClaims(token: string): Record<string, unknown> {
   return JSON.parse(json) as Record<string, unknown>;
 }
 
-function resolveUuIdentity(claims: Record<string, unknown>): string {
-  const candidates = [claims.uuIdentity, claims.sub, claims.uu_identity];
-  for (const candidate of candidates) {
-    if (typeof candidate === 'string' && candidate.trim().length > 0) {
-      return candidate.trim();
+/** uuIdentity je 16 číslic, obvykle po čtveřicích s pomlčkami. */
+const UU_IDENTITY_LIKE = /^\d{4}-\d{4}-\d{4}-\d{4}$|^\d{16}$/;
+
+/** Claimy, které uuOIDC instance používají pro uuIdentity (lowercase). */
+const IDENTITY_CLAIM_NAMES = [
+  'uuidentity',
+  'uu_identity',
+  'uuidentityname',
+  'identity',
+  'preferred_username',
+  'uid',
+  'sub',
+];
+
+/**
+ * Název claimu s uuIdentity se mezi instancemi uuOIDC liší, proto bereme
+ * všechny hodnoty, které jako uuIdentity vypadají, a až pak známé názvy.
+ */
+function resolveIdentityCandidates(
+  claims: Record<string, unknown>
+): ReadonlyArray<string> {
+  const strings = Object.entries(claims)
+    .filter(
+      (entry): entry is [string, string] =>
+        typeof entry[1] === 'string' && entry[1].trim().length > 0
+    )
+    .map(([key, value]) => [key, value.trim()] as const);
+
+  // Jen názvy claimů, žádné hodnoty — log jde přiložit k hlášení chyby.
+  log.info(
+    `uubt token claims: [${strings
+      .map(([key]) => key)
+      .sort()
+      .join(', ')}]`
+  );
+
+  const ordered: Array<string> = [];
+  const add = (value: string): void => {
+    if (!ordered.includes(value)) {
+      ordered.push(value);
+    }
+  };
+
+  for (const [, value] of strings) {
+    if (UU_IDENTITY_LIKE.test(value)) {
+      add(value);
     }
   }
-  throw new Error('V tokenu z uuOIDC chybí uuIdentity');
+  for (const name of IDENTITY_CLAIM_NAMES) {
+    const hit = strings.find(([key]) => key.toLowerCase() === name);
+    if (hit) {
+      add(hit[1]);
+    }
+  }
+
+  if (ordered.length === 0) {
+    throw new Error('V tokenu z uuOIDC chybí uuIdentity');
+  }
+
+  log.info(
+    `uubt identity candidates: ${ordered.map(maskUuValueShape).join(', ')}`
+  );
+  return ordered;
 }
 
 function resolveExpiry(
@@ -137,9 +195,12 @@ async function requestToken(credentials: UubtCredentials): Promise<UubtToken> {
       ? (raw as Record<string, unknown>).expires_in
       : undefined;
 
+  const identityCandidates = resolveIdentityCandidates(claims);
+
   return {
     token: idToken,
-    uuIdentity: resolveUuIdentity(claims),
+    uuIdentity: identityCandidates[0] ?? '',
+    identityCandidates,
     expiresAt: resolveExpiry(claims, expiresIn),
   };
 }

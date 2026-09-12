@@ -4,7 +4,9 @@
 /** Jeden blok obsahu uuEcc sekce. */
 export type UubtSectionContentItem = Readonly<{
   uu5Tag: string;
+  tag?: string;
   props: Readonly<Record<string, unknown>>;
+  children?: null;
 }>;
 
 function escapeHtml(value: string): string {
@@ -145,10 +147,14 @@ export function buildMinutesSectionContent(
     `**${header}**\n\n${options.summaryMarkdown.trim()}`
   );
 
+  // Stejný tvar, jaký ukládá samotné uuElementaryManagement — jinak se
+  // vložený text v sekci nezobrazí.
   return [
     {
-      uu5Tag: 'Uu5RichTextBricks.Block',
-      props: { uu5String },
+      uu5Tag: 'UU5.RichText.Block',
+      tag: 'UU5.RichText.Block',
+      props: { uu5string: [uu5String] },
+      children: null,
     },
   ];
 }

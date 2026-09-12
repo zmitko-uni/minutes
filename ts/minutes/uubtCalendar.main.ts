@@ -3,9 +3,13 @@
 
 import { createLogger } from '../logging/log.std.ts';
 import type { UubtConnectionInfo, UubtMeeting } from './uubt.std.ts';
-import { UUBT_PEOPLE_BASE_URI } from './uubt.std.ts';
+import {
+  maskUuValueShape,
+  UUBT_PEOPLE_BASE_URI,
+  uuIdentityCandidates,
+} from './uubt.std.ts';
 import { getUubtToken } from './uubtAuth.main.ts';
-import { uubtGet } from './uubtClient.main.ts';
+import { UubtApiError, uubtGet } from './uubtClient.main.ts';
 
 const log = createLogger('minutes/uubtCalendar');
 
@@ -34,7 +38,7 @@ type DiaryRecord = Readonly<{
   }>;
 }>;
 
-const dwUriCache = new Map<string, PersonRecord>();
+const dwUriCache = new Map<string, ResolvedPerson>();
 
 function findDwUri(person: PersonRecord): string | null {
   const direct =
@@ -54,27 +58,67 @@ function findDwUri(person: PersonRecord): string | null {
   return null;
 }
 
-async function loadPerson(uuIdentity: string): Promise<PersonRecord> {
-  const cached = dwUriCache.get(uuIdentity);
+type ResolvedPerson = Readonly<{ uuIdentity: string; person: PersonRecord }>;
+
+/**
+ * Token nemusí nést uuIdentity v podobě, kterou uuApp API přijímá, proto
+ * zkoušíme všechny kandidáty z tokenu i jejich zápis s/bez pomlček.
+ */
+async function loadPerson(
+  identityCandidates: ReadonlyArray<string>
+): Promise<ResolvedPerson> {
+  const cacheKey = identityCandidates.join('|');
+  const cached = dwUriCache.get(cacheKey);
   if (cached) {
     return cached;
   }
 
-  const response = await uubtGet<{ itemList?: ReadonlyArray<PersonRecord> }>(
-    UUBT_PEOPLE_BASE_URI,
-    'findPerson',
-    { uuIdentity }
-  );
+  let rejected: UubtApiError | null = null;
 
-  const person = response.itemList?.[0];
-  if (!person) {
-    throw new Error(
-      'Pro přihlášený účet se nepodařilo najít osobu ani její pracovní prostor.'
+  const attempts = identityCandidates.flatMap(candidate => [
+    ...uuIdentityCandidates(candidate),
+  ]);
+
+  for (const uuIdentity of attempts) {
+    let person: PersonRecord | undefined;
+    try {
+      // Sériově — další formát má smysl zkusit jen po odmítnutí předchozího.
+      // oxlint-disable-next-line no-await-in-loop
+      const response = await uubtGet<{
+        itemList?: ReadonlyArray<PersonRecord>;
+      }>(UUBT_PEOPLE_BASE_URI, 'findPerson', { uuIdentity });
+      person = response.itemList?.[0];
+    } catch (error) {
+      if (error instanceof UubtApiError && error.isInvalidDtoIn) {
+        log.warn(
+          `uubt findPerson rejected identity shape ${maskUuValueShape(uuIdentity)}`
+        );
+        rejected = error;
+        continue;
+      }
+      throw error;
+    }
+
+    if (person) {
+      const resolved: ResolvedPerson = { uuIdentity, person };
+      dwUriCache.set(cacheKey, resolved);
+      return resolved;
+    }
+
+    log.warn(
+      `uubt findPerson returned nothing for identity shape ${maskUuValueShape(uuIdentity)}`
     );
   }
 
-  dwUriCache.set(uuIdentity, person);
-  return person;
+  if (rejected) {
+    throw new Error(
+      'uuBT nepřijal identitu z přihlašovacího tokenu. Podrobnosti (názvy claimů) jsou v Menu → Minutes → Zobrazit log.'
+    );
+  }
+
+  throw new Error(
+    'Pro přihlášený účet se nepodařilo najít osobu ani její pracovní prostor.'
+  );
 }
 
 export function clearUubtCalendarCache(): void {
@@ -82,8 +126,8 @@ export function clearUubtCalendarCache(): void {
 }
 
 export async function getUubtConnectionInfo(): Promise<UubtConnectionInfo> {
-  const { uuIdentity } = await getUubtToken();
-  const person = await loadPerson(uuIdentity);
+  const { identityCandidates } = await getUubtToken();
+  const { uuIdentity, person } = await loadPerson(identityCandidates);
   const dwUri = findDwUri(person);
 
   if (!dwUri) {

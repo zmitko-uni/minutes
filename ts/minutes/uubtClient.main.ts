@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createLogger } from '../logging/log.std.ts';
-import { UUBT_REQUEST_TIMEOUT_MS } from './uubt.std.ts';
+import { redactLongStrings, UUBT_REQUEST_TIMEOUT_MS } from './uubt.std.ts';
 import { getUubtToken } from './uubtAuth.main.ts';
 
 const log = createLogger('minutes/uubtClient');
@@ -42,6 +42,16 @@ export class UubtApiError extends Error {
   get isInvalidDtoIn(): boolean {
     return this.errorCodes.some(code => /invalidDtoIn/i.test(code));
   }
+
+  /**
+   * Příkaz existoval a dtoIn prošel validací, ale provedení selhalo —
+   * u nedokumentovaného API to typicky znamená jiný očekávaný tvar dat.
+   */
+  get isOperationFailed(): boolean {
+    return this.errorCodes.some(code =>
+      /Failed$/i.test(code.split('/').pop() ?? '')
+    );
+  }
 }
 
 type UuAppErrorEntry = Readonly<{
@@ -50,7 +60,7 @@ type UuAppErrorEntry = Readonly<{
   paramMap?: unknown;
 }>;
 
-function collectErrors(
+function collectEntries(
   body: unknown
 ): Array<{ code: string; entry: UuAppErrorEntry }> {
   if (!body || typeof body !== 'object') {
@@ -61,9 +71,34 @@ function collectErrors(
     return [];
   }
 
-  return Object.entries(map as Record<string, UuAppErrorEntry>)
-    .filter(([, entry]) => (entry?.type ?? 'error') === 'error')
-    .map(([code, entry]) => ({ code, entry }));
+  return Object.entries(map as Record<string, UuAppErrorEntry>).map(
+    ([code, entry]) => ({ code, entry })
+  );
+}
+
+function collectErrors(
+  body: unknown
+): Array<{ code: string; entry: UuAppErrorEntry }> {
+  return collectEntries(body).filter(
+    ({ entry }) => (entry?.type ?? 'error') === 'error'
+  );
+}
+
+/**
+ * Vypíše celou uuAppErrorMap včetně varování — u nedokumentovaného API
+ * jsou právě varování (unsupportedKeyList) často jediné vodítko.
+ */
+export function logUubtErrorMap(label: string, body: unknown): void {
+  for (const { code, entry } of collectEntries(body)) {
+    log.info(`uubt ${label} ${entry.type ?? 'error'} ${code}`);
+    if (entry.paramMap !== undefined) {
+      log.info(
+        `uubt ${label} ${code} paramMap: ${JSON.stringify(
+          redactLongStrings(entry.paramMap)
+        ).slice(0, 2000)}`
+      );
+    }
+  }
 }
 
 function describeApiFailure(
@@ -136,9 +171,37 @@ async function call<T>(
   }
 
   if (!response.ok) {
+    const errors = collectErrors(body);
+    log.warn(
+      `uubt: ${init.method} ${new URL(url).pathname} failed status=${
+        response.status
+      } codes=[${errors.map(item => item.code).join(', ')}]`
+    );
+    if (init.method === 'POST') {
+      log.warn(
+        `uubt sent dtoIn: ${JSON.stringify(redactLongStrings(init.dtoIn)).slice(
+          0,
+          1200
+        )}`
+      );
+    }
+    for (const { code, entry } of collectEntries(body)) {
+      const detail = entry.message?.trim();
+      if (detail) {
+        log.warn(`uubt ${entry.type ?? 'error'} ${code}: ${detail}`);
+      }
+      if (entry.paramMap !== undefined) {
+        log.warn(
+          `uubt ${entry.type ?? 'error'} ${code} paramMap: ${JSON.stringify(
+            redactLongStrings(entry.paramMap)
+          ).slice(0, 2000)}`
+        );
+      }
+    }
+
     throw new UubtApiError(describeApiFailure(response.status, body, url), {
       status: response.status,
-      errorCodes: collectErrors(body).map(item => item.code),
+      errorCodes: errors.map(item => item.code),
       body,
     });
   }
