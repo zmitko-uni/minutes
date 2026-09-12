@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.3.1-beta.2] - 2026-09-12
+
+### Added
 - Levá navigace: nové taby **Přepisy** (ikona M) a **Záložky** (ikona záložky) hned za Hovory — otevřou se na celé hlavní obrazovce, ne v malém dialogu
 - **Přepisy** mají nově dvousloupcový layout jako Chaty a Hovory: vlevo jeden seznam všech nahrávek (co se zpracovává, je nahoře, modře zvýrazněné a s ukazatelem průběhu), vpravo detail vybrané nahrávky
 - **Přepisy**: vyhledávání hledá i **uvnitř přepisů a shrnutí**, ne jen v názvech — u nalezené nahrávky se rovnou ukáže úryvek s hledaným výrazem
