@@ -174,20 +174,23 @@ Tab **Přepisy** (ikona **M** v levé liště nebo **Ctrl+Shift+M**) vypadá pod
 **Vlevo — seznam všech nahrávek:**
 
 - Co se právě zpracovává nebo čeká ve frontě, je **nahoře, modře zvýrazněné** a s ukazatelem průběhu a odhadem zbývajícího času. Pod tím jsou hotové nahrávky od nejnovější
-- **Vyhledávací pole** hledá v názvech chatů **i uvnitř přepisů a shrnutí**. Když se výraz najde v textu, ukáže se pod nahrávkou úryvek
+- **Štítky** u nahrávky říkají, co k ní existuje — **Přepis**, **Shrnutí**, **Schůzka** (má zápis v Plus4U), nebo **Jen nahrávka**
+- **Vyhledávací pole** hledá v názvech chatů **i uvnitř přepisů a shrnutí**. Když se výraz najde v textu, ukáže se pod nahrávkou **úryvek, na který jde kliknout** — detail se otevře na správné záložce (**Shrnutí** nebo **Přepis**), nález zvýrazní a doskroluje na něj. Když je v jedné nahrávce nálezů víc, je pod úryvkem počítadlo **1 z 3 nálezů** se šipkami, kterými se mezi nimi listuje
 - **Filtry Vše / Zpracovává se / Video / Bez přepisu** zúží seznam
 - **Rychlé akce** — po najetí myší na položku se vpravo objeví ikony **Otevřít chat této nahrávky** a **Smazat nahrávku** (smazání se nejdřív zeptá na potvrzení)
 - Když se něco zpracovává, objeví se nad seznamem ovládání fronty — **Pozastavit** a **Zrušit vše**
 
 **Vpravo — detail vybrané nahrávky:**
 
-- Nahoře název, datum, délka, typ (Audio / Video), použitý Whisper model a odznaky **MP4 / Schůzka** (že je hotový přepis nebo shrnutí poznáte přímo z obsahu záložek)
+- Nahoře název, datum, délka, typ (Audio / Video), použitý Whisper model a odznak **MP4** (co k nahrávce existuje, poznáte ze štítků v seznamu vlevo a z obsahu záložek)
 - Pod tím vpravo **ikona koše** pro smazání nahrávky (a během zpracování tlačítka **Zrušit** / **Zkusit znovu**)
 - Dole záložky a na konci jejich řady **Soubory** — vypadá jako další záložka, ale rozbalí nabídku (otevřít nahrávku, přepis, shrnutí, MP4, vytvořit či přegenerovat MP4, složka nahrávek):
   - **Shrnutí** — formátovaný text AI shrnutí, tlačítka **Zapsat ke schůzce Plus4U** a **Vygenerovat / Přegenerovat shrnutí**, ikona **voleb** (model a styl jsou předvyplněné podle Nastavení AI, změna platí jen pro toto přegenerování), ikona **tužky** pro úpravu textu (tučně, kurzíva, odrážky, číslovaný seznam, odkaz — odkaz obalí označený text, bez označení se vloží jako adresa) a ikona **sdílení** (**Do chatu** / **Sobě**)
   - **Přepis** — přepis jako dialog s barvami řečníků, tlačítko **Spustit přepis / Přepsat znovu**, ikona **voleb** pro výběr staženého modelu a ikona **sdílení** (**Do chatu** / **Sobě**)
   - **Nahrávka** / **Video** — přehrávač přímo v aplikaci
-  - **Schůzka** — jen u nahrávek, které už mají zápis v Plus4U
+  - **Schůzka** — je vidět vždy. Dokud nahrávka nemá zápis v Plus4U, je tu jen tlačítko **Zapsat ke schůzce Plus4U**; po zápisu se tady objeví detail schůzky, příprava, zápis a návrhy úkolů (a tlačítko se změní na **Zapsat k jiné schůzce**)
+
+**Označení a kopírování textu:** text přepisu, shrnutí i textů schůzky jde označit myší a zkopírovat (**Ctrl+C**).
 
 **Otevření chatu:** po najetí myší na nahrávku v seznamu se vpravo objeví ikona **Otevřít chat této nahrávky**.
 
@@ -258,7 +261,7 @@ Kódy se ukládají **šifrovaně přes safeStorage operačního systému**, ste
 ### Odeslání zápisu
 
 1. Počkejte, až je hotové **shrnutí** nahrávky (tab **Přepisy**, Ctrl+Shift+M)
-2. Vyberte nahrávku a v tabu **Shrnutí** klikněte **Zapsat ke schůzce Plus4U**
+2. Vyberte nahrávku a klikněte **Zapsat ke schůzce Plus4U** — tlačítko je v tabu **Shrnutí** i v tabu **Schůzka**
 3. Minutes nabídne schůzky z vašeho kalendáře pro den nahrávky a **předvybere tu**, která se s nahrávkou časově překrývá
 4. Zkontrolujte náhled textu a klikněte **Vložit zápis**
 
@@ -266,7 +269,7 @@ Den lze v dialogu přepnout, pokud zapisujete dodatečně.
 
 ### Tab Schůzka
 
-Po úspěšném zápisu se v detailu nahrávky objeví tab **Schůzka** se základními informacemi — název, den, čas, místo, organizátor a kdy se zápis vložil.
+Tab **Schůzka** je u každé nahrávky. Dokud nahrávka zápis v Plus4U nemá, je v něm jen tlačítko **Zapsat ke schůzce Plus4U** a vysvětlení, co se stane. Po úspěšném zápisu se tu ukážou základní informace — název, den, čas, místo, organizátor a kdy se zápis vložil — a tlačítko se změní na **Zapsat k jiné schůzce**.
 
 Tlačítka v tabu:
 
@@ -556,4 +559,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-09-12*
+*Poslední aktualizace příručky: 2026-09-13*

@@ -20,6 +20,7 @@ const RECORDINGS: ReadonlyArray<CallRecordingCatalogEntry> = [
     hasPcmSidecar: true,
     hasTranscript: true,
     hasSummary: true,
+    hasMeeting: false,
     transcriptPath: '/Documents/Minutes/team.transcript.md',
     summaryPath: '/Documents/Minutes/team.summary.md',
   },
@@ -35,6 +36,7 @@ const RECORDINGS: ReadonlyArray<CallRecordingCatalogEntry> = [
     hasPcmSidecar: true,
     hasTranscript: false,
     hasSummary: false,
+    hasMeeting: false,
   },
 ];
 

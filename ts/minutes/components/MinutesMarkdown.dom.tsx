@@ -1,9 +1,15 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { JSX, ReactNode } from 'react';
+import { useRef, type JSX, type ReactNode } from 'react';
 
 import { openLinkInWebBrowser } from '../../util/openLinkInWebBrowser.dom.ts';
+import {
+  createMinutesTextRenderer,
+  useScrollToActiveHighlight,
+  type MinutesTextHighlight,
+  type MinutesTextRenderer,
+} from './MinutesTextHighlight.dom.tsx';
 
 function trimmedLine(lines: ReadonlyArray<string>, index: number): string {
   return lines[index]?.trim() ?? '';
@@ -55,17 +61,25 @@ function parseInline(text: string): ReadonlyArray<InlineToken> {
   return tokens;
 }
 
-function renderInline(text: string, keyPrefix: string): Array<ReactNode> {
+function renderInline(
+  text: string,
+  keyPrefix: string,
+  renderText: MinutesTextRenderer
+): Array<ReactNode> {
   return parseInline(text).map((token, index) => {
     const key = `${keyPrefix}-${index}`;
     if (token.kind === 'text') {
-      return token.value;
+      return renderText(token.value, key);
     }
     if (token.kind === 'bold') {
-      return <strong key={key}>{renderInline(token.value, `${key}-b`)}</strong>;
+      return (
+        <strong key={key}>
+          {renderInline(token.value, `${key}-b`, renderText)}
+        </strong>
+      );
     }
     if (token.kind === 'code') {
-      return <code key={key}>{token.value}</code>;
+      return <code key={key}>{renderText(token.value, key)}</code>;
     }
     return (
       <a
@@ -76,7 +90,7 @@ function renderInline(text: string, keyPrefix: string): Array<ReactNode> {
           openLinkInWebBrowser(token.href);
         }}
       >
-        {token.label}
+        {renderText(token.label, key)}
       </a>
     );
   });
@@ -213,20 +227,24 @@ function parseBlocks(source: string): ReadonlyArray<Block> {
   return blocks;
 }
 
-function renderBlock(block: Block, index: number): JSX.Element {
+function renderBlock(
+  block: Block,
+  index: number,
+  renderText: MinutesTextRenderer
+): JSX.Element {
   switch (block.kind) {
     case 'heading': {
       const Tag = block.level === 1 ? 'h1' : block.level === 2 ? 'h2' : 'h3';
       return (
         <Tag key={index} className={`MinutesMarkdown__h${block.level}`}>
-          {renderInline(block.text, `h-${index}`)}
+          {renderInline(block.text, `h-${index}`, renderText)}
         </Tag>
       );
     }
     case 'paragraph':
       return (
         <p key={index} className="MinutesMarkdown__p">
-          {renderInline(block.text, `p-${index}`)}
+          {renderInline(block.text, `p-${index}`, renderText)}
         </p>
       );
     case 'ul':
@@ -234,7 +252,7 @@ function renderBlock(block: Block, index: number): JSX.Element {
         <ul key={index} className="MinutesMarkdown__ul">
           {block.items.map((item, itemIndex) => (
             <li key={itemIndex}>
-              {renderInline(item, `ul-${index}-${itemIndex}`)}
+              {renderInline(item, `ul-${index}-${itemIndex}`, renderText)}
             </li>
           ))}
         </ul>
@@ -244,7 +262,7 @@ function renderBlock(block: Block, index: number): JSX.Element {
         <ol key={index} className="MinutesMarkdown__ol">
           {block.items.map((item, itemIndex) => (
             <li key={itemIndex}>
-              {renderInline(item, `ol-${index}-${itemIndex}`)}
+              {renderInline(item, `ol-${index}-${itemIndex}`, renderText)}
             </li>
           ))}
         </ol>
@@ -252,7 +270,7 @@ function renderBlock(block: Block, index: number): JSX.Element {
     case 'blockquote':
       return (
         <blockquote key={index} className="MinutesMarkdown__quote">
-          {renderInline(block.text, `q-${index}`)}
+          {renderInline(block.text, `q-${index}`, renderText)}
         </blockquote>
       );
     case 'hr':
@@ -270,7 +288,8 @@ function renderBlock(block: Block, index: number): JSX.Element {
                       <CellTag key={cellIndex}>
                         {renderInline(
                           cell,
-                          `t-${index}-${rowIndex}-${cellIndex}`
+                          `t-${index}-${rowIndex}-${cellIndex}`,
+                          renderText
                         )}
                       </CellTag>
                     );
@@ -288,11 +307,21 @@ function renderBlock(block: Block, index: number): JSX.Element {
 
 export function MinutesMarkdown({
   source,
-}: Readonly<{ source: string }>): JSX.Element {
+  highlight,
+}: Readonly<{
+  source: string;
+  highlight?: MinutesTextHighlight | null;
+}>): JSX.Element {
   const blocks = parseBlocks(source);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Zvýrazňovač se spotřebuje během tohoto renderu, proto se nemémuje.
+  const renderText = createMinutesTextRenderer(highlight ?? null);
+  useScrollToActiveHighlight(containerRef, highlight ?? null, source.length);
+
   return (
-    <div className="MinutesMarkdown">
-      {blocks.map((block, index) => renderBlock(block, index))}
+    <div className="MinutesMarkdown" ref={containerRef}>
+      {blocks.map((block, index) => renderBlock(block, index, renderText))}
     </div>
   );
 }

@@ -18,7 +18,7 @@ import { getMp4ExportPath } from './videoMp4Export.node.ts';
 const log = createLogger('minutes/recordingFiles');
 
 function getMeetingLinkPath(recordingPath: string): string {
-  return `${getRecordingArtifactPaths(recordingPath).basePath}.meeting.json`;
+  return getRecordingArtifactPaths(recordingPath).meetingPath;
 }
 
 /** Nahrávka musí ležet ve složce nahrávek — jinak nic nemažeme ani nepřepisujeme. */

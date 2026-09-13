@@ -31,6 +31,8 @@ export type CallRecordingCatalogEntry = Readonly<{
   hasPcmSidecar: boolean;
   hasTranscript: boolean;
   hasSummary: boolean;
+  /** Nahrávka má uloženou vazbu na schůzku v Plus4U (`<nahrávka>.meeting.json`). */
+  hasMeeting: boolean;
   transcriptPath?: string;
   summaryPath?: string;
   transcriptWhisperModelFileName?: string;

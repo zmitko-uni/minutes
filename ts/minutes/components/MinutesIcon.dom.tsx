@@ -26,7 +26,9 @@ export type MinutesIconName =
   | 'plus'
   | 'share'
   | 'folder'
-  | 'ai';
+  | 'ai'
+  | 'chevron-start'
+  | 'chevron-end';
 
 const PATHS: Readonly<Record<MinutesIconName, JSX.Element>> = {
   options: (
@@ -160,6 +162,16 @@ const PATHS: Readonly<Record<MinutesIconName, JSX.Element>> = {
     <>
       <path d="M12 5v14" />
       <path d="M5 12h14" />
+    </>
+  ),
+  'chevron-start': (
+    <>
+      <path d="M15 5 8 12l7 7" />
+    </>
+  ),
+  'chevron-end': (
+    <>
+      <path d="M9 5l7 7-7 7" />
     </>
   ),
 };

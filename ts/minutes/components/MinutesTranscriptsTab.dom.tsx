@@ -40,7 +40,11 @@ import {
   type RecordingListFilter,
   type RecordingListItem,
 } from '../recordingsListModel.std.ts';
-import type { RecordingTextMatch } from '../recordingsSearch.std.ts';
+import type {
+  RecordingTextHit,
+  RecordingTextMatch,
+} from '../recordingsSearch.std.ts';
+import { MIN_SEARCH_QUERY_LENGTH } from '../recordingsSearch.std.ts';
 import { searchRecordingTexts } from '../recordingsSearchService.preload.ts';
 import {
   loadCallRecordingOutputFromEntry,
@@ -142,32 +146,91 @@ function formatEmptyListMessage(
   return 'Hledání ani filtr nic nenašly.';
 }
 
+/**
+ * Nálezy fulltextu v jedné nahrávce. Úryvek jde rozkliknout a šipkami se
+ * mezi nálezy listuje — detail vždy skočí na ten právě vybraný.
+ */
+function RecordingHits({
+  hits,
+  activeIndex,
+  onSelectHit,
+}: Readonly<{
+  hits: ReadonlyArray<RecordingTextHit>;
+  activeIndex: number;
+  onSelectHit: (index: number) => void;
+}>): JSX.Element | null {
+  // Po zúžení výsledků může být uložené pořadí za koncem seznamu.
+  const index = Math.min(activeIndex, hits.length - 1);
+  const hit = hits[index];
+  if (hit == null) {
+    return null;
+  }
+
+  return (
+    <div className="MinutesTranscriptsTab__hits">
+      <button
+        type="button"
+        className="MinutesTranscriptsTab__hitSnippet"
+        title={`Otevřít nález v ${hit.source === 'summary' ? 'shrnutí' : 'přepisu'}`}
+        onClick={() => onSelectHit(index)}
+      >
+        {hit.snippet}
+      </button>
+
+      {hits.length > 1 && (
+        <div className="MinutesTranscriptsTab__hitNav">
+          <MinutesIconButton
+            icon="chevron-start"
+            label="Předchozí nález"
+            disabled={index === 0}
+            onClick={() => onSelectHit(index - 1)}
+          />
+          <span className="MinutesTranscriptsTab__hitCount">
+            {`${index + 1} z ${hits.length} nálezů`}
+          </span>
+          <MinutesIconButton
+            icon="chevron-end"
+            label="Další nález"
+            disabled={index === hits.length - 1}
+            onClick={() => onSelectHit(index + 1)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RecordingListRow({
   item,
   jobs,
   isSelected,
+  activeHitIndex,
   onSelect,
+  onSelectHit,
   onOpenChat,
   onDelete,
 }: Readonly<{
   item: RecordingListItem;
   jobs: ReadonlyArray<TranscriptionQueueSnapshot['jobs'][number]>;
   isSelected: boolean;
+  activeHitIndex: number;
   onSelect: () => void;
+  onSelectHit: (index: number) => void;
   onOpenChat: (() => void) | null;
   onDelete: () => void;
 }>): JSX.Element {
   const { job } = item;
   const eta = job != null ? formatEta(job) : null;
-  const itemClassName = ['MinutesTranscriptsTab__item']
-    .concat(item.isPinned ? ['MinutesTranscriptsTab__item--pinned'] : [])
+  const rowClassName = ['MinutesTranscriptsTab__row']
+    .concat(isSelected ? ['MinutesTranscriptsTab__row--selected'] : [])
+    .concat(item.isPinned ? ['MinutesTranscriptsTab__row--pinned'] : [])
     .join(' ');
 
   return (
-    <li className="MinutesTranscriptsTab__row">
+    <li className={rowClassName}>
       <button
         type="button"
-        className={itemClassName}
+        className="MinutesTranscriptsTab__item"
         aria-current={isSelected}
         onClick={onSelect}
       >
@@ -214,6 +277,9 @@ function RecordingListRow({
             {item.hasSummary && (
               <span className="MinutesTranscriptsTab__tag">Shrnutí</span>
             )}
+            {item.hasMeeting && (
+              <span className="MinutesTranscriptsTab__tag">Schůzka</span>
+            )}
             {!item.hasTranscript && !item.hasSummary && (
               <span className="MinutesTranscriptsTab__tag MinutesTranscriptsTab__tag--muted">
                 Jen nahrávka
@@ -221,13 +287,13 @@ function RecordingListRow({
             )}
           </span>
         )}
-
-        {item.snippet != null && (
-          <span className="MinutesTranscriptsTab__itemSnippet">
-            {item.snippet}
-          </span>
-        )}
       </button>
+
+      <RecordingHits
+        hits={item.hits}
+        activeIndex={activeHitIndex}
+        onSelectHit={onSelectHit}
+      />
 
       <span className="MinutesTranscriptsTab__rowActions">
         {onOpenChat != null && (
@@ -271,6 +337,12 @@ export function MinutesTranscriptsTab(): JSX.Element {
   >([]);
   const [filter, setFilter] = useState<RecordingListFilter>('all');
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  // Nález hledání, na který se uživatel právě dívá — drží se u nahrávky,
+  // aby přepnutí v seznamu nezahodilo pozici v jiné nahrávce.
+  const [activeHit, setActiveHit] = useState<Readonly<{
+    recordingPath: string;
+    index: number;
+  }> | null>(null);
   const [sendingKey, setSendingKey] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RecordingListItem | null>(
     null
@@ -384,15 +456,25 @@ export function MinutesTranscriptsTab(): JSX.Element {
     return () => window.clearTimeout(timer);
   }, [query]);
 
+  // Nový dotaz = nové nálezy, staré pořadí už neplatí.
+  useEffect(() => {
+    setActiveHit(null);
+  }, [debouncedQuery]);
+
+  const searchQuery =
+    debouncedQuery.trim().length >= MIN_SEARCH_QUERY_LENGTH
+      ? debouncedQuery
+      : '';
+
   useEffect(() => {
     let cancelled = false;
-    if (debouncedQuery.trim().length < 2) {
+    if (searchQuery.length === 0) {
       setTextMatches([]);
       return;
     }
     drop(
       (async () => {
-        const matches = await searchRecordingTexts(debouncedQuery);
+        const matches = await searchRecordingTexts(searchQuery);
         if (!cancelled) {
           setTextMatches(matches);
         }
@@ -401,7 +483,7 @@ export function MinutesTranscriptsTab(): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery]);
+  }, [searchQuery]);
 
   const items = useMemo(
     () =>
@@ -447,6 +529,38 @@ export function MinutesTranscriptsTab(): JSX.Element {
   const selectedItem = useMemo(
     () => items.find(item => item.recordingPath === selectedPath) ?? null,
     [items, selectedPath]
+  );
+
+  const selectedHit = useMemo((): RecordingTextHit | null => {
+    if (
+      selectedItem == null ||
+      activeHit?.recordingPath !== selectedItem.recordingPath
+    ) {
+      return null;
+    }
+    const { hits } = selectedItem;
+    return hits[Math.min(activeHit.index, hits.length - 1)] ?? null;
+  }, [selectedItem, activeHit]);
+
+  const handleSelectRecording = useCallback((item: RecordingListItem) => {
+    setSelectedPath(item.recordingPath);
+    setActiveHit(current => {
+      if (item.hits.length === 0) {
+        return null;
+      }
+      // Vrácení na už otevřenou nahrávku nemá zahodit rozlistovaný nález.
+      return current?.recordingPath === item.recordingPath
+        ? current
+        : { recordingPath: item.recordingPath, index: 0 };
+    });
+  }, []);
+
+  const handleSelectHit = useCallback(
+    (item: RecordingListItem, index: number) => {
+      setSelectedPath(item.recordingPath);
+      setActiveHit({ recordingPath: item.recordingPath, index });
+    },
+    []
   );
 
   const handleEnqueueTranscription = useCallback(
@@ -498,9 +612,15 @@ export function MinutesTranscriptsTab(): JSX.Element {
     ) => {
       const link = toMeetingLink(meeting, mode);
       setMeetingLink(link);
-      drop(saveRecordingMeeting(target.recordingPath, link));
+      drop(
+        (async () => {
+          await saveRecordingMeeting(target.recordingPath, link);
+          // Katalog teď ví o `.meeting.json`, takže se v seznamu objeví tag.
+          refresh();
+        })()
+      );
     },
-    []
+    [refresh]
   );
 
   const handleMeetingLinkChange = useCallback(
@@ -664,7 +784,13 @@ export function MinutesTranscriptsTab(): JSX.Element {
                 item={item}
                 jobs={snapshot.jobs}
                 isSelected={item.recordingPath === selectedPath}
-                onSelect={() => setSelectedPath(item.recordingPath)}
+                activeHitIndex={
+                  activeHit?.recordingPath === item.recordingPath
+                    ? activeHit.index
+                    : 0
+                }
+                onSelect={() => handleSelectRecording(item)}
+                onSelectHit={index => handleSelectHit(item, index)}
                 onOpenChat={
                   item.conversationId.length > 0
                     ? () => handleOpenChat(item)
@@ -695,6 +821,8 @@ export function MinutesTranscriptsTab(): JSX.Element {
           }
           isUubtEnabled={isUubtEnabled}
           meetingLink={meetingLink}
+          searchQuery={searchQuery}
+          searchHit={selectedHit}
           onEnqueueTranscription={handleEnqueueTranscription}
           onEnqueueSummary={handleEnqueueSummary}
           onSend={handleSend}

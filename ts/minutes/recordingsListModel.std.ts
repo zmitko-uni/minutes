@@ -6,7 +6,10 @@ import {
   type RecordingMediaKind,
 } from './recordingArtifacts.std.ts';
 import type { CallRecordingCatalogEntry } from './recordingsCatalog.std.ts';
-import type { RecordingTextMatch } from './recordingsSearch.std.ts';
+import type {
+  RecordingTextHit,
+  RecordingTextMatch,
+} from './recordingsSearch.std.ts';
 import type { TranscriptionJob } from './transcriptionQueue.std.ts';
 
 export type RecordingListFilter = 'all' | 'active' | 'video' | 'no-transcript';
@@ -38,10 +41,14 @@ export type RecordingListItem = Readonly<{
   job: TranscriptionJob | null;
   hasTranscript: boolean;
   hasSummary: boolean;
+  hasMeeting: boolean;
   /** Ve frontě, zpracovává se, nebo skončil chybou — patří na začátek seznamu. */
   isPinned: boolean;
-  snippet: string | null;
+  /** Nálezy fulltextu v této nahrávce; prázdné, když se nehledá. */
+  hits: ReadonlyArray<RecordingTextHit>;
 }>;
+
+const NO_HITS: ReadonlyArray<RecordingTextHit> = [];
 
 function isPinnedJob(job: TranscriptionJob | null): boolean {
   return (
@@ -71,7 +78,7 @@ function pickJob(
 function itemFromEntry(
   entry: CallRecordingCatalogEntry,
   job: TranscriptionJob | null,
-  snippet: string | null
+  hits: ReadonlyArray<RecordingTextHit>
 ): RecordingListItem {
   return {
     recordingPath: entry.recordingPath,
@@ -86,8 +93,9 @@ function itemFromEntry(
     job,
     hasTranscript: entry.hasTranscript,
     hasSummary: entry.hasSummary,
+    hasMeeting: entry.hasMeeting,
     isPinned: isPinnedJob(job),
-    snippet,
+    hits,
   };
 }
 
@@ -108,8 +116,9 @@ function itemFromJob(job: TranscriptionJob): RecordingListItem {
     job,
     hasTranscript: Boolean(job.output?.transcriptText?.trim()),
     hasSummary: Boolean(job.output?.summaryText?.trim()),
+    hasMeeting: false,
     isPinned: isPinnedJob(job),
-    snippet: null,
+    hits: NO_HITS,
   };
 }
 
@@ -135,7 +144,7 @@ function matchesQuery(item: RecordingListItem, needle: string): boolean {
   }
   return (
     item.conversationTitle.toLowerCase().includes(needle) ||
-    item.snippet != null
+    item.hits.length > 0
   );
 }
 
@@ -150,8 +159,8 @@ export function buildRecordingListItems(
     conversationId?: string | null;
   }>
 ): ReadonlyArray<RecordingListItem> {
-  const snippets = new Map(
-    options.textMatches.map(match => [match.basePath, match.snippet])
+  const hitsByBasePath = new Map(
+    options.textMatches.map(match => [match.basePath, match.hits])
   );
 
   const items = new Map<string, RecordingListItem>();
@@ -161,7 +170,7 @@ export function buildRecordingListItems(
       itemFromEntry(
         entry,
         pickJob(options.jobs, entry.recordingPath),
-        snippets.get(getRecordingBasePath(entry.recordingPath)) ?? null
+        hitsByBasePath.get(getRecordingBasePath(entry.recordingPath)) ?? NO_HITS
       )
     );
   }

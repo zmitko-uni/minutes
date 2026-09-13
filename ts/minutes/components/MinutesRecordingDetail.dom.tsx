@@ -24,6 +24,7 @@ import { getRecordingArtifactPaths } from '../recordingArtifacts.std.ts';
 import type { RecordingMeetingLink } from '../recordingMeeting.std.ts';
 import { saveRecordingSummary } from '../recordingFilesService.preload.ts';
 import type { RecordingListItem } from '../recordingsListModel.std.ts';
+import type { RecordingTextHit } from '../recordingsSearch.std.ts';
 import { loadCallRecordingOutputFromEntry } from '../sendCallRecordingToChat.preload.ts';
 import { transcriptionQueue } from '../transcriptionQueueService.preload.ts';
 import {
@@ -55,6 +56,7 @@ import { MinutesRecordingMeetingPane } from './MinutesRecordingMeetingPane.dom.t
 import { MinutesRecordingPlayer } from './MinutesRecordingPlayer.dom.tsx';
 import { MinutesSummaryEditor } from './MinutesSummaryEditor.dom.tsx';
 import { MinutesTranscriptView } from './MinutesTranscriptView.dom.tsx';
+import type { MinutesTextHighlight } from './MinutesTextHighlight.dom.tsx';
 import {
   listTranscriptSpeakers,
   parseTranscriptSegments,
@@ -176,6 +178,38 @@ function SharePanel({
         </div>
       )}
     </MinutesOptionsPopover>
+  );
+}
+
+/**
+ * Zápis ke schůzce vzniká z AI shrnutí, takže bez shrnutí a bez zapnuté
+ * Plus4U integrace není co poslat — tlačítko pak v tooltipu řekne, co chybí.
+ */
+function WriteToMeetingButton({
+  label,
+  hint,
+  isEnabled,
+  onClick,
+}: Readonly<{
+  label: string;
+  hint: string;
+  isEnabled: boolean;
+  onClick: () => void;
+}>): JSX.Element {
+  return (
+    <span
+      className="MinutesTranscriptsTab__hintWrap"
+      title={isEnabled ? undefined : hint}
+    >
+      <AxoButton.Root
+        variant="subtle-primary"
+        size="sm"
+        disabled={!isEnabled}
+        onClick={onClick}
+      >
+        {label}
+      </AxoButton.Root>
+    </span>
   );
 }
 
@@ -589,6 +623,8 @@ export function MinutesRecordingDetail({
   isSelfChat,
   isUubtEnabled,
   meetingLink,
+  searchQuery,
+  searchHit,
   onEnqueueTranscription,
   onEnqueueSummary,
   onSend,
@@ -603,6 +639,10 @@ export function MinutesRecordingDetail({
   isSelfChat: boolean;
   isUubtEnabled: boolean;
   meetingLink: RecordingMeetingLink | null;
+  /** Hledaný text — zvýrazní se ve shrnutí i v přepisu. */
+  searchQuery: string;
+  /** Nález, na který uživatel klikl v seznamu; přepne tab a doskroluje. */
+  searchHit: RecordingTextHit | null;
   onEnqueueTranscription: (
     item: RecordingListItem,
     options?: TranscriptionJobOptions
@@ -671,12 +711,35 @@ export function MinutesRecordingDetail({
     );
   }, []);
 
-  // Nahrávka bez přepisu nemá co ukazovat ve výchozím tabu.
   useEffect(() => {
-    setActiveTab(item.hasSummary ? 'summary' : 'transcript');
     setIsEditingSummary(false);
     setSaveError(null);
-  }, [item.recordingPath, item.hasSummary]);
+  }, [item.recordingPath]);
+
+  // Kliknutí na nález hledání otevře tab, ve kterém nález je. Jinak platí,
+  // že nahrávka bez shrnutí nemá co ukazovat ve výchozím tabu.
+  const hitSource = searchHit?.source ?? null;
+  const hitIndex = searchHit?.index ?? -1;
+  useEffect(() => {
+    if (hitSource != null) {
+      setActiveTab(hitSource === 'summary' ? 'summary' : 'transcript');
+      return;
+    }
+    setActiveTab(item.hasSummary ? 'summary' : 'transcript');
+  }, [item.recordingPath, item.hasSummary, hitSource, hitIndex]);
+
+  const highlightFor = useCallback(
+    (source: RecordingTextHit['source']): MinutesTextHighlight | null => {
+      if (searchQuery.trim().length === 0) {
+        return null;
+      }
+      return {
+        query: searchQuery,
+        activeIndex: hitSource === source ? hitIndex : -1,
+      };
+    },
+    [searchQuery, hitSource, hitIndex]
+  );
 
   const openInFolder = useCallback((path: string) => {
     ipcRenderer.send('show-item-in-folder', path);
@@ -717,17 +780,16 @@ export function MinutesRecordingDetail({
     [item.recordingPath, onRefresh]
   );
 
-  const detailTabs = useMemo(() => {
-    const tabs: Array<readonly [DetailTab, string]> = [
+  // Schůzka je vidět vždy — i bez vazby, aby tam šel zápis teprve založit.
+  const detailTabs = useMemo(
+    (): ReadonlyArray<readonly [DetailTab, string]> => [
       ['summary', 'Shrnutí'],
       ['transcript', 'Přepis'],
       ['media', isVideo ? 'Video' : 'Nahrávka'],
-    ];
-    if (meetingLink != null) {
-      tabs.push(['meeting', 'Schůzka']);
-    }
-    return tabs;
-  }, [isVideo, meetingLink]);
+      ['meeting', 'Schůzka'],
+    ],
+    [isVideo]
+  );
 
   // Jména řečníků slouží AI jako seznam možných řešitelů úkolů.
   const transcriptSpeakers = useMemo(
@@ -759,6 +821,7 @@ export function MinutesRecordingDetail({
   const meetingButtonHint = !item.hasSummary
     ? 'Zápis se posílá ze shrnutí — nejdřív ho vygenerujte.'
     : 'Zapněte Plus4U integraci a uložte oba přístupové kódy v Nastavení AI.';
+  const canWriteToMeeting = item.hasSummary && isUubtEnabled && !isSending;
 
   return (
     <div className="MinutesTranscriptsTab__detail">
@@ -791,11 +854,6 @@ export function MinutesRecordingDetail({
         <div className="MinutesTranscriptsTab__badges">
           {isVideo && (
             <ArtifactBadge label="MP4" ready={entry?.hasMp4Export ?? false} />
-          )}
-          {meetingLink != null && (
-            <span className="MinutesTranscriptsTab__badge MinutesTranscriptsTab__badge--ready">
-              Schůzka ✓
-            </span>
           )}
           {entry != null && !entry.hasPcmSidecar && (
             <span className="MinutesTranscriptsTab__badge MinutesTranscriptsTab__badge--warn">
@@ -956,23 +1014,12 @@ export function MinutesRecordingDetail({
         {activeTab === 'summary' && (
           <>
             <div className="MinutesTranscriptsTab__paneToolbar">
-              <span
-                className="MinutesTranscriptsTab__hintWrap"
-                title={
-                  item.hasSummary && isUubtEnabled
-                    ? undefined
-                    : meetingButtonHint
-                }
-              >
-                <AxoButton.Root
-                  variant="subtle-primary"
-                  size="sm"
-                  disabled={!item.hasSummary || !isUubtEnabled || isSending}
-                  onClick={() => onWriteToMeeting(item)}
-                >
-                  Zapsat ke schůzce Plus4U
-                </AxoButton.Root>
-              </span>
+              <WriteToMeetingButton
+                label="Zapsat ke schůzce Plus4U"
+                hint={meetingButtonHint}
+                isEnabled={canWriteToMeeting}
+                onClick={() => onWriteToMeeting(item)}
+              />
 
               <AxoButton.Root
                 variant={item.hasSummary ? 'subtle-primary' : 'strong-primary'}
@@ -1035,7 +1082,11 @@ export function MinutesRecordingDetail({
                 onCancel={() => setIsEditingSummary(false)}
               />
             ) : (
-              <SummaryPane texts={texts} hasTranscript={item.hasTranscript} />
+              <SummaryPane
+                texts={texts}
+                hasTranscript={item.hasTranscript}
+                highlight={highlightFor('summary')}
+              />
             )}
           </>
         )}
@@ -1085,28 +1136,58 @@ export function MinutesRecordingDetail({
               />
             </div>
 
-            <TranscriptPane texts={texts} canTranscribe={canTranscribe} />
+            <TranscriptPane
+              texts={texts}
+              canTranscribe={canTranscribe}
+              highlight={highlightFor('transcript')}
+            />
           </>
         )}
 
         {activeTab === 'media' && <MinutesRecordingPlayer item={item} />}
 
-        {activeTab === 'meeting' && meetingLink != null && (
-          <MinutesRecordingMeetingPane
-            link={meetingLink}
-            conversationId={item.conversationId}
-            sourceChatTitle={item.conversationTitle}
-            isSelfChat={isSelfChat}
-            summaryMarkdown={texts?.summary ?? ''}
-            participants={transcriptSpeakers}
-            isSharing={isSending}
-            isConfirmable={isMeetingConfirmable}
-            onUpdated={onMeetingLinkChange}
-            onShareSummary={target =>
-              onSend(item, target === 'self' ? 'summary-self' : 'summary-chat')
-            }
-            onConfirmMinutes={confirmMeetingMinutes}
-          />
+        {activeTab === 'meeting' && (
+          <>
+            <div className="MinutesTranscriptsTab__paneToolbar">
+              <WriteToMeetingButton
+                label={
+                  meetingLink != null
+                    ? 'Zapsat k jiné schůzce'
+                    : 'Zapsat ke schůzce Plus4U'
+                }
+                hint={meetingButtonHint}
+                isEnabled={canWriteToMeeting}
+                onClick={() => onWriteToMeeting(item)}
+              />
+            </div>
+
+            {meetingLink != null ? (
+              <MinutesRecordingMeetingPane
+                link={meetingLink}
+                conversationId={item.conversationId}
+                sourceChatTitle={item.conversationTitle}
+                isSelfChat={isSelfChat}
+                summaryMarkdown={texts?.summary ?? ''}
+                participants={transcriptSpeakers}
+                isSharing={isSending}
+                isConfirmable={isMeetingConfirmable}
+                onUpdated={onMeetingLinkChange}
+                onShareSummary={target =>
+                  onSend(
+                    item,
+                    target === 'self' ? 'summary-self' : 'summary-chat'
+                  )
+                }
+                onConfirmMinutes={confirmMeetingMinutes}
+              />
+            ) : (
+              <p className="MinutesTranscriptsTab__note">
+                Nahrávka není navázaná na žádnou schůzku v Plus4U. Tlačítkem
+                nahoře vložíte shrnutí do sekce Zápis vybrané schůzky — pak se
+                tady objeví její detail, příprava i návrhy úkolů.
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -1116,15 +1197,17 @@ export function MinutesRecordingDetail({
 function SummaryPane({
   texts,
   hasTranscript,
+  highlight,
 }: Readonly<{
   texts: RecordingTexts | null;
   hasTranscript: boolean;
+  highlight: MinutesTextHighlight | null;
 }>): JSX.Element {
   if (texts == null) {
     return <p className="MinutesTranscriptsTab__note">Načítám shrnutí…</p>;
   }
   if (texts.summary.length > 0) {
-    return <MinutesMarkdown source={texts.summary} />;
+    return <MinutesMarkdown source={texts.summary} highlight={highlight} />;
   }
   return (
     <p className="MinutesTranscriptsTab__note">
@@ -1138,15 +1221,22 @@ function SummaryPane({
 function TranscriptPane({
   texts,
   canTranscribe,
+  highlight,
 }: Readonly<{
   texts: RecordingTexts | null;
   canTranscribe: boolean;
+  highlight: MinutesTextHighlight | null;
 }>): JSX.Element {
   if (texts == null) {
     return <p className="MinutesTranscriptsTab__note">Načítám přepis…</p>;
   }
   if (texts.transcript.length > 0) {
-    return <MinutesTranscriptView transcript={texts.transcript} />;
+    return (
+      <MinutesTranscriptView
+        transcript={texts.transcript}
+        highlight={highlight}
+      />
+    );
   }
   return (
     <p className="MinutesTranscriptsTab__note">

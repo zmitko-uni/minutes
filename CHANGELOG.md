@@ -14,7 +14,17 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- **Přepisy**: v seznamu nahrávek je nový štítek **Schůzka** u nahrávek, které už mají zápis v Plus4U
+- **Přepisy**: nález hledání pod nahrávkou jde **rozkliknout** — detail se otevře na správné záložce (**Shrnutí** nebo **Přepis**), nález se zvýrazní a stránka na něj doskroluje
+- **Přepisy**: když je v jedné nahrávce nálezů víc, je pod úryvkem počítadlo **1 z 3 nálezů** se šipkami pro listování mezi nimi
+- **Přepisy → Schůzka**: tlačítko **Zapsat ke schůzce Plus4U** je teď i v tabu **Schůzka** (u nahrávky, která zápis už má, jako **Zapsat k jiné schůzce**)
+
+### Changed
+- **Přepisy**: tab **Schůzka** je vidět vždy — u nahrávky bez zápisu vysvětlí, co se stane, a nabídne zápis založit
+- **Přepisy**: z hlavičky detailu zmizel odznak **Schůzka ✓** — totéž je vidět ze štítku v seznamu a z tabu **Schůzka**
+
+### Fixed
+- **Přepisy**: text přepisu, shrnutí i textů schůzky jde označit myší a zkopírovat (**Ctrl+C**) — dosud to blokovalo globální nastavení vzhledu aplikace
 
 ## [8.26.0-m1.3.1-beta.3] - 2026-09-12
 

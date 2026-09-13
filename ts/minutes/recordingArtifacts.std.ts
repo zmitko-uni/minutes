@@ -18,6 +18,7 @@ export function getRecordingArtifactPaths(recordingPath: string): Readonly<{
   whisperTranscriptPath: string;
   transcriptMetadataPath: string;
   summaryPath: string;
+  meetingPath: string;
 }> {
   const basePath = getRecordingBasePath(recordingPath);
   return {
@@ -28,5 +29,6 @@ export function getRecordingArtifactPaths(recordingPath: string): Readonly<{
     whisperTranscriptPath: `${basePath}.transcript.whisper.md`,
     transcriptMetadataPath: `${basePath}.transcript-meta.json`,
     summaryPath: `${basePath}.summary.md`,
+    meetingPath: `${basePath}.meeting.json`,
   };
 }

@@ -114,14 +114,32 @@
   overflow-x: hidden;
 }
 
+/* Pozadí drží celý řádek, protože pod tlačítkem mohou být i nálezy hledání. */
 .MinutesTranscriptsTab__row {
   position: relative;
+  border-radius: 10px;
+
+  &:hover {
+    background: var(--axo-color-fill-primary);
+  }
 
   &:hover .MinutesTranscriptsTab__rowActions,
   &:focus-within .MinutesTranscriptsTab__rowActions {
     opacity: 1;
     pointer-events: auto;
   }
+}
+
+.MinutesTranscriptsTab__row--selected {
+  background: var(--axo-color-fill-primary-pressed);
+}
+
+/* Nahrávka ve frontě nebo v chybě je vidět na první pohled. */
+.MinutesTranscriptsTab__row--pinned {
+  border-inline-start: 3px solid var(--axo-color-fill-accent);
+  border-start-start-radius: 4px;
+  border-end-start-radius: 4px;
+  background: var(--axo-color-fill-secondary);
 }
 
 .MinutesTranscriptsTab__rowActions {
@@ -151,14 +169,6 @@
     text-align: start;
   }
 
-  &:hover {
-    background: var(--axo-color-fill-primary);
-  }
-
-  &[aria-current='true'] {
-    background: var(--axo-color-fill-primary-pressed);
-  }
-
   &:focus {
     outline: none;
     @include mixins.keyboard-mode {
@@ -167,18 +177,9 @@
   }
 }
 
-/* Nahrávka ve frontě nebo v chybě je vidět na první pohled. */
-.MinutesTranscriptsTab__item--pinned {
-  border-inline-start: 3px solid var(--axo-color-fill-accent);
-  border-start-start-radius: 4px;
-  border-end-start-radius: 4px;
-  background: var(--axo-color-fill-secondary);
-}
-
 .MinutesTranscriptsTab__itemTitle,
 .MinutesTranscriptsTab__itemMeta,
-.MinutesTranscriptsTab__itemStatus,
-.MinutesTranscriptsTab__itemSnippet {
+.MinutesTranscriptsTab__itemStatus {
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -207,14 +208,65 @@
   color: var(--axo-color-label-destructive);
 }
 
-.MinutesTranscriptsTab__itemSnippet {
-  @include mixins.font-body-small;
-  opacity: 0.8;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  font-style: italic;
+/* ---------- nálezy fulltextu u jednoho řádku ---------- */
+
+.MinutesTranscriptsTab__hits {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block: 0 8px;
+  padding-inline: 12px;
+}
+
+.MinutesTranscriptsTab__hitSnippet {
+  @include mixins.button-reset;
+
+  & {
+    @include mixins.font-body-small;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-width: 0;
+    padding-block: 4px;
+    padding-inline: 8px;
+    border-radius: 8px;
+    border-inline-start: 3px solid var(--axo-color-fill-accent);
+    background: var(--axo-color-fill-secondary);
+    color: var(--axo-color-label-primary);
+    text-align: start;
+    font-style: italic;
+    overflow-wrap: anywhere;
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary-pressed);
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesTranscriptsTab__hitNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  // V úzkém seznamu by plnohodnotná ikona řádek zbytečně rozhodila.
+  .MinutesIconButton {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+  }
+}
+
+.MinutesTranscriptsTab__hitCount {
+  @include mixins.font-caption;
+  color: var(--axo-color-label-secondary);
 }
 
 .MinutesTranscriptsTab__itemTags {
@@ -475,6 +527,30 @@
   margin: 0;
   max-width: 640px;
   opacity: 0.75;
+}
+
+/**
+ * Axo téma vypíná označování textu v celé aplikaci (`:root { select-none }`).
+ * V přepisu, shrnutí i textech schůzky ho vracíme, aby šlo kus textu označit
+ * a zkopírovat.
+ */
+.MinutesTranscriptView,
+.MinutesTranscriptsTab__detailBody .MinutesMarkdown,
+.MinutesMeetingPane__text {
+  user-select: text;
+  cursor: auto;
+}
+
+/* Zvýraznění nálezu fulltextu; aktivní nález je ten, na který se skáče. */
+.MinutesHighlight {
+  border-radius: 3px;
+  background: var(--axo-color-fill-accent-tint);
+  color: inherit;
+}
+
+.MinutesHighlight--active {
+  background: var(--axo-color-fill-accent);
+  color: var(--axo-color-label-primary-oncolor);
 }
 
 /* Lišta akcí, které patří k obsahu konkrétního tabu. */

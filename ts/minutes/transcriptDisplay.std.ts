@@ -40,6 +40,20 @@ function toSegment(block: string): TranscriptSegment {
   return { timeRange: null, speaker: null, text: block.trim() };
 }
 
+/**
+ * Z `<nahrávka>.transcript.md` vybere jen samotný dialog bez hlavičky.
+ * Fulltext i UI musí pracovat se stejným textem, aby n-tý nález hledání
+ * odpovídal n-tému zvýraznění v přepisu.
+ */
+export function extractTranscriptBody(markdown: string): string {
+  const marker = '## Přepis';
+  const index = markdown.indexOf(marker);
+  if (index >= 0) {
+    return markdown.slice(index + marker.length).trim();
+  }
+  return markdown.trim();
+}
+
 export function parseTranscriptSegments(
   body: string
 ): ReadonlyArray<TranscriptSegment> {

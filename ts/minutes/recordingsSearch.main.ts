@@ -5,8 +5,20 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { createLogger } from '../logging/log.std.ts';
-import type { RecordingTextMatch } from './recordingsSearch.std.ts';
-import { SNIPPET_CONTEXT_CHARS } from './recordingsSearch.std.ts';
+import {
+  extractTranscriptBody,
+  parseTranscriptInline,
+  parseTranscriptSegments,
+} from './transcriptDisplay.std.ts';
+import type {
+  RecordingTextHit,
+  RecordingTextMatch,
+} from './recordingsSearch.std.ts';
+import {
+  MAX_HITS_PER_RECORDING,
+  MIN_SEARCH_QUERY_LENGTH,
+  SNIPPET_CONTEXT_CHARS,
+} from './recordingsSearch.std.ts';
 
 const log = createLogger('minutes/recordingsSearch');
 
@@ -43,6 +55,45 @@ function buildSnippet(text: string, matchIndex: number): string {
 }
 
 /**
+ * Přepis se v UI vykresluje jen jako samotné repliky — bez hlavičky souboru,
+ * bez značky řečníka a bez `**` okolo tučného textu. Hledáme proto ve stejně
+ * složeném textu, aby n-tý nález hledání ukazoval na n-té zvýraznění v detailu.
+ */
+function toSearchableText(fileText: string, isTranscript: boolean): string {
+  if (!isTranscript) {
+    return fileText;
+  }
+  return parseTranscriptSegments(extractTranscriptBody(fileText))
+    .map(segment =>
+      parseTranscriptInline(segment.text)
+        .map(token => token.value)
+        .join('')
+    )
+    .join('\n\n');
+}
+
+function collectHits(
+  text: string,
+  needle: string,
+  source: RecordingTextHit['source']
+): Array<RecordingTextHit> {
+  const lower = text.toLowerCase();
+  const hits: Array<RecordingTextHit> = [];
+  let found = lower.indexOf(needle);
+
+  while (found >= 0 && hits.length < MAX_HITS_PER_RECORDING) {
+    hits.push({
+      source,
+      index: hits.length,
+      snippet: buildSnippet(text, found),
+    });
+    found = lower.indexOf(needle, found + needle.length);
+  }
+
+  return hits;
+}
+
+/**
  * Hledá v uložených `.transcript.md` a `.summary.md`. Vrací základ cesty
  * nahrávky (bez přípony), aby si renderer výsledek spároval s katalogem.
  */
@@ -51,7 +102,7 @@ export async function searchRecordingTexts(
   query: string
 ): Promise<Array<RecordingTextMatch>> {
   const needle = query.trim().toLowerCase();
-  if (needle.length < 2) {
+  if (needle.length < MIN_SEARCH_QUERY_LENGTH) {
     return [];
   }
 
@@ -63,7 +114,9 @@ export async function searchRecordingTexts(
     return [];
   }
 
-  const matches = new Map<string, RecordingTextMatch>();
+  // Shrnutí je stručnější, takže jeho nálezy nabízíme jako první.
+  const summaryHits = new Map<string, Array<RecordingTextHit>>();
+  const transcriptHits = new Map<string, Array<RecordingTextHit>>();
 
   for (const fileName of fileNames) {
     const isTranscript = fileName.endsWith(TRANSCRIPT_SUFFIX);
@@ -73,28 +126,32 @@ export async function searchRecordingTexts(
     }
 
     // oxlint-disable-next-line no-await-in-loop
-    const text = await readCachedText(join(recordingsDir, fileName));
-    if (text == null) {
+    const fileText = await readCachedText(join(recordingsDir, fileName));
+    if (fileText == null) {
       continue;
     }
 
-    const matchIndex = text.toLowerCase().indexOf(needle);
-    if (matchIndex < 0) {
+    const hits = collectHits(
+      toSearchableText(fileText, isTranscript),
+      needle,
+      isTranscript ? 'transcript' : 'summary'
+    );
+    if (hits.length === 0) {
       continue;
     }
 
     const suffix = isTranscript ? TRANSCRIPT_SUFFIX : SUMMARY_SUFFIX;
     const basePath = join(recordingsDir, fileName.slice(0, -suffix.length));
-
-    // Shrnutí je stručnější, takže z něj bývá užitečnější úryvek.
-    if (isSummary || !matches.has(basePath)) {
-      matches.set(basePath, {
-        basePath,
-        snippet: buildSnippet(text, matchIndex),
-        source: isTranscript ? 'transcript' : 'summary',
-      });
-    }
+    (isTranscript ? transcriptHits : summaryHits).set(basePath, hits);
   }
 
-  return [...matches.values()];
+  const basePaths = new Set([...summaryHits.keys(), ...transcriptHits.keys()]);
+
+  return [...basePaths].map(basePath => ({
+    basePath,
+    hits: [
+      ...(summaryHits.get(basePath) ?? []),
+      ...(transcriptHits.get(basePath) ?? []),
+    ].slice(0, MAX_HITS_PER_RECORDING),
+  }));
 }

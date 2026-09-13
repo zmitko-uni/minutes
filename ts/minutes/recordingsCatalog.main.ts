@@ -13,6 +13,7 @@ import type {
 } from './recordingsCatalog.std.ts';
 import type { CallRecordingOutput } from './types.std.ts';
 import { readCallTranscriptMetadata } from './transcriptMetadata.main.ts';
+import { extractTranscriptBody } from './transcriptDisplay.std.ts';
 import {
   getRecordingArtifactPaths,
   type RecordingMediaKind,
@@ -58,7 +59,7 @@ async function buildCatalogEntry(
     return null;
   }
 
-  const { basePath, pcmPath, transcriptPath, summaryPath } =
+  const { basePath, pcmPath, transcriptPath, summaryPath, meetingPath } =
     getRecordingArtifactPaths(recordingPath);
   const hasPcmSidecar =
     (await resolveRecordingPcmPath({
@@ -70,6 +71,7 @@ async function buildCatalogEntry(
     })) != null;
   const hasTranscript = await fileExists(transcriptPath);
   const hasSummary = await fileExists(summaryPath);
+  const hasMeeting = await fileExists(meetingPath);
   const mp4Path = getMp4ExportPath(recordingPath);
   const hasMp4Export =
     mediaKind === 'screen-share-video' && (await fileExists(mp4Path));
@@ -90,6 +92,7 @@ async function buildCatalogEntry(
     hasPcmSidecar,
     hasTranscript,
     hasSummary,
+    hasMeeting,
     transcriptPath: hasTranscript ? transcriptPath : undefined,
     summaryPath: hasSummary ? summaryPath : undefined,
     transcriptWhisperModelFileName: transcriptMeta?.whisperModelFileName,
@@ -158,7 +161,7 @@ export async function listCallRecordings(
       continue;
     }
 
-    const { basePath, pcmPath, transcriptPath, summaryPath } =
+    const { basePath, pcmPath, transcriptPath, summaryPath, meetingPath } =
       getRecordingArtifactPaths(mp3Path);
     const hasPcmSidecar =
       (await resolveRecordingPcmPath({
@@ -170,6 +173,7 @@ export async function listCallRecordings(
       })) != null;
     const hasTranscript = await fileExists(transcriptPath);
     const hasSummary = await fileExists(summaryPath);
+    const hasMeeting = await fileExists(meetingPath);
     const transcriptMeta = hasTranscript
       ? await readCallTranscriptMetadata(basePath)
       : null;
@@ -195,6 +199,7 @@ export async function listCallRecordings(
       hasPcmSidecar,
       hasTranscript,
       hasSummary,
+      hasMeeting,
       transcriptPath: hasTranscript ? transcriptPath : undefined,
       summaryPath: hasSummary ? summaryPath : undefined,
       transcriptWhisperModelFileName: transcriptMeta?.whisperModelFileName,
@@ -204,15 +209,6 @@ export async function listCallRecordings(
   }
 
   return [...entries.values()].sort((a, b) => b.startedAt - a.startedAt);
-}
-
-function extractTranscriptBodyFromMarkdown(markdown: string): string {
-  const marker = '## Přepis';
-  const index = markdown.indexOf(marker);
-  if (index >= 0) {
-    return markdown.slice(index + marker.length).trim();
-  }
-  return markdown.trim();
 }
 
 export async function loadCallRecordingOutput(
@@ -234,7 +230,7 @@ export async function loadCallRecordingOutput(
   let transcriptText = '';
   if (entry.hasTranscript) {
     try {
-      transcriptText = extractTranscriptBodyFromMarkdown(
+      transcriptText = extractTranscriptBody(
         await readFile(transcriptPath, 'utf8')
       );
     } catch {
