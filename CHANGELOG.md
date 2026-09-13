@@ -14,7 +14,13 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- **Vizitky (uuBEM)**: nový tab v levé navigaci a položka **Vizitky (uuBEM)** v menu Minutes (pod **Záložky**) — hledání osob v uuBEM, po kliknutí na výsledek se zobrazí vizitka s telefony, e-maily a adresami
+- **Vizitky (uuBEM)**: má-li vizitka vyplněný Signal kontakt, je nahoře tlačítko **Napsat zprávu**, které rovnou otevře chat s danou osobou (rozpozná Signal username, telefon i odkaz signal.me)
+- **Vizitky (uuBEM)**: u osob se načítá **fotka z Plus4U** — v seznamu výsledků i v detailu vizitky; kdo fotku nemá, má dál kolečko s iniciálami
+- **Vizitky (uuBEM)**: tlačítko **Sdílet vizitku** — vyjede pole, ve kterém najdete svůj Signal kontakt, a vizitka se mu pošle do chatu jako přehledný text (jméno, uuIdentity, telefony, e-maily, adresy, Signal kontakt a odkaz do uuBEM)
+- **Vizitky (uuBEM)**: v detailu je tlačítko **Otevřít v uuBEM**, které vizitku ukáže ve prohlížeči (tam se dají údaje i doplnit)
+- **Vizitky (uuBEM)**: u vizitky bez kontaktů detail rovnou napíše, že uuBEM o osobě víc než jméno a uuIdentity nevede
+- **Vizitky (uuBEM)**: sekce se ukazuje jen se zapnutou integrací Plus4U (access code 1 a 2 v **Nastavení AI**)
 
 ## [8.26.0-m1.4.0-beta.1] - 2026-09-13
 

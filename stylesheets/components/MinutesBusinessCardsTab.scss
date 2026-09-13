@@ -1,0 +1,286 @@
+// Copyright 2026 minutes contributors
+// SPDX-License-Identifier: AGPL-3.0-only
+
+@use '../mixins';
+
+.MinutesBusinessCardsTab {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.MinutesBusinessCardsTab__list {
+  list-style: none;
+  margin: 0;
+  padding-block: 0 8px;
+  padding-inline: 8px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.MinutesBusinessCardsTab__item {
+  @include mixins.button-reset;
+
+  & {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding-block: 8px;
+    padding-inline: 12px;
+    border-radius: 10px;
+    text-align: start;
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary);
+  }
+
+  &[aria-current='true'] {
+    background: var(--axo-color-fill-primary-pressed);
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesBusinessCardsTab__itemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.MinutesBusinessCardsTab__itemTitle {
+  @include mixins.font-body-2-bold;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.MinutesBusinessCardsTab__itemMeta {
+  @include mixins.font-body-small;
+  opacity: 0.65;
+}
+
+.MinutesBusinessCardsTab__empty,
+.MinutesBusinessCardsTab__error {
+  @include mixins.font-body-2;
+  margin-block: 8px;
+  margin-inline: 16px;
+  opacity: 0.75;
+}
+
+.MinutesBusinessCardsTab__error {
+  color: var(--axo-color-label-destructive);
+  opacity: 1;
+}
+
+.MinutesBusinessCardsTab__emptyState {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.MinutesBusinessCardsTab__detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 16px;
+  padding-block: 56px 24px;
+  padding-inline: 32px;
+  overflow-y: auto;
+}
+
+.MinutesBusinessCardsTab__detailHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/*
+ * Fotka z Plus4U, nebo kolečko s iniciálami, když ji osoba nemá. Oba stavy
+ * musí mít stejný rozměr, jinak by seznam při doběhnutí fotek poskakoval.
+ */
+.MinutesBusinessCardsTab__avatar {
+  & {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--axo-color-fill-primary-pressed);
+    object-fit: cover;
+  }
+}
+
+.MinutesBusinessCardsTab__avatar--detail {
+  @include mixins.font-title-2;
+
+  & {
+    inline-size: 56px;
+    block-size: 56px;
+  }
+}
+
+.MinutesBusinessCardsTab__avatar--list {
+  @include mixins.font-body-2-bold;
+
+  & {
+    inline-size: 36px;
+    block-size: 36px;
+  }
+}
+
+.MinutesBusinessCardsTab__detailHeading {
+  min-width: 0;
+}
+
+.MinutesBusinessCardsTab__detailTitle {
+  @include mixins.font-title-2;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.MinutesBusinessCardsTab__detailMeta {
+  @include mixins.font-body-2;
+  margin-block: 4px 0;
+  margin-inline: 0;
+  opacity: 0.7;
+}
+
+.MinutesBusinessCardsTab__detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.MinutesBusinessCardsTab__signalHint {
+  @include mixins.font-body-2;
+
+  & {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.7;
+    overflow-wrap: anywhere;
+  }
+}
+
+.MinutesBusinessCardsTab__share {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--axo-color-fill-primary);
+}
+
+.MinutesBusinessCardsTab__shareHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.MinutesBusinessCardsTab__shareInput {
+  @include mixins.font-body-2;
+
+  & {
+    width: 100%;
+    padding-block: 6px;
+    padding-inline: 10px;
+    border: 1px solid var(--axo-color-border-primary);
+    border-radius: 8px;
+    background: var(--axo-color-background-primary);
+    color: var(--axo-color-label-primary);
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.axo-focus-ring;
+  }
+}
+
+.MinutesBusinessCardsTab__shareList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.MinutesBusinessCardsTab__shareItem {
+  @include mixins.button-reset;
+
+  & {
+    @include mixins.font-body-2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding-block: 7px;
+    padding-inline: 10px;
+    border-radius: 8px;
+    text-align: start;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--axo-color-fill-primary-pressed);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesBusinessCardsTab__detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 560px;
+}
+
+.MinutesBusinessCardsTab__detailLabel {
+  @include mixins.font-body-small;
+  opacity: 0.65;
+}
+
+.MinutesBusinessCardsTab__detailValue {
+  @include mixins.font-body-1;
+  overflow-wrap: anywhere;
+}
+
+.MinutesBusinessCardsTab__contactList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.MinutesBusinessCardsTab__detailNote {
+  @include mixins.font-body-2;
+  margin: 0;
+  opacity: 0.75;
+}

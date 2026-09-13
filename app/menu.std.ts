@@ -14,6 +14,7 @@ import {
   MINUTES_MENU_AI_SETTINGS,
   MINUTES_MENU_ABOUT,
   MINUTES_MENU_BOOKMARKS,
+  MINUTES_MENU_BUSINESS_CARDS,
   MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
   MINUTES_MENU_LABEL,
   MINUTES_MENU_MCP_SETTINGS,
@@ -71,6 +72,7 @@ export const createTemplate = (
     minutesOpenCallSummaryExtension,
     minutesOpenTranscriptionQueue,
     minutesOpenBookmarks,
+    minutesOpenBusinessCards,
     minutesOpenReadme,
     minutesShowHome,
   } = options;
@@ -121,6 +123,10 @@ export const createTemplate = (
           label: MINUTES_MENU_BOOKMARKS,
           accelerator: 'CommandOrControl+Shift+B',
           click: minutesOpenBookmarks,
+        },
+        {
+          label: MINUTES_MENU_BUSINESS_CARDS,
+          click: minutesOpenBusinessCards,
         },
         {
           label: MINUTES_MENU_TRANSCRIPTION_QUEUE,

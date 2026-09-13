@@ -223,6 +223,98 @@ export async function uubtGet<T>(
   return call<T>(url.toString(), { method: 'GET' });
 }
 
+/**
+ * uuApp posílá fotky jako `application/octet-stream`, takže se na hlavičku
+ * spolehnout nedá a typ se pozná z prvních bajtů.
+ */
+function sniffImageContentType(data: Buffer<ArrayBuffer>): string | null {
+  if (data.length >= 3 && data[0] === 0xff && data[1] === 0xd8) {
+    return 'image/jpeg';
+  }
+  if (data.length >= 8 && data.readUInt32BE(0) === 0x89504e47) {
+    return 'image/png';
+  }
+  if (data.length >= 6 && data.subarray(0, 3).toString('latin1') === 'GIF') {
+    return 'image/gif';
+  }
+  if (
+    data.length >= 12 &&
+    data.subarray(0, 4).toString('latin1') === 'RIFF' &&
+    data.subarray(8, 12).toString('latin1') === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  return null;
+}
+
+/**
+ * Binární GET (fotky osob). Nejde přes `call()`, které tělo parsuje jako JSON.
+ * `null` znamená „nic tu není“ — chybějící fotka nesmí shodit celou vizitku.
+ */
+export async function uubtGetBinary(
+  baseUri: string,
+  useCase: string,
+  params: Readonly<Record<string, string | number | undefined>> = {},
+  attempt = 0
+): Promise<Readonly<{
+  data: Buffer<ArrayBuffer>;
+  contentType: string;
+}> | null> {
+  const url = new URL(`${baseUri.replace(/\/+$/, '')}/${useCase}`);
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) {
+      url.searchParams.set(key, String(value));
+    }
+  }
+
+  const { token } = await getUubtToken({ forceRefresh: attempt > 0 });
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // uuApp na `image/*` odpovídá 406 — bere jen `*/*`.
+        Accept: '*/*',
+      },
+      signal: AbortSignal.timeout(UUBT_REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw new Error(
+      `Volání Plus4U selhalo (${url.pathname}): ${String(error)}`
+    );
+  }
+
+  if (response.status === 401 && attempt === 0) {
+    log.warn('uubt: 401 na binárním GET, obnovuji token a zkouším znovu');
+    return uubtGetBinary(baseUri, useCase, params, attempt + 1);
+  }
+
+  if (!response.ok) {
+    log.info(`uubt: ${useCase} nevrátil data (status=${response.status})`);
+    return null;
+  }
+
+  const data = Buffer.from(await response.arrayBuffer());
+  if (data.byteLength === 0) {
+    return null;
+  }
+
+  const header = response.headers.get('content-type') ?? '';
+  const contentType = header.startsWith('image/')
+    ? header
+    : sniffImageContentType(data);
+
+  // Chybějící fotku uuApp umí vrátit i se stavem 200 jako JSON s chybou.
+  if (contentType == null) {
+    log.info(`uubt: ${useCase} nevrátil obrázek (content-type=${header})`);
+    return null;
+  }
+
+  return { data, contentType };
+}
+
 export async function uubtPost<T>(
   baseUri: string,
   useCase: string,

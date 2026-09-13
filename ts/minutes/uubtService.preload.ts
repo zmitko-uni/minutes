@@ -12,14 +12,52 @@ import type {
   UubtSettingsSaveInput,
 } from './uubt.std.ts';
 
+/**
+ * Zapnutá integrace Plus4U se čte i ze synchronního renderu (tab Vizitky
+ * v levé navigaci), proto se drží v paměti a při změně nastavení se přepočítá.
+ */
+let integrationEnabled = false;
+const integrationListeners = new Set<(enabled: boolean) => void>();
+
+function setIntegrationEnabled(settings: UubtSettingsPublic): void {
+  const next = settings.enabled && settings.hasCredentials;
+  if (next === integrationEnabled) {
+    return;
+  }
+  integrationEnabled = next;
+  for (const listener of integrationListeners) {
+    listener(next);
+  }
+}
+
+export function isUubtIntegrationEnabled(): boolean {
+  return integrationEnabled;
+}
+
+export function subscribeUubtIntegrationEnabled(
+  listener: (enabled: boolean) => void
+): () => void {
+  integrationListeners.add(listener);
+  return () => {
+    integrationListeners.delete(listener);
+  };
+}
+
 export async function getUubtSettings(): Promise<UubtSettingsPublic> {
-  return ipcRenderer.invoke('minutes:uubt-get-settings');
+  const settings = await ipcRenderer.invoke('minutes:uubt-get-settings');
+  setIntegrationEnabled(settings);
+  return settings;
 }
 
 export async function saveUubtSettings(
   input: UubtSettingsSaveInput
 ): Promise<UubtSettingsPublic> {
-  return ipcRenderer.invoke('minutes:uubt-save-settings', input);
+  const settings = await ipcRenderer.invoke(
+    'minutes:uubt-save-settings',
+    input
+  );
+  setIntegrationEnabled(settings);
+  return settings;
 }
 
 export async function testUubtConnection(): Promise<{

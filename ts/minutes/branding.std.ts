@@ -37,25 +37,27 @@ export function formatUnreadDigestHeader(): string {
   return `📬 ${APP_DISPLAY_NAME} — přehled nepřečtených\n\n`;
 }
 
+type ChatMessageKind =
+  | 'chat-summary'
+  | 'call-transcript'
+  | 'call-summary'
+  | 'ai-opinion'
+  | 'business-card';
+
+const CHAT_MESSAGE_HEADERS: Readonly<
+  Record<ChatMessageKind, Readonly<{ emoji: string; label: string }>>
+> = {
+  'chat-summary': { emoji: '📋', label: 'shrnutí chatu' },
+  'call-transcript': { emoji: '🎙️', label: 'přepis hovoru' },
+  'call-summary': { emoji: '📝', label: 'shrnutí hovoru' },
+  'ai-opinion': { emoji: '🤖', label: 'názor AI' },
+  'business-card': { emoji: '👤', label: 'vizitka' },
+};
+
 export function formatChatMessageHeader(
-  kind: 'chat-summary' | 'call-transcript' | 'call-summary' | 'ai-opinion',
+  kind: ChatMessageKind,
   conversationTitle: string
 ): string {
-  const emoji =
-    kind === 'call-transcript'
-      ? '🎙️'
-      : kind === 'call-summary'
-        ? '📝'
-        : kind === 'ai-opinion'
-          ? '🤖'
-          : '📋';
-  const label =
-    kind === 'call-transcript'
-      ? `${APP_DISPLAY_NAME} — přepis hovoru`
-      : kind === 'call-summary'
-        ? `${APP_DISPLAY_NAME} — shrnutí hovoru`
-        : kind === 'ai-opinion'
-          ? `${APP_DISPLAY_NAME} — názor AI`
-          : `${APP_DISPLAY_NAME} — shrnutí chatu`;
-  return `${emoji} ${label}\n${conversationTitle}\n\n`;
+  const { emoji, label } = CHAT_MESSAGE_HEADERS[kind];
+  return `${emoji} ${APP_DISPLAY_NAME} — ${label}\n${conversationTitle}\n\n`;
 }

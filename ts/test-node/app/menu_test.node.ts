@@ -43,6 +43,7 @@ const minutesOpenSummaries = stub();
 const minutesOpenCallSummaryExtension = stub();
 const minutesOpenTranscriptionQueue = stub();
 const minutesOpenBookmarks = stub();
+const minutesOpenBusinessCards = stub();
 const minutesOpenReadme = stub();
 const minutesShowHome = stub();
 
@@ -138,17 +139,21 @@ const EXPECTED_MINUTES_MENU: MenuItemConstructorOptions = {
       click: minutesOpenBookmarks,
     },
     {
+      label: 'Vizitky (uuBEM)',
+      click: minutesOpenBusinessCards,
+    },
+    {
       label: 'Přepisy (Minutes)',
       accelerator: 'CommandOrControl+Shift+M',
       click: minutesOpenTranscriptionQueue,
     },
     { type: 'separator' },
     { label: 'Nastavení AI', click: minutesOpenSettings },
-    { label: 'Nastavení MCP', click: minutesOpenAutomationSettings },
     {
       label: 'Nastavení přepisů (Minutes)',
       click: minutesOpenCallSummaryExtension,
     },
+    { label: 'Nastavení MCP', click: minutesOpenAutomationSettings },
     { type: 'separator' },
     { label: 'Příručka', click: minutesOpenReadme },
     { label: 'O Minutes', click: minutesShowHome },
@@ -310,6 +315,7 @@ describe('createTemplate', () => {
     minutesOpenCallSummaryExtension,
     minutesOpenTranscriptionQueue,
     minutesOpenBookmarks,
+    minutesOpenBusinessCards,
     minutesOpenReadme,
     minutesShowHome,
   };

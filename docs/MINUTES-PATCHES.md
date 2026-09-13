@@ -24,10 +24,10 @@
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
 | `ts/components/ChatsTab.dom.tsx` | minutes uvítací obrazovka | 1 komponenta |
 | `ts/components/App.dom.tsx` | minutes host komponenty | +TranscriptionQueueHost, bez update banneru |
-| `ts/types/Nav.std.ts` | hodnoty `NavTab.MinutesTranscripts` a `NavTab.MinutesBookmarks` (spadnou do obecné větve `Location` bez `details`) | 2 řádky enumu |
-| `ts/components/NavTabs.dom.tsx` | taby Přepisy a Záložky za Hovory — 2× `NavTabsItem` + 2× `TabPanel` + 2 render props. Popisky z `ts/minutes/navTabs.std.ts` (bez zásahu do `_locales`) | import + 2 položky |
-| `ts/components/Inbox.dom.tsx`, `ts/state/smart/Inbox.preload.tsx`, `ts/state/smart/NavTabs.preload.tsx` | protažení render props `renderMinutesTranscriptsTab` / `renderMinutesBookmarksTab` | plumbing |
-| `ts/components/NavTabs.dom.stories.tsx` | mock nových render props | 2 řádky |
+| `ts/types/Nav.std.ts` | hodnoty `NavTab.MinutesTranscripts`, `NavTab.MinutesBookmarks` a `NavTab.MinutesBusinessCards` (spadnou do obecné větve `Location` bez `details`) | 3 řádky enumu |
+| `ts/components/NavTabs.dom.tsx` | taby Přepisy, Záložky a Vizitky za Hovory — 3× `NavTabsItem` + 3× `TabPanel` + 3 render props. Vizitky jen se zapnutou integrací Plus4U přes prop `minutesBusinessCardsEnabled` (stejný vzor jako upstream `storiesEnabled`) — **záměrně prop, ne hook**, aby `NavTabs.dom.tsx` nezačal importovat `electron` (rozbilo by Storybook, který ho nemockuje). Popisky z `ts/minutes/navTabs.std.ts` (bez zásahu do `_locales`) | import + 3 položky + 1 prop |
+| `ts/components/Inbox.dom.tsx`, `ts/state/smart/Inbox.preload.tsx`, `ts/state/smart/NavTabs.preload.tsx` | protažení render props `renderMinutesTranscriptsTab` / `renderMinutesBookmarksTab` / `renderMinutesBusinessCardsTab`; `SmartNavTabs` navíc čte `useUubtIntegrationEnabled()` | plumbing |
+| `ts/components/NavTabs.dom.stories.tsx` | mock nových render props + `minutesBusinessCardsEnabled` | 4 řádky |
 | `ts/components/conversation/ConversationHeader.dom.tsx` | `MinutesDropdownMenuItems` ve 3 variantách nabídky + `<MinutesConversationHeaderButton />` v liště akcí (tlačítko „M“ → Přepisy daného chatu) | 2 importy + 4 řádky |
 | `ts/components/leftPane/LeftPaneConversationListItemContextMenu.dom.tsx` | `MinutesContextMenuItems` v kontextové nabídce chatu v levém seznamu | import + 1 řádek |
 | `ts/components/conversation/MessageContextMenu.dom.tsx` | `onBookmarkMessage`, `onMarkUnreadFromHere`, `onAskAiOpinion` + kontextové copy/forward | props + items |

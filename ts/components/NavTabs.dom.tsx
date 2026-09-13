@@ -195,12 +195,15 @@ export type NavTabsProps = Readonly<{
   hasPendingUpdate: boolean;
   i18n: LocalizerType;
   navTabsCollapsed: boolean;
+  /** minutes: tab Vizitky má smysl jen se zapnutou integrací Plus4U */
+  minutesBusinessCardsEnabled: boolean;
   onChangeLocation: (location: Location) => void;
   onToggleNavTabsCollapse: (collapsed: boolean) => void;
   renderCallsTab: () => ReactNode;
   renderChatsTab: () => ReactNode;
   renderMinutesTranscriptsTab: () => ReactNode;
   renderMinutesBookmarksTab: () => ReactNode;
+  renderMinutesBusinessCardsTab: () => ReactNode;
   renderStoriesTab: () => ReactNode;
   renderSettingsTab: () => ReactNode;
   selectedNavTab: NavTab;
@@ -215,12 +218,14 @@ export function NavTabs({
   hasPendingUpdate,
   i18n,
   navTabsCollapsed,
+  minutesBusinessCardsEnabled,
   onChangeLocation,
   onToggleNavTabsCollapse,
   renderCallsTab,
   renderChatsTab,
   renderMinutesTranscriptsTab,
   renderMinutesBookmarksTab,
+  renderMinutesBusinessCardsTab,
   renderStoriesTab,
   renderSettingsTab,
   selectedNavTab,
@@ -310,6 +315,16 @@ export function NavTabs({
             navTabClassName="NavTabs__Item--MinutesBookmarks"
             unreadStats={null}
           />
+          {minutesBusinessCardsEnabled && (
+            <NavTabsItem
+              i18n={i18n}
+              id={NavTab.MinutesBusinessCards}
+              label={MINUTES_NAV_TAB_LABELS.businessCards}
+              iconClassName="NavTabs__ItemIcon--MinutesBusinessCards"
+              navTabClassName="NavTabs__Item--MinutesBusinessCards"
+              unreadStats={null}
+            />
+          )}
           {storiesEnabled && (
             <NavTabsItem
               i18n={i18n}
@@ -347,6 +362,9 @@ export function NavTabs({
       </TabPanel>
       <TabPanel id={NavTab.MinutesBookmarks} className="NavTabs__TabPanel">
         {renderMinutesBookmarksTab}
+      </TabPanel>
+      <TabPanel id={NavTab.MinutesBusinessCards} className="NavTabs__TabPanel">
+        {renderMinutesBusinessCardsTab}
       </TabPanel>
       <TabPanel id={NavTab.Stories} className="NavTabs__TabPanel">
         {renderStoriesTab}

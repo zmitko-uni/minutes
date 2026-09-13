@@ -14,6 +14,7 @@ export type PropsType = {
   renderCustomizingPreferredReactionsModal: () => JSX.Element;
   renderMinutesTranscriptsTab: () => JSX.Element;
   renderMinutesBookmarksTab: () => JSX.Element;
+  renderMinutesBusinessCardsTab: () => JSX.Element;
   renderNavTabs: (props: SmartNavTabsProps) => JSX.Element;
   renderStoriesTab: () => JSX.Element;
   renderSettingsTab: () => JSX.Element;
@@ -28,6 +29,7 @@ export function Inbox({
   renderCustomizingPreferredReactionsModal,
   renderMinutesTranscriptsTab,
   renderMinutesBookmarksTab,
+  renderMinutesBusinessCardsTab,
   renderNavTabs,
   renderStoriesTab,
   renderSettingsTab,
@@ -47,6 +49,7 @@ export function Inbox({
           renderCallsTab,
           renderMinutesTranscriptsTab,
           renderMinutesBookmarksTab,
+          renderMinutesBusinessCardsTab,
           renderStoriesTab,
           renderSettingsTab,
         })}

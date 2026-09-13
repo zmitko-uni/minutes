@@ -15,6 +15,8 @@ export const MINUTES_MENU_SUMMARIZE_UNREAD = 'Sumarizovat nepřečtené';
 
 export const MINUTES_MENU_BOOKMARKS = 'Záložky';
 
+export const MINUTES_MENU_BUSINESS_CARDS = 'Vizitky (uuBEM)';
+
 export const MINUTES_MENU_AI_SETTINGS = 'Nastavení AI';
 
 export const MINUTES_MENU_MCP_SETTINGS = 'Nastavení MCP';

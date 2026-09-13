@@ -105,6 +105,15 @@ import {
   appendMinutesToMeeting,
   loadUubtMeetingTexts,
 } from '../ts/minutes/uubtMeetingMinutes.main.ts';
+import type {
+  UubemBusinessCard,
+  UubemBusinessCardDetail,
+} from '../ts/minutes/uubem.std.ts';
+import {
+  findUubemBusinessCards,
+  loadUubemBusinessCard,
+  loadUubemPersonPhoto,
+} from '../ts/minutes/uubemPersonCard.main.ts';
 import { readMinutesReadmeContent } from './minutes_readme.main.ts';
 import {
   checkForAppUpdate,
@@ -905,6 +914,33 @@ export async function initializeMinutesChannel(automationOptions?: {
       options: { activity: UubtMeetingActivity; note?: string }
     ): Promise<void> => {
       await markUubtMeetingSolved(options.activity, options.note);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubem-find-business-cards',
+    async (
+      _event,
+      options: { searchString: string }
+    ): Promise<ReadonlyArray<UubemBusinessCard>> => {
+      return findUubemBusinessCards(options.searchString);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubem-load-business-card',
+    async (
+      _event,
+      options: { id: string; uuIdentity: string }
+    ): Promise<UubemBusinessCardDetail> => {
+      return loadUubemBusinessCard(options);
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:uubem-load-person-photo',
+    async (_event, options: { uuIdentity: string }): Promise<string | null> => {
+      return loadUubemPersonPhoto(options.uuIdentity);
     }
   );
 

@@ -5,4 +5,5 @@
 export const MINUTES_NAV_TAB_LABELS = {
   transcripts: 'Přepisy',
   bookmarks: 'Záložky',
+  businessCards: 'Vizitky',
 } as const;

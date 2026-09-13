@@ -15,6 +15,7 @@
     [Calls] auto
     [MinutesTranscripts] auto
     [MinutesBookmarks] auto
+    [MinutesBusinessCards] auto
     [Stories] auto
     1fr
     [Settings] auto;
@@ -28,6 +29,10 @@
   grid-row: MinutesBookmarks;
 }
 
+.NavTabs__Item--MinutesBusinessCards {
+  grid-row: MinutesBusinessCards;
+}
+
 .NavTabs__ItemIcon--MinutesTranscripts {
   @include mixins.color-svg(
     '../images/minutes/icons/transcripts.svg',
@@ -38,6 +43,13 @@
 .NavTabs__ItemIcon--MinutesBookmarks {
   @include mixins.color-svg(
     '../images/minutes/icons/bookmark.svg',
+    var(--axo-color-label-primary)
+  );
+}
+
+.NavTabs__ItemIcon--MinutesBusinessCards {
+  @include mixins.color-svg(
+    '../images/minutes/icons/business-card.svg',
     var(--axo-color-label-primary)
   );
 }
