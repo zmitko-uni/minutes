@@ -16,6 +16,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - **Plus4U integrace**: přihlášení přes prohlížeč s 2FA jako fallback, když přístupové kódy nestačí — automaticky při **Otestovat připojení** a při prvním použití Plus4U (vizitky, schůzky, zápis)
 - **Plus4U přihlášení**: než se otevře prohlížeč, Minutes se zeptá dialogem **Otevřít prohlížeč / Zrušit**
+- **Stahování modelů**: v **Nastavení AI** (lokální Gemma) a **Nastavení přepisů** (Whisper) uvidíte při stahování průběh — kolik už je staženo z celkové velikosti, rychlost a odhad zbývajícího času
+
+### Fixed
+- **Nastavení AI** a **Nastavení přepisů**: rozbalovací nabídky (model, GPU, režim přepisu…) jsou v tmavém režimu znovu čitelné; vstupní pole mají správné pozadí a ohraničení
+- **Nastavení přepisů**: dialog se při vyšším zoomu nebo DPI vejde do okna — tlačítka dole zůstávají vidět a obsah se scrolluje uvnitř dialogu
 
 ### Changed
 - **Nastavení AI → Plus4U**: jen **Otestovat připojení** (uloží kódy, ověří přístup, při 2FA otevře prohlížeč); integrace funguje i s browser relací bez access codes

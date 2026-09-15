@@ -34,7 +34,7 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 1. Během hovoru zvolte **nahrávání zvuku** nebo **nahrávání sdíleného videa** (vedle mute)
 2. V potvrzení **Nahrávání se chystá spustit** klikněte **Spustit nahrávání** (nebo **Zrušit**, pokud nahrávat nechcete)
 3. Po skončení se nahrávka uloží automaticky
-4. Pro přepis audio i video nahrávky v **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
+4. Pro přepis audio i video nahrávky v **Nastavení přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno) — při stahování uvidíte průběh včetně velikosti, rychlosti a odhadu času
 5. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ### Zvonění ve velké skupině
@@ -102,7 +102,7 @@ Klíče u ostatních poskytovatelů zůstávají uložené. Chcete-li později p
 | **Gemma 3 12B** | od 12 GB | cca 7,5 GB | Kompromis kvalita/rychlost |
 | **Gemma 4 12B** *(doporučeno)* | od 16 GB | cca 7 GB | Nejlepší kvalita, včetně češtiny |
 
-3. Klikněte **Stáhnout a aktivovat** (během stahování lze **Zrušit stahování**)
+3. Klikněte **Stáhnout a aktivovat** — pod tlačítkem uvidíte **průběh stahování** (kolik MB/GB už je na disku z celkové velikosti, rychlost a odhad zbývajícího času). Během stahování lze **Zrušit stahování**
 4. **Uložit** nastavení
 
 Shrnutí proběhne **jen na vašem počítači** — nic se neposílá do cloudu. První shrnutí může trvat déle (načtení modelu do paměti).
@@ -158,9 +158,9 @@ Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u 
 ### Přepis (Whisper)
 
 1. **Menu → Minutes → Nastavení Přepisů (Minutes)**
-2. Stáhněte model **Large v3 Turbo** *(doporučeno)* — u češtiny nejlepší poměr přesnosti a rychlosti, zejména s GPU
+2. Klikněte **Stáhnout a aktivovat** u modelu **Large v3 Turbo** *(doporučeno)* — u češtiny nejlepší poměr přesnosti a rychlosti, zejména s GPU. Při stahování uvidíte průběh (staženo / celkem, rychlost, odhad času), stejně jako u lokálního LLM v Nastavení AI
 3. Zkontrolujte řádek **Akcelerace přepisu** — měl by ukázat `GPU — …` (ne CPU), pokud máte zapnuté GPU v nastavení
-4. Máte-li **více grafických karet**, v sekci **Výkon přepisu** zvolte **Grafická karta pro akceleraci** (typicky diskrétní NVIDIA/AMD místo integrované)
+4. Máte-li **více grafických karet**, v sekci **Výkon přepisu** zvolte **Grafická karta pro akceleraci** z rozbalovací nabídky (typicky diskrétní NVIDIA/AMD místo integrované)
 5. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**)
 
 **Tip:** Model **Medium** je menší alternativa pro slabší PC bez grafiky. **Small** je rychlejší, ale u češtiny často dělá chyby. **Large v3** je nejpřesnější, ale nejpomalejší.

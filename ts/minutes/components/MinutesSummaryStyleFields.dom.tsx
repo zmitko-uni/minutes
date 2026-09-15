@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState, type JSX } from 'react';
 
 import { tw } from '../../axo/tw.dom.tsx';
+import { MINUTES_FORM_CONTROL_CLASS } from './minutesFormControls.dom.ts';
 import {
   AI_CUSTOM_SUMMARY_INSTRUCTIONS_MAX_CHARS,
   AI_SUMMARY_STYLE_OPTIONS,
@@ -50,7 +51,7 @@ export function MinutesSummaryStyleFields({
     <div
       className={tw(
         'flex flex-col gap-3 border-t border-solid pt-3',
-        'border-label-disabled'
+        'border-secondary'
       )}
     >
       <p className={tw('text-label-medium m-0 font-medium')}>Styl shrnutí</p>
@@ -90,8 +91,8 @@ export function MinutesSummaryStyleFields({
           <textarea
             rows={6}
             className={tw(
-              'w-full resize-y rounded-md border border-solid px-3 py-2',
-              'border-label-disabled bg-background-primary text-label-small font-mono'
+              MINUTES_FORM_CONTROL_CLASS,
+              'text-label-small w-full resize-y font-mono'
             )}
             value={customInstructions}
             maxLength={AI_CUSTOM_SUMMARY_INSTRUCTIONS_MAX_CHARS}
@@ -133,8 +134,8 @@ export function MinutesSummaryStyleFields({
               readOnly
               rows={16}
               className={tw(
-                'w-full resize-y rounded-md border border-solid px-3 py-2',
-                'border-label-disabled bg-background-secondary text-label-small font-mono'
+                MINUTES_FORM_CONTROL_CLASS,
+                'bg-surface-secondary text-label-small w-full resize-y font-mono'
               )}
               value={systemPromptPreview}
             />

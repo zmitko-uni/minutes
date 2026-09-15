@@ -200,24 +200,6 @@
   }
 }
 
-.MinutesCallSummaryExtensionModal__modelSelect {
-  border-radius: 8px;
-  border: 1px solid variables.$color-gray-15;
-  padding-block: 10px;
-  padding-inline: 12px;
-  @include mixins.font-body-2;
-
-  @include mixins.light-theme {
-    background-color: variables.$color-white;
-  }
-
-  @include mixins.dark-theme {
-    background-color: variables.$color-gray-75;
-    border-color: variables.$color-gray-65;
-    color: variables.$color-gray-05;
-  }
-}
-
 .MinutesCallSummaryExtensionModal__modelHint {
   margin: 0;
   @include mixins.font-body-small;

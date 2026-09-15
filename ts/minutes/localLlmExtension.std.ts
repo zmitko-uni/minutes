@@ -49,6 +49,10 @@ export type LocalLlmExtensionProgress = Readonly<{
     | 'error';
   message: string;
   percent?: number;
+  loadedBytes?: number;
+  totalBytes?: number | null;
+  bytesPerSecond?: number;
+  etaSeconds?: number;
 }>;
 
 export const DEFAULT_LOCAL_LLM_EXTENSION: LocalLlmExtensionPublic = {

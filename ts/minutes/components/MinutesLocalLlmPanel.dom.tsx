@@ -3,7 +3,10 @@
 
 import { useCallback, useEffect, useState, type JSX } from 'react';
 
+import { AxoSelect } from '../../axo/AxoSelect.dom.tsx';
 import { tw } from '../../axo/tw.dom.tsx';
+import { MinutesDownloadProgress } from './MinutesDownloadProgress.dom.tsx';
+import { MINUTES_FORM_FIELDSET_BORDER_CLASS } from './minutesFormControls.dom.ts';
 import { drop } from '../../util/drop.std.ts';
 import {
   cancelLocalLlmDownload,
@@ -222,45 +225,56 @@ export function MinutesLocalLlmPanel({
 
       <label className={tw('flex flex-col gap-1')}>
         <span>Model ke stažení</span>
-        <select
-          className={tw(
-            'rounded-md border border-solid px-3 py-2',
-            'border-label-disabled bg-background-primary'
-          )}
-          value={selectedModelFileName}
+        <AxoSelect.Root
           disabled={isBusy}
-          onChange={event => onSelectedModelChange(event.target.value)}
+          value={selectedModelFileName}
+          onValueChange={onSelectedModelChange}
         >
-          {state.availableModels.map(model => (
-            <option key={model.fileName} value={model.fileName}>
-              {model.label} ({model.downloadLabel}){model.ready ? ' ✓' : ''}
-            </option>
-          ))}
-        </select>
+          <AxoSelect.Trigger
+            width="full"
+            placeholder="Vyberte model"
+          />
+          <AxoSelect.Content position="dropdown">
+            {state.availableModels.map(model => (
+              <AxoSelect.Item
+                key={model.fileName}
+                value={model.fileName}
+                textValue={`${model.label} (${model.downloadLabel})`}
+              >
+                <AxoSelect.ItemText>
+                  {model.label} ({model.downloadLabel})
+                  {model.ready ? ' ✓' : ''}
+                </AxoSelect.ItemText>
+              </AxoSelect.Item>
+            ))}
+          </AxoSelect.Content>
+        </AxoSelect.Root>
       </label>
 
       <label className={tw('flex flex-col gap-1')}>
         <span>Velikost kontextu</span>
-        <select
-          className={tw(
-            'rounded-md border border-solid px-3 py-2',
-            'border-label-disabled bg-background-primary'
-          )}
-          value={String(state.contextSize)}
+        <AxoSelect.Root
           disabled={isBusy}
-          onChange={event => {
-            const raw = event.target.value;
+          value={String(state.contextSize)}
+          onValueChange={value => {
             handleContextSizeChange(
-              normalizeLocalLlmContextSize(raw === 'auto' ? raw : Number(raw))
+              normalizeLocalLlmContextSize(value === 'auto' ? value : Number(value))
             );
           }}
         >
-          {LOCAL_LLM_CONTEXT_SIZE_OPTIONS.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          <AxoSelect.Trigger width="full" placeholder="Velikost kontextu" />
+          <AxoSelect.Content position="dropdown">
+            {LOCAL_LLM_CONTEXT_SIZE_OPTIONS.map(option => (
+              <AxoSelect.Item
+                key={String(option.value)}
+                value={String(option.value)}
+                textValue={option.label}
+              >
+                <AxoSelect.ItemText>{option.label}</AxoSelect.ItemText>
+              </AxoSelect.Item>
+            ))}
+          </AxoSelect.Content>
+        </AxoSelect.Root>
         <span className={tw('text-label-small opacity-70')}>
           Vyšší hodnota umožní zpracovat delší přepis najednou, ale spotřebuje
           více paměti. Změna nevyžaduje nové stažení modelu.
@@ -296,32 +310,7 @@ export function MinutesLocalLlmPanel({
         </p>
       )}
 
-      {progress && (
-        <div
-          className={tw(
-            'text-label-small rounded-md px-3 py-2',
-            progress.phase === 'error' &&
-              'bg-fill-secondary text-label-primary',
-            progress.phase === 'cancelled' && 'opacity-80',
-            progress.phase === 'complete' && 'opacity-80'
-          )}
-        >
-          <span>{progress.message}</span>
-          {typeof progress.percent === 'number' &&
-            progress.phase === 'downloading' && (
-              <div
-                className={tw(
-                  'bg-fill-secondary mt-2 h-1.5 overflow-hidden rounded-full'
-                )}
-              >
-                <div
-                  className={tw('bg-label-primary h-full')}
-                  style={{ width: `${progress.percent}%` }}
-                />
-              </div>
-            )}
-        </div>
-      )}
+      {progress && <MinutesDownloadProgress progress={progress} />}
 
       {errorMessage && (
         <p className={tw('text-label-small text-label-primary')}>
@@ -335,7 +324,7 @@ export function MinutesLocalLlmPanel({
             type="button"
             className={tw(
               'text-label-small rounded-md border border-solid px-3 py-1.5',
-              'border-label-disabled'
+              'border-secondary'
             )}
             onClick={handleCancelDownload}
           >
@@ -347,7 +336,7 @@ export function MinutesLocalLlmPanel({
             type="button"
             className={tw(
               'text-label-small rounded-md border border-solid px-3 py-1.5',
-              'border-label-disabled'
+              'border-secondary'
             )}
             disabled={isBusy}
             onClick={() =>
@@ -389,7 +378,7 @@ export function MinutesLocalLlmPanel({
     <fieldset
       className={tw(
         'm-0 flex flex-col gap-3 rounded-md border border-solid p-4',
-        'border-label-disabled'
+        MINUTES_FORM_FIELDSET_BORDER_CLASS
       )}
     >
       <legend className={tw('text-label-medium px-1 font-medium')}>

@@ -6,6 +6,7 @@ import { ipcRenderer } from 'electron';
 
 import { AxoButton } from '../../axo/AxoButton.dom.tsx';
 import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
+import { AxoSelect } from '../../axo/AxoSelect.dom.tsx';
 import { AxoSwitch } from '../../axo/AxoSwitch.dom.tsx';
 import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
@@ -39,6 +40,11 @@ import {
 import { localLlmExtensionEvents } from '../localLlmExtensionEvents.std.ts';
 import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 import { MinutesLocalLlmPanel } from './MinutesLocalLlmPanel.dom.tsx';
+import {
+  MINUTES_FORM_CONTROL_CLASS,
+  MINUTES_FORM_FIELDSET_BORDER_CLASS,
+} from './minutesFormControls.dom.ts';
+import { useDialogBodyMaxHeight } from './useDialogBodyMaxHeight.dom.ts';
 import { DEFAULT_UUBT_SETTINGS, type UubtSettingsPublic } from '../uubt.std.ts';
 import {
   getUubtSettings,
@@ -136,9 +142,8 @@ function ProviderApiKeyField({
         type="password"
         autoComplete="off"
         className={tw(
-          'w-full rounded-md border border-solid px-3 py-2',
-          'border-label-disabled bg-background-primary text-label-primary',
-          'focus:border-label-primary not-forced-colors:outline-none'
+          MINUTES_FORM_CONTROL_CLASS,
+          'w-full focus:border-tertiary not-forced-colors:outline-none'
         )}
         placeholder={placeholder}
         value={draft}
@@ -217,6 +222,7 @@ export function MinutesSettingsModal({
   const [availableModels, setAvailableModels] = useState<ReadonlyArray<string>>(
     () => getAiProviderDefinition(DEFAULT_AI_SETTINGS.provider).models
   );
+  const dialogBodyMaxHeight = useDialogBodyMaxHeight(open);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [uubtLoaded, setUubtLoaded] = useState<UubtSettingsPublic>(
     DEFAULT_UUBT_SETTINGS
@@ -534,7 +540,7 @@ export function MinutesSettingsModal({
           </AxoDialog.Title>
           <AxoDialog.Close />
         </MinutesDraggableDialogHeader>
-        <AxoDialog.Body>
+        <AxoDialog.Body maxHeight={dialogBodyMaxHeight}>
           <AxoDialog.Description>
             <p className={tw('text-label-medium mb-4 opacity-90')}>
               Nastavte, jak Minutes vytváří AI shrnutí chatů a hovorů. Cloud
@@ -578,7 +584,7 @@ export function MinutesSettingsModal({
             <fieldset
               className={tw(
                 'm-0 flex flex-col gap-4 rounded-md border border-solid p-4',
-                'border-label-disabled'
+                MINUTES_FORM_FIELDSET_BORDER_CLASS
               )}
             >
               <legend className={tw('text-label-medium px-1 font-medium')}>
@@ -587,24 +593,25 @@ export function MinutesSettingsModal({
 
               <label className={tw('flex flex-col gap-1')}>
                 <span>Jazyk shrnutí</span>
-                <select
-                  className={tw(
-                    'rounded-md border border-solid px-3 py-2',
-                    'border-label-disabled bg-background-primary'
-                  )}
+                <AxoSelect.Root
                   value={outputLanguage}
-                  onChange={event =>
-                    setOutputLanguage(
-                      normalizeAiOutputLanguage(event.target.value)
-                    )
+                  onValueChange={value =>
+                    setOutputLanguage(normalizeAiOutputLanguage(value))
                   }
                 >
-                  {AI_OUTPUT_LANGUAGE_OPTIONS.map(option => (
-                    <option key={option.code} value={option.code}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  <AxoSelect.Trigger width="full" placeholder="Jazyk shrnutí" />
+                  <AxoSelect.Content position="dropdown">
+                    {AI_OUTPUT_LANGUAGE_OPTIONS.map(option => (
+                      <AxoSelect.Item
+                        key={option.code}
+                        value={option.code}
+                        textValue={option.label}
+                      >
+                        <AxoSelect.ItemText>{option.label}</AxoSelect.ItemText>
+                      </AxoSelect.Item>
+                    ))}
+                  </AxoSelect.Content>
+                </AxoSelect.Root>
                 <span className={tw('text-label-small opacity-70')}>
                   Jazyk, ve kterém AI sepíše shrnutí chatů a hovorů.
                 </span>
@@ -620,23 +627,28 @@ export function MinutesSettingsModal({
 
               <label className={tw('flex flex-col gap-1')}>
                 <span>Poskytovatel</span>
-                <select
-                  className={tw(
-                    'rounded-md border border-solid px-3 py-2',
-                    'border-label-disabled bg-background-primary'
-                  )}
+                <AxoSelect.Root
                   value={provider}
-                  onChange={event =>
-                    handleProviderChange(event.target.value as AiProvider)
+                  onValueChange={value =>
+                    handleProviderChange(value as AiProvider)
                   }
                 >
-                  {AI_PROVIDER_DEFINITIONS.map(def => (
-                    <option key={def.id} value={def.id}>
-                      {def.label}
-                      {providerOptionSuffix(def, loaded)}
-                    </option>
-                  ))}
-                </select>
+                  <AxoSelect.Trigger width="full" placeholder="Poskytovatel" />
+                  <AxoSelect.Content position="dropdown">
+                    {AI_PROVIDER_DEFINITIONS.map(def => (
+                      <AxoSelect.Item
+                        key={def.id}
+                        value={def.id}
+                        textValue={def.label}
+                      >
+                        <AxoSelect.ItemText>
+                          {def.label}
+                          {providerOptionSuffix(def, loaded)}
+                        </AxoSelect.ItemText>
+                      </AxoSelect.Item>
+                    ))}
+                  </AxoSelect.Content>
+                </AxoSelect.Root>
                 <span className={tw('text-label-small opacity-70')}>
                   {providerDef.billingNote}
                 </span>
@@ -659,28 +671,31 @@ export function MinutesSettingsModal({
                 <div className={tw('flex flex-col gap-4')}>
                   <label className={tw('flex flex-col gap-1')}>
                     <span>Model</span>
-                    <select
-                      className={tw(
-                        'rounded-md border border-solid px-3 py-2',
-                        'border-label-disabled bg-background-primary'
-                      )}
+                    <AxoSelect.Root
+                      disabled={isLoadingModels}
                       value={
                         availableModels.includes(model)
                           ? model
                           : (availableModels[0] ?? model)
                       }
-                      onChange={event => setModel(event.target.value)}
-                      disabled={isLoadingModels}
+                      onValueChange={setModel}
                     >
-                      {(availableModels.includes(model)
-                        ? availableModels
-                        : [model, ...availableModels]
-                      ).map(option => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                      <AxoSelect.Trigger width="full" placeholder="Model" />
+                      <AxoSelect.Content position="dropdown">
+                        {(availableModels.includes(model)
+                          ? availableModels
+                          : [model, ...availableModels]
+                        ).map(option => (
+                          <AxoSelect.Item
+                            key={option}
+                            value={option}
+                            textValue={option}
+                          >
+                            <AxoSelect.ItemText>{option}</AxoSelect.ItemText>
+                          </AxoSelect.Item>
+                        ))}
+                      </AxoSelect.Content>
+                    </AxoSelect.Root>
                     <span className={tw('text-label-small opacity-70')}>
                       {provider === 'google' ? (
                         <>
@@ -758,7 +773,7 @@ export function MinutesSettingsModal({
             <fieldset
               className={tw(
                 'm-0 flex flex-col gap-4 rounded-md border border-solid p-4',
-                'border-label-disabled'
+                MINUTES_FORM_FIELDSET_BORDER_CLASS
               )}
             >
               <legend className={tw('text-label-medium px-1 font-medium')}>
@@ -793,9 +808,8 @@ export function MinutesSettingsModal({
                   type="text"
                   autoComplete="off"
                   className={tw(
-                    'w-full rounded-md border border-solid px-3 py-2',
-                    'border-label-disabled bg-background-primary text-label-primary',
-                    'focus:border-label-primary not-forced-colors:outline-none'
+                    MINUTES_FORM_CONTROL_CLASS,
+                    'w-full focus:border-tertiary not-forced-colors:outline-none'
                   )}
                   placeholder={
                     removeUubtCredentials
@@ -814,9 +828,8 @@ export function MinutesSettingsModal({
                   type="password"
                   autoComplete="off"
                   className={tw(
-                    'w-full rounded-md border border-solid px-3 py-2',
-                    'border-label-disabled bg-background-primary text-label-primary',
-                    'focus:border-label-primary not-forced-colors:outline-none'
+                    MINUTES_FORM_CONTROL_CLASS,
+                    'w-full focus:border-tertiary not-forced-colors:outline-none'
                   )}
                   placeholder={accessCode2Placeholder}
                   value={accessCode2Draft}
