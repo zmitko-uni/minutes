@@ -253,10 +253,10 @@ Hotové AI shrnutí hovoru lze vložit přímo do sekce **Zápis** schůzky ve v
 
 1. **Menu → Minutes → Nastavení AI** → sekce **Plus4U integrace**
 2. Zapněte **Povolit zápis ke schůzkám Plus4U**
-3. Vyplňte **Access code 1** a **Access code 2** (přístupové kódy vašeho firemního účtu)
-4. Klikněte **Uložit kódy** a pak **Otestovat připojení** — vypíše se, pod kým jste přihlášení
+3. Vyplňte **Access code 1** a **Access code 2** (volitelné — účty s 2FA často kódy nestačí)
+4. Klikněte **Otestovat připojení** — uloží kódy, ověří přístup a vypíše, pod kým jste přihlášení. Když je potřeba 2FA nebo ještě nemáte relaci, Minutes se zeptá dialogem **Otevřít prohlížeč / Zrušit** a po potvrzení otevře přihlašovací stránku Plus4U; dokončíte přihlášení a vrátíte se do Minutes. Stejně se zeptá i při prvním použití vizitek, kalendáře schůzek nebo zápisu, pokud ještě nejste přihlášení
 
-Kódy se ukládají **šifrovaně přes safeStorage operačního systému**, stejně jako API klíče. Přihlašovací token existuje jen v paměti běžící aplikace a nikam se neukládá.
+Kódy a refresh token z přihlášení přes prohlížeč se ukládají **šifrovaně přes safeStorage** (Windows: `%APPDATA%\Minutes\minutes\uubt-settings.json`, macOS: `~/Library/Application Support/Minutes/minutes/…`). Krátkodobý přístupový token je jen v paměti běžící aplikace.
 
 ### Odeslání zápisu
 
@@ -549,13 +549,14 @@ Přepis začíná červeným varováním **„Nahrávka je poškozená — X % z
 
 - V **Nastavení AI** → **Plus4U integrace** klikněte **Otestovat připojení** — ověří přihlášení
 - *Neplatné přístupové kódy* — zkontrolujte oba kódy (Access code 2 se kvůli bezpečnosti nezobrazuje, přepište ho celý)
+- *Účet s 2FA* — při **Otestovat připojení** nebo při prvním volání Plus4U (vizitky, schůzky) Minutes otevře prohlížeč; dokončete přihlášení včetně druhého faktoru
 - **Prázdný seznam schůzek** — přepněte v dialogu datum; nabízejí se jen schůzky z vašeho kalendáře pro daný den, bez zrušených a odmítnutých
-- **Tlačítko Zapsat ke schůzce Plus4U je zašedlé** — tlačítko najdete v tabu **Shrnutí**. Zašedlé je, dokud nahrávka nemá hotové **shrnutí** (přepis sám nestačí), nebo dokud v **Nastavení AI → Plus4U integrace** není zapnutá integrace **a uložené oba přístupové kódy** (stačí jeden chybějící a tlačítko zůstane neaktivní). Tooltip nad tlačítkem řekne který případ to je
+- **Tlačítko Zapsat ke schůzce Plus4U je zašedlé** — tlačítko najdete v tabu **Shrnutí**. Zašedlé je, dokud nahrávka nemá hotové **shrnutí** (přepis sám nestačí), nebo dokud v **Nastavení AI → Plus4U integrace** není zapnutá integrace **a** nemáte uložené kódy **ani** aktivní přihlášení přes prohlížeč. Tooltip nad tlačítkem řekne který případ to je
 - Když zápis nelze vložit, podrobnosti najdete v **Menu → Minutes → Zobrazit log**
 
 ### Vizitky (uuBEM) nejdou otevřít nebo nic nenajdou
 
-- **Tab Vizitky v levé liště není** — není zapnutá integrace Plus4U. Zapněte ji v **Nastavení AI → Plus4U integrace** a uložte oba přístupové kódy; tab se objeví hned po uložení
+- **Tab Vizitky v levé liště není** — není zapnutá integrace Plus4U. Zapněte ji v **Nastavení AI → Plus4U integrace** a přihlaste se (kódy nebo prohlížeč); tab se objeví hned po uložení
 - **Hledání nic nenašlo** — zkuste jen příjmení. Hledá se v uuBEM, takže se najdou jen lidé, kteří tam vizitku mají
 - **Místo fotky je kolečko s iniciálami** — osoba nemá fotku v Plus4U. Fotky nepocházejí z uuBEM, ale z Plus4U People, takže se doplňují tam
 - **V detailu nejsou žádné telefony ani e-maily** — vizitka je v uuBEM takto prázdná, Minutes nic neskrývá. Přes **Otevřít v uuBEM** si to ověříte a údaje doplníte

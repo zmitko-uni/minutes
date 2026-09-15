@@ -8,6 +8,24 @@
 export const UUBT_DEFAULT_OIDC_BASE_URI =
   'https://uuidentity.plus4u.net/uu-oidc-maing02/bb977a99f4cc4c37a2afce3fd599d0a7/oidc';
 
+/** Stejná stránka jako v uu_appg01_oidc OAuthCode po localhost callbacku (prod). */
+export const UUBT_DEFAULT_AUTHORIZATION_CODE_INFO_URI =
+  'https://uuidentity.plus4u.net/uu-identitymanagement-maing01/a9b105aff2744771be4daa8361954677/showAuthorizationCode';
+
+/** Dev varianta showAuthorizationCode (uuapp-dev). */
+export const UUBT_DEV_AUTHORIZATION_CODE_INFO_URI =
+  'https://uuapp-dev.plus4u.net/uu-identitymanagement-maing01/58ceb15c275c4b31bfe0fc9768aa6a9c/showAuthorizationCode';
+
+export function resolveAuthorizationCodeInfoPageUri(
+  oidcBaseUri: string
+): string {
+  const normalized = oidcBaseUri.trim().toLowerCase();
+  if (normalized.includes('uuapp-dev')) {
+    return UUBT_DEV_AUTHORIZATION_CODE_INFO_URI;
+  }
+  return UUBT_DEFAULT_AUTHORIZATION_CODE_INFO_URI;
+}
+
 /** uuPlus4UPeople instance used to resolve the user's uuDigitalWorkspace URI. */
 export const UUBT_PEOPLE_BASE_URI =
   'https://uuapp.plus4u.net/uu-plus4upeople-maing01/56ac93ddb0034de8b8e4f4b829ff7d0f';
@@ -105,11 +123,25 @@ export const UUBT_SECTION_TAG_MINUTES =
 export const UUBT_SECTION_TAG_BOTTOM =
   'UuElementaryManagement.Meeting.DetailBottom';
 
+export type UubtToken = Readonly<{
+  token: string;
+  /** První kandidát na uuIdentity — jen pro zobrazení. */
+  uuIdentity: string;
+  /** Hodnoty z tokenu, které mohou být uuIdentity, v pořadí podle pravděpodobnosti. */
+  identityCandidates: ReadonlyArray<string>;
+  expiresAt: number;
+}>;
+
 export type UubtSettingsPublic = Readonly<{
   enabled: boolean;
   /** Both access codes are stored. */
   hasCredentials: boolean;
+  /** Platná browser relace (refresh token v safeStorage). */
+  hasBrowserSession: boolean;
+  /** Access codes nebo browser relace — integrace může volat Plus4U API. */
+  hasAuth: boolean;
   accessCode1Masked: string | null;
+  browserIdentityMasked: string | null;
   oidcBaseUri: string;
 }>;
 
@@ -128,7 +160,10 @@ export type UubtSettingsSaveInput = Readonly<{
 export const DEFAULT_UUBT_SETTINGS: UubtSettingsPublic = {
   enabled: false,
   hasCredentials: false,
+  hasBrowserSession: false,
+  hasAuth: false,
   accessCode1Masked: null,
+  browserIdentityMasked: null,
   oidcBaseUri: UUBT_DEFAULT_OIDC_BASE_URI,
 };
 

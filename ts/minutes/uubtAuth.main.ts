@@ -2,34 +2,44 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createLogger } from '../logging/log.std.ts';
-import { maskUuValueShape, UUBT_REQUEST_TIMEOUT_MS } from './uubt.std.ts';
+import {
+  throwIfUnsupportedCredentials,
+  UubtInteractiveLoginRequiredError,
+} from './uubtAuthErrors.std.ts';
+import { maskUuValueShape, UUBT_REQUEST_TIMEOUT_MS, type UubtToken } from './uubt.std.ts';
+import {
+  clearBrowserSession,
+  getBrowserRefreshToken,
+  getOidcBaseUri,
+  getOidcClientCredentials,
+  getUubtCredentials,
+} from './uubtSettings.main.ts';
 import type { UubtCredentials } from './uubtSettings.main.ts';
-import { getUubtCredentials } from './uubtSettings.main.ts';
+import {
+  clearUubtTokenCache,
+  getCachedUubtToken,
+  setCachedUubtToken,
+} from './uubtTokenCache.main.ts';
 
 const log = createLogger('minutes/uubtAuth');
 
 /** Token se obnoví o něco dřív, než doopravdy vyprší. */
 const TOKEN_EXPIRY_SAFETY_MS = 60_000;
 
-export type UubtToken = Readonly<{
-  token: string;
-  /** První kandidát na uuIdentity — jen pro zobrazení. */
-  uuIdentity: string;
-  /** Hodnoty z tokenu, které mohou být uuIdentity, v pořadí podle pravděpodobnosti. */
-  identityCandidates: ReadonlyArray<string>;
-  expiresAt: number;
-}>;
+export type { UubtToken };
 
-type TokenCacheEntry = UubtToken & { cacheKey: string };
+export { clearUubtTokenCache };
 
-let cachedToken: TokenCacheEntry | null = null;
+let refreshInFlight: Promise<UubtToken> | null = null;
 
-export function clearUubtTokenCache(): void {
-  cachedToken = null;
+function buildPasswordCacheKey(credentials: UubtCredentials): string {
+  return `password|${credentials.oidcBaseUri}|${credentials.accessCode1}`;
 }
 
-function buildCacheKey(credentials: UubtCredentials): string {
-  return `${credentials.oidcBaseUri}|${credentials.accessCode1}`;
+async function buildBrowserCacheKey(): Promise<string> {
+  const oidcBaseUri = await getOidcBaseUri();
+  const { clientId } = await getOidcClientCredentials();
+  return `browser|${oidcBaseUri}|${clientId}`;
 }
 
 function decodeJwtClaims(token: string): Record<string, unknown> {
@@ -124,6 +134,20 @@ function resolveExpiry(
   return Date.now() + 3_600_000;
 }
 
+export function uubtTokenFromIdToken(
+  idToken: string,
+  expiresIn: unknown
+): UubtToken {
+  const claims = decodeJwtClaims(idToken);
+  const identityCandidates = resolveIdentityCandidates(claims);
+  return {
+    token: idToken,
+    uuIdentity: identityCandidates[0] ?? '',
+    identityCandidates,
+    expiresAt: resolveExpiry(claims, expiresIn),
+  };
+}
+
 function extractIdToken(body: string): { idToken: string; raw: unknown } {
   const trimmed = body.trim();
 
@@ -144,19 +168,31 @@ function extractIdToken(body: string): { idToken: string; raw: unknown } {
   return { idToken: bare, raw: null };
 }
 
-function describeGrantFailure(status: number): string {
+function basicAuthHeader(clientId: string, clientSecret: string): string {
+  const username = encodeURIComponent(clientId);
+  return `Basic ${Buffer.from(`${username}:${clientSecret}`, 'utf8').toString('base64')}`;
+}
+
+function describeGrantFailure(status: number, body: string): string {
+  throwIfUnsupportedCredentials(status, body);
+
   if (status === 400 || status === 401) {
     return 'Přihlášení do Plus4U selhalo — zkontrolujte access code 1 a access code 2 v Nastavení AI.';
   }
   if (status === 403) {
     return 'uuOIDC odmítl přihlášení (403). Ověřte, že účet smí používat přihlášení přístupovými kódy.';
   }
+  if (status >= 500) {
+    return 'uuOIDC selhal na své straně — zkuste to později nebo použijte přihlášení přes prohlížeč.';
+  }
 
   // Tělo odpovědi se úmyslně nepřebírá — může obsahovat údaje o účtu.
   return `uuOIDC vrátil chybu ${status}`;
 }
 
-async function requestToken(credentials: UubtCredentials): Promise<UubtToken> {
+async function requestPasswordToken(
+  credentials: UubtCredentials
+): Promise<UubtToken> {
   const url = `${credentials.oidcBaseUri}/grantToken`;
   const body = new URLSearchParams({
     accessCode1: credentials.accessCode1,
@@ -185,24 +221,111 @@ async function requestToken(credentials: UubtCredentials): Promise<UubtToken> {
   const text = await response.text();
   if (!response.ok) {
     log.warn(`uubt grantToken failed with status ${response.status}`);
-    throw new Error(describeGrantFailure(response.status));
+    const message = describeGrantFailure(response.status, text);
+    throw new Error(message);
   }
 
   const { idToken, raw } = extractIdToken(text);
-  const claims = decodeJwtClaims(idToken);
   const expiresIn =
     raw && typeof raw === 'object'
       ? (raw as Record<string, unknown>).expires_in
       : undefined;
 
-  const identityCandidates = resolveIdentityCandidates(claims);
+  return uubtTokenFromIdToken(idToken, expiresIn);
+}
 
-  return {
-    token: idToken,
-    uuIdentity: identityCandidates[0] ?? '',
-    identityCandidates,
-    expiresAt: resolveExpiry(claims, expiresIn),
-  };
+async function requestRefreshToken(): Promise<UubtToken> {
+  const refreshToken = await getBrowserRefreshToken();
+  if (!refreshToken) {
+    throw new UubtInteractiveLoginRequiredError(
+      'Přihlášení přes prohlížeč vypršelo — přihlaste se znovu v Nastavení AI.'
+    );
+  }
+
+  const oidcBaseUri = await getOidcBaseUri();
+  const { clientId, clientSecret } = await getOidcClientCredentials();
+
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+    scope: 'openid https offline_access',
+  });
+
+  let response: Response;
+  try {
+    response = await fetch(`${oidcBaseUri}/grantToken`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+        Authorization: basicAuthHeader(clientId, clientSecret),
+      },
+      body: body.toString(),
+      signal: AbortSignal.timeout(UUBT_REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw new Error(
+      `Nepodařilo se obnovit Plus4U relaci: ${String(error)}`
+    );
+  }
+
+  const text = await response.text();
+  if (!response.ok) {
+    log.warn(`uubt refresh failed status=${response.status}`);
+    if (response.status === 400 || response.status === 401) {
+      await clearBrowserSession();
+      clearUubtTokenCache();
+      throw new UubtInteractiveLoginRequiredError(
+        'Přihlášení přes prohlížeč vypršelo — přihlaste se znovu v Nastavení AI.'
+      );
+    }
+    throw new Error(describeGrantFailure(response.status, text));
+  }
+
+  const parsed = JSON.parse(text) as Record<string, unknown>;
+  const idToken = parsed.id_token ?? parsed.idToken;
+  if (typeof idToken !== 'string') {
+    throw new Error('Obnovení relace nevrátilo id_token');
+  }
+
+  const nextRefresh = parsed.refresh_token;
+  if (typeof nextRefresh === 'string' && nextRefresh.length > 0) {
+    const { saveBrowserSession } = await import('./uubtSettings.main.ts');
+    const stored = await getUubtSettingsPublicSafe();
+    await saveBrowserSession({
+      refreshToken: nextRefresh,
+      identityMasked: stored.browserIdentityMasked ?? 'Plus4U',
+    });
+  }
+
+  return uubtTokenFromIdToken(idToken, parsed.expires_in);
+}
+
+async function getUubtSettingsPublicSafe(): Promise<
+  import('./uubt.std.ts').UubtSettingsPublic
+> {
+  const { getUubtSettingsPublic } = await import('./uubtSettings.main.ts');
+  return getUubtSettingsPublic();
+}
+
+async function refreshBrowserTokenSingleFlight(): Promise<UubtToken> {
+  if (refreshInFlight) {
+    return refreshInFlight;
+  }
+  refreshInFlight = requestRefreshToken().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+}
+
+export async function primeUubtTokenAfterBrowserLogin(
+  idToken: string,
+  expiresIn: unknown
+): Promise<UubtToken> {
+  const token = uubtTokenFromIdToken(idToken, expiresIn);
+  const cacheKey = await buildBrowserCacheKey();
+  setCachedUubtToken(cacheKey, token);
+  return token;
 }
 
 /**
@@ -215,28 +338,59 @@ export async function getUubtToken(
     forceRefresh?: boolean;
   }> = {}
 ): Promise<UubtToken> {
+  const browserCacheKey = await buildBrowserCacheKey();
+  const cachedBrowser = getCachedUubtToken(browserCacheKey);
+  if (
+    !options.forceRefresh &&
+    cachedBrowser &&
+    cachedBrowser.expiresAt - TOKEN_EXPIRY_SAFETY_MS > Date.now()
+  ) {
+    return cachedBrowser;
+  }
+
+  const refreshToken = await getBrowserRefreshToken();
+  if (refreshToken) {
+    const token = await refreshBrowserTokenSingleFlight();
+    setCachedUubtToken(browserCacheKey, token);
+    // Bez uuIdentity — log si uživatelé přikládají k hlášení chyb.
+    log.info(
+      `uubt browser token obtained, expires ${new Date(token.expiresAt).toISOString()}`
+    );
+    return token;
+  }
+
   const credentials = options.credentials ?? (await getUubtCredentials());
   if (!credentials) {
-    throw new Error(
-      'Plus4U integrace není nastavená — doplňte access code 1 a 2 v Nastavení AI.'
+    throw new UubtInteractiveLoginRequiredError(
+      'Plus4U integrace není přihlášená — doplňte přístupové kódy nebo v Nastavení AI zvolte Otestovat připojení.'
     );
   }
 
-  const cacheKey = buildCacheKey(credentials);
+  const cacheKey = buildPasswordCacheKey(credentials);
+  const cached = getCachedUubtToken(cacheKey);
   if (
     !options.forceRefresh &&
-    cachedToken &&
-    cachedToken.cacheKey === cacheKey &&
-    cachedToken.expiresAt - TOKEN_EXPIRY_SAFETY_MS > Date.now()
+    cached &&
+    cached.expiresAt - TOKEN_EXPIRY_SAFETY_MS > Date.now()
   ) {
-    return cachedToken;
+    return cached;
   }
 
-  const token = await requestToken(credentials);
-  cachedToken = { ...token, cacheKey };
-  // Bez uuIdentity — log si uživatelé přikládají k hlášení chyb.
-  log.info(
-    `uubt token obtained, expires ${new Date(token.expiresAt).toISOString()}`
-  );
-  return token;
+  try {
+    const token = await requestPasswordToken(credentials);
+    setCachedUubtToken(cacheKey, token);
+    // Bez uuIdentity — log si uživatelé přikládají k hlášení chyb.
+    log.info(
+      `uubt token obtained, expires ${new Date(token.expiresAt).toISOString()}`
+    );
+    return token;
+  } catch (error) {
+    if (error instanceof UubtInteractiveLoginRequiredError) {
+      throw error;
+    }
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(String(error));
+  }
 }

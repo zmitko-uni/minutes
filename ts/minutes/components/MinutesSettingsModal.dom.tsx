@@ -405,40 +405,19 @@ export function MinutesSettingsModal({
       uubtEnabled,
     ]);
 
-  const handleSaveUubtCredentials = useCallback(() => {
-    setIsBusy(true);
-    setStatusMessage(null);
-    drop(
-      (async () => {
-        try {
-          const saved = await persistUubtSettings();
-          setStatusMessage(
-            saved.hasCredentials
-              ? 'Plus4U: přístupové kódy uloženy.'
-              : 'Plus4U: uložené kódy odstraněny.'
-          );
-        } catch (error) {
-          setStatusMessage(formatUserFacingError(error));
-        } finally {
-          setIsBusy(false);
-        }
-      })()
-    );
-  }, [persistUubtSettings]);
-
   const handleTestUubt = useCallback(() => {
     setIsBusy(true);
-    setStatusMessage(null);
+    setStatusMessage(
+      'Kontrola připojení — pokud je potřeba, otevře se prohlížeč pro přihlášení do Plus4U.'
+    );
     drop(
       (async () => {
         try {
-          // Test běží proti uloženým kódům, takže rozepsané nejdřív uložíme.
           const saved = await persistUubtSettings();
-          if (!saved.hasCredentials) {
-            setStatusMessage('Doplňte access code 1 i access code 2.');
-            return;
-          }
+          setUubtLoaded(saved);
           const result = await testUubtConnection();
+          const refreshed = await getUubtSettings();
+          setUubtLoaded(refreshed);
           setStatusMessage(`Plus4U: ${result.message}`);
         } catch (error) {
           setStatusMessage(formatUserFacingError(error));
@@ -789,9 +768,16 @@ export function MinutesSettingsModal({
               <p className={tw('text-label-small opacity-70')}>
                 Po dokončení přepisu půjde AI shrnutí zapsat ke schůzce z vašeho
                 kalendáře v Plus4U — vloží se do sekce Zápis. Přihlášení probíhá
-                přístupovými kódy z Plus4U; ukládají se šifrovaně přes
-                safeStorage OS.
+                přístupovými kódy, nebo přes prohlížeč (účty s 2FA). Tajemství
+                se ukládají šifrovaně přes safeStorage OS.
               </p>
+
+              {uubtLoaded.hasBrowserSession && uubtLoaded.browserIdentityMasked && (
+                <p className={tw('text-label-small')}>
+                  Přihlášen přes prohlížeč:{' '}
+                  <strong>{uubtLoaded.browserIdentityMasked}</strong>
+                </p>
+              )}
 
               <label className={tw('flex items-center justify-between gap-3')}>
                 <span>Povolit zápis ke schůzkám Plus4U</span>
@@ -875,19 +861,15 @@ export function MinutesSettingsModal({
                   variant="strong-secondary"
                   size="sm"
                   disabled={isBusy}
-                  onClick={handleSaveUubtCredentials}
-                >
-                  Uložit kódy
-                </AxoButton.Root>
-                <AxoButton.Root
-                  variant="subtle-secondary"
-                  size="sm"
-                  disabled={isBusy}
                   onClick={handleTestUubt}
                 >
                   Otestovat připojení
                 </AxoButton.Root>
               </div>
+              <p className={tw('text-label-small opacity-70')}>
+                Uloží rozepsané kódy, ověří přístup k Plus4U a při účtu s 2FA
+                otevře prohlížeč pro přihlášení.
+              </p>
             </fieldset>
           </div>
         </AxoDialog.Body>

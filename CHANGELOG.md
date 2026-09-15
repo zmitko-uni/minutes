@@ -14,7 +14,13 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- **Plus4U integrace**: přihlášení přes prohlížeč s 2FA jako fallback, když přístupové kódy nestačí — automaticky při **Otestovat připojení** a při prvním použití Plus4U (vizitky, schůzky, zápis)
+- **Plus4U přihlášení**: než se otevře prohlížeč, Minutes se zeptá dialogem **Otevřít prohlížeč / Zrušit**
+
+### Changed
+- **Nastavení AI → Plus4U**: jen **Otestovat připojení** (uloží kódy, ověří přístup, při 2FA otevře prohlížeč); integrace funguje i s browser relací bez access codes
+- **Plus4U v aplikaci**: místo technické chyby IPC rozumná hláška; při potřebě přihlášení se otevře prohlížeč (vizitky, kalendář, zápis)
+- **Plus4U přihlášení přes prohlížeč**: po dokončení v prohlížeči stejná stránka **showAuthorizationCode** jako u Init Data Loaderu (místo prostého textu na localhostu)
 
 ## [8.26.0-m1.5.0-beta.2] - 2026-09-15
 

@@ -391,7 +391,7 @@ export function MinutesTranscriptsTab(): JSX.Element {
         (async () => {
           try {
             const settings = await getUubtSettings();
-            setIsUubtEnabled(settings.enabled && settings.hasCredentials);
+            setIsUubtEnabled(settings.enabled && settings.hasAuth);
           } catch {
             setIsUubtEnabled(false);
           }
