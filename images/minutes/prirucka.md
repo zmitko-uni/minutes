@@ -34,7 +34,7 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 1. Během hovoru zvolte **nahrávání zvuku** nebo **nahrávání sdíleného videa** (vedle mute)
 2. V potvrzení **Nahrávání se chystá spustit** klikněte **Spustit nahrávání** (nebo **Zrušit**, pokud nahrávat nechcete)
 3. Po skončení se nahrávka uloží automaticky
-4. Pro přepis audio i video nahrávky v **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
+4. Pro přepis audio i video nahrávky v **Nastavení přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno) — při stahování uvidíte průběh včetně velikosti, rychlosti a odhadu času
 5. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ### Zvonění ve velké skupině
@@ -102,7 +102,7 @@ Klíče u ostatních poskytovatelů zůstávají uložené. Chcete-li později p
 | **Gemma 3 12B** | od 12 GB | cca 7,5 GB | Kompromis kvalita/rychlost |
 | **Gemma 4 12B** *(doporučeno)* | od 16 GB | cca 7 GB | Nejlepší kvalita, včetně češtiny |
 
-3. Klikněte **Stáhnout a aktivovat** (během stahování lze **Zrušit stahování**)
+3. Klikněte **Stáhnout a aktivovat** — pod tlačítkem uvidíte **průběh stahování** (kolik MB/GB už je na disku z celkové velikosti, rychlost a odhad zbývajícího času). Během stahování lze **Zrušit stahování**
 4. **Uložit** nastavení
 
 Shrnutí proběhne **jen na vašem počítači** — nic se neposílá do cloudu. První shrnutí může trvat déle (načtení modelu do paměti).
@@ -158,9 +158,9 @@ Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u 
 ### Přepis (Whisper)
 
 1. **Menu → Minutes → Nastavení Přepisů (Minutes)**
-2. Stáhněte model **Large v3 Turbo** *(doporučeno)* — u češtiny nejlepší poměr přesnosti a rychlosti, zejména s GPU
+2. Klikněte **Stáhnout a aktivovat** u modelu **Large v3 Turbo** *(doporučeno)* — u češtiny nejlepší poměr přesnosti a rychlosti, zejména s GPU. Při stahování uvidíte průběh (staženo / celkem, rychlost, odhad času), stejně jako u lokálního LLM v Nastavení AI
 3. Zkontrolujte řádek **Akcelerace přepisu** — měl by ukázat `GPU — …` (ne CPU), pokud máte zapnuté GPU v nastavení
-4. Máte-li **více grafických karet**, v sekci **Výkon přepisu** zvolte **Grafická karta pro akceleraci** (typicky diskrétní NVIDIA/AMD místo integrované)
+4. Máte-li **více grafických karet**, v sekci **Výkon přepisu** zvolte **Grafická karta pro akceleraci** z rozbalovací nabídky (typicky diskrétní NVIDIA/AMD místo integrované)
 5. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**)
 
 **Tip:** Model **Medium** je menší alternativa pro slabší PC bez grafiky. **Small** je rychlejší, ale u češtiny často dělá chyby. **Large v3** je nejpřesnější, ale nejpomalejší.
@@ -253,10 +253,10 @@ Hotové AI shrnutí hovoru lze vložit přímo do sekce **Zápis** schůzky ve v
 
 1. **Menu → Minutes → Nastavení AI** → sekce **Plus4U integrace**
 2. Zapněte **Povolit zápis ke schůzkám Plus4U**
-3. Vyplňte **Access code 1** a **Access code 2** (přístupové kódy vašeho firemního účtu)
-4. Klikněte **Uložit kódy** a pak **Otestovat připojení** — vypíše se, pod kým jste přihlášení
+3. Vyplňte **Access code 1** a **Access code 2** (volitelné — účty s 2FA často kódy nestačí)
+4. Klikněte **Otestovat připojení** — uloží kódy, ověří přístup a vypíše, pod kým jste přihlášení. Když je potřeba 2FA nebo ještě nemáte relaci, Minutes se zeptá dialogem **Otevřít prohlížeč / Zrušit** a po potvrzení otevře přihlašovací stránku Plus4U; dokončíte přihlášení a vrátíte se do Minutes. Stejně se zeptá i při prvním použití vizitek, kalendáře schůzek nebo zápisu, pokud ještě nejste přihlášení
 
-Kódy se ukládají **šifrovaně přes safeStorage operačního systému**, stejně jako API klíče. Přihlašovací token existuje jen v paměti běžící aplikace a nikam se neukládá.
+Kódy a refresh token z přihlášení přes prohlížeč se ukládají **šifrovaně přes safeStorage** (Windows: `%APPDATA%\Minutes\minutes\uubt-settings.json`, macOS: `~/Library/Application Support/Minutes/minutes/…`). Krátkodobý přístupový token je jen v paměti běžící aplikace.
 
 ### Odeslání zápisu
 
@@ -549,13 +549,14 @@ Přepis začíná červeným varováním **„Nahrávka je poškozená — X % z
 
 - V **Nastavení AI** → **Plus4U integrace** klikněte **Otestovat připojení** — ověří přihlášení
 - *Neplatné přístupové kódy* — zkontrolujte oba kódy (Access code 2 se kvůli bezpečnosti nezobrazuje, přepište ho celý)
+- *Účet s 2FA* — při **Otestovat připojení** nebo při prvním volání Plus4U (vizitky, schůzky) Minutes otevře prohlížeč; dokončete přihlášení včetně druhého faktoru
 - **Prázdný seznam schůzek** — přepněte v dialogu datum; nabízejí se jen schůzky z vašeho kalendáře pro daný den, bez zrušených a odmítnutých
-- **Tlačítko Zapsat ke schůzce Plus4U je zašedlé** — tlačítko najdete v tabu **Shrnutí**. Zašedlé je, dokud nahrávka nemá hotové **shrnutí** (přepis sám nestačí), nebo dokud v **Nastavení AI → Plus4U integrace** není zapnutá integrace **a uložené oba přístupové kódy** (stačí jeden chybějící a tlačítko zůstane neaktivní). Tooltip nad tlačítkem řekne který případ to je
+- **Tlačítko Zapsat ke schůzce Plus4U je zašedlé** — tlačítko najdete v tabu **Shrnutí**. Zašedlé je, dokud nahrávka nemá hotové **shrnutí** (přepis sám nestačí), nebo dokud v **Nastavení AI → Plus4U integrace** není zapnutá integrace **a** nemáte uložené kódy **ani** aktivní přihlášení přes prohlížeč. Tooltip nad tlačítkem řekne který případ to je
 - Když zápis nelze vložit, podrobnosti najdete v **Menu → Minutes → Zobrazit log**
 
 ### Vizitky (uuBEM) nejdou otevřít nebo nic nenajdou
 
-- **Tab Vizitky v levé liště není** — není zapnutá integrace Plus4U. Zapněte ji v **Nastavení AI → Plus4U integrace** a uložte oba přístupové kódy; tab se objeví hned po uložení
+- **Tab Vizitky v levé liště není** — není zapnutá integrace Plus4U. Zapněte ji v **Nastavení AI → Plus4U integrace** a přihlaste se (kódy nebo prohlížeč); tab se objeví hned po uložení
 - **Hledání nic nenašlo** — zkuste jen příjmení. Hledá se v uuBEM, takže se najdou jen lidé, kteří tam vizitku mají
 - **Místo fotky je kolečko s iniciálami** — osoba nemá fotku v Plus4U. Fotky nepocházejí z uuBEM, ale z Plus4U People, takže se doplňují tam
 - **V detailu nejsou žádné telefony ani e-maily** — vizitka je v uuBEM takto prázdná, Minutes nic neskrývá. Přes **Otevřít v uuBEM** si to ověříte a údaje doplníte

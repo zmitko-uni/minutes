@@ -14,7 +14,7 @@ import {
   UUBT_PEOPLE_BASE_URI,
   uuIdentityCandidates,
 } from './uubt.std.ts';
-import { getUubtToken } from './uubtAuth.main.ts';
+import { getUubtTokenWithInteractiveLogin } from './uubtAuthSession.main.ts';
 import { UubtApiError, uubtGet } from './uubtClient.main.ts';
 
 const log = createLogger('minutes/uubtCalendar');
@@ -133,7 +133,7 @@ export function clearUubtCalendarCache(): void {
 }
 
 export async function getUubtConnectionInfo(): Promise<UubtConnectionInfo> {
-  const { identityCandidates } = await getUubtToken();
+  const { identityCandidates } = await getUubtTokenWithInteractiveLogin();
   const { uuIdentity, person } = await loadPerson(identityCandidates);
   const dwUri = findDwUri(person);
 

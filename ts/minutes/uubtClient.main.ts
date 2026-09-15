@@ -3,7 +3,7 @@
 
 import { createLogger } from '../logging/log.std.ts';
 import { redactLongStrings, UUBT_REQUEST_TIMEOUT_MS } from './uubt.std.ts';
-import { getUubtToken } from './uubtAuth.main.ts';
+import { getUubtTokenWithInteractiveLogin } from './uubtAuthSession.main.ts';
 
 const log = createLogger('minutes/uubtClient');
 
@@ -142,7 +142,9 @@ async function call<T>(
   init: Readonly<{ method: 'GET' | 'POST'; dtoIn?: unknown }>,
   attempt = 0
 ): Promise<T> {
-  const { token } = await getUubtToken({ forceRefresh: attempt > 0 });
+  const { token } = await getUubtTokenWithInteractiveLogin({
+    forceRefresh: attempt > 0,
+  });
 
   let response: Response;
   try {
@@ -267,7 +269,9 @@ export async function uubtGetBinary(
     }
   }
 
-  const { token } = await getUubtToken({ forceRefresh: attempt > 0 });
+  const { token } = await getUubtTokenWithInteractiveLogin({
+    forceRefresh: attempt > 0,
+  });
 
   let response: Response;
   try {

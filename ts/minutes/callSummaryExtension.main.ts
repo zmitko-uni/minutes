@@ -25,6 +25,7 @@ import {
   getWhisperModelLabel,
 } from './whisperSettings.std.ts';
 import { AI_SETTINGS_DIR_NAME } from './constants.std.ts';
+import { createDownloadProgressReporter } from './downloadProgress.std.ts';
 import {
   checkWhisperRuntime,
   resetWhisperRuntimeCheck,
@@ -317,23 +318,18 @@ async function ensureVadModel(
     // download below
   }
 
-  sendProgress({
-    phase: 'downloading',
-    message: 'Stahuji VAD model (Silero)…',
-    percent: 0,
+  const vadDownloadMessage = 'Stahuji VAD model (Silero)…';
+  const vadReporter = createDownloadProgressReporter({
+    onReport: snapshot =>
+      sendProgress({
+        phase: 'downloading',
+        message: vadDownloadMessage,
+        ...snapshot,
+      }),
   });
 
-  await downloadFile(WHISPER_VAD_MODEL_URL, vadPath, (loaded, total) => {
-    const percent =
-      total && total > 0
-        ? Math.min(99, Math.round((loaded / total) * 100))
-        : undefined;
-    sendProgress({
-      phase: 'downloading',
-      message: 'Stahuji VAD model…',
-      percent,
-    });
-  });
+  await downloadFile(WHISPER_VAD_MODEL_URL, vadPath, vadReporter.onProgress);
+  vadReporter.flush();
 }
 
 async function loadRecordingPcmSidecar(
@@ -460,23 +456,18 @@ export async function installCallSummaryExtension(
   if (!existing.ready) {
     const downloadUrl = getWhisperModelDownloadUrl(modelFileName);
     const downloadLabel = getWhisperModelDownloadLabel(modelFileName);
-    sendProgress({
-      phase: 'downloading',
-      message: `Stahuji ${modelFileName} (${downloadLabel})…`,
-      percent: 0,
+    const whisperDownloadMessage = `Stahuji ${modelFileName} (${downloadLabel})…`;
+    const whisperReporter = createDownloadProgressReporter({
+      onReport: snapshot =>
+        sendProgress({
+          phase: 'downloading',
+          message: whisperDownloadMessage,
+          ...snapshot,
+        }),
     });
 
-    await downloadFile(downloadUrl, modelPath, (loaded, total) => {
-      const percent =
-        total && total > 0
-          ? Math.min(99, Math.round((loaded / total) * 100))
-          : undefined;
-      sendProgress({
-        phase: 'downloading',
-        message: `Stahuji ${modelFileName}…`,
-        percent,
-      });
-    });
+    await downloadFile(downloadUrl, modelPath, whisperReporter.onProgress);
+    whisperReporter.flush();
   }
 
   sendProgress({

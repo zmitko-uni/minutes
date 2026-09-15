@@ -94,7 +94,12 @@ import {
   getUubtSettingsPublic,
   saveUubtSettings,
 } from '../ts/minutes/uubtSettings.main.ts';
-import { clearUubtTokenCache } from '../ts/minutes/uubtAuth.main.ts';
+import { clearUubtTokenCache } from '../ts/minutes/uubtTokenCache.main.ts';
+import {
+  cancelUubtBrowserLogin,
+  logoutUubtBrowserSession,
+  runUubtBrowserLogin,
+} from '../ts/minutes/uubtBrowserAuth.main.ts';
 import {
   clearUubtCalendarCache,
   getUubtConnectionInfo,
@@ -967,6 +972,23 @@ export async function initializeMinutesChannel(automationOptions?: {
       return { ok: true, message: `přihlášen jako ${who}` };
     }
   );
+
+  ipcMain.handle('minutes:uubt-start-browser-login', async () => {
+    await runUubtBrowserLogin();
+    clearUubtCalendarCache();
+    return getUubtSettingsPublic();
+  });
+
+  ipcMain.handle('minutes:uubt-cancel-browser-login', async () => {
+    cancelUubtBrowserLogin();
+    return getUubtSettingsPublic();
+  });
+
+  ipcMain.handle('minutes:uubt-logout-browser', async () => {
+    await logoutUubtBrowserSession();
+    clearUubtCalendarCache();
+    return getUubtSettingsPublic();
+  });
 
   ipcMain.handle(
     'minutes:uubt-list-meetings',

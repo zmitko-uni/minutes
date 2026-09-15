@@ -20,7 +20,7 @@ let integrationEnabled = false;
 const integrationListeners = new Set<(enabled: boolean) => void>();
 
 function setIntegrationEnabled(settings: UubtSettingsPublic): void {
-  const next = settings.enabled && settings.hasCredentials;
+  const next = settings.enabled && settings.hasAuth;
   if (next === integrationEnabled) {
     return;
   }
@@ -65,6 +65,24 @@ export async function testUubtConnection(): Promise<{
   message: string;
 }> {
   return ipcRenderer.invoke('minutes:uubt-test-connection');
+}
+
+export async function startUubtBrowserLogin(): Promise<UubtSettingsPublic> {
+  const settings = await ipcRenderer.invoke('minutes:uubt-start-browser-login');
+  setIntegrationEnabled(settings);
+  return settings;
+}
+
+export async function cancelUubtBrowserLogin(): Promise<UubtSettingsPublic> {
+  const settings = await ipcRenderer.invoke('minutes:uubt-cancel-browser-login');
+  setIntegrationEnabled(settings);
+  return settings;
+}
+
+export async function logoutUubtBrowserSession(): Promise<UubtSettingsPublic> {
+  const settings = await ipcRenderer.invoke('minutes:uubt-logout-browser');
+  setIntegrationEnabled(settings);
+  return settings;
 }
 
 export async function listUubtMeetings(
