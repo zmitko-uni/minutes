@@ -21,6 +21,25 @@ export type RingRtcAudioDropEvent = Readonly<{
   remotePlayoutSamples: number;
 }>;
 
+export type RingRtcAudioCaptureStats = Readonly<{
+  capturedSamples: number;
+  droppedSamples: number;
+  /** 0..1 share of the call that never reached the recorder. */
+  lossRatio: number;
+}>;
+
+export function summarizeRingRtcAudioCapture(
+  capturedSamples: number,
+  droppedSamples: number
+): RingRtcAudioCaptureStats {
+  const total = capturedSamples + droppedSamples;
+  return {
+    capturedSamples,
+    droppedSamples,
+    lossRatio: total > 0 ? droppedSamples / total : 0,
+  };
+}
+
 export function readRingRtcAudioTap(
   api: RingRtcAudioTapApi,
   maxSamplesPerSource: number,

@@ -35,6 +35,11 @@ import {
   type WhisperTranscribeRuntimeOptions,
 } from './whisperTranscribe.main.ts';
 import { readPcmF32FileForWhisper } from './recordingPcmReader.node.ts';
+import {
+  formatPcmCaptureGapWarning,
+  isPcmCaptureSeverelyDamaged,
+  measurePcmCaptureGaps,
+} from './pcmCaptureGaps.std.ts';
 import { getRecordingArtifactPaths } from './recordingArtifacts.std.ts';
 import {
   getPrivateRecordingPcmPath,
@@ -517,6 +522,7 @@ function formatTranscriptMarkdown(options: {
   alignedSegments?: ReadonlyArray<AlignedTranscriptSegment>;
   localSpeakerDisplayName?: string;
   whisperModelLabel?: string;
+  captureGapWarning?: string;
 }): string {
   const lines = [
     `# Přepis hovoru: ${options.conversationTitle}`,
@@ -528,6 +534,10 @@ function formatTranscriptMarkdown(options: {
 
   if (options.whisperModelLabel) {
     lines.push(`- Whisper model: ${options.whisperModelLabel}`);
+  }
+
+  if (options.captureGapWarning) {
+    lines.push('', options.captureGapWarning);
   }
 
   lines.push('', '## Přepis', '');
@@ -637,6 +647,22 @@ export async function transcribeCallRecording(options: {
     }
 
     const pcmDurationMs = (pcmf32.length / 16_000) * 1000;
+    const captureGaps = measurePcmCaptureGaps(pcmf32);
+    const captureGapWarning = isPcmCaptureSeverelyDamaged(captureGaps)
+      ? formatPcmCaptureGapWarning(captureGaps)
+      : undefined;
+    if (captureGapWarning) {
+      const lostPercent = Math.round(captureGaps.gapRatio * 100);
+      log.warn(
+        `recording has ${lostPercent}% digital silence (longest gap ` +
+          `${captureGaps.longestGapMs} ms) — audio was lost while recording`
+      );
+      report({
+        percent: 4,
+        phase: 'prepare',
+        detail: `Pozor: ${lostPercent} % nahrávky je ticho — zvuk se nezachytil`,
+      });
+    }
     const transcribeSettings = extension.transcribeSettings;
     const whisperRuntime = buildWhisperRuntimeOptions(
       transcribeSettings,
@@ -763,6 +789,7 @@ export async function transcribeCallRecording(options: {
       alignedSegments: [...alignedSegments],
       localSpeakerDisplayName: options.localSpeakerDisplayName,
       whisperModelLabel,
+      captureGapWarning,
     });
     report({
       percent: 92,
@@ -823,6 +850,7 @@ export async function transcribeCallRecording(options: {
               alignedSegments,
               localSpeakerDisplayName: options.localSpeakerDisplayName,
               whisperModelLabel,
+              captureGapWarning,
             }),
             'utf8'
           );
@@ -842,6 +870,7 @@ export async function transcribeCallRecording(options: {
       alignedSegments,
       localSpeakerDisplayName: options.localSpeakerDisplayName,
       whisperModelLabel,
+      captureGapWarning,
     });
     await writeFile(transcriptPath, markdown, 'utf8');
     await writeCallTranscriptMetadata(basePath, {

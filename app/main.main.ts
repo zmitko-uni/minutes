@@ -738,6 +738,10 @@ async function createWindow() {
       nodeIntegrationInWorker: false,
       sandbox: false,
       contextIsolation: !isTestEnvironment(getEnvironment()),
+      // minutes: the RingRTC audio tap is drained by a renderer timer, which
+      // Chromium throttles to 1 Hz while the window is hidden — that silently
+      // discarded ~90% of every call recording.
+      backgroundThrottling: false,
       preload: isTestEnvironment(getEnvironment())
         ? join(rootDir, 'ts', 'windows', 'main', 'tsx.preload.js')
         : join(rootDir, 'bundles', 'preload', 'wrapper.js'),

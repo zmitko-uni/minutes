@@ -13,7 +13,7 @@
 | `app/startup_config.main.ts` | minutes AUMID + název aplikace | pár řádků |
 | `app/WindowsNotifications.main.ts` | fallback toast + log AUMID | minutes |
 | `app/minutes_readme.main.ts` | načtení příručky z disku |
-| `app/main.main.ts` | IPC init, menu akce, minutes ikona, test pipeline hook (`MINUTES_TEST_PIPELINE=1`), schéma `minutesmedia` v `registerSchemesAsPrivileged` | registrace |
+| `app/main.main.ts` | IPC init, menu akce, minutes ikona, test pipeline hook (`MINUTES_TEST_PIPELINE=1`), schéma `minutesmedia` v `registerSchemesAsPrivileged`, `backgroundThrottling: false` na hlavním okně (bez toho Chromium zpomalí časovač, který vyčítá RingRTC audio tap, a nahrávka hovoru na pozadí přijde o ~90 % zvuku) | registrace + 1 řádek `webPreferences` |
 | `app/SystemTrayService.main.ts` | tray ikona + tooltip minutes | 2 volání |
 | `app/menu.std.ts` | submenu Minutes + Příručka/MCP | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |

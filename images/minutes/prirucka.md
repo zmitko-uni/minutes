@@ -521,6 +521,14 @@ V tabu **Přepisy** je u nahrávky v seznamu jen krátké **Přepis selhal** / *
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
 - Na macOS: režim mikrofonu se volí v **Control Center** (oranžová ikona mikrofonu v řádku nabídek), ne v nastavení Minutes
 
+### Přepis je jen pár řádků, i když hovor trval desítky minut
+
+Přepis začíná červeným varováním **„Nahrávka je poškozená — X % zvuku se nezachytilo“**? Pak chyba není v přepisu, ale v nahrávce — místo zvuku je v ní ticho a Whisper nemá co přepsat.
+
+- Ve verzích **do 8.26.0-m1.5.0** k tomu docházelo, když bylo okno Minutes během hovoru minimalizované. **Aktualizujte Minutes** — v novějších verzích se nahrává kompletně i na pozadí
+- Už pořízené poškozené nahrávky zachránit nelze, ten zvuk se nikdy neuložil; hovor je potřeba nahrát znovu
+- Pokud varování vidíte i po aktualizaci, pošlete **Menu → Minutes → Zobrazit log** — hledá se hláška `RingRTC audio capture lost`
+
 ### Export MP4 selhal
 
 - V tabu **Přepisy** zkuste **Soubory → Přegenerovat MP4**, nebo nainstalujte FFmpeg do systému a akci spusťte znovu
@@ -593,4 +601,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-09-13*
+*Poslední aktualizace příručky: 2026-09-15*

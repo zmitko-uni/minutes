@@ -9,9 +9,13 @@ import { createLogger } from '../logging/log.std.ts';
 import {
   readRingRtcAudioTap,
   resolveRingRtcAudioTapApi,
+  summarizeRingRtcAudioCapture,
+  type RingRtcAudioCaptureStats,
+  type RingRtcAudioDropEvent,
   type RingRtcAudioTapApi,
 } from './ringRtcAudioTapApi.std.ts';
 import {
+  RING_RTC_AUDIO_MAX_QUEUE_SAMPLE_COUNT,
   RING_RTC_AUDIO_PREROLL_SAMPLE_COUNT,
   type RingRtcAudioWorkletMessage,
 } from './ringRtcAudioTimeline.std.ts';
@@ -23,9 +27,17 @@ import { configureRingRtcRecordingAudioContext } from './ringRtcAudioContext.std
 
 const log = createLogger('minutes/ringRtcAudioTrack');
 const POLL_INTERVAL_MS = 10;
-const MAX_SAMPLES_PER_POLL = 4_800;
+// A poll must be able to drain whatever a stalled timer let pile up. Reading
+// more than the timeline can queue is pointless: the worklet renders in real
+// time, so anything beyond the queue depth would be trimmed away again.
+const MAX_SAMPLES_PER_POLL = RING_RTC_AUDIO_MAX_QUEUE_SAMPLE_COUNT;
 const DEGRADED_START_GRACE_MS = 500;
 const STARTUP_TIMEOUT_MS = 2_000;
+const DROP_LOG_INTERVAL_MS = 10_000;
+
+function formatLossPercent(lossRatio: number): string {
+  return `${(lossRatio * 100).toFixed(1)}%`;
+}
 
 export class RingRtcAudioTrack {
   readonly #api: RingRtcAudioTapApi;
@@ -42,6 +54,8 @@ export class RingRtcAudioTrack {
   #progressGeneration = 0;
   #localSamplesObserved = 0;
   #remoteSamplesObserved = 0;
+  #droppedSamplesObserved = 0;
+  #lastDropLogAt = 0;
   #degradedStartAllowed = false;
   #degradedStartRequested = false;
   readonly #readyPromise: Promise<void>;
@@ -158,6 +172,13 @@ export class RingRtcAudioTrack {
     return this.#destination.stream;
   }
 
+  #captureStats(): RingRtcAudioCaptureStats {
+    return summarizeRingRtcAudioCapture(
+      this.#localSamplesObserved + this.#remoteSamplesObserved,
+      this.#droppedSamplesObserved
+    );
+  }
+
   startPcmGeneration(): void {
     if (this.#stopped) {
       return;
@@ -195,6 +216,13 @@ export class RingRtcAudioTrack {
     }
     this.#stopped = true;
     clearInterval(this.#pollTimer);
+    const stats = this.#captureStats();
+    if (stats.droppedSamples > 0) {
+      log.warn(
+        `RingRTC audio capture lost ${formatLossPercent(stats.lossRatio)} of the call ` +
+          `(${stats.droppedSamples} dropped, ${stats.capturedSamples} captured samples)`
+      );
+    }
     try {
       this.#api.stopAudioTap();
     } finally {
@@ -234,12 +262,7 @@ export class RingRtcAudioTrack {
       const packets = readRingRtcAudioTap(
         this.#api,
         MAX_SAMPLES_PER_POLL,
-        droppedSamples => {
-          log.warn(
-            'RingRTC audio tap dropped samples; recording the gap as silence',
-            droppedSamples
-          );
-        }
+        event => this.#recordDroppedSamples(event)
       );
       this.#latestWriterCursor = Math.max(
         packets.local.startSample + packets.local.samples.length,
@@ -260,6 +283,21 @@ export class RingRtcAudioTrack {
         error instanceof Error ? error : new Error(String(error))
       );
     }
+  }
+
+  #recordDroppedSamples(event: RingRtcAudioDropEvent): void {
+    this.#droppedSamplesObserved +=
+      event.localInputSamples + event.remotePlayoutSamples;
+
+    const now = Date.now();
+    if (now - this.#lastDropLogAt < DROP_LOG_INTERVAL_MS) {
+      return;
+    }
+    this.#lastDropLogAt = now;
+    log.warn(
+      'RingRTC audio tap is dropping samples; the gaps are recorded as silence ' +
+        `(${formatLossPercent(this.#captureStats().lossRatio)} lost so far)`
+    );
   }
 
   #postPacket(
