@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.5.0-beta.2] - 2026-09-15
+
 ### Fixed
 - **Nahrávání hovoru na pozadí už nepřichází o zvuk** — pokud bylo okno Minutes během hovoru minimalizované, Windows/Chromium zpomalil vnitřní časovač aplikace a do nahrávky se zapsalo jen asi 10 % zvuku, zbytek bylo digitální ticho (delší hovory někdy utichly úplně). Nahrávka i přepis jsou teď kompletní i při minimalizovaném okně; stejná příčina postihovala i nahrávání sdíleného videa
 - Poškozenou nahrávku už poznáte na první pohled: pokud se část zvuku nezachytila, přepis začíná varováním s údajem, kolik procent nahrávky chybí
