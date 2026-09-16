@@ -106,14 +106,18 @@ import {
   loadUubtMeetingTexts,
 } from '../ts/minutes/uubtMeetingMinutes.main.ts';
 import type {
-  UubemBusinessCard,
-  UubemBusinessCardDetail,
-} from '../ts/minutes/uubem.std.ts';
+  PersonCardDetail,
+  PersonCardSource,
+  PersonSearchResult,
+} from '../ts/minutes/personCard.std.ts';
+import type { PersonCardSearchResponse } from '../ts/minutes/personCard.main.ts';
 import {
-  findUubemBusinessCards,
-  loadUubemBusinessCard,
-  loadUubemPersonPhoto,
-} from '../ts/minutes/uubemPersonCard.main.ts';
+  clearMyPersonCardCache,
+  loadMyPersonCard,
+  loadPersonCardDetail,
+  loadPersonPhoto,
+  searchPersonCards,
+} from '../ts/minutes/personCard.main.ts';
 import { readMinutesReadmeContent } from './minutes_readme.main.ts';
 import {
   checkForAppUpdate,
@@ -918,29 +922,39 @@ export async function initializeMinutesChannel(automationOptions?: {
   );
 
   ipcMain.handle(
-    'minutes:uubem-find-business-cards',
+    'minutes:person-card-search',
     async (
       _event,
-      options: { searchString: string }
-    ): Promise<ReadonlyArray<UubemBusinessCard>> => {
-      return findUubemBusinessCards(options.searchString);
+      options: {
+        searchString: string;
+        enabledSources: ReadonlyArray<PersonCardSource>;
+      }
+    ): Promise<PersonCardSearchResponse> => {
+      return searchPersonCards(options.searchString, options.enabledSources);
     }
   );
 
   ipcMain.handle(
-    'minutes:uubem-load-business-card',
+    'minutes:person-card-load',
     async (
       _event,
-      options: { id: string; uuIdentity: string }
-    ): Promise<UubemBusinessCardDetail> => {
-      return loadUubemBusinessCard(options);
+      options: { uuIdentity: string; uubemId: string | null }
+    ): Promise<PersonCardDetail> => {
+      return loadPersonCardDetail(options);
     }
   );
 
   ipcMain.handle(
-    'minutes:uubem-load-person-photo',
+    'minutes:person-card-me',
+    async (): Promise<PersonSearchResult | null> => {
+      return loadMyPersonCard();
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:person-card-photo',
     async (_event, options: { uuIdentity: string }): Promise<string | null> => {
-      return loadUubemPersonPhoto(options.uuIdentity);
+      return loadPersonPhoto(options.uuIdentity);
     }
   );
 
@@ -952,9 +966,11 @@ export async function initializeMinutesChannel(automationOptions?: {
     'minutes:uubt-save-settings',
     async (_event, input: UubtSettingsSaveInput) => {
       const saved = await saveUubtSettings(input);
-      // Přihlašovací údaje se mohly změnit — starý token i dwUri zahodíme.
+      // Přihlašovací údaje se mohly změnit — token, dwUri i vlastní vizitku
+      // zahodíme, jinak by aplikace zůstala u předchozího účtu.
       clearUubtTokenCache();
       clearUubtCalendarCache();
+      clearMyPersonCardCache();
       return saved;
     }
   );

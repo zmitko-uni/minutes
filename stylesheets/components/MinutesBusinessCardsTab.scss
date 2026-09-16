@@ -67,6 +67,122 @@
 
 .MinutesBusinessCardsTab__itemMeta {
   @include mixins.font-body-small;
+
+  & {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.65;
+  }
+}
+
+/*
+ * Upstream sidebar odsazuje hledání o 16 px, řádky seznamu i vlastní vizitka
+ * mají ale okraj 8 px. Sjednoceno na 8 px, aby všechny rámečky ve sloupci
+ * začínaly a končily na stejné svislici.
+ */
+.MinutesBusinessCardsTab .NavSidebarSearchHeader {
+  margin-block: 10px 8px;
+  margin-inline: 8px;
+}
+
+/* Přepínače zdrojů pod hledáním — vypnutý zdroj se ani nedotazuje. */
+.MinutesBusinessCardsTab__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-block: 0 10px;
+  padding-inline: 8px;
+}
+
+.MinutesBusinessCardsTab__filter {
+  @include mixins.button-reset;
+
+  & {
+    @include mixins.font-body-small;
+    padding-block: 3px;
+    padding-inline: 10px;
+    border: 1px solid var(--axo-color-border-primary);
+    border-radius: 999px;
+    opacity: 0.6;
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: transparent;
+    background: var(--axo-color-fill-primary-pressed);
+    opacity: 1;
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+/* Odkud údaj je — uuBEM, Plus4U People, nebo obojí. */
+.MinutesBusinessCardsTab__sourceTag {
+  @include mixins.font-caption;
+
+  & {
+    display: inline-block;
+    margin-inline-start: 6px;
+    padding-block: 1px;
+    padding-inline: 6px;
+    border-radius: 6px;
+    background: var(--axo-color-fill-primary-pressed);
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+}
+
+/*
+ * Vlastní vizitka nad hledáním. Chová se jako řádek seznamu, jen je vždycky
+ * vidět — proto stejné rozměry avataru i odsazení.
+ */
+.MinutesBusinessCardsTab__myCard {
+  @include mixins.button-reset;
+
+  & {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: calc(100% - 16px);
+    min-width: 0;
+    margin-block: 8px 0;
+    margin-inline: 8px;
+    padding-block: 8px;
+    padding-inline: 12px;
+    border-radius: 10px;
+    background: var(--axo-color-fill-primary);
+    text-align: start;
+  }
+
+  &:hover {
+    background: var(--axo-color-fill-primary-pressed);
+  }
+
+  &[aria-current='true'] {
+    background: var(--axo-color-fill-primary-pressed);
+  }
+
+  &:focus {
+    outline: none;
+    @include mixins.keyboard-mode {
+      @include mixins.axo-focus-ring;
+    }
+  }
+}
+
+.MinutesBusinessCardsTab__myCardLabel {
+  @include mixins.font-caption;
   opacity: 0.65;
 }
 

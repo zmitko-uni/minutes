@@ -7,26 +7,16 @@ import type {
   UubtMeeting,
   UubtMeetingActivity,
 } from './uubt.std.ts';
-import {
-  describeValueShape,
-  isSameUuIdentity,
-  maskUuValueShape,
-  UUBT_PEOPLE_BASE_URI,
-  uuIdentityCandidates,
-} from './uubt.std.ts';
+import { describeValueShape, isSameUuIdentity } from './uubt.std.ts';
 import { getUubtToken } from './uubtAuth.main.ts';
-import { UubtApiError, uubtGet } from './uubtClient.main.ts';
+import { uubtGet } from './uubtClient.main.ts';
+import type { Plus4uPersonRecord } from './plus4uPeople.main.ts';
+import {
+  clearPlus4uPeopleCache,
+  loadPlus4uPersonByIdentityCandidates,
+} from './plus4uPeople.main.ts';
 
 const log = createLogger('minutes/uubtCalendar');
-
-type PersonRecord = Record<string, unknown> & {
-  name?: string;
-  fullName?: string;
-  digitalWorkspaceUri?: string;
-  dwUri?: string;
-  myTerritoryUri?: string;
-  diaryWorkspaceUri?: string;
-};
 
 type DiaryRecord = Readonly<{
   id?: string;
@@ -45,9 +35,7 @@ type DiaryRecord = Readonly<{
 }> &
   Record<string, unknown>;
 
-const dwUriCache = new Map<string, ResolvedPerson>();
-
-function findDwUri(person: PersonRecord): string | null {
+function findDwUri(person: Plus4uPersonRecord): string | null {
   const direct =
     person.digitalWorkspaceUri ??
     person.dwUri ??
@@ -65,76 +53,15 @@ function findDwUri(person: PersonRecord): string | null {
   return null;
 }
 
-type ResolvedPerson = Readonly<{ uuIdentity: string; person: PersonRecord }>;
-
-/**
- * Token nemusí nést uuIdentity v podobě, kterou uuApp API přijímá, proto
- * zkoušíme všechny kandidáty z tokenu i jejich zápis s/bez pomlček.
- */
-async function loadPerson(
-  identityCandidates: ReadonlyArray<string>
-): Promise<ResolvedPerson> {
-  const cacheKey = identityCandidates.join('|');
-  const cached = dwUriCache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  let rejected: UubtApiError | null = null;
-
-  const attempts = identityCandidates.flatMap(candidate => [
-    ...uuIdentityCandidates(candidate),
-  ]);
-
-  for (const uuIdentity of attempts) {
-    let person: PersonRecord | undefined;
-    try {
-      // Sériově — další formát má smysl zkusit jen po odmítnutí předchozího.
-      // oxlint-disable-next-line no-await-in-loop
-      const response = await uubtGet<{
-        itemList?: ReadonlyArray<PersonRecord>;
-      }>(UUBT_PEOPLE_BASE_URI, 'findPerson', { uuIdentity });
-      person = response.itemList?.[0];
-    } catch (error) {
-      if (error instanceof UubtApiError && error.isInvalidDtoIn) {
-        log.warn(
-          `uubt findPerson rejected identity shape ${maskUuValueShape(uuIdentity)}`
-        );
-        rejected = error;
-        continue;
-      }
-      throw error;
-    }
-
-    if (person) {
-      const resolved: ResolvedPerson = { uuIdentity, person };
-      dwUriCache.set(cacheKey, resolved);
-      return resolved;
-    }
-
-    log.warn(
-      `uubt findPerson returned nothing for identity shape ${maskUuValueShape(uuIdentity)}`
-    );
-  }
-
-  if (rejected) {
-    throw new Error(
-      'Plus4U nepřijal identitu z přihlašovacího tokenu. Podrobnosti (názvy claimů) jsou v Menu → Minutes → Zobrazit log.'
-    );
-  }
-
-  throw new Error(
-    'Pro přihlášený účet se nepodařilo najít osobu ani její pracovní prostor.'
-  );
-}
-
+/** Osobu i její uuIdentity řeší Plus4U People, kalendář jen drží dwUri. */
 export function clearUubtCalendarCache(): void {
-  dwUriCache.clear();
+  clearPlus4uPeopleCache();
 }
 
 export async function getUubtConnectionInfo(): Promise<UubtConnectionInfo> {
   const { identityCandidates } = await getUubtToken();
-  const { uuIdentity, person } = await loadPerson(identityCandidates);
+  const { uuIdentity, person } =
+    await loadPlus4uPersonByIdentityCandidates(identityCandidates);
   const dwUri = findDwUri(person);
 
   if (!dwUri) {

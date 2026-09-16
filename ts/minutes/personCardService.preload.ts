@@ -10,14 +10,14 @@ import { isValidE164 } from '../util/isValidE164.std.ts';
 import { fromWebSafeBase64 } from '../util/webSafeBase64.std.ts';
 import { lookupConversationWithoutServiceId } from '../util/lookupConversationWithoutServiceId.preload.ts';
 import type {
-  UubemBusinessCard,
-  UubemBusinessCardDetail,
-  UubemSignalContact,
-} from './uubem.std.ts';
-import {
-  formatUubemBusinessCardMessage,
-  formatUubemCardName,
-} from './uubem.std.ts';
+  PersonCardDetail,
+  PersonCardSource,
+  PersonSearchResult,
+  PersonSignalContact,
+  PersonSourceError,
+} from './personCard.std.ts';
+import { formatPersonCardMessage, formatPersonName } from './personCard.std.ts';
+import { getUubemPersonDetailUrl } from './uubem.std.ts';
 import { formatChatMessageHeader } from './branding.std.ts';
 import { sendSignalChatMessage } from './sendSignalChatMessage.preload.ts';
 import { showMinutesBusinessCardsTab } from './navTabsService.preload.ts';
@@ -26,20 +26,34 @@ import { isUubtIntegrationEnabled } from './uubtService.preload.ts';
 
 const { noop } = lodash;
 
-const log = createLogger('minutes/uubemService');
+const log = createLogger('minutes/personCardService');
 
-export async function findUubemBusinessCards(
-  searchString: string
-): Promise<ReadonlyArray<UubemBusinessCard>> {
-  return ipcRenderer.invoke('minutes:uubem-find-business-cards', {
+export type PersonCardSearchResponse = Readonly<{
+  items: ReadonlyArray<PersonSearchResult>;
+  sourceErrors: ReadonlyArray<PersonSourceError>;
+  /** Kolik osob dotazu odpovídá celkem, když se seznam musel oříznout. */
+  totalCount: number | null;
+}>;
+
+export async function searchPersonCards(
+  searchString: string,
+  enabledSources: ReadonlyArray<PersonCardSource>
+): Promise<PersonCardSearchResponse> {
+  return ipcRenderer.invoke('minutes:person-card-search', {
     searchString,
+    enabledSources,
   });
 }
 
-export async function loadUubemBusinessCard(
-  options: Readonly<{ id: string; uuIdentity: string }>
-): Promise<UubemBusinessCardDetail> {
-  return ipcRenderer.invoke('minutes:uubem-load-business-card', options);
+export async function loadPersonCardDetail(
+  selection: Readonly<{ uuIdentity: string; uubemId: string | null }>
+): Promise<PersonCardDetail> {
+  return ipcRenderer.invoke('minutes:person-card-load', selection);
+}
+
+/** Vizitka přihlášeného uživatele, `null` když se ji nepodařilo dohledat. */
+export async function loadMyPersonCard(): Promise<PersonSearchResult | null> {
+  return ipcRenderer.invoke('minutes:person-card-me');
 }
 
 /**
@@ -50,19 +64,19 @@ const photoRequests = new Map<string, Promise<string | null>>();
 
 async function requestPersonPhoto(uuIdentity: string): Promise<string | null> {
   try {
-    return await ipcRenderer.invoke('minutes:uubem-load-person-photo', {
+    return await ipcRenderer.invoke('minutes:person-card-photo', {
       uuIdentity,
     });
   } catch (error) {
     // Zahodíme záznam, ať to jde zkusit znovu, až se vizitka příště zobrazí.
     photoRequests.delete(uuIdentity);
-    log.warn(`loadUubemPersonPhoto failed for ${uuIdentity}`, error);
+    log.warn(`loadPersonPhoto failed for ${uuIdentity}`, error);
     return null;
   }
 }
 
 /** Fotka osoby jako data URL, nebo `null` když ji v Plus4U nemá. */
-export async function loadUubemPersonPhoto(
+export async function loadPersonPhoto(
   uuIdentity: string
 ): Promise<string | null> {
   const key = uuIdentity.trim();
@@ -81,19 +95,24 @@ export async function loadUubemPersonPhoto(
 }
 
 /** Pošle vizitku do vybraného Signal chatu. */
-export async function shareUubemBusinessCard(
-  options: Readonly<{ card: UubemBusinessCardDetail; conversationId: string }>
+export async function sharePersonCard(
+  options: Readonly<{ card: PersonCardDetail; conversationId: string }>
 ): Promise<boolean> {
   const header = formatChatMessageHeader(
     'business-card',
-    formatUubemCardName(options.card)
+    formatPersonName(options.card.name)
   );
-  const body = formatUubemBusinessCardMessage(options.card);
+  const body = formatPersonCardMessage(
+    options.card,
+    options.card.uubemId == null
+      ? null
+      : getUubemPersonDetailUrl(options.card.uubemId)
+  );
 
   return sendSignalChatMessage(
     options.conversationId,
     `${header}${body}`,
-    'shareUubemBusinessCard'
+    'sharePersonCard'
   );
 }
 
@@ -103,7 +122,7 @@ export async function shareUubemBusinessCard(
  * username přes server.
  */
 async function resolveConversationId(
-  contact: UubemSignalContact
+  contact: PersonSignalContact
 ): Promise<string | undefined> {
   const { showUserNotFoundModal } = window.reduxActions.globalModals;
 
@@ -139,7 +158,7 @@ async function resolveConversationId(
   });
 }
 
-export type UubemMessageResult =
+export type PersonCardMessageResult =
   | Readonly<{ status: 'ok' }>
   | Readonly<{ status: 'not-found' }>
   | Readonly<{ status: 'error'; message: string }>;
@@ -148,9 +167,9 @@ export type UubemMessageResult =
  * Otevře chat s osobou z vizitky. Když Signal kontakt nikoho nenajde,
  * `lookupConversationWithoutServiceId` už si sám ukázal dialog.
  */
-export async function openUubemSignalConversation(
-  contact: UubemSignalContact
-): Promise<UubemMessageResult> {
+export async function openPersonSignalConversation(
+  contact: PersonSignalContact
+): Promise<PersonCardMessageResult> {
   try {
     const conversationId = await resolveConversationId(contact);
     if (conversationId == null) {
@@ -160,7 +179,7 @@ export async function openUubemSignalConversation(
     window.reduxActions.conversations.showConversation({ conversationId });
     return { status: 'ok' };
   } catch (error) {
-    log.error('openUubemSignalConversation failed', error);
+    log.error('openPersonSignalConversation failed', error);
     return {
       status: 'error',
       message:

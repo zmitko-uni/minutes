@@ -14,7 +14,7 @@ import { showMinutesHome } from './homeNavigation.preload.ts';
 import { openMinutesLog } from './navigation.preload.ts';
 import { openReadmeModal } from './readmeService.preload.ts';
 import { openMinutesBookmarks } from './bookmarksService.preload.ts';
-import { openMinutesBusinessCards } from './uubemService.preload.ts';
+import { openMinutesBusinessCards } from './personCardService.preload.ts';
 import { getUubtSettings } from './uubtService.preload.ts';
 import { initializeAppUpdate } from './appUpdateService.preload.ts';
 import { initializeMinutesKeyboardShortcuts } from './keyboardShortcuts.preload.ts';

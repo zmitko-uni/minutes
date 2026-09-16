@@ -1,6 +1,6 @@
 # Minutes — příručka pro uživatele
 
-Minutes rozšiřuje Signal Desktop o **nahrávání hovorů**, **přepisy**, **AI shrnutí chatů**, **záložky** na důležité zprávy a **vizitky lidí z uuBEM**.
+Minutes rozšiřuje Signal Desktop o **nahrávání hovorů**, **přepisy**, **AI shrnutí chatů**, **záložky** na důležité zprávy a **vizitky lidí z uuBEM a Plus4U People**.
 
 Vaše data (nahrávky, exporty, modely) zůstávají **primárně u vás na disku**. Cloud AI je volitelné — používáte vlastní API klíč, nebo můžete shrnovat **lokálně** bez internetu.
 
@@ -320,26 +320,35 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 ---
 
-## Vizitky (uuBEM)
+## Vizitky (uuBEM + Plus4U People)
 
-Hledání lidí v firemním adresáři **uuBEM** přímo z Minutes — a jedním kliknutím jim napíšete na Signalu.
+Hledání lidí ve firemním adresáři **uuBEM** i v profilech **Plus4U People** přímo z Minutes — a jedním kliknutím jim napíšete na Signalu.
+
+Hledá se v **obou zdrojích zároveň**. Když osobu vrátí oba, vizitka se spojí do jedné podle **uuIdentity** a vidíte údaje z uuBEM i z Plus4U People pohromadě. Když jeden zdroj neodpoví, hledání běží dál s tím druhým a nad seznamem je o tom poznámka.
 
 Sekce se ukazuje **jen se zapnutou integrací Plus4U** (viz *Zápis ke schůzce Plus4U → Jednorázové nastavení*). Bez ní tab v levé liště není a položka v menu jen připomene, co si zapnout.
 
-1. **Otevření** — tab **Vizitky** (ikona vizitky v levé liště) nebo menu Minutes → **Vizitky (uuBEM)**
-2. **Hledání** — do pole nad seznamem napište jméno nebo příjmení (alespoň 2 znaky). Hledá se až po dopsání, takže uuBEM nezatěžuje každé písmeno
-3. **Výsledky** — seznam vlevo ukazuje **fotku**, celé jméno s titulem a uuIdentity
-4. Klik na osobu → vpravo se zobrazí její **vizitka**: fotka, telefony, e-maily a adresy
-5. **Napsat zprávu** — má-li vizitka vyplněný **Signal kontakt**, je nahoře modré tlačítko **Napsat zprávu**. Minutes osobu dohledá v Signalu a přepne na chat s ní
-6. **Otevřít v uuBEM** — tlačítko vedle otevře vizitku ve prohlížeči; tam si můžete údaje prohlédnout celé nebo je doplnit
-7. **Sdílet vizitku** — vyjede pole, ve kterém si najdete svůj Signal kontakt (píšete část jména), a kliknutím mu vizitku pošlete do chatu. Odejde jako přehledný text s jménem, uuIdentity, telefony, e-maily, adresami, Signal kontaktem a odkazem do uuBEM
-8. Některé vizitky mají v uuBEM jen jméno — pak to detail napíše a víc údajů opravdu není kde vzít
+1. **Otevření** — tab **Vizitky** (ikona vizitky v levé liště) nebo menu Minutes → **Vizitky (uuBEM + Plus4U People)**
+2. **Vaše vizitka** — úplně nahoře nad hledáním je vaše vlastní vizitka s fotkou. Klik na ni otevře stejný detail jako u kohokoliv jiného, takže si rychle zkontrolujete, co o vás Plus4U ukazuje ostatním
+3. **Hledání** — do pole pod tím napište jméno nebo příjmení (alespoň 2 znaky). Hledá se až po dopsání, takže zdroje nezatěžuje každé písmeno
+4. **Filtr zdrojů** — pod polem jsou přepínače **uuBEM** a **Plus4U People**, oba zapnuté. Vypnutý zdroj se vůbec nedotazuje, takže filtr kromě zúžení seznamu i zrychlí hledání. Filtr platí **jen pro seznam** — v detailu se vždy ukáže všechno, co se o osobě ví, i ze zdroje, který máte vypnutý
+5. **Výsledky** — seznam vlevo ukazuje **fotku**, celé jméno s titulem, uuIdentity a **štítek zdroje** (uuBEM, Plus4U People, nebo obojí). Zobrazuje se prvních 50 osob; na obecný dotaz vrátí Plus4U People stovky lidí, a tak je nad seznamem poznámka, kolik jich celkem je a že se hledání vyplatí upřesnit
+6. Klik na osobu → vpravo se zobrazí její **vizitka**: fotka, telefony, e-maily a adresy. U lidí, které vedou oba zdroje, má každý údaj **štítek, odkud pochází**; stejný telefon nebo e-mail z obou zdrojů je v seznamu jen jednou
+7. **Napsat zprávu** — Minutes osobu dohledá v Signalu a přepne na chat s ní
+8. **Otevřít v uuBEM** — tlačítko otevře vizitku v prohlížeči; tam si můžete údaje prohlédnout celé nebo je doplnit. U lidí, kteří v uuBEM vizitku nemají, tlačítko není
+9. **Sdílet vizitku** — vyjede pole, ve kterém si najdete svůj Signal kontakt (píšete část jména), a kliknutím mu vizitku pošlete do chatu. Odejde jako přehledný text s jménem, uuIdentity, telefony, e-maily, adresami, Signal kontaktem a odkazem do uuBEM
+10. Když o osobě nemá kontakty ani jeden zdroj, detail to rovnou napíše — víc údajů opravdu není kde vzít
 
-Tlačítka jsou v detailu v tomto pořadí: **Signal kontakt** osoby, **Napsat zprávu**, **Otevřít v uuBEM** a **Sdílet vizitku**.
+### Když se Signal kontakty v obou zdrojích liší
 
-Tlačítko rozumí všem obvyklým zápisům Signal kontaktu na vizitce — **Signal username** (např. `jmeno.01`), **telefonní číslo** i **odkaz signal.me**.
+uuBEM i Plus4U People mají vlastní pole pro Signal a vlastní telefony a často se **neshodnou**. Minutes za vás nehádá, který údaj je novější:
 
-Když vizitka Signal kontakt vyplněný nemá, tlačítko se nezobrazí a dole je o tom poznámka.
+- **Shodují se** (nebo je vyplněný jen jeden) → nahoře je kontakt a jedno modré tlačítko **Napsat zprávu**
+- **Liší se** → místo jednoho tlačítka je jich několik, na každém je konkrétní kontakt a zdroj (např. `jmeno.01 · uuBEM`). Vyberete, kterému zkusit napsat; když ten nevyjde, zkusíte druhý
+- **Signal nikde vyplněný není** → Minutes nabídne **telefonní čísla** z obou zdrojů (podle čísla se osoba v Signalu často najde taky) a napíše, že jde o náhradní řešení
+- Když nemá osoba ani Signal, ani telefon, tlačítko se nezobrazí a dole je o tom poznámka
+
+Tlačítko rozumí všem obvyklým zápisům Signal kontaktu — **Signal username** (např. `jmeno.01`), **telefonní číslo** i **odkaz signal.me**.
 
 ---
 
@@ -373,7 +382,7 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 |---------|---------|
 | Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
 | Záložky | Tab se seznamem záložek a náhledem zprávy (Ctrl+Shift+B) |
-| Vizitky (uuBEM) | Tab s hledáním osob v uuBEM a tlačítkem **Napsat zprávu** (jen se zapnutou integrací Plus4U) |
+| Vizitky (uuBEM + Plus4U People) | Tab s hledáním osob v uuBEM i Plus4U People a tlačítkem **Napsat zprávu** (jen se zapnutou integrací Plus4U) |
 | Přepisy (Minutes) | Tab se seznamem nahrávek, přepisy, shrnutími a přehrávačem (Ctrl+Shift+M, nebo ikona **M** v levé liště) |
 | Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma, Plus4U integrace |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
@@ -553,14 +562,17 @@ Přepis začíná červeným varováním **„Nahrávka je poškozená — X % z
 - **Tlačítko Zapsat ke schůzce Plus4U je zašedlé** — tlačítko najdete v tabu **Shrnutí**. Zašedlé je, dokud nahrávka nemá hotové **shrnutí** (přepis sám nestačí), nebo dokud v **Nastavení AI → Plus4U integrace** není zapnutá integrace **a uložené oba přístupové kódy** (stačí jeden chybějící a tlačítko zůstane neaktivní). Tooltip nad tlačítkem řekne který případ to je
 - Když zápis nelze vložit, podrobnosti najdete v **Menu → Minutes → Zobrazit log**
 
-### Vizitky (uuBEM) nejdou otevřít nebo nic nenajdou
+### Vizitky nejdou otevřít nebo nic nenajdou
 
 - **Tab Vizitky v levé liště není** — není zapnutá integrace Plus4U. Zapněte ji v **Nastavení AI → Plus4U integrace** a uložte oba přístupové kódy; tab se objeví hned po uložení
-- **Hledání nic nenašlo** — zkuste jen příjmení. Hledá se v uuBEM, takže se najdou jen lidé, kteří tam vizitku mají
+- **Hledání nic nenašlo** — zkuste jen příjmení. Hledá se v uuBEM a Plus4U People, takže se najdou jen lidé, kteří jsou aspoň v jednom z nich
+- **Nad seznamem je poznámka, že se jeden zdroj nepodařilo prohledat** — do jedné z aplikací nemáte oprávnění nebo zrovna neodpovídá. Výsledky jsou pak jen z druhého zdroje; podrobnosti jsou v logu
+- **Vaše vizitka nahoře chybí** — vaši uuIdentity se z přihlašovacího tokenu nepodařilo dohledat. Zkuste **Otestovat připojení** v **Nastavení AI → Plus4U integrace**
 - **Místo fotky je kolečko s iniciálami** — osoba nemá fotku v Plus4U. Fotky nepocházejí z uuBEM, ale z Plus4U People, takže se doplňují tam
-- **V detailu nejsou žádné telefony ani e-maily** — vizitka je v uuBEM takto prázdná, Minutes nic neskrývá. Přes **Otevřít v uuBEM** si to ověříte a údaje doplníte
-- **Tlačítko Napsat zprávu chybí** — vizitka v uuBEM nemá vyplněný Signal kontakt. Doplňte ho na vizitce v uuBEM (pole *Signal*)
-- **Signal kontakt se nepodařilo dohledat** — hodnota na vizitce je neplatná, nebo osoba Signal nepoužívá. Ověřte, že je tam vaše Signal **username** (`jmeno.01`), telefonní číslo, nebo odkaz signal.me
+- **V detailu nejsou žádné telefony ani e-maily** — takto prázdná je osoba v obou zdrojích, Minutes nic neskrývá. Přes **Otevřít v uuBEM** si to ověříte a údaje doplníte
+- **Tlačítko Napsat zprávu chybí** — osoba nemá Signal kontakt ani telefon ani v jednom zdroji. Doplňte je na vizitce v uuBEM (pole *Signal*) nebo v profilu Plus4U People
+- **Signal kontakt se nepodařilo dohledat** — hodnota je neplatná, nebo osoba Signal nepoužívá. Když jsou tlačítka dvě, zkuste to druhé. Ověřte, že je vyplněná Signal **username** (`jmeno.01`), telefonní číslo, nebo odkaz signal.me
+- **V detailu je poznámka, že jeden zdroj neodpověděl** — vizitka se ukáže z toho, co dorazilo; chybějící část se dohledá až po opravě oprávnění nebo dostupnosti zdroje
 - Podrobnosti k chybám najdete v **Menu → Minutes → Zobrazit log**
 
 ### Nejde vybrat model přepisu
@@ -601,4 +613,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-09-15*
+*Poslední aktualizace příručky: 2026-09-16*

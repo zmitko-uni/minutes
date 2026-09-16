@@ -16,15 +16,33 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.26.0-m1.6.0-beta.1] - 2026-09-16
+
+### Added
+
+- **Vizitky**: hledá se nově i v **Plus4U People**, ne jen v uuBEM. Osobu, kterou vrátí oba zdroje, Minutes spojí podle uuIdentity do jedné vizitky a v detailu ukáže údaje z obou — u každého telefonu a e-mailu je štítek, odkud pochází; stejná hodnota z obou zdrojů je v seznamu jen jednou
+- **Vizitky**: když se Signal kontakty nebo telefony obou zdrojů liší, místo jednoho tlačítka **Napsat zprávu** se nabídne tlačítko za každý kontakt (s popiskem zdroje), ať si vyberete, kterému zkusit napsat. Bez vyplněného Signal kontaktu Minutes nabídne telefonní čísla
+- **Vizitky**: nad hledáním je **Vaše vizitka** s fotkou — kliknutím zobrazíte svůj vlastní detail stejně jako u kohokoliv jiného
+- **Vizitky**: když jeden ze zdrojů neodpoví, hledání i detail běží dál s druhým a nad seznamem (resp. v detailu) je o tom poznámka
+- **Vizitky**: pod hledáním jsou přepínače zdrojů **uuBEM** a **Plus4U People** (oba zapnuté). Vypnutý zdroj se vůbec nedotazuje, takže filtr hledání i zrychlí; v detailu se ale vždy ukáže všechno, co se o osobě ví
+- **Vizitky**: seznam ukazuje prvních 50 osob a napíše, kolik jich dotazu odpovídá celkem — Plus4U People na obecné jméno vrací i stovky lidí
+
+### Changed
+
+- **Vizitky**: pole hledání se jmenuje **Hledat osobu v uuBEM a Plus4U People** a položka v menu Minutes **Vizitky (uuBEM + Plus4U People)** — obojí kvůli druhému zdroji
+- **Vizitky**: v seznamu výsledků je u každé osoby štítek zdroje (uuBEM / Plus4U People)
+
 ## [8.26.0-m1.5.0-beta.2] - 2026-09-15
 
 ### Fixed
+
 - **Nahrávání hovoru na pozadí už nepřichází o zvuk** — pokud bylo okno Minutes během hovoru minimalizované, Windows/Chromium zpomalil vnitřní časovač aplikace a do nahrávky se zapsalo jen asi 10 % zvuku, zbytek bylo digitální ticho (delší hovory někdy utichly úplně). Nahrávka i přepis jsou teď kompletní i při minimalizovaném okně; stejná příčina postihovala i nahrávání sdíleného videa
 - Poškozenou nahrávku už poznáte na první pohled: pokud se část zvuku nezachytila, přepis začíná varováním s údajem, kolik procent nahrávky chybí
 
 ## [8.26.0-m1.5.0-beta.1] - 2026-09-13
 
 ### Added
+
 - **Vizitky (uuBEM)**: nový tab v levé navigaci a položka **Vizitky (uuBEM)** v menu Minutes (pod **Záložky**) — hledání osob v uuBEM, po kliknutí na výsledek se zobrazí vizitka s telefony, e-maily a adresami
 - **Vizitky (uuBEM)**: má-li vizitka vyplněný Signal kontakt, je nahoře tlačítko **Napsat zprávu**, které rovnou otevře chat s danou osobou (rozpozná Signal username, telefon i odkaz signal.me)
 - **Vizitky (uuBEM)**: u osob se načítá **fotka z Plus4U** — v seznamu výsledků i v detailu vizitky; kdo fotku nemá, má dál kolečko s iniciálami
@@ -36,21 +54,25 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.26.0-m1.4.0-beta.1] - 2026-09-13
 
 ### Added
+
 - **Přepisy**: v seznamu nahrávek je nový štítek **Schůzka** u nahrávek, které už mají zápis v Plus4U
 - **Přepisy**: nález hledání pod nahrávkou jde **rozkliknout** — detail se otevře na správné záložce (**Shrnutí** nebo **Přepis**), nález se zvýrazní a stránka na něj doskroluje
 - **Přepisy**: když je v jedné nahrávce nálezů víc, je pod úryvkem počítadlo **1 z 3 nálezů** se šipkami pro listování mezi nimi
 - **Přepisy → Schůzka**: tlačítko **Zapsat ke schůzce Plus4U** je teď i v tabu **Schůzka** (u nahrávky, která zápis už má, jako **Zapsat k jiné schůzce**)
 
 ### Changed
+
 - **Přepisy**: tab **Schůzka** je vidět vždy — u nahrávky bez zápisu vysvětlí, co se stane, a nabídne zápis založit
 - **Přepisy**: z hlavičky detailu zmizel odznak **Schůzka ✓** — totéž je vidět ze štítku v seznamu a z tabu **Schůzka**
 
 ### Fixed
+
 - **Přepisy**: text přepisu, shrnutí i textů schůzky jde označit myší a zkopírovat (**Ctrl+C**) — dosud to blokovalo globální nastavení vzhledu aplikace
 
 ## [8.26.0-m1.3.1-beta.3] - 2026-09-12
 
 ### Added
+
 - **Záložky**: po najetí na položku v seznamu se vpravo objeví dvě tlačítka — **Otevřít v chatu** a **Odebrat záložku**
 - **Přepisy → Shrnutí**: pod ikonou voleb si můžete pro jedno přegenerování vybrat **jiný AI model** (z těch, co máte nastavené) a **jiný styl** (Stručný, Detailní, Smart, Vlastní), aniž byste měnili Nastavení AI
 - **Přepisy → Shrnutí**: tlačítko pro **úpravu textu shrnutí** — jednoduchý editor s tučně, kurzívou, odrážkami, číslováním a odkazy; uloží se zpátky do souboru shrnutí u nahrávky
@@ -65,6 +87,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - **Přepisy → Schůzka**: tlačítko **Navrhnout úkoly** — AI projde zápis a navrhne, jaké úkoly z něj komu vyplývají. Návrhy jde upravit, smazat i přidat vlastní, ke každému vybrat příjemce a poslat mu ho jako formální zprávu do chatu; u jednoho člověka se dají poslat i všechny jeho úkoly naráz
 
 ### Changed
+
 - Nastavení AI: sekce **uuBT — odeslání zápisu do schůzky** se jmenuje **Plus4U integrace**; hlášky napříč aplikací mluví o Plus4U místo uuBT
 - **Přepisy**: **Zapsat ke schůzce Plus4U** (dřív „Zápis do schůzky v uuBT") je samostatné tlačítko v tabu **Shrnutí** před **Přegenerovat shrnutí**, ne položka v nabídce **Sdílet**. Aktivní je jen se zapnutou Plus4U integrací a **oběma** uloženými přístupovými kódy
 - **Přepisy**: akce se přesunuly k obsahu, ke kterému patří — **Přegenerovat shrnutí** je v tabu **Shrnutí** a **Přepsat znovu** v tabu **Přepis**; v hlavičce zůstalo sdílení, soubory a mazání
@@ -81,6 +104,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - **Schůzka**: **Otevřít schůzku v prohlížeči** a **Aktualizovat informace** jsou ikony, **Navrhnout úkoly** má ikonu AI
 
 ### Fixed
+
 - **Přepisy**: nahrávka, která se zpracovává, je v seznamu skutečně modře zvýrazněná a chyba přepisu červeně — kvůli chybě ve skládání CSS třídy se zvýraznění dřív nezobrazovalo
 - **Přepisy**: panel s volbami modelu (v tabu Shrnutí i Přepis) byl průhledný a nešlo v něm nic přečíst — používal neexistující barvu tématu
 - **Přepisy → Shrnutí**: v editoru shrnutí nefungovalo tučně, kurzíva ani odrážky — kliknutí na lištu vzalo editoru výběr textu a celý Signal navíc drží editovatelná pole v režimu bez formátování
@@ -89,6 +113,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.26.0-m1.3.1-beta.2] - 2026-09-12
 
 ### Added
+
 - Levá navigace: nové taby **Přepisy** (ikona M) a **Záložky** (ikona záložky) hned za Hovory — otevřou se na celé hlavní obrazovce, ne v malém dialogu
 - **Přepisy** mají nově dvousloupcový layout jako Chaty a Hovory: vlevo jeden seznam všech nahrávek (co se zpracovává, je nahoře, modře zvýrazněné a s ukazatelem průběhu), vpravo detail vybrané nahrávky
 - **Přepisy**: vyhledávání hledá i **uvnitř přepisů a shrnutí**, ne jen v názvech — u nalezené nahrávky se rovnou ukáže úryvek s hledaným výrazem
@@ -98,9 +123,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Odeslání zápisu do uuBT: v panelu **Přepisy** přibylo u hotového shrnutí tlačítko **U→**, které nabídne schůzky z vašeho kalendáře pro daný den a vloží AI shrnutí na konec sekce Zápis vybrané schůzky. Přihlášení přístupovými kódy se nastavuje v **Nastavení AI**; kódy se ukládají šifrovaně přes safeStorage operačního systému.
 
 ### Changed
+
 - **Přepisy** se otevírají jako tab v levé navigaci (menu i **Ctrl+Shift+M** vedou tam). Plovoucí okno zmizelo; během přepisu zůstává vpravo dole jen malá pilulka s průběhem, kliknutím přepne na tab
 - **Přepisy**: ovládání nahrávky je přehlednější — místo řady zkratkových tlačítek (P→, S↩, U→) jsou nahoře v detailu akce **Spustit přepis** / **Vygenerovat shrnutí** a rozbalovací nabídky **Sdílet** (přepis i shrnutí do chatu, sobě, nebo zápis do uuBT) a **Soubory** (otevřít nahrávku, přepis, shrnutí, MP4, složku)
-- **Přepisy**: zmizelo oddělené přepínání *Fronta* / *Historie nahrávek* — všechno je v jednom seznamu, ovládání fronty (pozastavit, zrušit) se ukáže jen když se něco zpracovává
+- **Přepisy**: zmizelo oddělené přepínání _Fronta_ / _Historie nahrávek_ — všechno je v jednom seznamu, ovládání fronty (pozastavit, zrušit) se ukáže jen když se něco zpracovává
 - **Záložky** se otevírají jako tab (menu i **Ctrl+Shift+B**) místo dialogu
 - Menu **Minutes**: **Nastavení Přepisů (Minutes)** je nově hned pod **Nastavení AI**, **Nastavení MCP** je až poslední z nastavení
 - Nastavení AI: test poskytovatele se přesunul ze spodní lišty dialogu přímo do sekce **Aktivní poskytovatel pro sumarizaci** a jmenuje se **Otestovat summarizaci**
@@ -108,6 +134,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Nastavení AI: **Otestovat summarizaci** místo nicneříkajícího „Připojení OK (OK)“ hlásí poskytovatele, model a dobu odezvy
 
 ### Fixed
+
 - Chybové hlášky jsou srozumitelné a na jednom místě: místo technického výpisu (`Error invoking remote method '…'`) se ukáže, co se stalo a co udělat — např. vyčerpaný kredit u AI, neplatný API klíč, vypnutý model, chybějící soubor nebo plný disk. Původní text zůstává pod odkazem **Technické podrobnosti**
 - **Přepisy**: v seznamu vlevo už chybová hláška nezaplaví celý řádek — je tam jen **Přepis selhal** / **Shrnutí selhalo** a podrobnosti se ukážou v detailu vpravo
 - **Záložky**: dlouhé odkazy ve zprávách už nepřetékají mimo okno, náhled se zalomí a zkrátí
@@ -116,6 +143,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.26.0-m1.3.1-beta.1] - 2026-09-10
 
 ### Changed
+
 - Základ aplikace: Signal Desktop **8.26.0** — ve vyhledávání členů skupiny se vlastní účet zobrazuje jako **Vy**
 - Electron **43.5.0**, sqlcipher **4.1.0**
 - Lokální AI (Gemma): `node-llama-cpp` 3.19.1 → **3.20.0** (novější llama.cpp, oprava uvolnění kontextu)
@@ -125,6 +153,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.25.0-m1.3.1] - 2026-09-10
 
 ### Added
+
 - Nahrávání **sdíleného videa** hovoru do WebM: ukládá jen prezentaci přenášenou přes Signal (ne kamery ani UI); vlastní sdílení jde z odchozího RingRTC streamu; pause/resume a automatické uložení na konci hovoru
 - Přepis a volitelné AI shrnutí **videonahrávek** (stejná Whisper a sumarizační pipeline jako u MP3)
 - Export videa WebM do kompatibilního **MP4** (H.264/AAC) z historie nahrávek, včetně průběhu, zrušení a přegenerování; přednostně systémový FFmpeg, jinak jednorázové stažení podpory
@@ -134,11 +163,13 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Linux **AppImage** instalátor (x64)
 
 ### Changed
+
 - Základ aplikace: Signal Desktop **8.25.0**
 - Zvuk nahrávek (MP3 i video) jde **přímo z RingRTC** — bez vlastního mikrofonu a systémového loopbacku; respektuje ztlumení mikrofonu v Signalu
 - Nahrávky se ukládají do **Dokumenty/Minutes**
 
 ### Fixed
+
 - Aktivní hovor se při pouhém zamknutí obrazovky neukončí
 - Dlouhé nahrávky: PCM sidecar pro Whisper se čte po blocích (nižší spotřeba paměti)
 - RingRTC addon používá produkční konfiguraci WebRTC (stejné DTLS/SDP chování jako oficiální Signal)
@@ -147,11 +178,13 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.25.0-m1.3.0-beta.7] - 2026-09-01
 
 ### Fixed
+
 - restore Minutes startup hooks after Signal 8.25 merge
 
 ## [8.25.0-m1.3.0-beta.6] - 2026-09-01
 
 ### Added
+
 - Add 90% and 110% zoom level options
 - Add global setting for reaction notifications
 - Add backup tier code to improve debuggability
@@ -159,6 +192,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Add tooltip to group call layout button
 
 ### Changed
+
 - 8.25.0
 - Update strings
 - 8.25.0-beta.2
@@ -234,6 +268,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - v8.24.0-alpha.1
 
 ### Fixed
+
 - Fix default avatars for group member search
 - Fix AxoList background color
 - Fix formatting of AxoMediaButton

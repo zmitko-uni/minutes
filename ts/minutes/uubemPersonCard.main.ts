@@ -9,14 +9,9 @@ import type {
   UubemEmail,
   UubemPhone,
 } from './uubem.std.ts';
-import {
-  UUBEM_BASE_URI,
-  UUBEM_MIN_SEARCH_LENGTH,
-  UUBEM_PERSON_PHOTO_USE_CASE,
-} from './uubem.std.ts';
-import { UUBT_PEOPLE_BASE_URI } from './uubt.std.ts';
-import { uubtGet, uubtGetBinary } from './uubtClient.main.ts';
-import { isUubtEnabled } from './uubtSettings.main.ts';
+import { UUBEM_BASE_URI } from './uubem.std.ts';
+import { PERSON_CARD_MIN_SEARCH_LENGTH } from './personCard.std.ts';
+import { uubtGet } from './uubtClient.main.ts';
 
 const log = createLogger('minutes/uubemPersonCard');
 
@@ -45,12 +40,14 @@ function parseCard(source: Record<string, unknown>): UubemBusinessCard | null {
   return {
     id,
     uuIdentity,
-    titleBefore: readString(source, 'titleBefore'),
-    name: readString(source, 'name'),
-    middleName: readString(source, 'middleName'),
-    surname: readString(source, 'surname'),
-    suffix: readString(source, 'suffix'),
-    titleAfter: readString(source, 'titleAfter'),
+    name: {
+      titleBefore: readString(source, 'titleBefore'),
+      name: readString(source, 'name'),
+      middleName: readString(source, 'middleName'),
+      surname: readString(source, 'surname'),
+      suffix: readString(source, 'suffix'),
+      titleAfter: readString(source, 'titleAfter'),
+    },
   };
 }
 
@@ -84,22 +81,12 @@ function parseAddressList(value: unknown): ReadonlyArray<UubemAddress> {
     .filter(item => item.lines.length > 0);
 }
 
-async function assertUubemAvailable(): Promise<void> {
-  if (!(await isUubtEnabled())) {
-    throw new Error(
-      'Integrace Plus4U není zapnutá — zapněte ji a doplňte access code 1 a 2 v Nastavení AI.'
-    );
-  }
-}
-
 /** Vizitky odpovídající hledanému textu (jméno, příjmení, uuIdentity). */
 export async function findUubemBusinessCards(
   searchString: string
 ): Promise<ReadonlyArray<UubemBusinessCard>> {
-  await assertUubemAvailable();
-
   const trimmed = searchString.trim();
-  if (trimmed.length < UUBEM_MIN_SEARCH_LENGTH) {
+  if (trimmed.length < PERSON_CARD_MIN_SEARCH_LENGTH) {
     return [];
   }
 
@@ -121,8 +108,6 @@ export async function findUubemBusinessCards(
 export async function loadUubemBusinessCard(
   options: Readonly<{ id: string; uuIdentity: string }>
 ): Promise<UubemBusinessCardDetail> {
-  await assertUubemAvailable();
-
   const response = await uubtGet<Record<string, unknown>>(
     UUBEM_BASE_URI,
     'personCard/loadBusinessCard',
@@ -146,58 +131,4 @@ export async function loadUubemBusinessCard(
     addressList: parseAddressList(response?.addressList),
     signalUri: signalUri.length > 0 ? signalUri : null,
   };
-}
-
-/**
- * Seznam výsledků si řekne o fotku pro každý řádek, takže bez cache by se
- * stejné osoby stahovaly znovu při každém hledání. `null` (osoba fotku nemá)
- * cachujeme taky — jinak bychom to zkoušeli pořád dokola.
- */
-const photoCache = new Map<string, string | null>();
-
-const PHOTO_CACHE_LIMIT = 300;
-
-/** Fotka osoby jako data URL, nebo `null` když ji v Plus4U nemá. */
-export async function loadUubemPersonPhoto(
-  uuIdentity: string
-): Promise<string | null> {
-  await assertUubemAvailable();
-
-  const key = uuIdentity.trim();
-  if (key.length === 0) {
-    return null;
-  }
-
-  const cached = photoCache.get(key);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  let dataUrl: string | null = null;
-  try {
-    const photo = await uubtGetBinary(
-      UUBT_PEOPLE_BASE_URI,
-      UUBEM_PERSON_PHOTO_USE_CASE,
-      { uuIdentity: key }
-    );
-    if (photo) {
-      dataUrl = `data:${photo.contentType};base64,${photo.data.toString(
-        'base64'
-      )}`;
-    }
-  } catch (error) {
-    // Fotka je jen ozdoba — když se nepovede, vizitka musí zůstat funkční.
-    log.warn(`uubem photo pro ${key} se nepodařilo načíst: ${String(error)}`);
-    return null;
-  }
-
-  if (photoCache.size >= PHOTO_CACHE_LIMIT) {
-    const oldest = photoCache.keys().next().value;
-    if (oldest !== undefined) {
-      photoCache.delete(oldest);
-    }
-  }
-  photoCache.set(key, dataUrl);
-
-  return dataUrl;
 }
