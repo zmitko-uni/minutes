@@ -19,6 +19,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - **Stahování modelů**: v **Nastavení AI** (lokální Gemma) a **Nastavení přepisů** (Whisper) uvidíte při stahování průběh — kolik už je staženo z celkové velikosti, rychlost a odhad zbývajícího času
 
 ### Fixed
+- **Plus4U přihlášení**: dialog **Otevřít prohlížeč / Zrušit** se objeví jen jednou. Dřív vyskočil zvlášť pro každý paralelní požadavek (typicky při otevření **Vizitek**, kde se fotka načítá pro každou osobu samostatně)
 - **Nastavení AI** a **Nastavení přepisů**: rozbalovací nabídky (model, GPU, režim přepisu…) jsou v tmavém režimu znovu čitelné; vstupní pole mají správné pozadí a ohraničení
 - **Nastavení přepisů**: dialog se při vyšším zoomu nebo DPI vejde do okna — tlačítka dole zůstávají vidět a obsah se scrolluje uvnitř dialogu
 

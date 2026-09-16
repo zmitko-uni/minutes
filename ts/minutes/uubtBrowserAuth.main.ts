@@ -53,6 +53,13 @@ type ActiveBrowserLogin = Readonly<{
 
 let activeLogin: ActiveBrowserLogin | null = null;
 
+/**
+ * Celé přihlášení včetně potvrzovacího dialogu je single-flight. Vizitky
+ * načítají fotku pro každý výsledek zvlášť, takže bez sdílené promisy by se
+ * dialog otevřel pro každý paralelní požadavek.
+ */
+let loginInFlight: Promise<void> | null = null;
+
 function assertHttpsUrl(value: string, label: string): void {
   const url = new URL(value);
   if (url.protocol !== 'https:') {
@@ -200,11 +207,17 @@ async function confirmBrowserLogin(): Promise<boolean> {
   return response === 0;
 }
 
-export async function runUubtBrowserLogin(): Promise<void> {
-  if (activeLogin) {
-    throw new Error('Přihlášení přes prohlížeč už probíhá');
+export function runUubtBrowserLogin(): Promise<void> {
+  if (loginInFlight) {
+    return loginInFlight;
   }
+  loginInFlight = performBrowserLogin().finally(() => {
+    loginInFlight = null;
+  });
+  return loginInFlight;
+}
 
+async function performBrowserLogin(): Promise<void> {
   if (!(await confirmBrowserLogin())) {
     log.info('uubt browser login declined by user');
     throw new Error('Přihlášení do Plus4U bylo zrušeno.');
