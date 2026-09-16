@@ -14,14 +14,23 @@ import {
 } from '../../minutes/callRecordingServiceCore.std.ts';
 
 type RecorderStopResult = Readonly<{
-  mp3: Uint8Array<ArrayBuffer>;
-  pcm48?: Float32Array<ArrayBuffer>;
+  recordedDurationMs: number;
+  lametagFrame: Uint8Array<ArrayBuffer>;
+  finalFrame: Uint8Array<ArrayBuffer>;
 }>;
 
 function createStream(): MediaStream {
   return {
     getTracks: () => [],
   } as unknown as MediaStream;
+}
+
+function createDefaultStopResult(): RecorderStopResult {
+  return {
+    recordedDurationMs: 1_000,
+    lametagFrame: Uint8Array.from([9, 9]),
+    finalFrame: Uint8Array.from([7, 8]),
+  };
 }
 
 function createHarness(options?: {
@@ -34,7 +43,13 @@ function createHarness(options?: {
   }>;
   recorderStart?: () => Promise<boolean>;
   recorderStop?: () => Promise<RecorderStopResult | undefined>;
-  saveRecording?: () => Promise<unknown>;
+  writerCreate?: () => Promise<{ sessionId: string; partialPath: string }>;
+  writerFinalize?: () => Promise<{
+    filePath: string;
+    pcmPath: string;
+    metadataPath: string;
+  }>;
+  appendMp3?: () => Promise<void>;
 }) {
   const coordinator = options?.coordinator ?? new MinutesCaptureCoordinator();
   const calls = {
@@ -47,10 +62,13 @@ function createHarness(options?: {
     ringRtcResume: 0,
     ringRtcStop: 0,
     resume: 0,
-    save: 0,
+    writerAbort: 0,
+    writerCreate: 0,
+    writerFinalize: 0,
     showError: 0,
   };
   let recorderActive = false;
+  let writerSessionId = 'writer-session';
 
   const dependencies: CallRecordingServiceDependencies = {
     coordinator,
@@ -58,10 +76,14 @@ function createHarness(options?: {
     warmup: async () => undefined,
     recorder: {
       isActive: () => recorderActive,
-      start: async () => {
+      getSessionId: () => (recorderActive ? writerSessionId : undefined),
+      start: async (_streams, startOptions) => {
         calls.recorderStart += 1;
         const started = await (options?.recorderStart?.() ?? true);
         recorderActive = started;
+        if (started) {
+          writerSessionId = startOptions.sessionId;
+        }
         return started;
       },
       pause: () => {
@@ -75,11 +97,7 @@ function createHarness(options?: {
       stop: async () => {
         calls.recorderStop += 1;
         recorderActive = false;
-        return (
-          options?.recorderStop?.() ?? {
-            mp3: new Uint8Array([1, 2, 3]),
-          }
-        );
+        return options?.recorderStop?.() ?? createDefaultStopResult();
       },
     },
     getConversationTitle: () => 'Alice',
@@ -108,9 +126,37 @@ function createHarness(options?: {
       resume: () => undefined,
       stop: () => null,
     },
-    saveRecording: async () => {
-      calls.save += 1;
-      return options?.saveRecording?.() ?? '/recordings/call.mp3';
+    normalizeSpeakerActivityLog: (_log, durationMs) =>
+      durationMs > 0 ? null : null,
+    writer: {
+      create: async () => {
+        calls.writerCreate += 1;
+        const created =
+          options?.writerCreate?.() ??
+          Promise.resolve({
+            sessionId: writerSessionId,
+            partialPath: '/recordings/call.mp3.partial',
+          });
+        return created;
+      },
+      appendMp3: async () => {
+        await options?.appendMp3?.();
+      },
+      appendPcm: async () => undefined,
+      finalize: async () => {
+        calls.writerFinalize += 1;
+        return (
+          options?.writerFinalize?.() ??
+          Promise.resolve({
+            filePath: '/recordings/call.mp3',
+            pcmPath: '/pcm/call.pcm.f32',
+            metadataPath: '/recordings/call.json',
+          })
+        );
+      },
+      abort: async () => {
+        calls.writerAbort += 1;
+      },
     },
     showError: () => {
       calls.showError += 1;
@@ -120,77 +166,28 @@ function createHarness(options?: {
       calls.enqueue += 1;
     },
     emitState: () => undefined,
-    normalizeSpeakerActivityLog: activityLog => activityLog,
-    now: () => 1_000,
     log: {
-      error: () => undefined,
       info: () => undefined,
       warn: () => undefined,
+      error: () => undefined,
     },
+    now: () => Date.UTC(2026, 6, 22, 10, 1, 0),
   };
 
-  return {
-    calls,
-    coordinator,
-    service: new CallRecordingServiceCore(dependencies),
-  };
+  const service = new CallRecordingServiceCore(dependencies);
+  return { calls, coordinator, service };
 }
 
 const recordingOptions = {
   conversationId: 'conversation-id',
-  callMode: 'Direct' as unknown as CallMode,
+  callMode: 'Group' as CallMode,
+  eraId: 'era-id',
+  remoteDisplayName: 'Bob',
 };
 
-describe('CallRecordingService capture coordination', () => {
-  it('exports the shared capture coordinator singleton', () => {
-    assert.instanceOf(minutesCaptureCoordinator, MinutesCaptureCoordinator);
-  });
-
-  it('reserves audio synchronously before awaiting a capture source', async () => {
-    const { promise, resolve } = Promise.withResolvers<{
-      stream: MediaStream;
-      pause(): void;
-      resume(): void;
-      stop(): Promise<void>;
-    }>();
-    const { coordinator, service } = createHarness({
-      createRingRtcAudioTrack: () => promise,
-    });
-
-    const startPromise = service.startRecording(recordingOptions);
-
-    assert.strictEqual(coordinator.state, 'audio-recording');
-    assert.throws(
-      () => coordinator.acquire('video', async () => undefined),
-      'Cannot start capture while coordinator is audio-recording'
-    );
-
-    resolve({
-      stream: createStream(),
-      pause: () => undefined,
-      resume: () => undefined,
-      stop: async () => undefined,
-    });
-    assert.strictEqual(await startPromise, true);
-  });
-
-  it('records MP3 solely from the RingRTC call stream', async () => {
-    const { calls, service } = createHarness();
-
-    assert.strictEqual(await service.startRecording(recordingOptions), true);
-    assert.strictEqual(calls.ringRtcCreate, 1);
-    assert.strictEqual(calls.recorderStart, 1);
-  });
-
-  it('releases audio when the RingRTC source is unavailable', async () => {
-    const { coordinator, service } = createHarness({
-      createRingRtcAudioTrack: async () => {
-        throw new Error('RingRTC unavailable');
-      },
-    });
-
-    assert.strictEqual(await service.startRecording(recordingOptions), false);
-    assert.strictEqual(coordinator.state, 'idle');
+describe('CallRecordingServiceCore', () => {
+  it('does not share the global capture coordinator between tests', () => {
+    assert.strictEqual(minutesCaptureCoordinator.state, 'idle');
   });
 
   it('releases audio when the recorder rejects the streams', async () => {
@@ -276,14 +273,18 @@ describe('CallRecordingService capture coordination', () => {
     assert.strictEqual(coordinator.state, 'idle');
   });
 
-  it('keeps finalizing through durable save and deduplicates concurrent stops', async () => {
+  it('keeps finalizing through durable finalize and deduplicates concurrent stops', async () => {
     const { promise, resolve } = Promise.withResolvers<unknown>();
-    const { promise: saveStarted, resolve: markSaveStarted } =
+    const { promise: finalizeStarted, resolve: markFinalizeStarted } =
       Promise.withResolvers<void>();
     const { calls, coordinator, service } = createHarness({
-      saveRecording: () => {
-        markSaveStarted();
-        return promise;
+      writerFinalize: () => {
+        markFinalizeStarted();
+        return promise as Promise<{
+          filePath: string;
+          pcmPath: string;
+          metadataPath: string;
+        }>;
       },
     });
     assert.strictEqual(await service.startRecording(recordingOptions), true);
@@ -293,11 +294,15 @@ describe('CallRecordingService capture coordination', () => {
 
     assert.strictEqual(coordinator.state, 'finalizing');
     assert.strictEqual(calls.recorderStop, 1);
-    await saveStarted;
+    await finalizeStarted;
     assert.strictEqual(calls.ringRtcStop, 1);
-    assert.strictEqual(calls.save, 1);
+    assert.strictEqual(calls.writerFinalize, 1);
 
-    resolve('/recordings/call.mp3');
+    resolve({
+      filePath: '/recordings/call.mp3',
+      pcmPath: '/pcm/call.pcm.f32',
+      metadataPath: '/recordings/call.json',
+    });
     const [first, second] = await Promise.all([firstStop, secondStop]);
 
     assert.deepEqual(second, first);
@@ -307,9 +312,26 @@ describe('CallRecordingService capture coordination', () => {
       filePath: '/recordings/call.mp3',
     });
     assert.strictEqual(calls.recorderStop, 1);
-    assert.strictEqual(calls.save, 1);
+    assert.strictEqual(calls.writerFinalize, 1);
     assert.strictEqual(calls.enqueue, 1);
     assert.strictEqual(coordinator.state, 'idle');
     assert.deepEqual(service.getState(), { status: 'idle' });
+  });
+
+  it('aborts the writer session when finalize fails and keeps the partial', async () => {
+    const { calls, coordinator, service } = createHarness({
+      writerFinalize: async () => {
+        throw new Error('disk full');
+      },
+    });
+    assert.strictEqual(await service.startRecording(recordingOptions), true);
+
+    const result = await service.stopRecording();
+
+    assert.strictEqual(result, null);
+    assert.strictEqual(calls.writerFinalize, 1);
+    assert.strictEqual(calls.writerAbort, 1);
+    assert.strictEqual(calls.enqueue, 0);
+    assert.strictEqual(coordinator.state, 'idle');
   });
 });

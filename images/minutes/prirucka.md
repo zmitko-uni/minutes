@@ -33,7 +33,7 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 
 1. Během hovoru zvolte **nahrávání zvuku** nebo **nahrávání sdíleného videa** (vedle mute)
 2. V potvrzení **Nahrávání se chystá spustit** klikněte **Spustit nahrávání** (nebo **Zrušit**, pokud nahrávat nechcete)
-3. Po skončení se nahrávka uloží automaticky
+3. Po skončení se nahrávka uloží automaticky (během hovoru se zvuk průběžně zapisuje na disk, aby dlouhé hovory nezatěžovaly paměť)
 4. Pro přepis audio i video nahrávky v **Nastavení přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno) — při stahování uvidíte průběh včetně velikosti, rychlosti a odhadu času
 5. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
@@ -152,6 +152,8 @@ V obrazovce hovoru (vedle mute) jsou dvě samostatné akce:
 Obě nahrávání jsou vzájemně výlučná. Video lze spustit i bez aktivního sdílení; do té doby obsahuje černý obraz se zvukem. Kamery účastníků ani okno Signalu se do videa nenahrávají. Audio i video nahrávky se po uložení automaticky přepíšou přes Whisper.
 
 Po **skončení hovoru** se aktivní nahrávka uloží automaticky.
+
+Pokud Minutes spadne nebo je vynuceně ukončíte **během nahrávání**, při příštím startu se pokusí **dokončit rozepsanou audio nahrávku** z dočasných souborů (`.partial`). Taková nahrávka může přijít **bez barevného rozlišení mluvčích** v přepisu, pokud se v tu chvíli neuložil log řečníků.
 
 Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u vás). To pomáhá u přepisu a shrnutí přiřadit věty správným lidem.
 
@@ -401,6 +403,7 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 | Typ | Cesta |
 |-----|--------|
 | Nahrávky hovorů | `Dokumenty/Minutes` |
+| PCM pro přepis (audio/video) | Windows `%APPDATA%\Minutes\minutes\recording-pcm\` · macOS `~/Library/Application Support/Minutes/minutes/recording-pcm/` |
 | Sumáře chatů | Windows `%APPDATA%\Minutes\minutes\summaries\` · macOS `~/Library/Application Support/Minutes/minutes/summaries/` |
 | AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) |
 | Přístupové kódy Plus4U | `%APPDATA%\Minutes\minutes\uubt-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) — šifrované |
@@ -516,6 +519,10 @@ V tabu **Přepisy** je u nahrávky v seznamu jen krátké **Přepis selhal** / *
 - Zkontrolujte v logu hlášku `discarding AI transcript correction`
 - Zkuste jiný model nebo vypněte **Opravit přepis hovoru** v Nastavení AI
 
+### Rozepsané soubory `.partial` v nahrávkách
+
+Během nahrávání Minutes zapisuje dočasné soubory s příponou `.partial` (např. `…mp3.partial` ve složce nahrávek a `…pcm.f32.partial` v `recording-pcm`). Po normálním uložení zmizí. Pokud po pádu zůstanou, aplikace je při startu zkusí dokončit; starší nedokončené soubory se po čase smažou automaticky.
+
 ### Nahrávání nejde
 
 - Ověřte oprávnění k mikrofonu a že jste v aktivním hovoru
@@ -602,4 +609,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-09-15*
+*Poslední aktualizace příručky: 2026-09-16*

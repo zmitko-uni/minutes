@@ -14,11 +14,13 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- **Nahrávání zvuku**: po pádu nebo vynuceném ukončení Minutes se při dalším startu pokusí dokončit rozepsanou nahrávku (bez rozlišení mluvčích, pokud se nepodařilo uložit log řečníků)
 - **Plus4U integrace**: přihlášení přes prohlížeč s 2FA jako fallback, když přístupové kódy nestačí — automaticky při **Otestovat připojení** a při prvním použití Plus4U (vizitky, schůzky, zápis)
 - **Plus4U přihlášení**: než se otevře prohlížeč, Minutes se zeptá dialogem **Otevřít prohlížeč / Zrušit**
 - **Stahování modelů**: v **Nastavení AI** (lokální Gemma) a **Nastavení přepisů** (Whisper) uvidíte při stahování průběh — kolik už je staženo z celkové velikosti, rychlost a odhad zbývajícího času
 
 ### Fixed
+- **Dlouhé nahrávání zvuku** (hodiny) už nespadne kvůli nedostatku paměti — MP3 a PCM se průběžně zapisují na disk místo držení celé nahrávky v paměti okna
 - **Plus4U přihlášení**: dialog **Otevřít prohlížeč / Zrušit** se objeví jen jednou. Dřív vyskočil zvlášť pro každý paralelní požadavek (typicky při otevření **Vizitek**, kde se fotka načítá pro každou osobu samostatně)
 - **Nastavení AI** a **Nastavení přepisů**: rozbalovací nabídky (model, GPU, režim přepisu…) jsou v tmavém režimu znovu čitelné; vstupní pole mají správné pozadí a ohraničení
 - **Nastavení přepisů**: dialog se při vyšším zoomu nebo DPI vejde do okna — tlačítka dole zůstávají vidět a obsah se scrolluje uvnitř dialogu

@@ -11,18 +11,13 @@ import { createLogger } from '../ts/logging/log.std.ts';
 import * as Errors from '../ts/types/errors.std.ts';
 import {
   LEGACY_RECORDINGS_DIR_NAME,
-  SPEAKER_ACTIVITY_FILE_SUFFIX,
   SUMMARIES_DIR_NAME,
 } from '../ts/minutes/constants.std.ts';
 import {
   initializeMinutesRecordingsDirectory,
   resolveMinutesRecordingsDir,
 } from '../ts/minutes/recordingsDirectory.node.ts';
-import {
-  getPrivateRecordingPcmPath,
-  RECORDING_PCM_STORAGE_DIR,
-} from '../ts/minutes/recordingPcmStorage.node.ts';
-import type { SpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
+import { RECORDING_PCM_STORAGE_DIR } from '../ts/minutes/recordingPcmStorage.node.ts';
 import {
   getAiSettingsPublic,
   getAiApiKey,
@@ -130,6 +125,7 @@ import {
   resolveStartupAppUpdateState,
 } from '../ts/minutes/appUpdate.main.ts';
 import { initializeMinutesVideoRecordingChannel } from './minutes_video_recording_channel.main.ts';
+import { initializeMinutesCallRecordingChannel } from './minutes_call_recording_channel.main.ts';
 import {
   emitMinutesAutomationEvent,
   initializeMinutesAutomationRuntime,
@@ -230,108 +226,35 @@ export async function initializeMinutesChannel(automationOptions?: {
     },
   });
 
-  if (automationOptions != null) {
-    await initializeMinutesAutomationRuntime({
-      recordingsDir,
-      getMainWindow: automationOptions.getMainWindow,
-    });
-  }
-
-  ipcMain.handle(
-    'minutes:save-recording',
-    async (
-      _event,
-      options: {
-        conversationId: string;
-        conversationTitle: string;
-        callMode?: string;
-        eraId?: string;
-        startedAt: number;
-        endedAt: number;
-        data: Uint8Array<ArrayBuffer>;
-        pcm48?: Float32Array<ArrayBuffer>;
-        speakerActivityLog?: SpeakerActivityLog | null;
-      }
-    ) => {
-      await ensureDir(recordingsDir);
-
-      const baseName = [
-        formatTimestampForFilename(options.startedAt),
-        sanitizeFilePart(options.conversationTitle),
-        sanitizeFilePart(options.conversationId.slice(0, 8)),
-      ].join('_');
-
-      const filePath = join(recordingsDir, `${baseName}.mp3`);
-      await writeFile(filePath, Buffer.from(options.data));
-
-      if (options.pcm48 && options.pcm48.length > 0) {
-        await ensureDir(pcmStorageDir);
-        const pcmPath = getPrivateRecordingPcmPath(
-          app.getPath('userData'),
-          filePath
-        );
-        await writeFile(
-          pcmPath,
-          Buffer.from(
-            options.pcm48.buffer,
-            options.pcm48.byteOffset,
-            options.pcm48.byteLength
-          )
-        );
-      }
-
-      const metadataPath = join(recordingsDir, `${baseName}.json`);
-      await writeFile(
-        metadataPath,
-        JSON.stringify(
-          {
-            conversationId: options.conversationId,
-            conversationTitle: options.conversationTitle,
-            callMode: options.callMode,
-            eraId: options.eraId,
-            startedAt: options.startedAt,
-            endedAt: options.endedAt,
-            durationMs: options.endedAt - options.startedAt,
-            audioFile: `${baseName}.mp3`,
-            speakerActivityFile:
-              options.speakerActivityLog != null
-                ? `${baseName}${SPEAKER_ACTIVITY_FILE_SUFFIX}`
-                : undefined,
-          },
-          null,
-          2
-        ),
-        'utf8'
-      );
-
-      if (options.speakerActivityLog != null) {
-        const speakerActivityPath = join(
-          recordingsDir,
-          `${baseName}${SPEAKER_ACTIVITY_FILE_SUFFIX}`
-        );
-        await writeFile(
-          speakerActivityPath,
-          JSON.stringify(options.speakerActivityLog, null, 2),
-          'utf8'
-        );
-      }
-
+  initializeMinutesCallRecordingChannel({
+    ipcMain,
+    recordingsDir,
+    pcmStorageDir,
+    onFinalized: async value => {
+      const metadata = JSON.parse(
+        await readFile(value.metadataPath, 'utf8')
+      ) as StoredCallRecordingMetadata;
       await emitMinutesAutomationEvent({
         id: randomUUID(),
         type: 'recording.completed',
         occurredAt: new Date().toISOString(),
         data: {
           recordingId: MeetingAutomationService.getRecordingId({
-            recordingPath: filePath,
+            recordingPath: value.filePath,
           }),
-          conversationId: options.conversationId,
+          conversationId: metadata.conversationId,
           mediaKind: 'audio',
         },
       });
+    },
+  });
 
-      return filePath;
-    }
-  );
+  if (automationOptions != null) {
+    await initializeMinutesAutomationRuntime({
+      recordingsDir,
+      getMainWindow: automationOptions.getMainWindow,
+    });
+  }
 
   ipcMain.handle(
     'minutes:save-chat-summary',

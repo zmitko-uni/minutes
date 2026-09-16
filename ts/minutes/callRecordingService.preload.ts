@@ -1,8 +1,6 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { ipcRenderer } from 'electron';
-
 import { ToastType } from '../types/Toast.dom.tsx';
 import { createLogger } from '../logging/log.std.ts';
 import type { SpeakerActivityLog } from './speakerActivity.std.ts';
@@ -21,6 +19,7 @@ import {
   type CallRecordingServiceDependencies,
 } from './callRecordingServiceCore.std.ts';
 import { RingRtcAudioTrack } from './ringRtcAudioTrack.preload.ts';
+import { callRecordingFileService } from './callRecordingFileService.preload.ts';
 
 const log = createLogger('minutes/callRecording');
 
@@ -36,8 +35,15 @@ const dependencies: CallRecordingServiceDependencies = {
   },
   createAudioTrack: onFatalError => RingRtcAudioTrack.create({ onFatalError }),
   speakerActivity: speakerActivityLogger,
-  saveRecording: input =>
-    ipcRenderer.invoke('minutes:save-recording', input) as Promise<unknown>,
+  writer: {
+    create: options => callRecordingFileService.create(options),
+    appendMp3: (sessionId, data) =>
+      callRecordingFileService.appendMp3(sessionId, data),
+    appendPcm: (sessionId, samples) =>
+      callRecordingFileService.appendPcm(sessionId, samples),
+    finalize: input => callRecordingFileService.finalize(input),
+    abort: sessionId => callRecordingFileService.abort(sessionId),
+  },
   showError: () => {
     window.reduxActions.toast.showToast({ toastType: ToastType.Error });
   },
@@ -49,15 +55,14 @@ const dependencies: CallRecordingServiceDependencies = {
   },
   enqueueRecordingTranscription,
   emitState: state => recordingStateEvents.emitState(state),
-  normalizeSpeakerActivityLog: (activityLog, pcm48) => {
-    if (activityLog != null && pcm48 != null && pcm48.length > 0) {
-      const pcmDurationMs = (pcm48.length / 48_000) * 1000;
+  normalizeSpeakerActivityLog: (activityLog, recordedDurationMs) => {
+    if (activityLog != null && recordedDurationMs > 0) {
       return clampSpeakerActivityLogToPcmDuration(
         activityLog as SpeakerActivityLog,
-        pcmDurationMs
+        recordedDurationMs
       );
     }
-    return activityLog;
+    return null;
   },
   now: () => Date.now(),
   log: {

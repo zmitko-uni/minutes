@@ -6,6 +6,8 @@ import { ipcRenderer } from 'electron';
 import { createLogger } from '../logging/log.std.ts';
 import { drop } from '../util/drop.std.ts';
 import { callRecordingService } from './callRecordingService.preload.ts';
+import { callRecordingFileService } from './callRecordingFileService.preload.ts';
+import { enqueueRecordingTranscription } from './callTranscriptionService.preload.ts';
 import { initializeMinutesLogBuffer } from './logBuffer.preload.ts';
 import { refreshCallSummaryExtension } from './callSummaryExtensionService.preload.ts';
 import { refreshLocalLlmExtension } from './localLlmExtensionService.preload.ts';
@@ -50,6 +52,19 @@ export function initializeMinutes(): void {
   registerMinutesEarly();
 
   drop(callRecordingService.prepare());
+  drop(
+    (async () => {
+      const recovered = await callRecordingFileService.recoverInterrupted();
+      for (const metadata of recovered) {
+        enqueueRecordingTranscription(metadata);
+      }
+      if (recovered.length > 0) {
+        log.info(
+          `recovered ${recovered.length} interrupted call recording(s) after crash`
+        );
+      }
+    })()
+  );
   drop(refreshCallSummaryExtension());
   drop(refreshLocalLlmExtension());
   // Tab Vizitky se v levé navigaci ukazuje jen se zapnutou integrací Plus4U.

@@ -24,6 +24,14 @@ import {
 } from '../ts/minutes/videoRecordingFile.std.ts';
 import { SPEAKER_ACTIVITY_FILE_SUFFIX } from '../ts/minutes/constants.std.ts';
 import { isSpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
+import {
+  createRecordingPartialFileError,
+  formatTimestampForRecordingFilename,
+  ignoreFailure,
+  isRecordingPartialFileError,
+  reapStaleRecordingPartials,
+  sanitizeRecordingFilePart,
+} from '../ts/minutes/recordingPartialFiles.node.ts';
 
 type FinalizeOptions = Omit<FinalizeVideoRecordingFileInput, 'sessionId'>;
 
@@ -45,80 +53,26 @@ type VideoFileHandle = Readonly<{
   close(): Promise<void>;
 }>;
 
-type VideoRecordingFileError = Error & Readonly<{ partialPath: string }>;
-
 function createVideoRecordingFileError(
   message: string,
   partialPath: string
-): VideoRecordingFileError {
-  return Object.assign(new Error(message), {
-    name: 'VideoRecordingFileError',
+): Error & Readonly<{ partialPath: string }> {
+  return createRecordingPartialFileError(
+    message,
     partialPath,
-  });
-}
-
-function isVideoRecordingFileError(
-  error: unknown
-): error is VideoRecordingFileError {
-  return (
-    error instanceof Error &&
-    'partialPath' in error &&
-    typeof error.partialPath === 'string'
+    'VideoRecordingFileError'
   );
 }
 
-async function ignoreFailure(operation: () => Promise<unknown>): Promise<void> {
-  try {
-    await operation();
-  } catch {
-    // Best-effort cleanup must not hide the original recording error.
-  }
+function isVideoRecordingFileError(error: unknown): boolean {
+  return isRecordingPartialFileError(error);
 }
-
-const DEFAULT_PARTIAL_RETENTION_MS = 24 * 60 * 60_000;
 
 export async function reapStaleVideoRecordingPartials(
   directory: string,
-  {
-    now = Date.now(),
-    maxAgeMs = DEFAULT_PARTIAL_RETENTION_MS,
-  }: Readonly<{ now?: number; maxAgeMs?: number }> = {}
+  options?: Readonly<{ now?: number; maxAgeMs?: number }>
 ): Promise<Array<string>> {
-  let fileNames: ReadonlyArray<string>;
-  try {
-    fileNames = await readdir(directory);
-  } catch (error) {
-    if (
-      error != null &&
-      typeof error === 'object' &&
-      'code' in error &&
-      error.code === 'ENOENT'
-    ) {
-      return [];
-    }
-    throw error;
-  }
-
-  const removed = new Array<string>();
-  for (const fileName of [...fileNames].sort()) {
-    if (!fileName.endsWith('.partial')) {
-      continue;
-    }
-    const path = join(directory, fileName);
-    try {
-      // eslint-disable-next-line no-await-in-loop
-      const metadata = await stat(path);
-      if (!metadata.isFile() || now - metadata.mtimeMs < maxAgeMs) {
-        continue;
-      }
-      // eslint-disable-next-line no-await-in-loop
-      await rm(path, { force: true });
-      removed.push(path);
-    } catch {
-      // A concurrent cleanup or inaccessible orphan must not block startup.
-    }
-  }
-  return removed;
+  return reapStaleRecordingPartials(directory, options);
 }
 
 type Session = Readonly<{
@@ -135,16 +89,6 @@ type Session = Readonly<{
   writes: Promise<void>;
 };
 
-function sanitizeFilePart(value: string): string {
-  return value
-    .replace(/[<>:"/\\|?*]/g, '_')
-    .replace(/\s+/g, '_')
-    .slice(0, 80);
-}
-
-function formatTimestampForFilename(epochMs: number): string {
-  return new Date(epochMs).toISOString().replace(/[:.]/g, '-');
-}
 
 export class VideoRecordingFileWriter {
   static readonly DEFAULT_MAX_QUEUED_BYTES = 16 * 1024 * 1024;
@@ -189,9 +133,9 @@ export class VideoRecordingFileWriter {
     await mkdir(this.#pcmStorageDir, { recursive: true });
     const sessionId = randomUUID();
     const baseName = [
-      formatTimestampForFilename(options.startedAt),
-      sanitizeFilePart(options.conversationTitle),
-      sanitizeFilePart(options.conversationId.slice(0, 8)),
+      formatTimestampForRecordingFilename(options.startedAt),
+      sanitizeRecordingFilePart(options.conversationTitle),
+      sanitizeRecordingFilePart(options.conversationId.slice(0, 8)),
       sessionId.slice(0, 8),
     ].join('_');
     const filePath = join(this.#recordingsDir, `${baseName}.webm`);
@@ -235,12 +179,7 @@ export class VideoRecordingFileWriter {
     }
     const chunk = Buffer.from(data);
     session.queuedBytes += chunk.byteLength;
-    session.writes = this.#writeAfterPending(
-      sessionId,
-      session,
-      session.handle,
-      chunk
-    );
+    session.writes = this.#writeAfterPending(session, session.handle, chunk);
     await session.writes;
   }
 
@@ -262,17 +201,11 @@ export class VideoRecordingFileWriter {
       samples.byteLength
     );
     session.queuedBytes += chunk.byteLength;
-    session.writes = this.#writeAfterPending(
-      sessionId,
-      session,
-      session.pcmHandle,
-      chunk
-    );
+    session.writes = this.#writeAfterPending(session, session.pcmHandle, chunk);
     await session.writes;
   }
 
   async #writeAfterPending(
-    sessionId: string,
     session: Session,
     handle: VideoFileHandle,
     chunk: Uint8Array<ArrayBuffer>
@@ -290,10 +223,7 @@ export class VideoRecordingFileWriter {
         session.partialPath
       );
     } finally {
-      const currentSession = this.#sessions.get(sessionId);
-      if (currentSession === session) {
-        currentSession.queuedBytes -= chunk.byteLength;
-      }
+      session.queuedBytes -= chunk.byteLength;
     }
   }
 
