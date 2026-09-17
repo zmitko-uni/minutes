@@ -1,6 +1,7 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -19,11 +20,16 @@ import {
 
 const log = createLogger('minutes/uubtSettings');
 
+export const UUBT_UNREGISTERED_CLIENT_SECRET = 'unregistered';
+
 type StoredUubtSettings = {
   enabled: boolean;
   oidcBaseUri: string;
   encryptedAccessCode1?: string;
   encryptedAccessCode2?: string;
+  oidcUnregisteredClientId?: string;
+  encryptedRefreshToken?: string;
+  browserIdentityMasked?: string;
 };
 
 export type UubtCredentials = Readonly<{
@@ -48,6 +54,15 @@ function encryptSecret(value: string): string {
   return `b64:${Buffer.from(value, 'utf8').toString('base64')}`;
 }
 
+function encryptRefreshToken(value: string): string {
+  if (!safeStorage.isEncryptionAvailable()) {
+    throw new Error(
+      'Bez safeStorage nelze uložit přihlášení přes prohlížeč — zapněte šifrování v OS.'
+    );
+  }
+  return safeStorage.encryptString(value).toString('hex');
+}
+
 function decryptSecret(encrypted: string): string {
   if (encrypted.startsWith('b64:')) {
     return Buffer.from(encrypted.slice(4), 'base64').toString('utf8');
@@ -66,7 +81,7 @@ function tryDecryptSecret(encrypted: string | undefined): string | null {
     const value = decryptSecret(encrypted);
     return value.length > 0 ? value : null;
   } catch (error) {
-    log.warn(`uubt: cannot decrypt stored access code: ${String(error)}`);
+    log.warn(`uubt: cannot decrypt stored secret: ${String(error)}`);
     return null;
   }
 }
@@ -100,6 +115,9 @@ async function readStoredSettings(): Promise<StoredUubtSettings> {
       oidcBaseUri: normalizeOidcBaseUri(parsed.oidcBaseUri),
       encryptedAccessCode1: parsed.encryptedAccessCode1,
       encryptedAccessCode2: parsed.encryptedAccessCode2,
+      oidcUnregisteredClientId: parsed.oidcUnregisteredClientId,
+      encryptedRefreshToken: parsed.encryptedRefreshToken,
+      browserIdentityMasked: parsed.browserIdentityMasked,
     };
   } catch {
     return {
@@ -119,13 +137,75 @@ async function writeStoredSettings(stored: StoredUubtSettings): Promise<void> {
 function toPublicSettings(stored: StoredUubtSettings): UubtSettingsPublic {
   const accessCode1 = tryDecryptSecret(stored.encryptedAccessCode1);
   const accessCode2 = tryDecryptSecret(stored.encryptedAccessCode2);
+  const hasCredentials = accessCode1 != null && accessCode2 != null;
+  const hasBrowserSession =
+    stored.encryptedRefreshToken != null ||
+    (stored.browserIdentityMasked != null &&
+      stored.browserIdentityMasked.length > 0);
 
   return {
     enabled: stored.enabled,
-    hasCredentials: accessCode1 != null && accessCode2 != null,
+    hasCredentials,
+    hasBrowserSession,
+    hasAuth: hasCredentials || hasBrowserSession,
     accessCode1Masked: accessCode1 ? maskAccessCode1(accessCode1) : null,
+    browserIdentityMasked: stored.browserIdentityMasked ?? null,
     oidcBaseUri: stored.oidcBaseUri,
   };
+}
+
+export async function getOidcBaseUri(): Promise<string> {
+  const stored = await readStoredSettings();
+  return stored.oidcBaseUri;
+}
+
+export async function getOidcClientCredentials(): Promise<
+  Readonly<{ clientId: string; clientSecret: string }>
+> {
+  const stored = await readStoredSettings();
+  let clientId = stored.oidcUnregisteredClientId;
+  if (!clientId) {
+    clientId = `uu-oidc:unregistered-client:${randomBytes(4).toString('hex')}`;
+    await writeStoredSettings({
+      ...stored,
+      oidcUnregisteredClientId: clientId,
+    });
+  }
+  return { clientId, clientSecret: UUBT_UNREGISTERED_CLIENT_SECRET };
+}
+
+export async function getBrowserRefreshToken(): Promise<string | null> {
+  const stored = await readStoredSettings();
+  return tryDecryptSecret(stored.encryptedRefreshToken);
+}
+
+export async function saveBrowserSession(
+  options: Readonly<{
+    refreshToken: string | null;
+    identityMasked: string;
+  }>
+): Promise<void> {
+  const stored = await readStoredSettings();
+  const next: StoredUubtSettings = {
+    ...stored,
+    browserIdentityMasked: options.identityMasked,
+    encryptedRefreshToken: options.refreshToken
+      ? encryptRefreshToken(options.refreshToken)
+      : undefined,
+  };
+  await writeStoredSettings(next);
+  log.info(
+    `uubt browser session saved (hasRefresh=${options.refreshToken != null})`
+  );
+}
+
+export async function clearBrowserSession(): Promise<void> {
+  const stored = await readStoredSettings();
+  await writeStoredSettings({
+    ...stored,
+    encryptedRefreshToken: undefined,
+    browserIdentityMasked: undefined,
+  });
 }
 
 export async function getUubtSettingsPublic(): Promise<UubtSettingsPublic> {
@@ -156,7 +236,7 @@ export async function getUubtCredentials(): Promise<UubtCredentials | null> {
 
 export async function isUubtEnabled(): Promise<boolean> {
   const settings = await getUubtSettingsPublic();
-  return settings.enabled && settings.hasCredentials;
+  return settings.enabled && settings.hasAuth;
 }
 
 function applySecretUpdate(
@@ -192,13 +272,16 @@ export async function saveUubtSettings(
       stored.encryptedAccessCode2,
       input.accessCode2
     ),
+    oidcUnregisteredClientId: stored.oidcUnregisteredClientId,
+    encryptedRefreshToken: stored.encryptedRefreshToken,
+    browserIdentityMasked: stored.browserIdentityMasked,
   };
 
   await writeStoredSettings(next);
   log.info(
     `uubt settings saved (enabled=${next.enabled}, hasCredentials=${
       next.encryptedAccessCode1 != null && next.encryptedAccessCode2 != null
-    })`
+    }, hasBrowser=${next.encryptedRefreshToken != null})`
   );
 
   return toPublicSettings(next);

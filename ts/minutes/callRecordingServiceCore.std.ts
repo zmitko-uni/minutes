@@ -10,17 +10,26 @@ import type {
   MinutesCaptureCoordinator,
   MinutesCaptureLease,
 } from './captureCoordinator.std.ts';
+import type { CallRecordingStopResult } from './callRecorder.dom.ts';
+import type { FinalizedCallRecordingFile } from './callRecordingFile.std.ts';
+import type { SpeakerActivityLog } from './speakerActivity.std.ts';
 
-export type CallRecordingStopResult = Readonly<{
-  mp3: Uint8Array<ArrayBuffer>;
-  pcm48?: Float32Array<ArrayBuffer>;
-}>;
+export type { CallRecordingStopResult };
 
 export type CallRecordingRecorder = Readonly<{
   isActive(): boolean;
+  getSessionId(): string | undefined;
   start(
     streams: ReadonlyArray<MediaStream>,
-    options: Readonly<{ onPcm: (sampleCount: number) => void }>
+    options: Readonly<{
+      sessionId: string;
+      sink: Readonly<{
+        appendMp3(data: Uint8Array<ArrayBuffer>): Promise<void>;
+        appendPcm(samples: Float32Array<ArrayBuffer>): Promise<void>;
+      }>;
+      onPcm: (sampleCount: number) => void;
+      onFatalError?: (error: Error) => void;
+    }>
   ): Promise<boolean>;
   pause(): boolean;
   resume(): boolean;
@@ -34,16 +43,32 @@ export type CallRecordingAudioTrack = Readonly<{
   stop(): Promise<void>;
 }>;
 
-export type SaveAudioRecordingInput = Readonly<{
-  conversationId: string;
-  conversationTitle: string;
-  callMode: CallMode.Direct | CallMode.Group;
-  eraId?: string;
-  startedAt: number;
-  endedAt: number;
-  data: Uint8Array<ArrayBuffer>;
-  pcm48?: Float32Array<ArrayBuffer>;
-  speakerActivityLog: unknown;
+export type CallRecordingWriter = Readonly<{
+  create(
+    options: Readonly<{
+      conversationId: string;
+      conversationTitle: string;
+      callMode: string;
+      eraId?: string;
+      startedAt: number;
+    }>
+  ): Promise<{ sessionId: string; partialPath: string }>;
+  appendMp3(sessionId: string, data: Uint8Array<ArrayBuffer>): Promise<void>;
+  appendPcm(
+    sessionId: string,
+    samples: Float32Array<ArrayBuffer>
+  ): Promise<void>;
+  finalize(
+    input: Readonly<{
+      sessionId: string;
+      endedAt: number;
+      recordedDurationMs: number;
+      lametagFrame: Uint8Array<ArrayBuffer>;
+      finalFrame: Uint8Array<ArrayBuffer>;
+      speakerActivityLog: SpeakerActivityLog | null;
+    }>
+  ): Promise<FinalizedCallRecordingFile>;
+  abort(sessionId: string): Promise<unknown>;
 }>;
 
 type SpeakerActivity = Readonly<{
@@ -75,15 +100,15 @@ export type CallRecordingServiceDependencies = Readonly<{
     onFatalError: (error: Error) => void
   ): Promise<CallRecordingAudioTrack>;
   speakerActivity: SpeakerActivity;
-  saveRecording(input: SaveAudioRecordingInput): Promise<unknown>;
+  writer: CallRecordingWriter;
   showError(): void;
   showFileSaved(filePath: string): void;
   enqueueRecordingTranscription(metadata: CallRecordingMetadata): void;
   emitState(state: MinutesRecordingState): void;
   normalizeSpeakerActivityLog(
     activityLog: unknown,
-    pcm48: Float32Array<ArrayBuffer> | undefined
-  ): unknown;
+    recordedDurationMs: number
+  ): SpeakerActivityLog | null;
   now(): number;
   log: ServiceLog;
 }>;
@@ -95,6 +120,7 @@ export class CallRecordingServiceCore {
   #audioTrack: CallRecordingAudioTrack | undefined;
   #finalizationPromise: Promise<CallRecordingMetadata | null> | undefined;
   #pendingAudioError: Error | undefined;
+  #writerSessionId: string | undefined;
 
   constructor(dependencies: CallRecordingServiceDependencies) {
     this.#dependencies = dependencies;
@@ -163,12 +189,37 @@ export class CallRecordingServiceCore {
         });
       }
 
+      const recordingStartedAt = this.#dependencies.now();
+      const writerSession = await this.#dependencies.writer.create({
+        conversationId: options.conversationId,
+        conversationTitle,
+        callMode: options.callMode,
+        eraId: options.eraId,
+        startedAt: recordingStartedAt,
+      });
+      this.#writerSessionId = writerSession.sessionId;
+
       const started = await recorder.start([audioTrack.stream], {
+        sessionId: writerSession.sessionId,
+        sink: {
+          appendMp3: data =>
+            this.#dependencies.writer.appendMp3(writerSession.sessionId, data),
+          appendPcm: samples =>
+            this.#dependencies.writer.appendPcm(
+              writerSession.sessionId,
+              samples
+            ),
+        },
         onPcm: sampleCount => {
           this.#dependencies.speakerActivity.onRecordingPcm(sampleCount);
         },
+        onFatalError: error => {
+          this.#handleAudioError(error);
+        },
       });
       if (!started) {
+        await this.#dependencies.writer.abort(writerSession.sessionId);
+        this.#writerSessionId = undefined;
         await this.#stopAudioTrack();
         this.#dependencies.showError();
         return false;
@@ -179,7 +230,6 @@ export class CallRecordingServiceCore {
         });
       }
 
-      const recordingStartedAt = this.#dependencies.now();
       this.#setState({
         status: 'recording',
         conversationId: options.conversationId,
@@ -209,6 +259,10 @@ export class CallRecordingServiceCore {
       }
       await this.#stopAudioTrack();
       this.#dependencies.speakerActivity.stop();
+      if (this.#writerSessionId) {
+        await this.#dependencies.writer.abort(this.#writerSessionId);
+        this.#writerSessionId = undefined;
+      }
       this.#setState({ status: 'idle' });
       this.#dependencies.showError();
       return false;
@@ -348,8 +402,7 @@ export class CallRecordingServiceCore {
     active: Exclude<MinutesRecordingState, { status: 'idle' }>
   ): Promise<CallRecordingMetadata | null> {
     try {
-      const { conversationId, conversationTitle, callMode, eraId, startedAt } =
-        active;
+      const { conversationId, conversationTitle, eraId, startedAt } = active;
       const endedAt = this.#dependencies.now();
       let recording: CallRecordingStopResult | undefined;
       try {
@@ -359,29 +412,47 @@ export class CallRecordingServiceCore {
       }
       const rawSpeakerActivityLog = this.#dependencies.speakerActivity.stop();
 
-      if (!recording || recording.mp3.byteLength === 0) {
+      const sessionId = this.#writerSessionId;
+      this.#writerSessionId = undefined;
+
+      if (!recording) {
         this.#dependencies.log.warn('finalizeRecording: empty recording');
+        if (sessionId) {
+          await this.#dependencies.writer.abort(sessionId);
+        }
+        return null;
+      }
+      if (!sessionId) {
+        this.#dependencies.log.warn(
+          'finalizeRecording: missing writer session'
+        );
         return null;
       }
 
-      const { mp3: data, pcm48 } = recording;
+      if (recording.recordedDurationMs <= 0) {
+        this.#dependencies.log.warn('finalizeRecording: empty recording');
+        await this.#dependencies.writer.abort(sessionId);
+        return null;
+      }
+
       const speakerActivityLog = this.#dependencies.normalizeSpeakerActivityLog(
         rawSpeakerActivityLog,
-        pcm48
+        recording.recordedDurationMs
       );
-      const filePath = await this.#dependencies.saveRecording({
-        conversationId,
-        conversationTitle,
-        callMode,
-        eraId,
-        startedAt,
-        endedAt,
-        data,
-        pcm48,
-        speakerActivityLog,
-      });
 
-      if (typeof filePath !== 'string') {
+      let finalized: FinalizedCallRecordingFile;
+      try {
+        finalized = await this.#dependencies.writer.finalize({
+          sessionId,
+          endedAt,
+          recordedDurationMs: recording.recordedDurationMs,
+          lametagFrame: recording.lametagFrame,
+          finalFrame: recording.finalFrame,
+          speakerActivityLog,
+        });
+      } catch (error) {
+        this.#dependencies.log.error('finalizeRecording failed', error);
+        await this.#dependencies.writer.abort(sessionId);
         return null;
       }
 
@@ -391,10 +462,10 @@ export class CallRecordingServiceCore {
         eraId,
         startedAt,
         endedAt,
-        filePath,
-        durationMs: endedAt - startedAt,
+        filePath: finalized.filePath,
+        durationMs: recording.recordedDurationMs,
       };
-      this.#dependencies.showFileSaved(filePath);
+      this.#dependencies.showFileSaved(finalized.filePath);
       this.#dependencies.enqueueRecordingTranscription(metadata);
       return metadata;
     } finally {

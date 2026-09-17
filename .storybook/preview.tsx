@@ -312,15 +312,15 @@ function withAppProvider(Story, context) {
 
 function withMutedUntilDialogProvider(Story, context) {
   return (
-    <MuteUntilDialogProvider i18n={window.SignalContext.i18n}>
+    <MuteUntilDialogProvider i18n={i18n}>
       <Story {...context} />
     </MuteUntilDialogProvider>
   );
 }
 
 export const decorators = [
-  withMutedUntilDialogProvider,
   withAppProvider,
+  withMutedUntilDialogProvider,
   withGlobalTypesProvider,
   withMockStoreProvider,
   withScrollLockProvider,

@@ -65,6 +65,10 @@ export type CallSummaryExtensionProgress = Readonly<{
   phase: 'checking' | 'downloading' | 'verifying' | 'complete' | 'error';
   message: string;
   percent?: number;
+  loadedBytes?: number;
+  totalBytes?: number | null;
+  bytesPerSecond?: number;
+  etaSeconds?: number;
 }>;
 
 export const DEFAULT_CALL_SUMMARY_EXTENSION: CallSummaryExtensionPublic = {

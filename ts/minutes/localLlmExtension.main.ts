@@ -16,6 +16,7 @@ import {
   normalizeLocalLlmReasoningEnabled,
 } from './localLlmReasoning.std.ts';
 import { AI_SETTINGS_DIR_NAME } from './constants.std.ts';
+import { createDownloadProgressReporter } from './downloadProgress.std.ts';
 import {
   DownloadCancelledError,
   downloadHttpsFile,
@@ -245,28 +246,23 @@ export async function installLocalLlmExtension(
 
     const currentStatus = await isModelReady(modelFileName);
     if (!currentStatus.ready) {
-      sendProgress({
-        phase: 'downloading',
-        message: `Stahuji ${getLocalLlmModelLabel(modelFileName)}…`,
-        percent: 0,
+      const downloadMessage = `Stahuji ${getLocalLlmModelLabel(modelFileName)}…`;
+      const downloadReporter = createDownloadProgressReporter({
+        onReport: snapshot =>
+          sendProgress({
+            phase: 'downloading',
+            message: downloadMessage,
+            ...snapshot,
+          }),
       });
 
       await downloadHttpsFile(
         getLocalLlmModelDownloadUrl(modelFileName),
         modelPath,
-        (loaded, total) => {
-          const percent =
-            total && total > 0
-              ? Math.min(99, Math.round((loaded / total) * 100))
-              : undefined;
-          sendProgress({
-            phase: 'downloading',
-            message: `Stahuji ${getLocalLlmModelLabel(modelFileName)}…`,
-            percent,
-          });
-        },
+        downloadReporter.onProgress,
         { signal }
       );
+      downloadReporter.flush();
     }
 
     throwIfCancelled();

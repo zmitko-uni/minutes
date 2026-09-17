@@ -8,7 +8,7 @@ import type {
   UubtMeetingActivity,
 } from './uubt.std.ts';
 import { describeValueShape, isSameUuIdentity } from './uubt.std.ts';
-import { getUubtToken } from './uubtAuth.main.ts';
+import { getUubtTokenWithInteractiveLogin } from './uubtAuthSession.main.ts';
 import { uubtGet } from './uubtClient.main.ts';
 import type { Plus4uPersonRecord } from './plus4uPeople.main.ts';
 import {
@@ -59,7 +59,7 @@ export function clearUubtCalendarCache(): void {
 }
 
 export async function getUubtConnectionInfo(): Promise<UubtConnectionInfo> {
-  const { identityCandidates } = await getUubtToken();
+  const { identityCandidates } = await getUubtTokenWithInteractiveLogin();
   const { uuIdentity, person } =
     await loadPlus4uPersonByIdentityCandidates(identityCandidates);
   const dwUri = findDwUri(person);

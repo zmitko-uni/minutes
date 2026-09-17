@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 import { ipcRenderer } from 'electron';
 
 import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
+import { AxoSelect } from '../../axo/AxoSelect.dom.tsx';
 import { AxoSwitch } from '../../axo/AxoSwitch.dom.tsx';
 import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
@@ -28,6 +29,9 @@ import {
   type WhisperTranscribeSettingsPublic,
 } from '../whisperTranscribeSettings.std.ts';
 import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
+import { MinutesDownloadProgress } from './MinutesDownloadProgress.dom.tsx';
+import { MINUTES_FORM_CONTROL_CLASS } from './minutesFormControls.dom.ts';
+import { useDialogBodyMaxHeight } from './useDialogBodyMaxHeight.dom.ts';
 
 type Props = Readonly<{
   open: boolean;
@@ -222,6 +226,7 @@ export function MinutesCallSummaryExtensionModal({
     WHISPER_DECODE_MODE_OPTIONS.find(
       option => option.id === transcribeSettings.decodeMode
     ) ?? WHISPER_DECODE_MODE_OPTIONS[0]!;
+  const dialogBodyMaxHeight = useDialogBodyMaxHeight(open);
 
   if (!open) {
     return null;
@@ -229,7 +234,7 @@ export function MinutesCallSummaryExtensionModal({
 
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
-      <AxoDialog.Content size="md" escape="cancel-is-noop">
+      <AxoDialog.Content size="lg" escape="cancel-is-noop">
         <MinutesDraggableDialogHeader positionKey="transcription-settings">
           <AxoDialog.Title>
             {formatAppDialogTitle('Nastavení přepisů')}
@@ -237,7 +242,7 @@ export function MinutesCallSummaryExtensionModal({
           <AxoDialog.Close />
         </MinutesDraggableDialogHeader>
 
-        <AxoDialog.Body>
+        <AxoDialog.Body maxHeight={dialogBodyMaxHeight}>
           <AxoDialog.Description>
             <p className={tw('text-label-medium leading-relaxed mb-5')}>
               Přepis probíhá lokálně: nejdřív Whisper přes celé audio, pak
@@ -312,20 +317,28 @@ export function MinutesCallSummaryExtensionModal({
             </p>
             <label className="MinutesCallSummaryExtensionModal__modelLabel">
               <span>Model</span>
-              <select
-                className="MinutesCallSummaryExtensionModal__modelSelect"
-                value={selectedModelFileName}
+              <AxoSelect.Root
                 disabled={isBusy}
-                onChange={event => setSelectedModelFileName(event.target.value)}
+                value={selectedModelFileName}
+                onValueChange={setSelectedModelFileName}
               >
-                {state.availableModels.map(model => (
-                  <option key={model.fileName} value={model.fileName}>
-                    {model.label} ({model.downloadLabel})
-                    {model.recommended ? ' — doporučeno' : ''}
-                    {model.ready ? ' ✓' : ''}
-                  </option>
-                ))}
-              </select>
+                <AxoSelect.Trigger width="full" placeholder="Vyberte model" />
+                <AxoSelect.Content position="dropdown">
+                  {state.availableModels.map(model => (
+                    <AxoSelect.Item
+                      key={model.fileName}
+                      value={model.fileName}
+                      textValue={`${model.label} (${model.downloadLabel})`}
+                    >
+                      <AxoSelect.ItemText>
+                        {model.label} ({model.downloadLabel})
+                        {model.recommended ? ' — doporučeno' : ''}
+                        {model.ready ? ' ✓' : ''}
+                      </AxoSelect.ItemText>
+                    </AxoSelect.Item>
+                  ))}
+                </AxoSelect.Content>
+              </AxoSelect.Root>
             </label>
             {selectedModel && (
               <p className="MinutesCallSummaryExtensionModal__modelHint">
@@ -371,20 +384,13 @@ export function MinutesCallSummaryExtensionModal({
               state.gpuAcceleration.devices.length > 0 && (
                 <label className={tw('flex flex-col gap-1')}>
                   <span>Grafická karta pro akceleraci</span>
-                  <select
-                    className={tw(
-                      'rounded-md border border-solid px-3 py-2',
-                      'border-label-disabled bg-background-primary'
-                    )}
-                    value={String(state.gpuAcceleration.selectedGpuDeviceIndex)}
+                  <AxoSelect.Root
                     disabled={
                       isBusy || state.gpuAcceleration.devices.length <= 1
                     }
-                    onChange={event => {
-                      const gpuDeviceIndex = Number.parseInt(
-                        event.target.value,
-                        10
-                      );
+                    value={String(state.gpuAcceleration.selectedGpuDeviceIndex)}
+                    onValueChange={value => {
+                      const gpuDeviceIndex = Number.parseInt(value, 10);
                       if (!Number.isFinite(gpuDeviceIndex)) {
                         return;
                       }
@@ -395,12 +401,22 @@ export function MinutesCallSummaryExtensionModal({
                       persistTranscribeSettings({ gpuDeviceIndex });
                     }}
                   >
-                    {state.gpuAcceleration.devices.map(device => (
-                      <option key={device.index} value={String(device.index)}>
-                        {device.label}
-                      </option>
-                    ))}
-                  </select>
+                    <AxoSelect.Trigger
+                      width="full"
+                      placeholder="Grafická karta"
+                    />
+                    <AxoSelect.Content position="dropdown">
+                      {state.gpuAcceleration.devices.map(device => (
+                        <AxoSelect.Item
+                          key={device.index}
+                          value={String(device.index)}
+                          textValue={device.label}
+                        >
+                          <AxoSelect.ItemText>{device.label}</AxoSelect.ItemText>
+                        </AxoSelect.Item>
+                      ))}
+                    </AxoSelect.Content>
+                  </AxoSelect.Root>
                   <span className={tw('text-label-small opacity-70')}>
                     {state.gpuAcceleration.devices.length > 1
                       ? 'Vyberte diskrétní GPU, pokud máte i integrovanou grafiku (např. notebook).'
@@ -413,10 +429,7 @@ export function MinutesCallSummaryExtensionModal({
               <span>Počet vláken CPU</span>
               <input
                 type="number"
-                className={tw(
-                  'w-24 rounded-md border border-solid px-3 py-2',
-                  'border-label-disabled bg-background-primary'
-                )}
+                className={tw(MINUTES_FORM_CONTROL_CLASS, 'w-24')}
                 min={0}
                 max={Math.max(1, state.cpuCount)}
                 value={transcribeSettings.threadCount}
@@ -443,25 +456,28 @@ export function MinutesCallSummaryExtensionModal({
 
             <label className={tw('flex flex-col gap-1')}>
               <span>Režim decode profilů</span>
-              <select
-                className={tw(
-                  'rounded-md border border-solid px-3 py-2',
-                  'border-label-disabled bg-background-primary'
-                )}
-                value={transcribeSettings.decodeMode}
+              <AxoSelect.Root
                 disabled={isBusy}
-                onChange={event => {
-                  const decodeMode = event.target.value as WhisperDecodeMode;
+                value={transcribeSettings.decodeMode}
+                onValueChange={value => {
+                  const decodeMode = value as WhisperDecodeMode;
                   setTranscribeSettings(prev => ({ ...prev, decodeMode }));
                   persistTranscribeSettings({ decodeMode });
                 }}
               >
-                {WHISPER_DECODE_MODE_OPTIONS.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                <AxoSelect.Trigger width="full" placeholder="Režim decode" />
+                <AxoSelect.Content position="dropdown">
+                  {WHISPER_DECODE_MODE_OPTIONS.map(option => (
+                    <AxoSelect.Item
+                      key={option.id}
+                      value={option.id}
+                      textValue={option.label}
+                    >
+                      <AxoSelect.ItemText>{option.label}</AxoSelect.ItemText>
+                    </AxoSelect.Item>
+                  ))}
+                </AxoSelect.Content>
+              </AxoSelect.Root>
               <span className={tw('text-label-small opacity-70')}>
                 {selectedDecodeMode.description}
               </span>
@@ -482,7 +498,8 @@ export function MinutesCallSummaryExtensionModal({
           )}
 
           {progress && (
-            <div
+            <MinutesDownloadProgress
+              progress={progress}
               className={tw(
                 'MinutesCallSummaryExtensionModal__progress',
                 progress.phase === 'error' &&
@@ -490,18 +507,9 @@ export function MinutesCallSummaryExtensionModal({
                 progress.phase === 'complete' &&
                   'MinutesCallSummaryExtensionModal__progress--complete'
               )}
-            >
-              <span>{progress.message}</span>
-              {typeof progress.percent === 'number' &&
-                progress.phase === 'downloading' && (
-                  <div className="MinutesCallSummaryExtensionModal__bar">
-                    <div
-                      className="MinutesCallSummaryExtensionModal__barFill"
-                      style={{ width: `${progress.percent}%` }}
-                    />
-                  </div>
-                )}
-            </div>
+              barClassName="MinutesCallSummaryExtensionModal__bar"
+              barFillClassName="MinutesCallSummaryExtensionModal__barFill"
+            />
           )}
 
           {errorMessage && (

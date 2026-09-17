@@ -56,6 +56,13 @@ const PATTERNS: ReadonlyArray<ErrorPattern> = [
       'Server poskytovatele neodpověděl. Zkontrolujte internetové připojení nebo firewall a zkuste to znovu.',
   },
   {
+    pattern:
+      /UubtInteractiveLoginRequired|Plus4U integrace není přihlášená|vyžaduje přihlášení přes prohlížeč/i,
+    title: 'Je potřeba přihlášení do Plus4U',
+    message:
+      'Minutes nemá platnou relaci k Plus4U. V menu Minutes otevřete Nastavení AI, v sekci Plus4U zvolte Otestovat připojení a dokončete přihlášení v prohlížeči (včetně 2FA).',
+  },
+  {
     pattern: /ENOSPC/i,
     title: 'Na disku není místo',
     message: 'Uvolněte místo na disku s nahrávkami a spusťte akci znovu.',

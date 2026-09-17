@@ -59,15 +59,15 @@ import {
   sharePersonCard,
 } from '../personCardService.preload.ts';
 import { useUubtIntegrationEnabled } from '../uubtIntegration.preload.ts';
+import { formatUserFacingError } from '../friendlyError.std.ts';
 import { MinutesIcon } from './MinutesIcon.dom.tsx';
 
 /** Hledá se až po dopsání, ať se oba zdroje nevolají na každé písmeno. */
 const SEARCH_DEBOUNCE_MS = 350;
 
 function toErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message.length > 0
-    ? error.message
-    : fallback;
+  const friendly = formatUserFacingError(error);
+  return friendly.length > 0 ? friendly : fallback;
 }
 
 type CardSelection = Readonly<{ uuIdentity: string; uubemId: string | null }>;

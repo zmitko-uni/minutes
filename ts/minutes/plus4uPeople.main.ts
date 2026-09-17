@@ -9,7 +9,7 @@ import {
   UUBT_PEOPLE_BASE_URI,
   uuIdentityCandidates,
 } from './uubt.std.ts';
-import { getUubtToken } from './uubtAuth.main.ts';
+import { getUubtTokenWithInteractiveLogin } from './uubtAuthSession.main.ts';
 import { UubtApiError, uubtGet, uubtGetBinary } from './uubtClient.main.ts';
 
 const log = createLogger('minutes/plus4uPeople');
@@ -538,7 +538,7 @@ export async function loadPlus4uPersonByIdentityCandidates(
 
 /** uuIdentity přihlášeného uživatele — bez nároku na uuDigitalWorkspace. */
 export async function getMyPlus4uIdentity(): Promise<string> {
-  const { identityCandidates } = await getUubtToken();
+  const { identityCandidates } = await getUubtTokenWithInteractiveLogin();
   const { uuIdentity } =
     await loadPlus4uPersonByIdentityCandidates(identityCandidates);
   return uuIdentity;
