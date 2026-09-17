@@ -89,6 +89,7 @@ export type AutomationRendererMethod =
   | 'getConversation'
   | 'listContacts'
   | 'getContact'
+  | 'addContact'
   | 'getGroup'
   | 'findGroupsByMember'
   | 'createGroup'
