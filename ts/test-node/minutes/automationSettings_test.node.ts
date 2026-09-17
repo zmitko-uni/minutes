@@ -82,6 +82,7 @@ describe('AutomationSettingsStore', () => {
         'summarize_recording',
         'list_conversations',
         'list_contacts',
+        'add_contact',
         'get_messages',
         'get_message',
         'search_messages',

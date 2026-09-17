@@ -16,6 +16,7 @@ function createCapabilities(
     getConversation: async () => ({ id: 'conversation-1' }),
     listContacts: async () => ({ items: [] }),
     getContact: async () => ({ id: 'contact-1' }),
+    addContact: async () => ({ id: 'contact-1' }),
     getGroup: async () => ({ id: 'group-1' }),
     findGroupsByMember: async () => ({ items: [] }),
     createGroup: async () => ({ id: 'group-1' }),

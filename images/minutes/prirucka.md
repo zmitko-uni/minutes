@@ -372,6 +372,7 @@ Lokální MCP server a webhooky pro automatizaci (například AI nástroje nebo 
 - Zapnutí serveru, **port**, **kopírování URL** a jednorázové zobrazení **tokenu** (bez tokenu se server nepřipojí)
 - **Povolení hostů** — například `host.docker.internal` pro Docker Desktop; HTTP originy se odvodí automaticky
 - Oprávnění nástrojů po úrovních: **Pouze čtení**, **Běžné zápisy**, **Destruktivní zápisy**
+- Nástroj **`add_contact`** vyhledá registrovaný Signal kontakt podle přesného čísla v mezinárodním formátu E.164 (například `+420…`) nebo podle Signal username a přidá ho do lokálního seznamu konverzací. Nemění systémový adresář macOS ani Windows
 - Webhooky na události (hovor, nahrávka, přepis, zpráva)
 
 Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho má, může jménem Minutes číst nebo měnit data podle zapnutých oprávnění.

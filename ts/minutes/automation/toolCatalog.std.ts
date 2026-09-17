@@ -47,6 +47,12 @@ export const AUTOMATION_TOOL_CATALOG = [
     access: 'read',
   },
   {
+    name: 'add_contact',
+    label: 'Přidat kontakt',
+    group: 'messages',
+    access: 'write',
+  },
+  {
     name: 'get_messages',
     label: 'Načíst zprávy',
     group: 'messages',

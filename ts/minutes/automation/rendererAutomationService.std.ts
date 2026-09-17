@@ -51,6 +51,16 @@ export class RendererAutomationService {
     }) as Promise<AutomationContact>;
   }
 
+  addContact(options: {
+    phoneNumber?: string;
+    username?: string;
+  }): Promise<AutomationContact> {
+    return this.bridge.request(
+      'addContact',
+      options
+    ) as Promise<AutomationContact>;
+  }
+
   getGroup(groupId: string): Promise<AutomationGroup> {
     return this.bridge.request('getGroup', {
       groupId,

@@ -22,6 +22,23 @@ const groupAccessSchema = z.enum(['members', 'admins']);
 const inviteLinkSchema = z.enum(['disabled', 'open', 'admin_approval']);
 const messageDirectionSchema = z.enum(['incoming', 'outgoing']);
 const messageOrderSchema = z.enum(['newest', 'oldest']);
+const addContactSchema = z
+  .object({
+    phoneNumber: z
+      .string()
+      .min(1)
+      .describe('Exact international phone number in E.164 format')
+      .optional(),
+    username: z
+      .string()
+      .min(1)
+      .describe('Exact Signal username, with or without the leading @')
+      .optional(),
+  })
+  .refine(
+    input => (input.phoneNumber == null) !== (input.username == null),
+    'Provide exactly one of phoneNumber or username'
+  );
 const messageFilterSchema = {
   senderContactId: z
     .string()
@@ -93,6 +110,22 @@ export function registerLiveMcpCapabilities(
         annotations: { readOnlyHint: true, openWorldHint: false },
       },
       async input => jsonResult(await live.listContacts(input))
+    );
+  }
+  if (enabledTools.has('add_contact')) {
+    server.registerTool(
+      'add_contact',
+      {
+        description:
+          'Finds a registered Signal account by exact E.164 phone number or Signal username and adds it to the local Signal conversation list. This does not modify the operating-system address book.',
+        inputSchema: addContactSchema,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          openWorldHint: true,
+        },
+      },
+      async input => jsonResult(await live.addContact(input))
     );
   }
   if (enabledTools.has('get_messages')) {

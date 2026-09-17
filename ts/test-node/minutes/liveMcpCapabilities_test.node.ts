@@ -46,6 +46,11 @@ describe('live Signal MCP capabilities', () => {
       }),
       listContacts: async () => ({ items: [] }),
       getContact: async (id: string) => ({ id, title: 'Alice' }),
+      addContact: async (options: Readonly<Record<string, unknown>>) => ({
+        id: 'contact-added',
+        title: 'Added contact',
+        ...options,
+      }),
       getGroup: async (id: string) => ({ id, title: 'Team' }),
       findGroupsByMember: async (options: {
         query?: string;
@@ -142,6 +147,7 @@ describe('live Signal MCP capabilities', () => {
     assert.includeMembers(names, [
       'list_conversations',
       'list_contacts',
+      'add_contact',
       'get_messages',
       'get_message',
       'search_messages',
@@ -169,6 +175,22 @@ describe('live Signal MCP capabilities', () => {
       'terminate_group',
       'leave_group',
     ]);
+  });
+
+  it('adds a Signal contact by an exact phone number', async () => {
+    const added = await request(3, 'tools/call', {
+      name: 'add_contact',
+      arguments: { phoneNumber: '+420123456789' },
+    });
+
+    assert.include(
+      added.result?.content?.[0]?.text ?? '',
+      '"id":"contact-added"'
+    );
+    assert.include(
+      added.result?.content?.[0]?.text ?? '',
+      '"phoneNumber":"+420123456789"'
+    );
   });
 
   it('reads canonical conversation resources and invokes mutations', async () => {

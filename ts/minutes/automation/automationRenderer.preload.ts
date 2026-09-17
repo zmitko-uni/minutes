@@ -32,6 +32,8 @@ import { stringToMIMEType } from '../../types/MIME.std.ts';
 import * as RemoteConfig from '../../RemoteConfig.dom.ts';
 import * as Attachment from '../../util/Attachment.std.ts';
 import { isFileDangerous } from '../../util/isFileDangerous.std.ts';
+import { isValidE164 } from '../../util/isValidE164.std.ts';
+import { lookupConversationWithoutServiceId } from '../../util/lookupConversationWithoutServiceId.preload.ts';
 import { processAttachment } from '../../util/processAttachment.preload.ts';
 import { queueAttachmentDownloadsAndMaybeSaveMessage } from '../../util/queueAttachmentDownloads.preload.ts';
 import { readAttachmentData } from '../../util/migrations.preload.ts';
@@ -1034,6 +1036,56 @@ export function initializeAutomationRenderer(): void {
         serviceId: conversation.get('serviceId'),
         e164: conversation.get('e164'),
       } satisfies AutomationContact;
+    },
+    addContact: async params => {
+      const phoneNumber = optionalString(params, 'phoneNumber');
+      const username = optionalString(params, 'username');
+      if ((phoneNumber == null) === (username == null)) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'Provide exactly one of phoneNumber or username'
+        );
+      }
+      if (phoneNumber != null && !isValidE164(phoneNumber, true)) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'phoneNumber must use international E.164 format'
+        );
+      }
+
+      let conversationId: string | undefined;
+      if (phoneNumber != null) {
+        conversationId = await lookupConversationWithoutServiceId({
+          type: 'e164',
+          e164: phoneNumber,
+          phoneNumber,
+          showUserNotFoundModal: () => undefined,
+          setIsFetchingUUID: () => undefined,
+        });
+      } else if (username != null) {
+        conversationId = await lookupConversationWithoutServiceId({
+          type: 'username',
+          username,
+          showUserNotFoundModal: () => undefined,
+          setIsFetchingUUID: () => undefined,
+        });
+      } else {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'Provide exactly one of phoneNumber or username'
+        );
+      }
+      if (conversationId == null) {
+        return automationError('NOT_FOUND', 'Signal contact not found');
+      }
+      const conversation = window.ConversationController.get(conversationId);
+      if (conversation == null || conversation.get('type') === 'group') {
+        return automationError(
+          'INVALID_STATE',
+          'Resolved Signal contact is unavailable'
+        );
+      }
+      return mapContact(conversation);
     },
     getGroup: async params => {
       const groupId = requiredString(params, 'groupId');
