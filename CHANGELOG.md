@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.6.0-beta.2] - 2026-09-17
+
+### Added
 
 - **Nahrávání zvuku**: po pádu nebo vynuceném ukončení Minutes se při dalším startu pokusí dokončit rozepsanou nahrávku (bez rozlišení mluvčích, pokud se nepodařilo uložit log řečníků)
 - **Plus4U integrace**: přihlášení přes prohlížeč s 2FA jako fallback, když přístupové kódy nestačí — automaticky při **Otestovat připojení** a při prvním použití Plus4U (vizitky, schůzky, zápis)
