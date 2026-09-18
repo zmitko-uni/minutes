@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.6.1] - 2026-09-18
+
+### Added
 
 - **MCP**: nový nástroj `add_contact` vyhledá registrovaný Signal kontakt podle přesného telefonního čísla v mezinárodním formátu E.164 nebo podle Signal username a přidá ho do lokálního seznamu konverzací
 
