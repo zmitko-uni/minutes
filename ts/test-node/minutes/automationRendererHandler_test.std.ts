@@ -39,6 +39,7 @@ function createCapabilities(
     sendMessage: async () => ({ messageId: 'message-1' }),
     createPoll: async () => ({ messageId: 'poll-message-1' }),
     getPollResults: async () => ({ messageId: 'poll-message-1' }),
+    votePoll: async () => ({ queued: true }),
     setMessageReaction: async () => ({ changed: true }),
     getActiveCall: async () => ({ call: null }),
     startCall: async () => ({ started: true }),

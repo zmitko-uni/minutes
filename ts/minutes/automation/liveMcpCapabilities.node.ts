@@ -35,6 +35,12 @@ const pollOptionSchema = z
   .refine(value => hasAtMostGraphemes(value, 100), {
     message: 'Poll option must contain at most 100 characters',
   });
+const pollOptionIndexesSchema = z
+  .array(z.number().int().min(0).max(9))
+  .max(10)
+  .refine(indexes => new Set(indexes).size === indexes.length, {
+    message: 'Poll option indexes must be unique',
+  });
 const addContactSchema = z
   .object({
     phoneNumber: z
@@ -285,6 +291,25 @@ export function registerLiveMcpCapabilities(
         annotations: { readOnlyHint: true, openWorldHint: false },
       },
       async input => jsonResult(await live.getPollResults(input))
+    );
+  }
+  if (enabledTools.has('vote_poll')) {
+    server.registerTool(
+      'vote_poll',
+      {
+        description:
+          'Sets the local Signal vote on a poll. Pass the zero-based option indexes returned by get_poll_results; pass an empty array to remove the vote.',
+        inputSchema: {
+          messageId: z.string().min(1),
+          optionIndexes: pollOptionIndexesSchema,
+        },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          openWorldHint: true,
+        },
+      },
+      async input => jsonResult(await live.votePoll(input))
     );
   }
   if (enabledTools.has('set_message_reaction')) {

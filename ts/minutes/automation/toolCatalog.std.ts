@@ -101,6 +101,12 @@ export const AUTOMATION_TOOL_CATALOG = [
     access: 'read',
   },
   {
+    name: 'vote_poll',
+    label: 'Hlasovat v hlasování',
+    group: 'messages',
+    access: 'destructive',
+  },
+  {
     name: 'set_message_reaction',
     label: 'Nastavit reakci na zprávu',
     group: 'messages',

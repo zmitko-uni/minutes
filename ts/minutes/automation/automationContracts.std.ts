@@ -134,6 +134,7 @@ export type AutomationRendererMethod =
   | 'sendMessage'
   | 'createPoll'
   | 'getPollResults'
+  | 'votePoll'
   | 'setMessageReaction'
   | 'getActiveCall'
   | 'startCall'
