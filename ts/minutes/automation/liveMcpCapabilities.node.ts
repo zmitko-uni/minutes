@@ -5,6 +5,7 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as z from 'zod/v4';
 
+import { hasAtMostGraphemes } from '../../util/grapheme.std.ts';
 import type { RendererAutomationService } from './rendererAutomationService.std.ts';
 import {
   ALL_AUTOMATION_TOOL_NAMES,
@@ -22,6 +23,18 @@ const groupAccessSchema = z.enum(['members', 'admins']);
 const inviteLinkSchema = z.enum(['disabled', 'open', 'admin_approval']);
 const messageDirectionSchema = z.enum(['incoming', 'outgoing']);
 const messageOrderSchema = z.enum(['newest', 'oldest']);
+const pollQuestionSchema = z
+  .string()
+  .min(1)
+  .refine(value => hasAtMostGraphemes(value, 100), {
+    message: 'Poll question must contain at most 100 characters',
+  });
+const pollOptionSchema = z
+  .string()
+  .min(1)
+  .refine(value => hasAtMostGraphemes(value, 100), {
+    message: 'Poll option must contain at most 100 characters',
+  });
 const addContactSchema = z
   .object({
     phoneNumber: z
@@ -236,6 +249,42 @@ export function registerLiveMcpCapabilities(
         },
       },
       async input => jsonResult(await live.sendMessage(input))
+    );
+  }
+  if (enabledTools.has('create_poll')) {
+    server.registerTool(
+      'create_poll',
+      {
+        description:
+          'Creates a Signal poll in a conversation. Supply a stable idempotencyKey and reuse it for retries to prevent duplicate polls.',
+        inputSchema: {
+          conversationId: z.string().min(1),
+          question: pollQuestionSchema,
+          options: z.array(pollOptionSchema).min(2).max(10),
+          allowMultiple: z.boolean().default(false),
+          idempotencyKey: z.string().min(1).max(256).optional(),
+        },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          openWorldHint: true,
+        },
+      },
+      async input => jsonResult(await live.createPoll(input))
+    );
+  }
+  if (enabledTools.has('get_poll_results')) {
+    server.registerTool(
+      'get_poll_results',
+      {
+        description:
+          'Returns the current Signal poll totals, percentages, voters, and termination state. Call it repeatedly with the poll message ID to monitor results.',
+        inputSchema: {
+          messageId: z.string().min(1),
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false },
+      },
+      async input => jsonResult(await live.getPollResults(input))
     );
   }
   if (enabledTools.has('set_message_reaction')) {

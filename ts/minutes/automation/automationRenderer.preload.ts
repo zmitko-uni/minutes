@@ -32,11 +32,19 @@ import { stringToMIMEType } from '../../types/MIME.std.ts';
 import * as RemoteConfig from '../../RemoteConfig.dom.ts';
 import * as Attachment from '../../util/Attachment.std.ts';
 import { isFileDangerous } from '../../util/isFileDangerous.std.ts';
+import { hasAtMostGraphemes } from '../../util/grapheme.std.ts';
 import { isValidE164 } from '../../util/isValidE164.std.ts';
 import { lookupConversationWithoutServiceId } from '../../util/lookupConversationWithoutServiceId.preload.ts';
 import { processAttachment } from '../../util/processAttachment.preload.ts';
 import { queueAttachmentDownloadsAndMaybeSaveMessage } from '../../util/queueAttachmentDownloads.preload.ts';
 import { readAttachmentData } from '../../util/migrations.preload.ts';
+import { enqueuePollCreateForSend } from '../../util/enqueuePollCreateForSend.dom.ts';
+import {
+  POLL_OPTION_MAX_LENGTH,
+  POLL_OPTIONS_MAX_COUNT,
+  POLL_OPTIONS_MIN_COUNT,
+  POLL_QUESTION_MAX_LENGTH_SEND,
+} from '../../types/Polls.dom.ts';
 import { callRecordingService } from '../callRecordingService.preload.ts';
 import { sendSignalChatMessage } from '../sendSignalChatMessage.preload.ts';
 import { videoRecordingService } from '../videoRecordingService.preload.ts';
@@ -401,6 +409,30 @@ function requiredStringArray(
     }
     return trimmed;
   });
+}
+
+function requiredPollOptions(
+  params: Readonly<Record<string, unknown>>
+): Array<string> {
+  const options = requiredStringArray(params, 'options');
+  if (
+    options.length < POLL_OPTIONS_MIN_COUNT ||
+    options.length > POLL_OPTIONS_MAX_COUNT
+  ) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `options must contain between ${POLL_OPTIONS_MIN_COUNT} and ${POLL_OPTIONS_MAX_COUNT} items`
+    );
+  }
+  if (
+    options.some(option => !hasAtMostGraphemes(option, POLL_OPTION_MAX_LENGTH))
+  ) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `Each option must contain at most ${POLL_OPTION_MAX_LENGTH} characters`
+    );
+  }
+  return options;
 }
 
 function requiredNonNegativeInteger(
@@ -839,6 +871,8 @@ function requestedMemberRoles(
 }
 
 function mapAutomationMessage(message: MessageType): AutomationMessage {
+  const ourConversationId =
+    window.ConversationController.getOurConversationIdOrThrow();
   return toAutomationMessage(
     message,
     authorId => {
@@ -858,6 +892,16 @@ function mapAutomationMessage(message: MessageType): AutomationMessage {
         return null;
       }
       return { id: author.id, name: author.getTitle().trim() || author.id };
+    },
+    voterId => {
+      const voter = window.ConversationController.get(voterId);
+      return voter == null
+        ? null
+        : {
+            id: voter.id,
+            title: voter.getTitle().trim() || null,
+            isMe: voter.id === ourConversationId,
+          };
     }
   );
 }
@@ -1558,6 +1602,73 @@ export function initializeAutomationRenderer(): void {
         },
       });
       return { queued: true, attachmentCount: attachments.length };
+    },
+    createPoll: async params => {
+      const conversationId = requiredString(params, 'conversationId');
+      const conversation = window.ConversationController.get(conversationId);
+      if (conversation == null || conversation.id !== conversationId) {
+        return automationError('NOT_FOUND', 'Conversation not found');
+      }
+      const question = requiredString(params, 'question');
+      if (!hasAtMostGraphemes(question, POLL_QUESTION_MAX_LENGTH_SEND)) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          `question must contain at most ${POLL_QUESTION_MAX_LENGTH_SEND} characters`
+        );
+      }
+      const options = requiredPollOptions(params);
+      if (
+        params.allowMultiple !== undefined &&
+        typeof params.allowMultiple !== 'boolean'
+      ) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'allowMultiple must be a boolean'
+        );
+      }
+      const allowMultiple = params.allowMultiple === true;
+
+      let message: MessageType | undefined;
+      try {
+        message = await enqueuePollCreateForSend(conversation, {
+          question,
+          options,
+          allowMultiple,
+        });
+      } catch (error) {
+        return automationError(
+          'INVALID_STATE',
+          error instanceof Error ? error.message : 'Poll could not be queued'
+        );
+      }
+      if (message == null) {
+        return automationError('INVALID_STATE', 'Poll could not be queued');
+      }
+      const mapped = mapAutomationMessage(message);
+      return {
+        messageId: mapped.id,
+        conversationId: mapped.conversationId,
+        poll: mapped.poll,
+      };
+    },
+    getPollResults: async params => {
+      const messageId = requiredString(params, 'messageId');
+      const message = await DataReader.getMessageById(messageId);
+      if (message == null) {
+        return automationError('NOT_FOUND', 'Message not found');
+      }
+      const mapped = mapAutomationMessage(message);
+      if (mapped.poll == null) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'The requested message is not a poll'
+        );
+      }
+      return {
+        messageId: mapped.id,
+        conversationId: mapped.conversationId,
+        ...mapped.poll,
+      };
     },
     setMessageReaction: async params => {
       const messageId = requiredString(params, 'messageId');

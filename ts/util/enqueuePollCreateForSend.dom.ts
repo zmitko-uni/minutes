@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { ConversationModel } from '../models/conversations.preload.ts';
+import type { MessageAttributesType } from '../model-types.d.ts';
 import { isDirectConversation } from './whatTypeOfConversation.dom.ts';
 import {
   isPollSend1to1Enabled,
@@ -11,7 +12,7 @@ import {
 export async function enqueuePollCreateForSend(
   conversation: ConversationModel,
   poll: PollCreateType
-): Promise<void> {
+): Promise<MessageAttributesType | undefined> {
   if (
     isDirectConversation(conversation.attributes) &&
     !isPollSend1to1Enabled()
@@ -21,7 +22,7 @@ export async function enqueuePollCreateForSend(
     );
   }
 
-  await conversation.enqueueMessageForSend(
+  return conversation.enqueueMessageForSend(
     {
       attachments: [],
       body: undefined,

@@ -18,7 +18,7 @@ export type AutomationRendererCapabilities = Readonly<
 const inFlightRequests = new Map<string, Promise<AutomationRendererResponse>>();
 const IDEMPOTENCY_TTL_MS = 5 * 60_000;
 const IDEMPOTENCY_CACHE_LIMIT = 1_000;
-const idempotentSendRequests = new Map<
+const idempotentWriteRequests = new Map<
   string,
   Readonly<{
     signature: string;
@@ -71,7 +71,7 @@ export class AutomationRendererHandler {
       return existing;
     }
 
-    const pending = this.#handleIdempotentSend(request);
+    const pending = this.#handleIdempotentWrite(request);
     inFlightRequests.set(request.id, pending);
     try {
       return await pending;
@@ -82,11 +82,11 @@ export class AutomationRendererHandler {
     }
   }
 
-  async #handleIdempotentSend(
+  async #handleIdempotentWrite(
     request: AutomationRendererRequest
   ): Promise<AutomationRendererResponse> {
     if (
-      request.method !== 'sendMessage' ||
+      (request.method !== 'sendMessage' && request.method !== 'createPoll') ||
       request.params == null ||
       typeof request.params !== 'object' ||
       Array.isArray(request.params) ||
@@ -108,46 +108,57 @@ export class AutomationRendererHandler {
     }
 
     const now = Date.now();
-    for (const [key, entry] of idempotentSendRequests) {
+    for (const [key, entry] of idempotentWriteRequests) {
       if (entry.expiresAt <= now) {
-        idempotentSendRequests.delete(key);
+        idempotentWriteRequests.delete(key);
       }
     }
-    const signature = JSON.stringify({
-      conversationId: Reflect.get(request.params, 'conversationId'),
-      text: Reflect.get(request.params, 'text'),
-      attachments: Reflect.get(request.params, 'attachments'),
-    });
-    const existing = idempotentSendRequests.get(idempotencyKey);
+    const signature = JSON.stringify(
+      request.method === 'sendMessage'
+        ? {
+            method: request.method,
+            conversationId: Reflect.get(request.params, 'conversationId'),
+            text: Reflect.get(request.params, 'text'),
+            attachments: Reflect.get(request.params, 'attachments'),
+          }
+        : {
+            method: request.method,
+            conversationId: Reflect.get(request.params, 'conversationId'),
+            question: Reflect.get(request.params, 'question'),
+            options: Reflect.get(request.params, 'options'),
+            allowMultiple: Reflect.get(request.params, 'allowMultiple'),
+          }
+    );
+    const existing = idempotentWriteRequests.get(idempotencyKey);
     if (existing != null) {
       if (existing.signature !== signature) {
         return errorResponse(
           request.id,
           'IDEMPOTENCY_CONFLICT',
-          'idempotencyKey was already used for different message content'
+          'idempotencyKey was already used for different request content'
         );
       }
       return responseWithId(await existing.pending, request.id);
     }
 
-    while (idempotentSendRequests.size >= IDEMPOTENCY_CACHE_LIMIT) {
-      const oldestKey = idempotentSendRequests.keys().next().value;
+    while (idempotentWriteRequests.size >= IDEMPOTENCY_CACHE_LIMIT) {
+      const oldestKey = idempotentWriteRequests.keys().next().value;
       if (oldestKey == null) {
         break;
       }
-      idempotentSendRequests.delete(oldestKey);
+      idempotentWriteRequests.delete(oldestKey);
     }
     const pending = this.#handle(request);
-    idempotentSendRequests.set(idempotencyKey, {
+    idempotentWriteRequests.set(idempotencyKey, {
       signature,
       expiresAt: now + IDEMPOTENCY_TTL_MS,
       pending,
     });
     const response = await pending;
     if (!response.ok) {
-      const cached = idempotentSendRequests.get(idempotencyKey);
+      const cached = idempotentWriteRequests.get(idempotencyKey);
       if (cached?.pending === pending) {
-        idempotentSendRequests.delete(idempotencyKey);
+        idempotentWriteRequests.delete(idempotencyKey);
       }
     }
     return response;

@@ -37,6 +37,8 @@ function createCapabilities(
     }),
     downloadAttachment: async () => ({ path: '/safe/downloads/file' }),
     sendMessage: async () => ({ messageId: 'message-1' }),
+    createPoll: async () => ({ messageId: 'poll-message-1' }),
+    getPollResults: async () => ({ messageId: 'poll-message-1' }),
     setMessageReaction: async () => ({ changed: true }),
     getActiveCall: async () => ({ call: null }),
     startCall: async () => ({ started: true }),
@@ -162,6 +164,51 @@ describe('AutomationRendererHandler', () => {
       { id: 'retried-send', ok: true, result: { queued: true } }
     );
     assert.strictEqual(sendCount, 1);
+  });
+
+  it('reuses a completed poll creation for the same idempotency key', async () => {
+    let createCount = 0;
+    const capabilities = createCapabilities({
+      createPoll: async () => {
+        createCount += 1;
+        return { messageId: 'poll-message-1' };
+      },
+    });
+    const firstHandler = new AutomationRendererHandler(capabilities);
+    const secondHandler = new AutomationRendererHandler(capabilities);
+    const params = {
+      conversationId: 'conversation-1',
+      question: 'Kam na oběd?',
+      options: ['Pizza', 'Sushi'],
+      allowMultiple: false,
+      idempotencyKey: 'lunch-2026-09-25',
+    };
+
+    assert.deepEqual(
+      await firstHandler.handle({
+        id: 'first-poll',
+        method: 'createPoll',
+        params,
+      }),
+      {
+        id: 'first-poll',
+        ok: true,
+        result: { messageId: 'poll-message-1' },
+      }
+    );
+    assert.deepEqual(
+      await secondHandler.handle({
+        id: 'retried-poll',
+        method: 'createPoll',
+        params,
+      }),
+      {
+        id: 'retried-poll',
+        ok: true,
+        result: { messageId: 'poll-message-1' },
+      }
+    );
+    assert.strictEqual(createCount, 1);
   });
 
   it('rejects reuse of an idempotency key for different message content', async () => {

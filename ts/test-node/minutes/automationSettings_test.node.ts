@@ -89,6 +89,8 @@ describe('AutomationSettingsStore', () => {
         'get_attachment_directories',
         'download_attachment',
         'send_message',
+        'create_poll',
+        'get_poll_results',
         'set_message_reaction',
         'get_group',
         'find_groups_by_member',
