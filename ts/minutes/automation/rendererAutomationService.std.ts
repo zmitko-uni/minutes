@@ -245,6 +245,20 @@ export class RendererAutomationService {
     return this.bridge.request('sendMessage', options);
   }
 
+  createPoll(options: {
+    conversationId: string;
+    question: string;
+    options: ReadonlyArray<string>;
+    allowMultiple?: boolean;
+    idempotencyKey?: string;
+  }): Promise<unknown> {
+    return this.bridge.request('createPoll', options);
+  }
+
+  getPollResults(options: { messageId: string }): Promise<unknown> {
+    return this.bridge.request('getPollResults', options);
+  }
+
   setMessageReaction(options: {
     messageId: string;
     emoji: string | null;

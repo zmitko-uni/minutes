@@ -83,6 +83,92 @@ describe('automation message mapping', () => {
     });
   });
 
+  it('returns deduplicated current poll results with resolved voters', () => {
+    const result = toAutomationMessage(
+      {
+        id: 'poll-message-1',
+        conversationId: 'group-1',
+        type: 'outgoing',
+        sent_at: 300,
+        body: undefined,
+        attachments: [],
+        reactions: [],
+        poll: {
+          question: 'Kam na oběd?',
+          options: ['Pizza', 'Sushi'],
+          allowMultiple: true,
+          votes: [
+            {
+              fromConversationId: 'alice-id',
+              optionIndexes: [0],
+              voteCount: 1,
+              timestamp: 310,
+            },
+            {
+              fromConversationId: 'alice-id',
+              optionIndexes: [1],
+              voteCount: 2,
+              timestamp: 320,
+            },
+            {
+              fromConversationId: 'bob-id',
+              optionIndexes: [0, 1, 1],
+              voteCount: 1,
+              timestamp: 315,
+            },
+            {
+              fromConversationId: 'carol-id',
+              optionIndexes: [0],
+              voteCount: 1,
+              timestamp: 325,
+              sendStateByConversationId: {},
+            },
+          ],
+          terminatedAt: 350,
+        },
+      },
+      () => null,
+      () => ({ id: 'me-id', name: 'Me' }),
+      voterId => {
+        if (voterId === 'alice-id') {
+          return { id: voterId, title: 'Alice', isMe: false };
+        }
+        if (voterId === 'bob-id') {
+          return { id: voterId, title: 'Bob', isMe: true };
+        }
+        return null;
+      }
+    );
+
+    assert.deepEqual(result.poll, {
+      question: 'Kam na oběd?',
+      allowMultiple: true,
+      terminated: true,
+      terminatedAt: 350,
+      totalVotes: 3,
+      uniqueVoters: 2,
+      options: [
+        {
+          index: 0,
+          text: 'Pizza',
+          voteCount: 1,
+          percentage: 50,
+          voters: [{ id: 'bob-id', title: 'Bob', isMe: true }],
+        },
+        {
+          index: 1,
+          text: 'Sushi',
+          voteCount: 2,
+          percentage: 100,
+          voters: [
+            { id: 'alice-id', title: 'Alice', isMe: false },
+            { id: 'bob-id', title: 'Bob', isMe: true },
+          ],
+        },
+      ],
+    });
+  });
+
   it('returns no older context when before is zero', () => {
     const result = selectAutomationMessageContext(
       [message('older-1'), message('older-2')],

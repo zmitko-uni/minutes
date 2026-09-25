@@ -89,6 +89,18 @@ export const AUTOMATION_TOOL_CATALOG = [
     access: 'write',
   },
   {
+    name: 'create_poll',
+    label: 'Vytvořit hlasování',
+    group: 'messages',
+    access: 'write',
+  },
+  {
+    name: 'get_poll_results',
+    label: 'Načíst výsledky hlasování',
+    group: 'messages',
+    access: 'read',
+  },
+  {
     name: 'set_message_reaction',
     label: 'Nastavit reakci na zprávu',
     group: 'messages',

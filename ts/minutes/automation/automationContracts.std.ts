@@ -57,6 +57,30 @@ export type AutomationReaction = Readonly<{
   timestamp: number;
 }>;
 
+export type AutomationPoll = Readonly<{
+  question: string;
+  allowMultiple: boolean;
+  terminated: boolean;
+  terminatedAt?: number;
+  totalVotes: number;
+  uniqueVoters: number;
+  options: ReadonlyArray<
+    Readonly<{
+      index: number;
+      text: string;
+      voteCount: number;
+      percentage: number;
+      voters: ReadonlyArray<
+        Readonly<{
+          id: string;
+          title: string | null;
+          isMe: boolean;
+        }>
+      >;
+    }>
+  >;
+}>;
+
 export type AutomationMessage = Readonly<{
   id: string;
   conversationId: string;
@@ -73,6 +97,7 @@ export type AutomationMessage = Readonly<{
     size?: number;
   }>;
   reactions: ReadonlyArray<AutomationReaction>;
+  poll?: AutomationPoll;
 }>;
 
 export type AutomationActiveCall = Readonly<{
@@ -107,6 +132,8 @@ export type AutomationRendererMethod =
   | 'getAttachmentDirectories'
   | 'downloadAttachment'
   | 'sendMessage'
+  | 'createPoll'
+  | 'getPollResults'
   | 'setMessageReaction'
   | 'getActiveCall'
   | 'startCall'

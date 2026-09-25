@@ -98,6 +98,15 @@ describe('live Signal MCP capabilities', () => {
         queued: true,
         ...options,
       }),
+      createPoll: async (options: Readonly<Record<string, unknown>>) => ({
+        messageId: 'poll-message-1',
+        ...options,
+      }),
+      getPollResults: async (options: Readonly<Record<string, unknown>>) => ({
+        messageId: options.messageId,
+        question: 'Kam na oběd?',
+        totalVotes: 3,
+      }),
       setMessageReaction: async (options: Readonly<Record<string, unknown>>) =>
         options,
       getActiveCall: async () => ({ call: null }),
@@ -154,6 +163,8 @@ describe('live Signal MCP capabilities', () => {
       'get_attachment_directories',
       'download_attachment',
       'send_message',
+      'create_poll',
+      'get_poll_results',
       'set_message_reaction',
       'get_active_call',
       'start_call',
@@ -190,6 +201,48 @@ describe('live Signal MCP capabilities', () => {
     assert.include(
       added.result?.content?.[0]?.text ?? '',
       '"phoneNumber":"+420123456789"'
+    );
+  });
+
+  it('creates a poll and reads its current results', async () => {
+    const created = await request(11, 'tools/call', {
+      name: 'create_poll',
+      arguments: {
+        conversationId: 'conversation-1',
+        question: 'Kam na oběd?',
+        options: ['Pizza', 'Sushi'],
+        allowMultiple: false,
+        idempotencyKey: 'lunch-2026-09-25',
+      },
+    });
+    const createdText = created.result?.content?.[0]?.text ?? '';
+    assert.include(createdText, '"messageId":"poll-message-1"');
+    assert.include(createdText, '"options":["Pizza","Sushi"]');
+    assert.include(createdText, '"idempotencyKey":"lunch-2026-09-25"');
+
+    const results = await request(12, 'tools/call', {
+      name: 'get_poll_results',
+      arguments: { messageId: 'poll-message-1' },
+    });
+    const resultsText = results.result?.content?.[0]?.text ?? '';
+    assert.include(resultsText, '"question":"Kam na oběd?"');
+    assert.include(resultsText, '"totalVotes":3');
+  });
+
+  it('accepts poll text at the Signal grapheme limit', async () => {
+    const question = '👍'.repeat(100);
+    const created = await request(13, 'tools/call', {
+      name: 'create_poll',
+      arguments: {
+        conversationId: 'conversation-1',
+        question,
+        options: ['Ano', 'Ne'],
+      },
+    });
+
+    assert.include(
+      created.result?.content?.[0]?.text ?? '',
+      '"messageId":"poll-message-1"'
     );
   });
 
