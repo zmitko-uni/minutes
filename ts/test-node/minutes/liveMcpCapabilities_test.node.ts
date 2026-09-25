@@ -107,6 +107,10 @@ describe('live Signal MCP capabilities', () => {
         question: 'Kam na oběd?',
         totalVotes: 3,
       }),
+      votePoll: async (options: Readonly<Record<string, unknown>>) => ({
+        queued: true,
+        ...options,
+      }),
       setMessageReaction: async (options: Readonly<Record<string, unknown>>) =>
         options,
       getActiveCall: async () => ({ call: null }),
@@ -165,6 +169,7 @@ describe('live Signal MCP capabilities', () => {
       'send_message',
       'create_poll',
       'get_poll_results',
+      'vote_poll',
       'set_message_reaction',
       'get_active_call',
       'start_call',
@@ -243,6 +248,34 @@ describe('live Signal MCP capabilities', () => {
     assert.include(
       created.result?.content?.[0]?.text ?? '',
       '"messageId":"poll-message-1"'
+    );
+  });
+
+  it('casts and clears a poll vote through Signal', async () => {
+    const voted = await request(14, 'tools/call', {
+      name: 'vote_poll',
+      arguments: {
+        messageId: 'poll-message-1',
+        optionIndexes: [0, 1],
+      },
+    });
+    assert.include(voted.result?.content?.[0]?.text ?? '', '"queued":true');
+    assert.include(
+      voted.result?.content?.[0]?.text ?? '',
+      '"optionIndexes":[0,1]'
+    );
+
+    const cleared = await request(15, 'tools/call', {
+      name: 'vote_poll',
+      arguments: {
+        messageId: 'poll-message-1',
+        optionIndexes: [],
+      },
+    });
+    assert.include(cleared.result?.content?.[0]?.text ?? '', '"queued":true');
+    assert.include(
+      cleared.result?.content?.[0]?.text ?? '',
+      '"optionIndexes":[]'
     );
   });
 

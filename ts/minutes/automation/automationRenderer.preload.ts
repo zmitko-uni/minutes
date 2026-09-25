@@ -39,6 +39,7 @@ import { processAttachment } from '../../util/processAttachment.preload.ts';
 import { queueAttachmentDownloadsAndMaybeSaveMessage } from '../../util/queueAttachmentDownloads.preload.ts';
 import { readAttachmentData } from '../../util/migrations.preload.ts';
 import { enqueuePollCreateForSend } from '../../util/enqueuePollCreateForSend.dom.ts';
+import { enqueuePollVoteForSend } from '../../polls/enqueuePollVoteForSend.preload.ts';
 import {
   POLL_OPTION_MAX_LENGTH,
   POLL_OPTIONS_MAX_COUNT,
@@ -433,6 +434,32 @@ function requiredPollOptions(
     );
   }
   return options;
+}
+
+function requiredPollOptionIndexes(
+  params: Readonly<Record<string, unknown>>
+): Array<number> {
+  const value = params.optionIndexes;
+  if (
+    !Array.isArray(value) ||
+    value.length > POLL_OPTIONS_MAX_COUNT ||
+    !value.every(
+      index =>
+        typeof index === 'number' && Number.isSafeInteger(index) && index >= 0
+    )
+  ) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `optionIndexes must contain at most ${POLL_OPTIONS_MAX_COUNT} non-negative integers`
+    );
+  }
+  if (new Set(value).size !== value.length) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      'optionIndexes must not contain duplicates'
+    );
+  }
+  return value;
 }
 
 function requiredNonNegativeInteger(
@@ -1668,6 +1695,49 @@ export function initializeAutomationRenderer(): void {
         messageId: mapped.id,
         conversationId: mapped.conversationId,
         ...mapped.poll,
+      };
+    },
+    votePoll: async params => {
+      const messageId = requiredString(params, 'messageId');
+      const optionIndexes = requiredPollOptionIndexes(params);
+      const message = await DataReader.getMessageById(messageId);
+      if (message == null) {
+        return automationError('NOT_FOUND', 'Message not found');
+      }
+      const { poll } = message;
+      if (poll == null) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'The requested message is not a poll'
+        );
+      }
+      if (poll.terminatedAt != null) {
+        return automationError('INVALID_STATE', 'The poll is already ended');
+      }
+      if (!poll.allowMultiple && optionIndexes.length > 1) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'This poll allows only one selected option'
+        );
+      }
+      if (optionIndexes.some(index => index >= poll.options.length)) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'optionIndexes contains an option that does not exist'
+        );
+      }
+
+      await enqueuePollVoteForSend({ messageId, optionIndexes });
+      return {
+        queued: true,
+        messageId,
+        conversationId: message.conversationId,
+        optionIndexes,
+        selectedOptions: optionIndexes.map(index => ({
+          index,
+          text: poll.options[index],
+        })),
+        removed: optionIndexes.length === 0,
       };
     },
     setMessageReaction: async params => {
