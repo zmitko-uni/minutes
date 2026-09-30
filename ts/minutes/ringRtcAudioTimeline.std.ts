@@ -7,6 +7,10 @@ export const RING_RTC_AUDIO_PREROLL_SAMPLE_COUNT = 4_800;
 export const RING_RTC_AUDIO_STALL_TOLERANCE_SAMPLE_COUNT = 12_000;
 export const RING_RTC_AUDIO_COUNTER_RESET_SAMPLE_COUNT = 4_800;
 export const RING_RTC_AUDIO_MAX_QUEUE_SAMPLE_COUNT = 48_000;
+// Normal jitter keeps the render cursor about one preroll behind the tap.
+// Anything beyond this means rendering stalled; the recording then jumps
+// back to live audio so it stays in real time (and in sync with video).
+export const RING_RTC_AUDIO_MAX_LAG_SAMPLE_COUNT = 24_000;
 
 export type RingRtcAudioWorkletMessage =
   | Readonly<{
@@ -35,9 +39,11 @@ export class RingRtcAudioTimeline {
   #started = false;
   #degraded = false;
   #stalledSamples = 0;
+  #skippedSamples = 0;
   readonly #prerollSamples: number;
   readonly #stallToleranceSamples: number;
   readonly #maxQueueSamples: number;
+  readonly #maxLagSamples: number;
   readonly #sourceOffsets: Record<AudioSource, number | undefined> = {
     local: undefined,
     remote: undefined,
@@ -54,7 +60,8 @@ export class RingRtcAudioTimeline {
   constructor(
     prerollSamples = 0,
     stallToleranceSamples = RING_RTC_AUDIO_STALL_TOLERANCE_SAMPLE_COUNT,
-    maxQueueSamples = RING_RTC_AUDIO_MAX_QUEUE_SAMPLE_COUNT
+    maxQueueSamples = RING_RTC_AUDIO_MAX_QUEUE_SAMPLE_COUNT,
+    maxLagSamples = RING_RTC_AUDIO_MAX_LAG_SAMPLE_COUNT
   ) {
     if (!Number.isSafeInteger(prerollSamples) || prerollSamples < 0) {
       throw new Error('Audio preroll must be a non-negative integer');
@@ -68,9 +75,19 @@ export class RingRtcAudioTimeline {
     if (!Number.isSafeInteger(maxQueueSamples) || maxQueueSamples <= 0) {
       throw new Error('Audio queue limit must be a positive integer');
     }
+    if (
+      !Number.isSafeInteger(maxLagSamples) ||
+      maxLagSamples <= prerollSamples ||
+      maxLagSamples > maxQueueSamples
+    ) {
+      throw new Error(
+        'Audio lag limit must be an integer above the preroll and within the queue limit'
+      );
+    }
     this.#prerollSamples = prerollSamples;
     this.#stallToleranceSamples = stallToleranceSamples;
     this.#maxQueueSamples = maxQueueSamples;
+    this.#maxLagSamples = maxLagSamples;
   }
 
   get cursor(): number {
@@ -79,6 +96,11 @@ export class RingRtcAudioTimeline {
 
   get ready(): boolean {
     return this.#started || this.#canRender(this.#prerollSamples);
+  }
+
+  /** Samples jumped over to get back to live audio after a render stall. */
+  get skippedSamples(): number {
+    return this.#skippedSamples;
   }
 
   startWithAvailableSource(): boolean {
@@ -205,6 +227,7 @@ export class RingRtcAudioTimeline {
     }
 
     this.#started = true;
+    this.#catchUpIfFallenBehind();
     for (let index = 0; index < sampleCount; index += 1) {
       const local = this.#sampleAt('local', this.#cursor);
       const remote = this.#sampleAt('remote', this.#cursor);
@@ -233,6 +256,34 @@ export class RingRtcAudioTimeline {
     this.#cursor = Math.max(this.#cursor, latestKnownThrough - sampleCount);
     this.#stalledSamples = 0;
     return true;
+  }
+
+  /**
+   * A stalled render keeps the cursor still while the tap keeps delivering.
+   * Left alone the recording stays that far behind for the rest of the call,
+   * short stalls add up, and once the lag exceeds the queue the trimmed audio
+   * at the cursor turns everything after it into silence. Jump back to one
+   * preroll behind live audio instead; only the stalled audio is lost.
+   */
+  #catchUpIfFallenBehind(): void {
+    let liveEdge: number | undefined;
+    for (const source of ['local', 'remote'] as const) {
+      const knownThrough = this.#knownThrough[source];
+      // A missing or stalled source must not hold the other one back.
+      if (knownThrough === undefined || knownThrough <= this.#cursor) {
+        continue;
+      }
+      liveEdge = Math.min(liveEdge ?? knownThrough, knownThrough);
+    }
+    if (
+      liveEdge === undefined ||
+      liveEdge - this.#cursor <= this.#maxLagSamples
+    ) {
+      return;
+    }
+    const target = liveEdge - this.#prerollSamples;
+    this.#skippedSamples += target - this.#cursor;
+    this.#cursor = target;
   }
 
   #trimQueuedPackets(source: AudioSource): void {

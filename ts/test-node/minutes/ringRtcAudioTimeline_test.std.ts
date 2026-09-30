@@ -156,6 +156,67 @@ describe('RingRtcAudioTimeline', () => {
     assert.equal(timeline.cursor, 5_002);
   });
 
+  it('jumps back to live audio instead of going silent after a render stall longer than the queue', () => {
+    const TimelineWithLimits = RingRtcAudioTimeline as new (
+      prerollSamples: number,
+      stallToleranceSamples: number,
+      maxQueueSamples: number,
+      maxLagSamples: number
+    ) => InstanceType<typeof RingRtcAudioTimeline>;
+    const timeline = new TimelineWithLimits(4, 4, 8, 6);
+    timeline.enqueue('local', 0, new Float32Array(4).fill(0.25));
+    timeline.enqueue('remote', 0, new Float32Array(4).fill(0.5));
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.75));
+
+    // Rendering stalls while the tap keeps delivering more than the queue holds.
+    timeline.enqueue('local', 4, new Float32Array(16).fill(0.25));
+    timeline.enqueue('remote', 4, new Float32Array(16).fill(0.5));
+
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.75));
+    assert.equal(timeline.cursor, 20);
+    assert.equal(timeline.skippedSamples, 12);
+
+    timeline.enqueue('local', 20, new Float32Array(4).fill(0.25));
+    timeline.enqueue('remote', 20, new Float32Array(4).fill(0.5));
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.75));
+    assert.equal(timeline.skippedSamples, 12);
+  });
+
+  it('keeps a lag within the limit without skipping audio', () => {
+    const TimelineWithLimits = RingRtcAudioTimeline as new (
+      prerollSamples: number,
+      stallToleranceSamples: number,
+      maxQueueSamples: number,
+      maxLagSamples: number
+    ) => InstanceType<typeof RingRtcAudioTimeline>;
+    const timeline = new TimelineWithLimits(4, 4, 8, 6);
+    timeline.enqueue('local', 0, new Float32Array(4).fill(0.25));
+    timeline.enqueue('remote', 0, new Float32Array(4).fill(0.5));
+    timeline.render(4);
+
+    timeline.enqueue('local', 4, Float32Array.from([0.1, 0.2, 0.3, 0.4, 0.5]));
+    timeline.enqueue('remote', 4, new Float32Array(5));
+
+    assert.deepEqual(
+      [...timeline.render(4)].map(sample => Math.round(sample * 10) / 10),
+      [0.1, 0.2, 0.3, 0.4]
+    );
+    assert.equal(timeline.cursor, 8);
+    assert.equal(timeline.skippedSamples, 0);
+  });
+
+  it('rejects a lag limit outside the preroll and queue bounds', () => {
+    const TimelineWithLimits = RingRtcAudioTimeline as new (
+      prerollSamples: number,
+      stallToleranceSamples: number,
+      maxQueueSamples: number,
+      maxLagSamples: number
+    ) => InstanceType<typeof RingRtcAudioTimeline>;
+
+    assert.throws(() => new TimelineWithLimits(4, 4, 8, 4));
+    assert.throws(() => new TimelineWithLimits(4, 4, 8, 9));
+  });
+
   it('resumes at the live cursor without a second preroll delay', () => {
     const timeline = new RingRtcAudioTimeline(4);
     timeline.enqueue('local', 0, new Float32Array(4).fill(0.25));
@@ -295,6 +356,30 @@ describe('RingRtc rendered PCM progress', () => {
       ),
       12_000
     );
+  });
+
+  it('recognizes only a positive timeline skip event', () => {
+    const readSkippedEvent = (
+      renderedPcmProgress as typeof renderedPcmProgress & {
+        readRingRtcAudioSkippedEvent?: (event: unknown) => number | undefined;
+      }
+    ).readRingRtcAudioSkippedEvent;
+    assert.isFunction(readSkippedEvent);
+    if (!readSkippedEvent) {
+      return;
+    }
+
+    assert.strictEqual(
+      readSkippedEvent({ type: 'timeline-skipped', skippedSamples: 480 }),
+      480
+    );
+    assert.isUndefined(
+      readSkippedEvent({ type: 'timeline-skipped', skippedSamples: 0 })
+    );
+    assert.isUndefined(
+      readSkippedEvent({ type: 'timeline-skipped', skippedSamples: 1.5 })
+    );
+    assert.isUndefined(readSkippedEvent({ type: 'ready' }));
   });
 
   it('accepts PCM only from the active resume generation', () => {
