@@ -22,6 +22,7 @@ import {
 import {
   readRenderedPcmEvent,
   readRingRtcAudioReadyEvent,
+  readRingRtcAudioSkippedEvent,
 } from './ringRtcRenderedPcmProgress.std.ts';
 import { configureRingRtcRecordingAudioContext } from './ringRtcAudioContext.std.ts';
 
@@ -35,8 +36,14 @@ const DEGRADED_START_GRACE_MS = 500;
 const STARTUP_TIMEOUT_MS = 2_000;
 const DROP_LOG_INTERVAL_MS = 10_000;
 
+const SAMPLE_RATE = 48_000;
+
 function formatLossPercent(lossRatio: number): string {
   return `${(lossRatio * 100).toFixed(1)}%`;
+}
+
+function formatSamplesAsMs(samples: number): string {
+  return `${Math.round((samples / SAMPLE_RATE) * 1000)} ms`;
 }
 
 export class RingRtcAudioTrack {
@@ -56,6 +63,8 @@ export class RingRtcAudioTrack {
   #remoteSamplesObserved = 0;
   #droppedSamplesObserved = 0;
   #lastDropLogAt = 0;
+  #skippedSamplesObserved = 0;
+  #lastSkipLogAt = 0;
   #degradedStartAllowed = false;
   #degradedStartRequested = false;
   readonly #readyPromise: Promise<void>;
@@ -91,6 +100,11 @@ export class RingRtcAudioTrack {
       const samples = readRenderedPcmEvent(data, this.#progressGeneration);
       if (samples !== undefined && !this.#paused) {
         this.#onPcm?.(samples);
+        return;
+      }
+      const skippedSamples = readRingRtcAudioSkippedEvent(data);
+      if (skippedSamples !== undefined) {
+        this.#recordSkippedSamples(skippedSamples);
         return;
       }
       if (
@@ -223,6 +237,12 @@ export class RingRtcAudioTrack {
           `(${stats.droppedSamples} dropped, ${stats.capturedSamples} captured samples)`
       );
     }
+    if (this.#skippedSamplesObserved > 0) {
+      log.warn(
+        `RingRTC audio recording skipped ${formatSamplesAsMs(this.#skippedSamplesObserved)} ` +
+          'of the call to catch up after stalled rendering'
+      );
+    }
     try {
       this.#api.stopAudioTap();
     } finally {
@@ -297,6 +317,21 @@ export class RingRtcAudioTrack {
     log.warn(
       'RingRTC audio tap is dropping samples; the gaps are recorded as silence ' +
         `(${formatLossPercent(this.#captureStats().lossRatio)} lost so far)`
+    );
+  }
+
+  #recordSkippedSamples(skippedSamples: number): void {
+    this.#skippedSamplesObserved += skippedSamples;
+
+    const now = Date.now();
+    if (now - this.#lastSkipLogAt < DROP_LOG_INTERVAL_MS) {
+      return;
+    }
+    this.#lastSkipLogAt = now;
+    log.warn(
+      'RingRTC audio rendering fell behind the call; ' +
+        `skipped ${formatSamplesAsMs(skippedSamples)} to get back to live audio ` +
+        `(${formatSamplesAsMs(this.#skippedSamplesObserved)} so far)`
     );
   }
 

@@ -1,10 +1,10 @@
 # Minutes — příručka pro uživatele
 
-Minutes rozšiřuje Signal Desktop o **nahrávání hovorů**, **přepisy**, **AI shrnutí chatů**, **záložky** na důležité zprávy a **vizitky lidí z uuBEM a Plus4U People**.
+Minutes rozšiřuje Signal Desktop o **nahrávání hovorů**, **přepisy**, **AI shrnutí chatů** a **záložky** na důležité zprávy.
 
 Vaše data (nahrávky, exporty, modely) zůstávají **primárně u vás na disku**. Cloud AI je volitelné — používáte vlastní API klíč, nebo můžete shrnovat **lokálně** bez internetu.
 
-V levé liště s ikonami jsou hned za Chaty a Hovory taby Minutes: **M** = **Přepisy**, ikona **záložky** = **Záložky** a se zapnutou integrací Plus4U ještě ikona **vizitky** = **Vizitky**. Všechny se otevřou na celé obrazovce.
+V levé liště s ikonami jsou hned za Chaty a Hovory taby Minutes: **M** = **Přepisy** a ikona **záložky** = **Záložky**. Oba se otevřou na celé obrazovce.
 
 ---
 
@@ -176,7 +176,7 @@ Tab **Přepisy** (ikona **M** v levé liště nebo **Ctrl+Shift+M**) vypadá pod
 **Vlevo — seznam všech nahrávek:**
 
 - Co se právě zpracovává nebo čeká ve frontě, je **nahoře, modře zvýrazněné** a s ukazatelem průběhu a odhadem zbývajícího času. Pod tím jsou hotové nahrávky od nejnovější
-- **Štítky** u nahrávky říkají, co k ní existuje — **Přepis**, **Shrnutí**, **Schůzka** (má zápis v Plus4U), nebo **Jen nahrávka**
+- **Štítky** u nahrávky říkají, co k ní existuje — **Přepis**, **Shrnutí**, nebo **Jen nahrávka**
 - **Vyhledávací pole** hledá v názvech chatů **i uvnitř přepisů a shrnutí**. Když se výraz najde v textu, ukáže se pod nahrávkou **úryvek, na který jde kliknout** — detail se otevře na správné záložce (**Shrnutí** nebo **Přepis**), nález zvýrazní a doskroluje na něj. Když je v jedné nahrávce nálezů víc, je pod úryvkem počítadlo **1 z 3 nálezů** se šipkami, kterými se mezi nimi listuje
 - **Filtry Vše / Zpracovává se / Video / Bez přepisu** zúží seznam
 - **Rychlé akce** — po najetí myší na položku se vpravo objeví ikony **Otevřít chat této nahrávky** a **Smazat nahrávku** (smazání se nejdřív zeptá na potvrzení)
@@ -187,12 +187,11 @@ Tab **Přepisy** (ikona **M** v levé liště nebo **Ctrl+Shift+M**) vypadá pod
 - Nahoře název, datum, délka, typ (Audio / Video), použitý Whisper model a odznak **MP4** (co k nahrávce existuje, poznáte ze štítků v seznamu vlevo a z obsahu záložek)
 - Pod tím vpravo **ikona koše** pro smazání nahrávky (a během zpracování tlačítka **Zrušit** / **Zkusit znovu**)
 - Dole záložky a na konci jejich řady **Soubory** — vypadá jako další záložka, ale rozbalí nabídku (otevřít nahrávku, přepis, shrnutí, MP4, vytvořit či přegenerovat MP4, složka nahrávek):
-  - **Shrnutí** — formátovaný text AI shrnutí, tlačítka **Zapsat ke schůzce Plus4U** a **Vygenerovat / Přegenerovat shrnutí**, ikona **voleb** (model a styl jsou předvyplněné podle Nastavení AI, změna platí jen pro toto přegenerování), ikona **tužky** pro úpravu textu (tučně, kurzíva, odrážky, číslovaný seznam, odkaz — odkaz obalí označený text, bez označení se vloží jako adresa) a ikona **sdílení** (**Do chatu** / **Sobě**)
+  - **Shrnutí** — formátovaný text AI shrnutí, tlačítko **Vygenerovat / Přegenerovat shrnutí**, ikona **voleb** (model a styl jsou předvyplněné podle Nastavení AI, změna platí jen pro toto přegenerování), ikona **tužky** pro úpravu textu (tučně, kurzíva, odrážky, číslovaný seznam, odkaz — odkaz obalí označený text, bez označení se vloží jako adresa) a ikona **sdílení** (**Do chatu** / **Sobě**)
   - **Přepis** — přepis jako dialog s barvami řečníků, tlačítko **Spustit přepis / Přepsat znovu**, ikona **voleb** pro výběr staženého modelu a ikona **sdílení** (**Do chatu** / **Sobě**)
   - **Nahrávka** / **Video** — přehrávač přímo v aplikaci
-  - **Schůzka** — je vidět vždy. Dokud nahrávka nemá zápis v Plus4U, je tu jen tlačítko **Zapsat ke schůzce Plus4U**; po zápisu se tady objeví detail schůzky, příprava, zápis a návrhy úkolů (a tlačítko se změní na **Zapsat k jiné schůzce**)
 
-**Označení a kopírování textu:** text přepisu, shrnutí i textů schůzky jde označit myší a zkopírovat (**Ctrl+C**).
+**Označení a kopírování textu:** text přepisu i shrnutí jde označit myší a zkopírovat (**Ctrl+C**).
 
 **Otevření chatu:** po najetí myší na nahrávku v seznamu se vpravo objeví ikona **Otevřít chat této nahrávky**.
 
@@ -247,68 +246,6 @@ Režim lze změnit i uprostřed hovoru. Platí pro to, co slyší ostatní úča
 
 ---
 
-## Zápis ke schůzce Plus4U
-
-Hotové AI shrnutí hovoru lze vložit přímo do sekce **Zápis** schůzky ve vašem firemním systému (Plus4U). Původní shrnutí zůstává i v Minutes — do schůzky se přidá jako nový blok na konec zápisu, nic se nepřepisuje.
-
-### Jednorázové nastavení
-
-1. **Menu → Minutes → Nastavení AI** → sekce **Plus4U integrace**
-2. Zapněte **Povolit zápis ke schůzkám Plus4U**
-3. Vyplňte **Access code 1** a **Access code 2** (volitelné — účty s 2FA často kódy nestačí)
-4. Klikněte **Otestovat připojení** — uloží kódy, ověří přístup a vypíše, pod kým jste přihlášení. Když je potřeba 2FA nebo ještě nemáte relaci, Minutes se zeptá dialogem **Otevřít prohlížeč / Zrušit** a po potvrzení otevře přihlašovací stránku Plus4U; dokončíte přihlášení a vrátíte se do Minutes. Stejně se zeptá i při prvním použití vizitek, kalendáře schůzek nebo zápisu, pokud ještě nejste přihlášení
-
-Kódy a refresh token z přihlášení přes prohlížeč se ukládají **šifrovaně přes safeStorage** (Windows: `%APPDATA%\Minutes\minutes\uubt-settings.json`, macOS: `~/Library/Application Support/Minutes/minutes/…`). Krátkodobý přístupový token je jen v paměti běžící aplikace.
-
-### Odeslání zápisu
-
-1. Počkejte, až je hotové **shrnutí** nahrávky (tab **Přepisy**, Ctrl+Shift+M)
-2. Vyberte nahrávku a klikněte **Zapsat ke schůzce Plus4U** — tlačítko je v tabu **Shrnutí** i v tabu **Schůzka**
-3. Minutes nabídne schůzky z vašeho kalendáře pro den nahrávky a **předvybere tu**, která se s nahrávkou časově překrývá
-4. Zkontrolujte náhled textu a klikněte **Vložit zápis**
-
-Den lze v dialogu přepnout, pokud zapisujete dodatečně.
-
-### Tab Schůzka
-
-Tab **Schůzka** je u každé nahrávky. Dokud nahrávka zápis v Plus4U nemá, je v něm jen tlačítko **Zapsat ke schůzce Plus4U** a vysvětlení, co se stane. Po úspěšném zápisu se tu ukážou základní informace — název, den, čas, místo, organizátor a kdy se zápis vložil — a tlačítko se změní na **Zapsat k jiné schůzce**.
-
-Tlačítka v tabu:
-
-| Tlačítko | Co dělá |
-|---|---|
-| **Potvrdit zápis ze schůzky** (zelené) | Objeví se jen když máte schůzku vyřešit vy — tedy máte na ni v Plus4U nevyřešenou aktivitu. Po potvrzení se schůzka v Plus4U označí za **vyřešenou** a zmizí vám z úkolů. |
-| ikona **sdílení** | Pošle **Zápis** nebo **Přípravu** — u obou na výběr **Do chatu** (ten, ze kterého nahrávka je) nebo **Sobě**. |
-| ikona **odkazu** | Otevře schůzku v Plus4U v prohlížeči. |
-| ikona **obnovení** | Načte údaje o schůzce i text přípravy znovu — třeba když se schůzka přesunula. |
-
-V tabulce nad tlačítky je kromě dne, času, místa a organizátora i řádek **Zápis provede** (kdo má schůzku v Plus4U uzavřít) a **Účastníci** načtení ze schůzky. Pod tlačítky jsou sekce **Příprava** a **Zápis ze schůzky** — texty přímo z Plus4U. Když je schůzka nemá vyplněné, Minutes to napíšou.
-
-Pokud zápis máte provést vy, objeví se nad tlačítky zelená informace a zelené tlačítko **Potvrdit zápis ze schůzky**.
-
-Vazba se ukládá souborově k nahrávce jako `*.meeting.json`, takže zůstane i po restartu aplikace.
-
-### Navrhnout úkoly
-
-V tabu **Schůzka** je tlačítko **Navrhnout úkoly** (s ikonou AI). AI projde zápis a navrhne, jaké úkoly z něj komu vyplývají — nic si nevymýšlí, vychází jen z textu zápisu.
-
-Návrhy jsou seskupené podle člověka a jdou volně upravit:
-
-1. **Upravit** — název, popis i termín přepíšete přímo v seznamu
-2. **Příjemce** — u každého úkolu vyberete chat, kam se má poslat. Minutes ho předvyplní podle jména, pokud ho v kontaktech najdou
-3. **Smazat** — ikona koše u úkolu
-4. **Přidat** — ikona plus u osoby přidá další úkol jí, tlačítko **Přidat úkol** přidá úkol bez řešitele
-5. **Odeslat úkol** — pošle danému člověku formální zprávu, že na něj na základě chatu a zápisu vychází tento úkol
-6. **Odeslat všechny** — pošle jednou zprávou všechny úkoly téhož člověka
-
-Návrhy se nikam neukládají — jsou jen podklad pro odeslání. Zavřením nahrávky zmizí.
-
-### Ochrana proti dvojímu vložení
-
-Vložený zápis má v hlavičce název hovoru a čas nahrávky. Když stejný zápis odešlete do téže schůzky podruhé, Minutes to pozná a zeptá se — teprve tlačítko **Vložit znovu** zápis přidá znovu.
-
----
-
 ## Záložky
 
 Uloží odkaz na důležitou zprávu pro rychlý návrat.
@@ -319,38 +256,6 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 4. Klik na položku → vpravo se zobrazí celá zpráva s autorem a časem. Akce jsou **nahoře pod názvem** stejně jako v Přepisech: tlačítko **Otevřít chat této zprávy** (nebo dvojklik v seznamu) a vpravo **ikona koše**
 5. **Rychlé akce** — po najetí myší na položku v seznamu se vpravo objeví dvě ikony: **Otevřít chat této zprávy** a **Odebrat záložku** (stejné ikony jako v Přepisech)
 6. **Odebrat záložku** — obě cesty se nejdřív zeptají na potvrzení
-
----
-
-## Vizitky (uuBEM + Plus4U People)
-
-Hledání lidí ve firemním adresáři **uuBEM** i v profilech **Plus4U People** přímo z Minutes — a jedním kliknutím jim napíšete na Signalu.
-
-Hledá se v **obou zdrojích zároveň**. Když osobu vrátí oba, vizitka se spojí do jedné podle **uuIdentity** a vidíte údaje z uuBEM i z Plus4U People pohromadě. Když jeden zdroj neodpoví, hledání běží dál s tím druhým a nad seznamem je o tom poznámka.
-
-Sekce se ukazuje **jen se zapnutou integrací Plus4U** (viz *Zápis ke schůzce Plus4U → Jednorázové nastavení*). Bez ní tab v levé liště není a položka v menu jen připomene, co si zapnout.
-
-1. **Otevření** — tab **Vizitky** (ikona vizitky v levé liště) nebo menu Minutes → **Vizitky (uuBEM + Plus4U People)**
-2. **Vaše vizitka** — úplně nahoře nad hledáním je vaše vlastní vizitka s fotkou. Klik na ni otevře stejný detail jako u kohokoliv jiného, takže si rychle zkontrolujete, co o vás Plus4U ukazuje ostatním
-3. **Hledání** — do pole pod tím napište jméno nebo příjmení (alespoň 2 znaky). Hledá se až po dopsání, takže zdroje nezatěžuje každé písmeno
-4. **Filtr zdrojů** — pod polem jsou přepínače **uuBEM** a **Plus4U People**, oba zapnuté. Vypnutý zdroj se vůbec nedotazuje, takže filtr kromě zúžení seznamu i zrychlí hledání. Filtr platí **jen pro seznam** — v detailu se vždy ukáže všechno, co se o osobě ví, i ze zdroje, který máte vypnutý
-5. **Výsledky** — seznam vlevo ukazuje **fotku**, celé jméno s titulem, uuIdentity a **štítek zdroje** (uuBEM, Plus4U People, nebo obojí). Zobrazuje se prvních 50 osob; na obecný dotaz vrátí Plus4U People stovky lidí, a tak je nad seznamem poznámka, kolik jich celkem je a že se hledání vyplatí upřesnit
-6. Klik na osobu → vpravo se zobrazí její **vizitka**: fotka, telefony, e-maily a adresy. U lidí, které vedou oba zdroje, má každý údaj **štítek, odkud pochází**; stejný telefon nebo e-mail z obou zdrojů je v seznamu jen jednou
-7. **Napsat zprávu** — Minutes osobu dohledá v Signalu a přepne na chat s ní
-8. **Otevřít v uuBEM** — tlačítko otevře vizitku v prohlížeči; tam si můžete údaje prohlédnout celé nebo je doplnit. U lidí, kteří v uuBEM vizitku nemají, tlačítko není
-9. **Sdílet vizitku** — vyjede pole, ve kterém si najdete svůj Signal kontakt (píšete část jména), a kliknutím mu vizitku pošlete do chatu. Odejde jako přehledný text s jménem, uuIdentity, telefony, e-maily, adresami, Signal kontaktem a odkazem do uuBEM
-10. Když o osobě nemá kontakty ani jeden zdroj, detail to rovnou napíše — víc údajů opravdu není kde vzít
-
-### Když se Signal kontakty v obou zdrojích liší
-
-uuBEM i Plus4U People mají vlastní pole pro Signal a vlastní telefony a často se **neshodnou**. Minutes za vás nehádá, který údaj je novější:
-
-- **Shodují se** (nebo je vyplněný jen jeden) → nahoře je kontakt a jedno modré tlačítko **Napsat zprávu**
-- **Liší se** → místo jednoho tlačítka je jich několik, na každém je konkrétní kontakt a zdroj (např. `jmeno.01 · uuBEM`). Vyberete, kterému zkusit napsat; když ten nevyjde, zkusíte druhý
-- **Signal nikde vyplněný není** → Minutes nabídne **telefonní čísla** z obou zdrojů (podle čísla se osoba v Signalu často najde taky) a napíše, že jde o náhradní řešení
-- Když nemá osoba ani Signal, ani telefon, tlačítko se nezobrazí a dole je o tom poznámka
-
-Tlačítko rozumí všem obvyklým zápisům Signal kontaktu — **Signal username** (např. `jmeno.01`), **telefonní číslo** i **odkaz signal.me**.
 
 ---
 
@@ -385,9 +290,8 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 |---------|---------|
 | Sumarizovat aktuální chat | Shrnutí otevřeného chatu (Ctrl+Shift+U) |
 | Záložky | Tab se seznamem záložek a náhledem zprávy (Ctrl+Shift+B) |
-| Vizitky (uuBEM + Plus4U People) | Tab s hledáním osob v uuBEM i Plus4U People a tlačítkem **Napsat zprávu** (jen se zapnutou integrací Plus4U) |
 | Přepisy (Minutes) | Tab se seznamem nahrávek, přepisy, shrnutími a přehrávačem (Ctrl+Shift+M, nebo ikona **M** v levé liště) |
-| Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma, Plus4U integrace |
+| Nastavení AI | Jazyk, styl shrnutí, poskytovatel, model, API klíč / lokální Gemma |
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Nastavení MCP | Lokální MCP server, token, oprávnění nástrojů a webhooky |
 | Příručka | Tato nápověda |
@@ -416,8 +320,6 @@ Okno nastavení lze roztáhnout. S tokenem zacházejte jako s heslem — kdo ho 
 | PCM pro přepis (audio/video) | Windows `%APPDATA%\Minutes\minutes\recording-pcm\` · macOS `~/Library/Application Support/Minutes/minutes/recording-pcm/` |
 | Sumáře chatů | Windows `%APPDATA%\Minutes\minutes\summaries\` · macOS `~/Library/Application Support/Minutes/minutes/summaries/` |
 | AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) |
-| Přístupové kódy Plus4U | `%APPDATA%\Minutes\minutes\uubt-settings.json` (macOS: `~/Library/Application Support/Minutes/…`) — šifrované |
-| Vazba nahrávky na schůzku | `Dokumenty/Minutes/<nahrávka>.meeting.json` |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |
 | Lokální LLM (Gemma) | `%APPDATA%\Minutes\minutes\models\llm\` |
 | Záložky | `%APPDATA%\Minutes\minutes\` |
@@ -543,6 +445,7 @@ Během nahrávání Minutes zapisuje dočasné soubory s příponou `.partial` (
 Přepis začíná červeným varováním **„Nahrávka je poškozená — X % zvuku se nezachytilo“**? Pak chyba není v přepisu, ale v nahrávce — místo zvuku je v ní ticho a Whisper nemá co přepsat.
 
 - Ve verzích **do 8.26.0-m1.5.0** k tomu docházelo, když bylo okno Minutes během hovoru minimalizované. **Aktualizujte Minutes** — v novějších verzích se nahrává kompletně i na pozadí
+- Ve verzích **do 8.26.0-m1.6.1** mohla nahrávka utichnout až do konce hovoru i při otevřeném okně, když se nahrávání pod zátěží počítače na chvíli (déle než 1 s) zpozdilo. Novější verze se po zaseknutí vrátí k aktuálnímu zvuku; v nahrávce pak chybí jen těch pár sekund, kdy bylo nahrávání zaseknuté
 - Už pořízené poškozené nahrávky zachránit nelze, ten zvuk se nikdy neuložil; hovor je potřeba nahrát znovu
 - Pokud varování vidíte i po aktualizaci, pošlete **Menu → Minutes → Zobrazit log** — hledá se hláška `RingRTC audio capture lost`
 
@@ -562,41 +465,9 @@ Přepis začíná červeným varováním **„Nahrávka je poškozená — X % z
 - Příjemci se stock Signálem ve skupině ≥ 16 členů nezvoní — potřebují Minutes
 - Hovor lze i bez zvonění připojit tlačítkem **Připojit se k hovoru** ve skupině
 
-### Zápis ke schůzce Plus4U nefunguje
-
-- V **Nastavení AI** → **Plus4U integrace** klikněte **Otestovat připojení** — ověří přihlášení
-- *Neplatné přístupové kódy* — zkontrolujte oba kódy (Access code 2 se kvůli bezpečnosti nezobrazuje, přepište ho celý)
-- *Účet s 2FA* — při **Otestovat připojení** nebo při prvním volání Plus4U (vizitky, schůzky) Minutes otevře prohlížeč; dokončete přihlášení včetně druhého faktoru
-- **Prázdný seznam schůzek** — přepněte v dialogu datum; nabízejí se jen schůzky z vašeho kalendáře pro daný den, bez zrušených a odmítnutých
-- **Tlačítko Zapsat ke schůzce Plus4U je zašedlé** — tlačítko najdete v tabu **Shrnutí**. Zašedlé je, dokud nahrávka nemá hotové **shrnutí** (přepis sám nestačí), nebo dokud v **Nastavení AI → Plus4U integrace** není zapnutá integrace **a** nemáte uložené kódy **ani** aktivní přihlášení přes prohlížeč. Tooltip nad tlačítkem řekne který případ to je
-- Když zápis nelze vložit, podrobnosti najdete v **Menu → Minutes → Zobrazit log**
-
-### Vizitky nejdou otevřít nebo nic nenajdou
-
-- **Tab Vizitky v levé liště není** — není zapnutá integrace Plus4U. Zapněte ji v **Nastavení AI → Plus4U integrace** a přihlaste se (přístupové kódy, nebo přes prohlížeč); tab se objeví hned po uložení
-- **Hledání nic nenašlo** — zkuste jen příjmení. Hledá se v uuBEM a Plus4U People, takže se najdou jen lidé, kteří jsou aspoň v jednom z nich
-- **Nad seznamem je poznámka, že se jeden zdroj nepodařilo prohledat** — do jedné z aplikací nemáte oprávnění nebo zrovna neodpovídá. Výsledky jsou pak jen z druhého zdroje; podrobnosti jsou v logu
-- **Vaše vizitka nahoře chybí** — vaši uuIdentity se z přihlašovacího tokenu nepodařilo dohledat. Zkuste **Otestovat připojení** v **Nastavení AI → Plus4U integrace**
-- **Místo fotky je kolečko s iniciálami** — osoba nemá fotku v Plus4U. Fotky nepocházejí z uuBEM, ale z Plus4U People, takže se doplňují tam
-- **V detailu nejsou žádné telefony ani e-maily** — takto prázdná je osoba v obou zdrojích, Minutes nic neskrývá. Přes **Otevřít v uuBEM** si to ověříte a údaje doplníte
-- **Tlačítko Napsat zprávu chybí** — osoba nemá Signal kontakt ani telefon ani v jednom zdroji. Doplňte je na vizitce v uuBEM (pole *Signal*) nebo v profilu Plus4U People
-- **Signal kontakt se nepodařilo dohledat** — hodnota je neplatná, nebo osoba Signal nepoužívá. Když jsou tlačítka dvě, zkuste to druhé. Ověřte, že je vyplněná Signal **username** (`jmeno.01`), telefonní číslo, nebo odkaz signal.me
-- **V detailu je poznámka, že jeden zdroj neodpověděl** — vizitka se ukáže z toho, co dorazilo; chybějící část se dohledá až po opravě oprávnění nebo dostupnosti zdroje
-- Podrobnosti k chybám najdete v **Menu → Minutes → Zobrazit log**
-
 ### Nejde vybrat model přepisu
 
 Ikona voleb v tabu **Přepis** je zašedlá, dokud není stažený aspoň jeden model. Stáhněte ho v **Menu → Minutes → Nastavení přepisů**; pak se v nabídce objeví všechny stažené modely.
-
-### Chybí zelené tlačítko Potvrdit zápis ze schůzky
-
-Tlačítko se ukáže jen tehdy, když schůzku máte vyřešit vy — v Plus4U na ni musíte mít **nevyřešenou aktivitu**. Když jste jen účastník, schůzku uzavírá její řešitel. Klikněte ikonu **obnovení**; pokud se stav změnil, tlačítko se objeví. Jestli Plus4U uzavření přes API odmítne, Minutes to řeknou a schůzku uzavřete ručně v prohlížeči.
-
-### Navrhnout úkoly nic nenavrhlo
-
-- Nahrávka musí mít hotové **shrnutí** — úkoly se čtou z něj, ne z přepisu
-- Když zápis žádné konkrétní úkoly neobsahuje, AI záměrně nic nevymyslí; úkoly si přidejte tlačítkem **Přidat úkol**
-- **Odeslat úkol** je zašedlé, dokud úkol nemá název a vybraného příjemce
 
 ### Log pro podporu
 
@@ -622,4 +493,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-09-16*
+*Poslední aktualizace příručky: 2026-10-02*

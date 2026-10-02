@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { PLUS4U_INTEGRATION_AVAILABLE } from './plus4uIntegration.std.ts';
 import {
   isUubtIntegrationEnabled,
   subscribeUubtIntegrationEnabled,
@@ -13,13 +14,19 @@ import {
  * v UI vůbec neukazují.
  */
 export function useUubtIntegrationEnabled(): boolean {
-  const [enabled, setEnabled] = useState(isUubtIntegrationEnabled);
+  const [enabled, setEnabled] = useState(
+    () => PLUS4U_INTEGRATION_AVAILABLE && isUubtIntegrationEnabled()
+  );
 
   useEffect(() => {
+    if (!PLUS4U_INTEGRATION_AVAILABLE) {
+      setEnabled(false);
+      return;
+    }
     // Nastavení se načítá asynchronně při startu — může dorazit dřív než mount.
     setEnabled(isUubtIntegrationEnabled());
     return subscribeUubtIntegrationEnabled(setEnabled);
   }, []);
 
-  return enabled;
+  return PLUS4U_INTEGRATION_AVAILABLE && enabled;
 }

@@ -64,8 +64,8 @@ export function formatPcmCaptureGapWarning(
   return (
     `> ⚠️ **Nahrávka je poškozená — ${lostPercent} % zvuku se nezachytilo** ` +
     '(místo zvuku je v nahrávce digitální ticho). Přepis proto pokrývá jen ' +
-    'zbytek hovoru. Typická příčina je minimalizované okno Minutes během ' +
-    'hovoru ve starší verzi aplikace — aktualizujte Minutes a nahrajte hovor ' +
-    'znovu.'
+    'zbytek hovoru a chybějící zvuk už obnovit nejde. Aktualizujte Minutes ' +
+    'na nejnovější verzi; pokud se to opakuje, pošlete log z Menu → ' +
+    'Minutes → Zobrazit log.'
   );
 }

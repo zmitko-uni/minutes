@@ -139,10 +139,6 @@ const EXPECTED_MINUTES_MENU: MenuItemConstructorOptions = {
       click: minutesOpenBookmarks,
     },
     {
-      label: 'Vizitky (uuBEM + Plus4U People)',
-      click: minutesOpenBusinessCards,
-    },
-    {
       label: 'Přepisy (Minutes)',
       accelerator: 'CommandOrControl+Shift+M',
       click: minutesOpenTranscriptionQueue,

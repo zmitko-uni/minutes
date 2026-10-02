@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createLogger } from '../logging/log.std.ts';
+import { PLUS4U_INTEGRATION_AVAILABLE } from './plus4uIntegration.std.ts';
 import {
   throwIfUnsupportedCredentials,
   UubtInteractiveLoginRequiredError,
@@ -338,6 +339,10 @@ export async function getUubtToken(
     forceRefresh?: boolean;
   }> = {}
 ): Promise<UubtToken> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    throw new Error('Integrace Plus4U je v této verzi vypnutá.');
+  }
+
   const browserCacheKey = await buildBrowserCacheKey();
   const cachedBrowser = getCachedUubtToken(browserCacheKey);
   if (

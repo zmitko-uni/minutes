@@ -10,6 +10,7 @@ import type {
   MenuActionsType,
 } from '../ts/types/menu.std.ts';
 import { MINUTES_BUILD_ID } from '../ts/minutes/constants.std.ts';
+import { PLUS4U_INTEGRATION_AVAILABLE } from '../ts/minutes/plus4uIntegration.std.ts';
 import {
   MINUTES_MENU_AI_SETTINGS,
   MINUTES_MENU_ABOUT,
@@ -124,10 +125,14 @@ export const createTemplate = (
           accelerator: 'CommandOrControl+Shift+B',
           click: minutesOpenBookmarks,
         },
-        {
-          label: MINUTES_MENU_BUSINESS_CARDS,
-          click: minutesOpenBusinessCards,
-        },
+        ...(PLUS4U_INTEGRATION_AVAILABLE
+          ? [
+              {
+                label: MINUTES_MENU_BUSINESS_CARDS,
+                click: minutesOpenBusinessCards,
+              },
+            ]
+          : []),
         {
           label: MINUTES_MENU_TRANSCRIPTION_QUEUE,
           accelerator: 'CommandOrControl+Shift+M',

@@ -3,6 +3,7 @@
 
 import { ipcRenderer } from 'electron';
 
+import { PLUS4U_INTEGRATION_AVAILABLE } from './plus4uIntegration.std.ts';
 import type {
   UubtAppendResponse,
   UubtMeeting,
@@ -20,7 +21,8 @@ let integrationEnabled = false;
 const integrationListeners = new Set<(enabled: boolean) => void>();
 
 function setIntegrationEnabled(settings: UubtSettingsPublic): void {
-  const next = settings.enabled && settings.hasAuth;
+  const next =
+    PLUS4U_INTEGRATION_AVAILABLE && settings.enabled && settings.hasAuth;
   if (next === integrationEnabled) {
     return;
   }
@@ -31,7 +33,7 @@ function setIntegrationEnabled(settings: UubtSettingsPublic): void {
 }
 
 export function isUubtIntegrationEnabled(): boolean {
-  return integrationEnabled;
+  return PLUS4U_INTEGRATION_AVAILABLE && integrationEnabled;
 }
 
 export function subscribeUubtIntegrationEnabled(

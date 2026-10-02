@@ -23,6 +23,10 @@ export type RingRtcAudioWorkletEvent =
       samples: Float32Array<ArrayBuffer>;
     }>
   | Readonly<{
+      type: 'timeline-skipped';
+      skippedSamples: number;
+    }>
+  | Readonly<{
       type: 'stopped';
       generation: number;
     }>;
@@ -35,6 +39,25 @@ export function readRingRtcAudioReadyEvent(event: unknown): boolean {
     'type' in event &&
     event.type === 'ready'
   );
+}
+
+/** Samples the worklet jumped over to catch up, if this is that event. */
+export function readRingRtcAudioSkippedEvent(
+  event: unknown
+): number | undefined {
+  if (
+    typeof event !== 'object' ||
+    event == null ||
+    !('type' in event) ||
+    event.type !== 'timeline-skipped' ||
+    !('skippedSamples' in event) ||
+    typeof event.skippedSamples !== 'number' ||
+    !Number.isSafeInteger(event.skippedSamples) ||
+    event.skippedSamples <= 0
+  ) {
+    return undefined;
+  }
+  return event.skippedSamples;
 }
 
 export function readRenderedPcmProgressEvent(

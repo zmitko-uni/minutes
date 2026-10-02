@@ -18,6 +18,7 @@ import {
 import { getOtherTabsUnreadStats } from '../../state/selectors/conversations.dom.ts';
 import { getHasPendingUpdate } from '../../state/selectors/updates.std.ts';
 import { getHasAnyFailedStorySends } from '../../state/selectors/stories.preload.ts';
+import { PLUS4U_INTEGRATION_AVAILABLE } from '../plus4uIntegration.std.ts';
 import { useItemsActions } from '../../state/ducks/items.preload.ts';
 import { renderToastManagerWithoutMegaphone } from '../../state/smart/ToastManager.preload.tsx';
 import { ToastType } from '../../types/Toast.dom.tsx';
@@ -277,7 +278,7 @@ function RecordingListRow({
             {item.hasSummary && (
               <span className="MinutesTranscriptsTab__tag">Shrnutí</span>
             )}
-            {item.hasMeeting && (
+            {PLUS4U_INTEGRATION_AVAILABLE && item.hasMeeting && (
               <span className="MinutesTranscriptsTab__tag">Schůzka</span>
             )}
             {!item.hasTranscript && !item.hasSummary && (

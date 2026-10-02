@@ -13,8 +13,17 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Fixed
+- **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
+
+### Removed
+- **Plus4U** je v této verzi vypnuté — přístupové kódy ani přihlášení přes prohlížeč se nenastavují a uložená tajemství se při startu smažou. Zmizely **Vizitky**, záložka **Schůzka** u nahrávky a zápis shrnutí ke schůzce
+
+## [8.26.0-m1.6.0-beta.3] - 2026-09-24
+
 ### Added
-- (doplňte před příštím release)
+
+- **MCP**: nový nástroj `add_contact` vyhledá registrovaný Signal kontakt podle přesného telefonního čísla v mezinárodním formátu E.164 nebo podle Signal username a přidá ho do lokálního seznamu konverzací
 
 ## [8.26.0-m1.6.1] - 2026-09-18
 
