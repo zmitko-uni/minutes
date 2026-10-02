@@ -13,6 +13,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Fixed
+- **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
+
 ### Removed
 - **Plus4U, Vizitky a zápis ke schůzce** v aplikaci nejsou — ani v menu, ani v nastavení, ani u nahrávky. Uložené přístupové údaje se při startu smažou
 
