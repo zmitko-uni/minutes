@@ -54,10 +54,3 @@ export function subscribeMinutesConversationFilter(
 export function showMinutesBookmarksTab(): void {
   window.reduxActions?.nav?.changeLocation({ tab: NavTab.MinutesBookmarks });
 }
-
-/** Přepne levou navigaci na tab Vizitky (uuBEM). */
-export function showMinutesBusinessCardsTab(): void {
-  window.reduxActions?.nav?.changeLocation({
-    tab: NavTab.MinutesBusinessCards,
-  });
-}

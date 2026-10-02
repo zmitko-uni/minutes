@@ -18,7 +18,6 @@ import {
 import { getOtherTabsUnreadStats } from '../../state/selectors/conversations.dom.ts';
 import { getHasPendingUpdate } from '../../state/selectors/updates.std.ts';
 import { getHasAnyFailedStorySends } from '../../state/selectors/stories.preload.ts';
-import { PLUS4U_INTEGRATION_AVAILABLE } from '../plus4uIntegration.std.ts';
 import { useItemsActions } from '../../state/ducks/items.preload.ts';
 import { renderToastManagerWithoutMegaphone } from '../../state/smart/ToastManager.preload.tsx';
 import { ToastType } from '../../types/Toast.dom.tsx';
@@ -28,12 +27,7 @@ import {
   getMinutesConversationFilter,
   subscribeMinutesConversationFilter,
 } from '../navTabsService.preload.ts';
-import type { RecordingMeetingLink } from '../recordingMeeting.std.ts';
-import {
-  deleteCallRecording,
-  getRecordingMeeting,
-  saveRecordingMeeting,
-} from '../recordingFilesService.preload.ts';
+import { deleteCallRecording } from '../recordingFilesService.preload.ts';
 import type { CallRecordingCatalogEntry } from '../recordingsCatalog.std.ts';
 import {
   buildRecordingListItems,
@@ -65,16 +59,12 @@ import type {
   TranscriptionQueueSnapshot,
 } from '../transcriptionQueue.std.ts';
 import type { CallRecordingOutput } from '../types.std.ts';
-import { getUubtSettings } from '../uubtService.preload.ts';
 import {
   MinutesRecordingDetail,
   type RecordingSendAction,
 } from './MinutesRecordingDetail.dom.tsx';
 import { MinutesIconButton } from './MinutesIconButton.dom.tsx';
 import { MinutesConfirmDialog } from './MinutesConfirmDialog.dom.tsx';
-import { MinutesSendToUubtModal } from './MinutesSendToUubtModal.dom.tsx';
-import type { UubtSendTarget } from './MinutesSendToUubtModal.dom.tsx';
-import type { UubtMeeting } from '../uubt.std.ts';
 
 const EMPTY_SNAPSHOT: TranscriptionQueueSnapshot = {
   jobs: [],
@@ -103,26 +93,6 @@ async function performSendAction(
     default:
       break;
   }
-}
-
-function toMeetingLink(
-  meeting: UubtMeeting,
-  mode: RecordingMeetingLink['mode']
-): RecordingMeetingLink {
-  return {
-    version: 1,
-    meetingId: meeting.meetingId,
-    meetingBaseUri: meeting.meetingBaseUri,
-    meetingUrl: meeting.meetingUrl,
-    name: meeting.name,
-    startTime: meeting.startTime,
-    endTime: meeting.endTime,
-    location: meeting.location,
-    organizer: meeting.organizer,
-    insertedAt: Date.now(),
-    mode,
-    activity: meeting.activity,
-  };
 }
 
 async function resolveOutput(
@@ -278,9 +248,6 @@ function RecordingListRow({
             {item.hasSummary && (
               <span className="MinutesTranscriptsTab__tag">Shrnutí</span>
             )}
-            {PLUS4U_INTEGRATION_AVAILABLE && item.hasMeeting && (
-              <span className="MinutesTranscriptsTab__tag">Schůzka</span>
-            )}
             {!item.hasTranscript && !item.hasSummary && (
               <span className="MinutesTranscriptsTab__tag MinutesTranscriptsTab__tag--muted">
                 Jen nahrávka
@@ -348,11 +315,6 @@ export function MinutesTranscriptsTab(): JSX.Element {
   const [pendingDelete, setPendingDelete] = useState<RecordingListItem | null>(
     null
   );
-  const [uubtTarget, setUubtTarget] = useState<UubtSendTarget | null>(null);
-  const [isUubtEnabled, setIsUubtEnabled] = useState(false);
-  const [meetingLink, setMeetingLink] = useState<RecordingMeetingLink | null>(
-    null
-  );
   // Tlačítko „M“ v chatu otevře tab zúžený jen na nahrávky toho chatu.
   const [conversationFilter, setConversationFilter] = useState<string | null>(
     () => getMinutesConversationFilter()
@@ -382,48 +344,6 @@ export function MinutesTranscriptsTab(): JSX.Element {
     () => subscribeMinutesConversationFilter(setConversationFilter),
     []
   );
-
-  // Zápis ke schůzce vyžaduje zapnutou integraci i oba uložené přístupové kódy.
-  // Čte se při přepnutí nahrávky a po návratu do okna, aby se změna v
-  // Nastavení AI projevila bez restartu.
-  useEffect(() => {
-    const readSettings = (): void => {
-      drop(
-        (async () => {
-          try {
-            const settings = await getUubtSettings();
-            setIsUubtEnabled(settings.enabled && settings.hasAuth);
-          } catch {
-            setIsUubtEnabled(false);
-          }
-        })()
-      );
-    };
-
-    readSettings();
-    window.addEventListener('focus', readSettings);
-    return () => window.removeEventListener('focus', readSettings);
-  }, [selectedPath]);
-
-  // Vazba na schůzku je souborová, čte se při přepnutí nahrávky.
-  useEffect(() => {
-    let cancelled = false;
-    setMeetingLink(null);
-    if (selectedPath == null) {
-      return;
-    }
-    drop(
-      (async () => {
-        const link = await getRecordingMeeting(selectedPath);
-        if (!cancelled) {
-          setMeetingLink(link);
-        }
-      })()
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedPath]);
 
   const activeCount = useMemo(
     () =>
@@ -586,54 +506,6 @@ export function MinutesTranscriptsTab(): JSX.Element {
     []
   );
 
-  const handleWriteToMeeting = useCallback((item: RecordingListItem) => {
-    drop(
-      (async () => {
-        const output = await resolveOutput(item);
-        if (output?.summaryText == null) {
-          window.reduxActions.toast.showToast({ toastType: ToastType.Error });
-          return;
-        }
-        setUubtTarget({
-          recordingPath: item.recordingPath,
-          conversationTitle: item.conversationTitle,
-          startedAt: item.startedAt,
-          endedAt: item.endedAt,
-          summaryMarkdown: output.summaryText,
-        });
-      })()
-    );
-  }, []);
-
-  const handleMeetingWritten = useCallback(
-    (
-      target: UubtSendTarget,
-      meeting: UubtMeeting,
-      mode: RecordingMeetingLink['mode']
-    ) => {
-      const link = toMeetingLink(meeting, mode);
-      setMeetingLink(link);
-      drop(
-        (async () => {
-          await saveRecordingMeeting(target.recordingPath, link);
-          // Katalog teď ví o `.meeting.json`, takže se v seznamu objeví tag.
-          refresh();
-        })()
-      );
-    },
-    [refresh]
-  );
-
-  const handleMeetingLinkChange = useCallback(
-    (link: RecordingMeetingLink) => {
-      setMeetingLink(link);
-      if (selectedPath != null) {
-        drop(saveRecordingMeeting(selectedPath, link));
-      }
-    },
-    [selectedPath]
-  );
-
   const handleDelete = useCallback(
     (item: RecordingListItem) => {
       setPendingDelete(null);
@@ -687,12 +559,6 @@ export function MinutesTranscriptsTab(): JSX.Element {
 
   return (
     <div className="MinutesTranscriptsTab">
-      <MinutesSendToUubtModal
-        target={uubtTarget}
-        onClose={() => setUubtTarget(null)}
-        onWritten={handleMeetingWritten}
-      />
-
       {pendingDelete != null && (
         <MinutesConfirmDialog
           title="Smazat nahrávku?"
@@ -820,16 +686,12 @@ export function MinutesTranscriptsTab(): JSX.Element {
             selfConversationId != null &&
             selfConversationId === selectedItem.entry?.conversationId
           }
-          isUubtEnabled={isUubtEnabled}
-          meetingLink={meetingLink}
           searchQuery={searchQuery}
           searchHit={selectedHit}
           onEnqueueTranscription={handleEnqueueTranscription}
           onEnqueueSummary={handleEnqueueSummary}
           onSend={handleSend}
-          onWriteToMeeting={handleWriteToMeeting}
           onDelete={handleDelete}
-          onMeetingLinkChange={handleMeetingLinkChange}
           onRefresh={refresh}
         />
       )}

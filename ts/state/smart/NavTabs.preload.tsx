@@ -18,7 +18,6 @@ import { getHasPendingUpdate } from '../selectors/updates.std.ts';
 import { getCallHistoryUnreadCount } from '../selectors/callHistory.std.ts';
 
 import type { Location } from '../../types/Nav.std.ts';
-import { useUubtIntegrationEnabled } from '../../minutes/uubtIntegration.preload.ts';
 
 export type SmartNavTabsProps = Readonly<{
   navTabsCollapsed: boolean;
@@ -27,7 +26,6 @@ export type SmartNavTabsProps = Readonly<{
   renderChatsTab: () => ReactNode;
   renderMinutesTranscriptsTab: () => ReactNode;
   renderMinutesBookmarksTab: () => ReactNode;
-  renderMinutesBusinessCardsTab: () => ReactNode;
   renderStoriesTab: () => ReactNode;
   renderSettingsTab: () => ReactNode;
 }>;
@@ -39,7 +37,6 @@ export const SmartNavTabs = memo(function SmartNavTabs({
   renderChatsTab,
   renderMinutesTranscriptsTab,
   renderMinutesBookmarksTab,
-  renderMinutesBusinessCardsTab,
   renderStoriesTab,
   renderSettingsTab,
 }: SmartNavTabsProps): JSX.Element {
@@ -51,7 +48,6 @@ export const SmartNavTabs = memo(function SmartNavTabs({
   const unreadCallsCount = useSelector(getCallHistoryUnreadCount);
   const hasFailedStorySends = useSelector(getHasAnyFailedStorySends);
   const hasPendingUpdate = useSelector(getHasPendingUpdate);
-  const minutesBusinessCardsEnabled = useUubtIntegrationEnabled();
 
   const { changeLocation } = useNavActions();
 
@@ -72,14 +68,12 @@ export const SmartNavTabs = memo(function SmartNavTabs({
       hasPendingUpdate={hasPendingUpdate}
       i18n={i18n}
       navTabsCollapsed={navTabsCollapsed}
-      minutesBusinessCardsEnabled={minutesBusinessCardsEnabled}
       onChangeLocation={onChangeLocation}
       onToggleNavTabsCollapse={onToggleNavTabsCollapse}
       renderCallsTab={renderCallsTab}
       renderChatsTab={renderChatsTab}
       renderMinutesTranscriptsTab={renderMinutesTranscriptsTab}
       renderMinutesBookmarksTab={renderMinutesBookmarksTab}
-      renderMinutesBusinessCardsTab={renderMinutesBusinessCardsTab}
       renderStoriesTab={renderStoriesTab}
       renderSettingsTab={renderSettingsTab}
       selectedNavTab={selectedNavTab}

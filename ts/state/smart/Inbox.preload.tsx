@@ -16,7 +16,6 @@ import { SmartChatsTab } from './ChatsTab.preload.tsx';
 import { SmartPreferences } from './Preferences.preload.tsx';
 import { MinutesTranscriptsTab } from '../../minutes/components/MinutesTranscriptsTab.dom.tsx';
 import { MinutesBookmarksTab } from '../../minutes/components/MinutesBookmarksTab.dom.tsx';
-import { MinutesBusinessCardsTab } from '../../minutes/components/MinutesBusinessCardsTab.dom.tsx';
 
 function renderChatsTab() {
   return <SmartChatsTab />;
@@ -36,10 +35,6 @@ function renderMinutesTranscriptsTab() {
 
 function renderMinutesBookmarksTab() {
   return <MinutesBookmarksTab />;
-}
-
-function renderMinutesBusinessCardsTab() {
-  return <MinutesBusinessCardsTab />;
 }
 
 function renderNavTabs(props: SmartNavTabsProps) {
@@ -74,7 +69,6 @@ export const SmartInbox = memo(function SmartInbox(): JSX.Element {
       }
       renderMinutesTranscriptsTab={renderMinutesTranscriptsTab}
       renderMinutesBookmarksTab={renderMinutesBookmarksTab}
-      renderMinutesBusinessCardsTab={renderMinutesBusinessCardsTab}
       renderNavTabs={renderNavTabs}
       renderStoriesTab={renderStoriesTab}
       renderSettingsTab={renderSettingsTab}

@@ -12,7 +12,6 @@ import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
 import { openLinkInWebBrowser } from '../../util/openLinkInWebBrowser.dom.ts';
 import { formatAppDialogTitle } from '../branding.std.ts';
-import { PLUS4U_INTEGRATION_AVAILABLE } from '../plus4uIntegration.std.ts';
 import {
   AI_PROVIDER_DEFINITIONS,
   AI_OUTPUT_LANGUAGE_OPTIONS,
@@ -46,12 +45,6 @@ import {
   MINUTES_FORM_FIELDSET_BORDER_CLASS,
 } from './minutesFormControls.dom.ts';
 import { useDialogBodyMaxHeight } from './useDialogBodyMaxHeight.dom.ts';
-import { DEFAULT_UUBT_SETTINGS, type UubtSettingsPublic } from '../uubt.std.ts';
-import {
-  getUubtSettings,
-  saveUubtSettings,
-  testUubtConnection,
-} from '../uubtService.preload.ts';
 
 type Props = Readonly<{
   open: boolean;
@@ -225,13 +218,6 @@ export function MinutesSettingsModal({
   );
   const dialogBodyMaxHeight = useDialogBodyMaxHeight(open);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
-  const [uubtLoaded, setUubtLoaded] = useState<UubtSettingsPublic>(
-    DEFAULT_UUBT_SETTINGS
-  );
-  const [uubtEnabled, setUubtEnabled] = useState(false);
-  const [accessCode1Draft, setAccessCode1Draft] = useState('');
-  const [accessCode2Draft, setAccessCode2Draft] = useState('');
-  const [removeUubtCredentials, setRemoveUubtCredentials] = useState(false);
 
   const providerDef = useMemo(
     () => getAiProviderDefinition(provider),
@@ -307,13 +293,6 @@ export function MinutesSettingsModal({
         setRemoveKeyFlags({});
         setStatusMessage(null);
 
-        const uubt = await getUubtSettings();
-        setUubtLoaded(uubt);
-        setUubtEnabled(uubt.enabled);
-        setAccessCode1Draft('');
-        setAccessCode2Draft('');
-        setRemoveUubtCredentials(false);
-
         await refreshAvailableModels({
           nextProvider: settings.provider,
           loadedSettings: settings,
@@ -384,57 +363,6 @@ export function MinutesSettingsModal({
     return apiKeys;
   }, [apiKeyDrafts, removeKeyFlags]);
 
-  const persistUubtSettings =
-    useCallback(async (): Promise<UubtSettingsPublic> => {
-      const resolveDraft = (value: string): string | undefined => {
-        if (removeUubtCredentials) {
-          return '';
-        }
-        const trimmed = value.trim();
-        return trimmed.length > 0 ? trimmed : undefined;
-      };
-
-      const saved = await saveUubtSettings({
-        enabled: uubtEnabled,
-        accessCode1: resolveDraft(accessCode1Draft),
-        accessCode2: resolveDraft(accessCode2Draft),
-      });
-
-      setUubtLoaded(saved);
-      setAccessCode1Draft('');
-      setAccessCode2Draft('');
-      setRemoveUubtCredentials(false);
-      return saved;
-    }, [
-      accessCode1Draft,
-      accessCode2Draft,
-      removeUubtCredentials,
-      uubtEnabled,
-    ]);
-
-  const handleTestUubt = useCallback(() => {
-    setIsBusy(true);
-    setStatusMessage(
-      'Kontrola připojení — pokud je potřeba, otevře se prohlížeč pro přihlášení do Plus4U.'
-    );
-    drop(
-      (async () => {
-        try {
-          const saved = await persistUubtSettings();
-          setUubtLoaded(saved);
-          const result = await testUubtConnection();
-          const refreshed = await getUubtSettings();
-          setUubtLoaded(refreshed);
-          setStatusMessage(`Plus4U: ${result.message}`);
-        } catch (error) {
-          setStatusMessage(formatUserFacingError(error));
-        } finally {
-          setIsBusy(false);
-        }
-      })()
-    );
-  }, [persistUubtSettings]);
-
   const handleSave = useCallback(() => {
     if (cannotEnableAiWithLocal) {
       setStatusMessage(AI_LOCAL_MODEL_SAVE_BLOCKED_MESSAGE_CS);
@@ -458,10 +386,6 @@ export function MinutesSettingsModal({
           });
           setLoaded(saved);
           setApiKeyDrafts({});
-          setRemoveKeyFlags({});
-          if (PLUS4U_INTEGRATION_AVAILABLE) {
-            await persistUubtSettings();
-          }
           setStatusMessage('Nastavení uloženo.');
           onOpenChange(false);
         } catch (error) {
@@ -478,7 +402,6 @@ export function MinutesSettingsModal({
     model,
     onOpenChange,
     outputLanguage,
-    persistUubtSettings,
     provider,
     summaryStyle,
     customSummaryInstructions,
@@ -526,13 +449,6 @@ export function MinutesSettingsModal({
 
   const providerDraft = apiKeyDrafts[provider] ?? '';
   const providerMarkedForRemoval = removeKeyFlags[provider] ?? false;
-
-  let accessCode2Placeholder = 'Přístupový kód 2';
-  if (removeUubtCredentials) {
-    accessCode2Placeholder = 'Kódy budou po uložení odstraněny';
-  } else if (uubtLoaded.hasCredentials) {
-    accessCode2Placeholder = 'Uloženo';
-  }
 
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -773,122 +689,6 @@ export function MinutesSettingsModal({
               později. Uložení probíhá šifrovaně přes safeStorage OS.
             </p>
 
-            {PLUS4U_INTEGRATION_AVAILABLE && (
-            <fieldset
-              className={tw(
-                'm-0 flex flex-col gap-4 rounded-md border border-solid p-4',
-                MINUTES_FORM_FIELDSET_BORDER_CLASS
-              )}
-            >
-              <legend className={tw('text-label-medium px-1 font-medium')}>
-                Plus4U integrace
-              </legend>
-
-              <p className={tw('text-label-small opacity-70')}>
-                Po dokončení přepisu půjde AI shrnutí zapsat ke schůzce z vašeho
-                kalendáře v Plus4U — vloží se do sekce Zápis. Přihlášení probíhá
-                přístupovými kódy, nebo přes prohlížeč (účty s 2FA). Tajemství
-                se ukládají šifrovaně přes safeStorage OS.
-              </p>
-
-              {uubtLoaded.hasBrowserSession && uubtLoaded.browserIdentityMasked && (
-                <p className={tw('text-label-small')}>
-                  Přihlášen přes prohlížeč:{' '}
-                  <strong>{uubtLoaded.browserIdentityMasked}</strong>
-                </p>
-              )}
-
-              <label className={tw('flex items-center justify-between gap-3')}>
-                <span>Povolit zápis ke schůzkám Plus4U</span>
-                <AxoSwitch.Root
-                  checked={uubtEnabled}
-                  onCheckedChange={setUubtEnabled}
-                />
-              </label>
-
-              <label className={tw('flex flex-col gap-1')}>
-                <span>Access code 1</span>
-                <input
-                  type="text"
-                  autoComplete="off"
-                  className={tw(
-                    MINUTES_FORM_CONTROL_CLASS,
-                    'w-full focus:border-tertiary not-forced-colors:outline-none'
-                  )}
-                  placeholder={
-                    removeUubtCredentials
-                      ? 'Kódy budou po uložení odstraněny'
-                      : (uubtLoaded.accessCode1Masked ?? 'Přístupový kód 1')
-                  }
-                  value={accessCode1Draft}
-                  disabled={removeUubtCredentials}
-                  onChange={event => setAccessCode1Draft(event.target.value)}
-                />
-              </label>
-
-              <label className={tw('flex flex-col gap-1')}>
-                <span>Access code 2</span>
-                <input
-                  type="password"
-                  autoComplete="off"
-                  className={tw(
-                    MINUTES_FORM_CONTROL_CLASS,
-                    'w-full focus:border-tertiary not-forced-colors:outline-none'
-                  )}
-                  placeholder={accessCode2Placeholder}
-                  value={accessCode2Draft}
-                  disabled={removeUubtCredentials}
-                  onChange={event => setAccessCode2Draft(event.target.value)}
-                />
-                <span className={tw('text-label-small opacity-70')}>
-                  Prázdná pole = ponechat uložené kódy.
-                  {uubtLoaded.hasCredentials && !removeUubtCredentials && (
-                    <>
-                      {' '}
-                      <button
-                        type="button"
-                        className={tw('underline')}
-                        onClick={() => {
-                          setRemoveUubtCredentials(true);
-                          setAccessCode1Draft('');
-                          setAccessCode2Draft('');
-                        }}
-                      >
-                        Odstranit uložené kódy
-                      </button>
-                    </>
-                  )}
-                  {removeUubtCredentials && (
-                    <>
-                      {' '}
-                      <button
-                        type="button"
-                        className={tw('underline')}
-                        onClick={() => setRemoveUubtCredentials(false)}
-                      >
-                        Zrušit odstranění
-                      </button>
-                    </>
-                  )}
-                </span>
-              </label>
-
-              <div className={tw('flex flex-wrap gap-2')}>
-                <AxoButton.Root
-                  variant="strong-secondary"
-                  size="sm"
-                  disabled={isBusy}
-                  onClick={handleTestUubt}
-                >
-                  Otestovat připojení
-                </AxoButton.Root>
-              </div>
-              <p className={tw('text-label-small opacity-70')}>
-                Uloží rozepsané kódy, ověří přístup k Plus4U a při účtu s 2FA
-                otevře prohlížeč pro přihlášení.
-              </p>
-            </fieldset>
-            )}
           </div>
         </AxoDialog.Body>
         <AxoDialog.Footer>

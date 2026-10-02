@@ -43,7 +43,6 @@ const minutesOpenSummaries = stub();
 const minutesOpenCallSummaryExtension = stub();
 const minutesOpenTranscriptionQueue = stub();
 const minutesOpenBookmarks = stub();
-const minutesOpenBusinessCards = stub();
 const minutesOpenReadme = stub();
 const minutesShowHome = stub();
 
@@ -311,7 +310,6 @@ describe('createTemplate', () => {
     minutesOpenCallSummaryExtension,
     minutesOpenTranscriptionQueue,
     minutesOpenBookmarks,
-    minutesOpenBusinessCards,
     minutesOpenReadme,
     minutesShowHome,
   };

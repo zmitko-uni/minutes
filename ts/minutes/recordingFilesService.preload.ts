@@ -3,8 +3,6 @@
 
 import { ipcRenderer } from 'electron';
 
-import type { RecordingMeetingLink } from './recordingMeeting.std.ts';
-
 export async function deleteCallRecording(
   recordingPath: string
 ): Promise<void> {
@@ -18,21 +16,5 @@ export async function saveRecordingSummary(
   return ipcRenderer.invoke('minutes:save-recording-summary', {
     recordingPath,
     summaryMarkdown,
-  });
-}
-
-export async function getRecordingMeeting(
-  recordingPath: string
-): Promise<RecordingMeetingLink | null> {
-  return ipcRenderer.invoke('minutes:get-recording-meeting', { recordingPath });
-}
-
-export async function saveRecordingMeeting(
-  recordingPath: string,
-  link: RecordingMeetingLink
-): Promise<RecordingMeetingLink> {
-  return ipcRenderer.invoke('minutes:save-recording-meeting', {
-    recordingPath,
-    link,
   });
 }
