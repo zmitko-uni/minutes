@@ -16,6 +16,7 @@ import {
   type AiSummaryStyle,
 } from '../aiSettings.std.ts';
 import { buildConfiguredAiModelChoices } from '../aiModelChoices.std.ts';
+import { PLUS4U_INTEGRATION_AVAILABLE } from '../plus4uIntegration.std.ts';
 import { getAiSettings } from '../aiSettingsService.preload.ts';
 import { getCallSummaryExtensionState } from '../callSummaryExtensionService.preload.ts';
 import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
@@ -780,16 +781,19 @@ export function MinutesRecordingDetail({
     [item.recordingPath, onRefresh]
   );
 
-  // Schůzka je vidět vždy — i bez vazby, aby tam šel zápis teprve založit.
-  const detailTabs = useMemo(
-    (): ReadonlyArray<readonly [DetailTab, string]> => [
+  const detailTabs = useMemo((): ReadonlyArray<
+    readonly [DetailTab, string]
+  > => {
+    const tabs: Array<readonly [DetailTab, string]> = [
       ['summary', 'Shrnutí'],
       ['transcript', 'Přepis'],
       ['media', isVideo ? 'Video' : 'Nahrávka'],
-      ['meeting', 'Schůzka'],
-    ],
-    [isVideo]
-  );
+    ];
+    if (PLUS4U_INTEGRATION_AVAILABLE) {
+      tabs.push(['meeting', 'Schůzka']);
+    }
+    return tabs;
+  }, [isVideo]);
 
   // Jména řečníků slouží AI jako seznam možných řešitelů úkolů.
   const transcriptSpeakers = useMemo(
@@ -1014,12 +1018,14 @@ export function MinutesRecordingDetail({
         {activeTab === 'summary' && (
           <>
             <div className="MinutesTranscriptsTab__paneToolbar">
-              <WriteToMeetingButton
-                label="Zapsat ke schůzce Plus4U"
-                hint={meetingButtonHint}
-                isEnabled={canWriteToMeeting}
-                onClick={() => onWriteToMeeting(item)}
-              />
+              {PLUS4U_INTEGRATION_AVAILABLE && (
+                <WriteToMeetingButton
+                  label="Zapsat ke schůzce Plus4U"
+                  hint={meetingButtonHint}
+                  isEnabled={canWriteToMeeting}
+                  onClick={() => onWriteToMeeting(item)}
+                />
+              )}
 
               <AxoButton.Root
                 variant={item.hasSummary ? 'subtle-primary' : 'strong-primary'}
@@ -1146,7 +1152,7 @@ export function MinutesRecordingDetail({
 
         {activeTab === 'media' && <MinutesRecordingPlayer item={item} />}
 
-        {activeTab === 'meeting' && (
+        {PLUS4U_INTEGRATION_AVAILABLE && activeTab === 'meeting' && (
           <>
             <div className="MinutesTranscriptsTab__paneToolbar">
               <WriteToMeetingButton

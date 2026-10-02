@@ -87,6 +87,7 @@ import type {
 import { markUubtMeetingSolved } from '../ts/minutes/uubtMeetingActivity.main.ts';
 import {
   getUubtSettingsPublic,
+  purgeUubtStoredSecrets,
   saveUubtSettings,
 } from '../ts/minutes/uubtSettings.main.ts';
 import { clearUubtTokenCache } from '../ts/minutes/uubtTokenCache.main.ts';
@@ -163,6 +164,9 @@ async function ensureDir(path: string): Promise<void> {
 export async function initializeMinutesChannel(automationOptions?: {
   getMainWindow: () => BrowserWindow | undefined;
 }): Promise<void> {
+  await purgeUubtStoredSecrets();
+  clearUubtTokenCache();
+
   const preferredRecordingsDir = resolveMinutesRecordingsDir(
     app.getPath('documents')
   );

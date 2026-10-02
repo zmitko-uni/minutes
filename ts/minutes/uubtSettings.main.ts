@@ -12,6 +12,7 @@ import {
   AI_SETTINGS_DIR_NAME,
   UUBT_SETTINGS_FILE_NAME,
 } from './constants.std.ts';
+import { PLUS4U_INTEGRATION_AVAILABLE } from './plus4uIntegration.std.ts';
 import type { UubtSettingsPublic, UubtSettingsSaveInput } from './uubt.std.ts';
 import {
   DEFAULT_UUBT_SETTINGS,
@@ -175,6 +176,9 @@ export async function getOidcClientCredentials(): Promise<
 }
 
 export async function getBrowserRefreshToken(): Promise<string | null> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    return null;
+  }
   const stored = await readStoredSettings();
   return tryDecryptSecret(stored.encryptedRefreshToken);
 }
@@ -185,6 +189,10 @@ export async function saveBrowserSession(
     identityMasked: string;
   }>
 ): Promise<void> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    await purgeUubtStoredSecrets();
+    return;
+  }
   const stored = await readStoredSettings();
   const next: StoredUubtSettings = {
     ...stored,
@@ -208,7 +216,48 @@ export async function clearBrowserSession(): Promise<void> {
   });
 }
 
+/**
+ * Smaže přístupové kódy, refresh token i identitu z prohlížeče.
+ * Volá se při startu, dokud je integrace vypnutá — na disku nesmí zůstat tajemství.
+ */
+export async function purgeUubtStoredSecrets(): Promise<void> {
+  if (PLUS4U_INTEGRATION_AVAILABLE) {
+    return;
+  }
+
+  let stored: StoredUubtSettings;
+  try {
+    stored = await readStoredSettings();
+  } catch (error) {
+    log.warn(`uubt: cannot read settings to purge: ${String(error)}`);
+    return;
+  }
+
+  const hasSecretMaterial =
+    stored.enabled ||
+    stored.encryptedAccessCode1 != null ||
+    stored.encryptedAccessCode2 != null ||
+    stored.encryptedRefreshToken != null ||
+    stored.browserIdentityMasked != null ||
+    stored.oidcUnregisteredClientId != null;
+
+  if (!hasSecretMaterial) {
+    return;
+  }
+
+  await writeStoredSettings({
+    enabled: false,
+    oidcBaseUri: stored.oidcBaseUri,
+  });
+  log.info('uubt: stored Plus4U credentials removed');
+}
+
 export async function getUubtSettingsPublic(): Promise<UubtSettingsPublic> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    await purgeUubtStoredSecrets();
+    return DEFAULT_UUBT_SETTINGS;
+  }
+
   try {
     return toPublicSettings(await readStoredSettings());
   } catch (error) {
@@ -219,6 +268,9 @@ export async function getUubtSettingsPublic(): Promise<UubtSettingsPublic> {
 
 /** Přihlašovací údaje pro uuOIDC, nebo null když nejsou kompletní. */
 export async function getUubtCredentials(): Promise<UubtCredentials | null> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    return null;
+  }
   const stored = await readStoredSettings();
   const accessCode1 = tryDecryptSecret(stored.encryptedAccessCode1);
   const accessCode2 = tryDecryptSecret(stored.encryptedAccessCode2);
@@ -235,6 +287,9 @@ export async function getUubtCredentials(): Promise<UubtCredentials | null> {
 }
 
 export async function isUubtEnabled(): Promise<boolean> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    return false;
+  }
   const settings = await getUubtSettingsPublic();
   return settings.enabled && settings.hasAuth;
 }
@@ -256,6 +311,11 @@ function applySecretUpdate(
 export async function saveUubtSettings(
   input: UubtSettingsSaveInput
 ): Promise<UubtSettingsPublic> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    await purgeUubtStoredSecrets();
+    return DEFAULT_UUBT_SETTINGS;
+  }
+
   const stored = await readStoredSettings();
 
   const next: StoredUubtSettings = {

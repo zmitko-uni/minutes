@@ -7,6 +7,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { BrowserWindow, dialog, shell } from 'electron';
 
 import { createLogger } from '../logging/log.std.ts';
+import { PLUS4U_INTEGRATION_AVAILABLE } from './plus4uIntegration.std.ts';
 import {
   resolveAuthorizationCodeInfoPageUri,
   UUBT_REQUEST_TIMEOUT_MS,
@@ -208,6 +209,11 @@ async function confirmBrowserLogin(): Promise<boolean> {
 }
 
 export function runUubtBrowserLogin(): Promise<void> {
+  if (!PLUS4U_INTEGRATION_AVAILABLE) {
+    return Promise.reject(
+      new Error('Integrace Plus4U je v této verzi vypnutá.')
+    );
+  }
   if (loginInFlight) {
     return loginInFlight;
   }

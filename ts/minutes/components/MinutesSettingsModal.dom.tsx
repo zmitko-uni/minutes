@@ -12,6 +12,7 @@ import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
 import { openLinkInWebBrowser } from '../../util/openLinkInWebBrowser.dom.ts';
 import { formatAppDialogTitle } from '../branding.std.ts';
+import { PLUS4U_INTEGRATION_AVAILABLE } from '../plus4uIntegration.std.ts';
 import {
   AI_PROVIDER_DEFINITIONS,
   AI_OUTPUT_LANGUAGE_OPTIONS,
@@ -458,7 +459,9 @@ export function MinutesSettingsModal({
           setLoaded(saved);
           setApiKeyDrafts({});
           setRemoveKeyFlags({});
-          await persistUubtSettings();
+          if (PLUS4U_INTEGRATION_AVAILABLE) {
+            await persistUubtSettings();
+          }
           setStatusMessage('Nastavení uloženo.');
           onOpenChange(false);
         } catch (error) {
@@ -770,6 +773,7 @@ export function MinutesSettingsModal({
               později. Uložení probíhá šifrovaně přes safeStorage OS.
             </p>
 
+            {PLUS4U_INTEGRATION_AVAILABLE && (
             <fieldset
               className={tw(
                 'm-0 flex flex-col gap-4 rounded-md border border-solid p-4',
@@ -884,6 +888,7 @@ export function MinutesSettingsModal({
                 otevře prohlížeč pro přihlášení.
               </p>
             </fieldset>
+            )}
           </div>
         </AxoDialog.Body>
         <AxoDialog.Footer>
