@@ -41,6 +41,7 @@ class MinutesRingRtcAudioSource
   #readyReported = false;
   #paused = false;
   #stopped = false;
+  #reportedSkippedSamples = 0;
 
   constructor() {
     super();
@@ -104,7 +105,20 @@ class MinutesRingRtcAudioSource
         this.#postPcm(samples);
       }
     }
+    this.#reportSkippedSamples();
     return true;
+  }
+
+  #reportSkippedSamples(): void {
+    const totalSkippedSamples = this.#timeline.skippedSamples;
+    if (totalSkippedSamples === this.#reportedSkippedSamples) {
+      return;
+    }
+    this.port.postMessage({
+      type: 'timeline-skipped',
+      skippedSamples: totalSkippedSamples - this.#reportedSkippedSamples,
+    } satisfies RingRtcAudioWorkletEvent);
+    this.#reportedSkippedSamples = totalSkippedSamples;
   }
 
   #postPcm(samples: Float32Array<ArrayBuffer>): void {
