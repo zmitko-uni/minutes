@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.6.3] - 2026-10-02
+
 ### Fixed
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
