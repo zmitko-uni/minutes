@@ -13,8 +13,8 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
-### Added
-- (doplňte před příštím release)
+### Removed
+- **Plus4U, Vizitky a zápis ke schůzce** v aplikaci nejsou — ani v menu, ani v nastavení, ani u nahrávky. Uložené přístupové údaje se při startu smažou
 
 ## [8.26.0-m1.6.2] - 2026-10-02
 

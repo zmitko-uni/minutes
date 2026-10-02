@@ -43,7 +43,6 @@ export type MenuActionsType = Readonly<{
   minutesOpenCallSummaryExtension: () => unknown;
   minutesOpenTranscriptionQueue: () => unknown;
   minutesOpenBookmarks: () => unknown;
-  minutesOpenBusinessCards: () => unknown;
   minutesOpenReadme: () => unknown;
   minutesShowHome: () => unknown;
 }>;

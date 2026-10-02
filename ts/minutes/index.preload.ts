@@ -16,8 +16,6 @@ import { showMinutesHome } from './homeNavigation.preload.ts';
 import { openMinutesLog } from './navigation.preload.ts';
 import { openReadmeModal } from './readmeService.preload.ts';
 import { openMinutesBookmarks } from './bookmarksService.preload.ts';
-import { openMinutesBusinessCards } from './personCardService.preload.ts';
-import { getUubtSettings } from './uubtService.preload.ts';
 import { initializeAppUpdate } from './appUpdateService.preload.ts';
 import { initializeMinutesKeyboardShortcuts } from './keyboardShortcuts.preload.ts';
 import { initializeAutomationRenderer } from './automation/automationRenderer.preload.ts';
@@ -67,8 +65,6 @@ export function initializeMinutes(): void {
   );
   drop(refreshCallSummaryExtension());
   drop(refreshLocalLlmExtension());
-  // Tab Vizitky se v levé navigaci ukazuje jen se zapnutou integrací Plus4U.
-  drop(getUubtSettings());
   initializeAppUpdate();
   initializeMinutesKeyboardShortcuts();
   initializeAutomationRenderer();
@@ -77,13 +73,9 @@ export function initializeMinutes(): void {
     showMinutesHome();
   });
 
-  // Záložky, Přepisy i Vizitky jsou taby levé navigace; menu jen přepne lokaci.
+  // Záložky a Přepisy jsou taby levé navigace; menu jen přepne lokaci.
   ipcRenderer.on('minutes:open-bookmarks', () => {
     openMinutesBookmarks();
-  });
-
-  ipcRenderer.on('minutes:open-business-cards', () => {
-    openMinutesBusinessCards();
   });
 }
 

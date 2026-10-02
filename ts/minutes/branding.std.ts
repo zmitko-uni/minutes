@@ -41,8 +41,7 @@ type ChatMessageKind =
   | 'chat-summary'
   | 'call-transcript'
   | 'call-summary'
-  | 'ai-opinion'
-  | 'business-card';
+  | 'ai-opinion';
 
 const CHAT_MESSAGE_HEADERS: Readonly<
   Record<ChatMessageKind, Readonly<{ emoji: string; label: string }>>
@@ -51,7 +50,6 @@ const CHAT_MESSAGE_HEADERS: Readonly<
   'call-transcript': { emoji: '🎙️', label: 'přepis hovoru' },
   'call-summary': { emoji: '📝', label: 'shrnutí hovoru' },
   'ai-opinion': { emoji: '🤖', label: 'názor AI' },
-  'business-card': { emoji: '👤', label: 'vizitka' },
 };
 
 export function formatChatMessageHeader(

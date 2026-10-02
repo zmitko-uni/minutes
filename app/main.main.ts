@@ -1482,13 +1482,6 @@ function minutesOpenBookmarks(): void {
   mainWindow.webContents.send('minutes:open-bookmarks');
 }
 
-function minutesOpenBusinessCards(): void {
-  if (!mainWindow?.webContents) {
-    return;
-  }
-  mainWindow.webContents.send('minutes:open-business-cards');
-}
-
 function minutesOpenReadme(): void {
   if (!mainWindow?.webContents) {
     return;
@@ -2600,7 +2593,6 @@ function setupMenu(options?: Partial<CreateTemplateOptionsType>) {
     minutesOpenCallSummaryExtension,
     minutesOpenTranscriptionQueue,
     minutesOpenBookmarks,
-    minutesOpenBusinessCards,
     minutesOpenReadme,
     minutesShowHome,
 

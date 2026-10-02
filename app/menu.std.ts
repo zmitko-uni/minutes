@@ -10,12 +10,10 @@ import type {
   MenuActionsType,
 } from '../ts/types/menu.std.ts';
 import { MINUTES_BUILD_ID } from '../ts/minutes/constants.std.ts';
-import { PLUS4U_INTEGRATION_AVAILABLE } from '../ts/minutes/plus4uIntegration.std.ts';
 import {
   MINUTES_MENU_AI_SETTINGS,
   MINUTES_MENU_ABOUT,
   MINUTES_MENU_BOOKMARKS,
-  MINUTES_MENU_BUSINESS_CARDS,
   MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
   MINUTES_MENU_LABEL,
   MINUTES_MENU_MCP_SETTINGS,
@@ -73,7 +71,6 @@ export const createTemplate = (
     minutesOpenCallSummaryExtension,
     minutesOpenTranscriptionQueue,
     minutesOpenBookmarks,
-    minutesOpenBusinessCards,
     minutesOpenReadme,
     minutesShowHome,
   } = options;
@@ -125,14 +122,6 @@ export const createTemplate = (
           accelerator: 'CommandOrControl+Shift+B',
           click: minutesOpenBookmarks,
         },
-        ...(PLUS4U_INTEGRATION_AVAILABLE
-          ? [
-              {
-                label: MINUTES_MENU_BUSINESS_CARDS,
-                click: minutesOpenBusinessCards,
-              },
-            ]
-          : []),
         {
           label: MINUTES_MENU_TRANSCRIPTION_QUEUE,
           accelerator: 'CommandOrControl+Shift+M',

@@ -16,13 +16,11 @@ import {
   type AiSummaryStyle,
 } from '../aiSettings.std.ts';
 import { buildConfiguredAiModelChoices } from '../aiModelChoices.std.ts';
-import { PLUS4U_INTEGRATION_AVAILABLE } from '../plus4uIntegration.std.ts';
 import { getAiSettings } from '../aiSettingsService.preload.ts';
 import { getCallSummaryExtensionState } from '../callSummaryExtensionService.preload.ts';
 import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
 import { toFriendlyError } from '../friendlyError.std.ts';
 import { getRecordingArtifactPaths } from '../recordingArtifacts.std.ts';
-import type { RecordingMeetingLink } from '../recordingMeeting.std.ts';
 import { saveRecordingSummary } from '../recordingFilesService.preload.ts';
 import type { RecordingListItem } from '../recordingsListModel.std.ts';
 import type { RecordingTextHit } from '../recordingsSearch.std.ts';
@@ -53,20 +51,10 @@ import {
 } from './MinutesIconButton.dom.tsx';
 import { MinutesIcon } from './MinutesIcon.dom.tsx';
 import { MinutesMarkdown } from './MinutesMarkdown.dom.tsx';
-import { MinutesRecordingMeetingPane } from './MinutesRecordingMeetingPane.dom.tsx';
 import { MinutesRecordingPlayer } from './MinutesRecordingPlayer.dom.tsx';
 import { MinutesSummaryEditor } from './MinutesSummaryEditor.dom.tsx';
 import { MinutesTranscriptView } from './MinutesTranscriptView.dom.tsx';
 import type { MinutesTextHighlight } from './MinutesTextHighlight.dom.tsx';
-import {
-  listTranscriptSpeakers,
-  parseTranscriptSegments,
-} from '../transcriptDisplay.std.ts';
-import {
-  UUBT_ACTIVITY_STATE_SOLVED,
-  isUubtMeetingSolvableByMe,
-} from '../uubt.std.ts';
-import { markUubtMeetingSolved } from '../uubtService.preload.ts';
 
 export type RecordingSendAction =
   | 'transcript-chat'
@@ -74,7 +62,7 @@ export type RecordingSendAction =
   | 'summary-chat'
   | 'summary-self';
 
-type DetailTab = 'summary' | 'transcript' | 'media' | 'meeting';
+type DetailTab = 'summary' | 'transcript' | 'media';
 
 const NO_WHISPER_MODEL_HINT =
   'Není stažený žádný model přepisu. Přidejte ho v Minutes → Nastavení přepisů…';
@@ -179,38 +167,6 @@ function SharePanel({
         </div>
       )}
     </MinutesOptionsPopover>
-  );
-}
-
-/**
- * Zápis ke schůzce vzniká z AI shrnutí, takže bez shrnutí a bez zapnuté
- * Plus4U integrace není co poslat — tlačítko pak v tooltipu řekne, co chybí.
- */
-function WriteToMeetingButton({
-  label,
-  hint,
-  isEnabled,
-  onClick,
-}: Readonly<{
-  label: string;
-  hint: string;
-  isEnabled: boolean;
-  onClick: () => void;
-}>): JSX.Element {
-  return (
-    <span
-      className="MinutesTranscriptsTab__hintWrap"
-      title={isEnabled ? undefined : hint}
-    >
-      <AxoButton.Root
-        variant="subtle-primary"
-        size="sm"
-        disabled={!isEnabled}
-        onClick={onClick}
-      >
-        {label}
-      </AxoButton.Root>
-    </span>
   );
 }
 
@@ -622,24 +578,18 @@ export function MinutesRecordingDetail({
   jobs,
   sendingKey,
   isSelfChat,
-  isUubtEnabled,
-  meetingLink,
   searchQuery,
   searchHit,
   onEnqueueTranscription,
   onEnqueueSummary,
   onSend,
-  onWriteToMeeting,
   onDelete,
-  onMeetingLinkChange,
   onRefresh,
 }: Readonly<{
   item: RecordingListItem;
   jobs: ReadonlyArray<TranscriptionJob>;
   sendingKey: string | null;
   isSelfChat: boolean;
-  isUubtEnabled: boolean;
-  meetingLink: RecordingMeetingLink | null;
   /** Hledaný text — zvýrazní se ve shrnutí i v přepisu. */
   searchQuery: string;
   /** Nález, na který uživatel klikl v seznamu; přepne tab a doskroluje. */
@@ -653,9 +603,7 @@ export function MinutesRecordingDetail({
     options?: TranscriptionJobOptions
   ) => void;
   onSend: (item: RecordingListItem, action: RecordingSendAction) => void;
-  onWriteToMeeting: (item: RecordingListItem) => void;
   onDelete: (item: RecordingListItem) => void;
-  onMeetingLinkChange: (link: RecordingMeetingLink) => void;
   onRefresh: () => void;
 }>): JSX.Element {
   const [activeTab, setActiveTab] = useState<DetailTab>('summary');
@@ -789,43 +737,8 @@ export function MinutesRecordingDetail({
       ['transcript', 'Přepis'],
       ['media', isVideo ? 'Video' : 'Nahrávka'],
     ];
-    if (PLUS4U_INTEGRATION_AVAILABLE) {
-      tabs.push(['meeting', 'Schůzka']);
-    }
     return tabs;
   }, [isVideo]);
-
-  // Jména řečníků slouží AI jako seznam možných řešitelů úkolů.
-  const transcriptSpeakers = useMemo(
-    () =>
-      listTranscriptSpeakers(parseTranscriptSegments(texts?.transcript ?? '')),
-    [texts?.transcript]
-  );
-
-  const isMeetingConfirmable =
-    meetingLink?.activity != null &&
-    isUubtMeetingSolvableByMe(meetingLink.activity);
-
-  const confirmMeetingMinutes = useCallback(async () => {
-    const activity = meetingLink?.activity;
-    if (activity == null || meetingLink == null) {
-      return;
-    }
-
-    await markUubtMeetingSolved(
-      activity,
-      'Zápis vložen z Minutes a schůzka uzavřena.'
-    );
-    onMeetingLinkChange({
-      ...meetingLink,
-      activity: { ...activity, stateCode: UUBT_ACTIVITY_STATE_SOLVED },
-    });
-  }, [meetingLink, onMeetingLinkChange]);
-
-  const meetingButtonHint = !item.hasSummary
-    ? 'Zápis se posílá ze shrnutí — nejdřív ho vygenerujte.'
-    : 'Zapněte Plus4U integraci a uložte oba přístupové kódy v Nastavení AI.';
-  const canWriteToMeeting = item.hasSummary && isUubtEnabled && !isSending;
 
   return (
     <div className="MinutesTranscriptsTab__detail">
@@ -1018,15 +931,6 @@ export function MinutesRecordingDetail({
         {activeTab === 'summary' && (
           <>
             <div className="MinutesTranscriptsTab__paneToolbar">
-              {PLUS4U_INTEGRATION_AVAILABLE && (
-                <WriteToMeetingButton
-                  label="Zapsat ke schůzce Plus4U"
-                  hint={meetingButtonHint}
-                  isEnabled={canWriteToMeeting}
-                  onClick={() => onWriteToMeeting(item)}
-                />
-              )}
-
               <AxoButton.Root
                 variant={item.hasSummary ? 'subtle-primary' : 'strong-primary'}
                 size="sm"
@@ -1152,49 +1056,6 @@ export function MinutesRecordingDetail({
 
         {activeTab === 'media' && <MinutesRecordingPlayer item={item} />}
 
-        {PLUS4U_INTEGRATION_AVAILABLE && activeTab === 'meeting' && (
-          <>
-            <div className="MinutesTranscriptsTab__paneToolbar">
-              <WriteToMeetingButton
-                label={
-                  meetingLink != null
-                    ? 'Zapsat k jiné schůzce'
-                    : 'Zapsat ke schůzce Plus4U'
-                }
-                hint={meetingButtonHint}
-                isEnabled={canWriteToMeeting}
-                onClick={() => onWriteToMeeting(item)}
-              />
-            </div>
-
-            {meetingLink != null ? (
-              <MinutesRecordingMeetingPane
-                link={meetingLink}
-                conversationId={item.conversationId}
-                sourceChatTitle={item.conversationTitle}
-                isSelfChat={isSelfChat}
-                summaryMarkdown={texts?.summary ?? ''}
-                participants={transcriptSpeakers}
-                isSharing={isSending}
-                isConfirmable={isMeetingConfirmable}
-                onUpdated={onMeetingLinkChange}
-                onShareSummary={target =>
-                  onSend(
-                    item,
-                    target === 'self' ? 'summary-self' : 'summary-chat'
-                  )
-                }
-                onConfirmMinutes={confirmMeetingMinutes}
-              />
-            ) : (
-              <p className="MinutesTranscriptsTab__note">
-                Nahrávka není navázaná na žádnou schůzku v Plus4U. Tlačítkem
-                nahoře vložíte shrnutí do sekce Zápis vybrané schůzky — pak se
-                tady objeví její detail, příprava i návrhy úkolů.
-              </p>
-            )}
-          </>
-        )}
       </div>
     </div>
   );

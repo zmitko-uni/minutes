@@ -3,13 +3,14 @@
 
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { mkdir, open, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rm, stat, writeFile } from 'node:fs/promises';
 
 import { app, ipcMain, shell, type BrowserWindow } from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
 import * as Errors from '../ts/types/errors.std.ts';
 import {
+  AI_SETTINGS_DIR_NAME,
   LEGACY_RECORDINGS_DIR_NAME,
   SUMMARIES_DIR_NAME,
 } from '../ts/minutes/constants.std.ts';
@@ -59,66 +60,16 @@ import { searchRecordingTexts } from '../ts/minutes/recordingsSearch.main.ts';
 import { registerRecordingMediaProtocol } from '../ts/minutes/recordingMediaProtocol.main.ts';
 import {
   deleteCallRecording,
-  readRecordingMeeting,
   saveRecordingSummary,
-  writeRecordingMeeting,
 } from '../ts/minutes/recordingFiles.main.ts';
-import type { RecordingMeetingLink } from '../ts/minutes/recordingMeeting.std.ts';
 import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
   listAiModelsForProvider,
   generateAiSummaryForProvider,
   generateAiOpinionForProvider,
-  generateAiTextForProvider,
   generateUnreadConversationSummaryForProvider,
 } from '../ts/minutes/aiSummaryService.main.ts';
-import {
-  MEETING_TASKS_MAX_TOKENS,
-  buildMeetingTaskPrompts,
-} from '../ts/minutes/meetingTaskPrompts.std.ts';
-import type {
-  UubtAppendResponse,
-  UubtMeeting,
-  UubtMeetingActivity,
-  UubtMeetingTexts,
-  UubtSettingsSaveInput,
-} from '../ts/minutes/uubt.std.ts';
-import { markUubtMeetingSolved } from '../ts/minutes/uubtMeetingActivity.main.ts';
-import {
-  getUubtSettingsPublic,
-  purgeUubtStoredSecrets,
-  saveUubtSettings,
-} from '../ts/minutes/uubtSettings.main.ts';
-import { clearUubtTokenCache } from '../ts/minutes/uubtTokenCache.main.ts';
-import {
-  cancelUubtBrowserLogin,
-  logoutUubtBrowserSession,
-  runUubtBrowserLogin,
-} from '../ts/minutes/uubtBrowserAuth.main.ts';
-import {
-  clearUubtCalendarCache,
-  getUubtConnectionInfo,
-  listUubtMeetingsForDay,
-} from '../ts/minutes/uubtCalendar.main.ts';
-import {
-  UubtDuplicateMinutesError,
-  appendMinutesToMeeting,
-  loadUubtMeetingTexts,
-} from '../ts/minutes/uubtMeetingMinutes.main.ts';
-import type {
-  PersonCardDetail,
-  PersonCardSource,
-  PersonSearchResult,
-} from '../ts/minutes/personCard.std.ts';
-import type { PersonCardSearchResponse } from '../ts/minutes/personCard.main.ts';
-import {
-  clearMyPersonCardCache,
-  loadMyPersonCard,
-  loadPersonCardDetail,
-  loadPersonPhoto,
-  searchPersonCards,
-} from '../ts/minutes/personCard.main.ts';
 import { readMinutesReadmeContent } from './minutes_readme.main.ts';
 import {
   checkForAppUpdate,
@@ -164,8 +115,10 @@ async function ensureDir(path: string): Promise<void> {
 export async function initializeMinutesChannel(automationOptions?: {
   getMainWindow: () => BrowserWindow | undefined;
 }): Promise<void> {
-  await purgeUubtStoredSecrets();
-  clearUubtTokenCache();
+  await rm(
+    join(app.getPath('userData'), AI_SETTINGS_DIR_NAME, 'uubt-settings.json'),
+    { force: true }
+  );
 
   const preferredRecordingsDir = resolveMinutesRecordingsDir(
     app.getPath('documents')
@@ -353,27 +306,6 @@ export async function initializeMinutesChannel(automationOptions?: {
         recordingsDir,
         options.recordingPath,
         options.summaryMarkdown
-      );
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:get-recording-meeting',
-    async (_event, options: { recordingPath: string }) => {
-      return readRecordingMeeting(options.recordingPath);
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:save-recording-meeting',
-    async (
-      _event,
-      options: { recordingPath: string; link: RecordingMeetingLink }
-    ) => {
-      return writeRecordingMeeting(
-        recordingsDir,
-        options.recordingPath,
-        options.link
       );
     }
   );
@@ -797,185 +729,6 @@ export async function initializeMinutesChannel(automationOptions?: {
         unreadCount: options.unreadCount,
         transcript: options.transcript,
       });
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:propose-meeting-tasks',
-    async (
-      _event,
-      options: {
-        meetingName: string;
-        meetingWhen: string;
-        sourceChatTitle: string;
-        participants: Array<string>;
-        minutesMarkdown: string;
-      }
-    ): Promise<string> => {
-      await assertAiSummaryReady();
-
-      const settings = await getAiSettingsPublic();
-      const apiKey =
-        settings.provider === 'local'
-          ? ''
-          : ((await getAiApiKey(settings.provider)) ?? undefined);
-      if (settings.provider !== 'local' && !apiKey) {
-        throw new Error('API klíč není nastaven');
-      }
-
-      const { systemPrompt, userPrompt } = buildMeetingTaskPrompts({
-        meetingName: options.meetingName,
-        meetingWhen: options.meetingWhen,
-        sourceChatTitle: options.sourceChatTitle,
-        participants: options.participants,
-        minutesMarkdown: options.minutesMarkdown,
-      });
-
-      return generateAiTextForProvider({
-        provider: settings.provider,
-        apiKey: apiKey ?? '',
-        model: settings.model,
-        systemPrompt,
-        userPrompt,
-        temperature: 0.15,
-        maxTokens: MEETING_TASKS_MAX_TOKENS,
-      });
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:uubt-mark-meeting-solved',
-    async (
-      _event,
-      options: { activity: UubtMeetingActivity; note?: string }
-    ): Promise<void> => {
-      await markUubtMeetingSolved(options.activity, options.note);
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:person-card-search',
-    async (
-      _event,
-      options: {
-        searchString: string;
-        enabledSources: ReadonlyArray<PersonCardSource>;
-      }
-    ): Promise<PersonCardSearchResponse> => {
-      return searchPersonCards(options.searchString, options.enabledSources);
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:person-card-load',
-    async (
-      _event,
-      options: { uuIdentity: string; uubemId: string | null }
-    ): Promise<PersonCardDetail> => {
-      return loadPersonCardDetail(options);
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:person-card-me',
-    async (): Promise<PersonSearchResult | null> => {
-      return loadMyPersonCard();
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:person-card-photo',
-    async (_event, options: { uuIdentity: string }): Promise<string | null> => {
-      return loadPersonPhoto(options.uuIdentity);
-    }
-  );
-
-  ipcMain.handle('minutes:uubt-get-settings', async () => {
-    return getUubtSettingsPublic();
-  });
-
-  ipcMain.handle(
-    'minutes:uubt-save-settings',
-    async (_event, input: UubtSettingsSaveInput) => {
-      const saved = await saveUubtSettings(input);
-      // Přihlašovací údaje se mohly změnit — token, dwUri i vlastní vizitku
-      // zahodíme, jinak by aplikace zůstala u předchozího účtu.
-      clearUubtTokenCache();
-      clearUubtCalendarCache();
-      clearMyPersonCardCache();
-      return saved;
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:uubt-test-connection',
-    async (): Promise<{ ok: true; message: string }> => {
-      const info = await getUubtConnectionInfo();
-      const who = info.personName ?? info.uuIdentity;
-      return { ok: true, message: `přihlášen jako ${who}` };
-    }
-  );
-
-  ipcMain.handle('minutes:uubt-start-browser-login', async () => {
-    await runUubtBrowserLogin();
-    clearUubtCalendarCache();
-    return getUubtSettingsPublic();
-  });
-
-  ipcMain.handle('minutes:uubt-cancel-browser-login', async () => {
-    cancelUubtBrowserLogin();
-    return getUubtSettingsPublic();
-  });
-
-  ipcMain.handle('minutes:uubt-logout-browser', async () => {
-    await logoutUubtBrowserSession();
-    clearUubtCalendarCache();
-    return getUubtSettingsPublic();
-  });
-
-  ipcMain.handle(
-    'minutes:uubt-list-meetings',
-    async (
-      _event,
-      options: { day: string }
-    ): Promise<ReadonlyArray<UubtMeeting>> => {
-      return listUubtMeetingsForDay(options.day);
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:uubt-load-meeting-texts',
-    async (
-      _event,
-      options: { meetingBaseUri: string; meetingId: string }
-    ): Promise<UubtMeetingTexts> => {
-      return loadUubtMeetingTexts(options.meetingBaseUri, options.meetingId);
-    }
-  );
-
-  ipcMain.handle(
-    'minutes:uubt-append-minutes',
-    async (
-      _event,
-      options: {
-        meetingBaseUri: string;
-        meetingId: string;
-        meetingUrl: string | null;
-        conversationTitle: string;
-        recordedAt: number;
-        summaryMarkdown: string;
-        allowDuplicate?: boolean;
-      }
-    ): Promise<UubtAppendResponse> => {
-      try {
-        const result = await appendMinutesToMeeting(options);
-        return { status: 'ok', result };
-      } catch (error) {
-        if (error instanceof UubtDuplicateMinutesError) {
-          return { status: 'duplicate', message: error.message };
-        }
-        throw error;
-      }
     }
   );
 
