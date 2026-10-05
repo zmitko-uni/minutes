@@ -14,7 +14,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- **Shrnutí nahrávky**: tlačítko **Kopírovat** vloží text do schránky i s formátováním (tučně, odrážky, nadpisy). Stejně se chová označení a **Ctrl+C**, takže shrnutí jde vložit třeba do dokumentu v Plus4U
+
+### Fixed
+- **Aktualizace**: **Restartovat a nainstalovat** už nespadne s chybou Spawn UNKNOWN. Instalátor se otevře přes Windows (SmartScreen, případné potvrzení). Poškozený nebo zastaralý soubor po smazaném release se zahodí a nabídne se nové stažení
 
 ## [8.26.0-m1.6.3-beta.1] - 2026-10-05
 
