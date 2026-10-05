@@ -59,53 +59,82 @@ export function downloadHttpsFile(
 
     signal?.addEventListener('abort', onAbort);
 
-    request = httpsGet(url, response => {
-      if (
-        response.statusCode &&
-        response.statusCode >= 300 &&
-        response.statusCode < 400 &&
-        response.headers.location
-      ) {
-        request = null;
-        downloadHttpsFile(response.headers.location, destination, onProgress, {
-          signal,
-        })
-          .then(() => finish())
-          .catch(error =>
-            finish(error instanceof Error ? error : new Error(String(error)))
-          );
-        response.resume();
-        return;
-      }
-
-      if (response.statusCode !== 200) {
-        finish(
-          new Error(
-            `Stažení souboru selhalo (HTTP ${response.statusCode ?? 'unknown'})`
+    request = httpsGet(
+      url,
+      {
+        headers: {
+          'User-Agent': 'minutes-Desktop',
+          Accept: 'application/octet-stream, */*',
+        },
+      },
+      response => {
+        if (
+          response.statusCode &&
+          response.statusCode >= 300 &&
+          response.statusCode < 400 &&
+          response.headers.location
+        ) {
+          request = null;
+          downloadHttpsFile(
+            response.headers.location,
+            destination,
+            onProgress,
+            {
+              signal,
+            }
           )
-        );
-        response.resume();
-        return;
-      }
-
-      const total = Number(response.headers['content-length'] ?? 0) || null;
-      let loaded = 0;
-      fileStream = createWriteStream(destination);
-
-      response.on('data', chunk => {
-        if (signal?.aborted) {
-          finish(new DownloadCancelledError());
+            .then(() => finish())
+            .catch(error =>
+              finish(error instanceof Error ? error : new Error(String(error)))
+            );
+          response.resume();
           return;
         }
-        loaded += chunk.length;
-        onProgress(loaded, total);
-      });
 
-      response.pipe(fileStream);
-      fileStream.on('finish', () => finish());
-      fileStream.on('error', error => finish(error));
-      response.on('error', error => finish(error));
-    });
+        if (response.statusCode !== 200) {
+          finish(
+            new Error(
+              `Stažení souboru selhalo (HTTP ${response.statusCode ?? 'unknown'})`
+            )
+          );
+          response.resume();
+          return;
+        }
+
+        const contentType = String(response.headers['content-type'] ?? '');
+        if (
+          contentType.includes('text/html') ||
+          contentType.includes('application/json') ||
+          contentType.includes('application/xhtml')
+        ) {
+          finish(
+            new Error(
+              'Server nevrátil soubor ke stažení (stránka místo instalátoru). Release mohl být smazán.'
+            )
+          );
+          response.resume();
+          return;
+        }
+
+        const total = Number(response.headers['content-length'] ?? 0) || null;
+        let loaded = 0;
+        fileStream = createWriteStream(destination);
+
+        response.on('data', chunk => {
+          if (signal?.aborted) {
+            finish(new DownloadCancelledError());
+            return;
+          }
+          loaded += chunk.length;
+          onProgress(loaded, total);
+        });
+
+        response.pipe(fileStream);
+        fileStream.on('finish', () => finish());
+        fileStream.on('error', error => finish(error));
+        response.on('error', error => finish(error));
+      }
+    );
 
     request.on('error', (error: Error) => finish(error));
   });

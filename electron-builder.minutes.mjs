@@ -32,6 +32,9 @@ export default {
   nsis: {
     ...pkg.build.nsis,
     oneClick: false,
+    // Per-user instalátor (RequestExecutionLevel user). Jinak Windows u
+    // staženého .exe odmítne CreateProcess a auto-update spadne na Spawn UNKNOWN.
+    perMachine: false,
     allowToChangeInstallationDirectory: true,
     installerIcon: 'build/icons/minutes/win/icon.ico',
     uninstallerIcon: 'build/icons/minutes/win/icon.ico',

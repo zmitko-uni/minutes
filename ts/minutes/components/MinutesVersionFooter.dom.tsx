@@ -22,6 +22,15 @@ type Props = Readonly<{
   appVersion: string;
 }>;
 
+function formatActionError(error: unknown, fallback: string): string {
+  const raw = error instanceof Error ? error.message : fallback;
+  const stripped = raw.replace(
+    /^Error invoking remote method '[^']+': Error: /,
+    ''
+  );
+  return stripped.length > 0 ? stripped : fallback;
+}
+
 function getStatusText(state: AppUpdateUiState): string {
   switch (state.kind) {
     case 'checking':
@@ -78,9 +87,7 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
     drop(
       startBackgroundAppUpdateDownload(check)
         .catch(error => {
-          setActionError(
-            error instanceof Error ? error.message : 'Stažení selhalo.'
-          );
+          setActionError(formatActionError(error, 'Stažení selhalo.'));
         })
         .finally(() => {
           setIsBusy(false);
@@ -98,9 +105,7 @@ export function MinutesVersionFooter({ appVersion }: Props): JSX.Element {
     drop(
       installPendingAppUpdate({ version: state.pending.version })
         .catch(error => {
-          setActionError(
-            error instanceof Error ? error.message : 'Instalace selhala.'
-          );
+          setActionError(formatActionError(error, 'Instalace selhala.'));
         })
         .finally(() => setIsBusy(false))
     );

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { spawn } from 'node:child_process';
-import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, stat, unlink, writeFile } from 'node:fs/promises';
 import { get as httpsGet } from 'node:https';
 import { join } from 'node:path';
 
@@ -292,6 +292,117 @@ async function clearPendingAppUpdate(): Promise<void> {
   }
 }
 
+/** Instalátor Minutes má stovky MB. Menší soubor je typicky HTML stránka místo .exe. */
+const MIN_WINDOWS_INSTALLER_BYTES = 1_000_000;
+
+async function discardPendingInstaller(
+  installerPath: string | undefined
+): Promise<void> {
+  if (installerPath) {
+    try {
+      await unlink(installerPath);
+    } catch {
+      // ignore missing file
+    }
+  }
+  await clearPendingAppUpdate();
+}
+
+async function assertInstallerPayload(installerPath: string): Promise<void> {
+  const fileInfo = await stat(installerPath);
+  if (process.platform === 'darwin') {
+    if (fileInfo.size <= 0) {
+      throw new Error('Stažený instalační obraz je prázdný.');
+    }
+    return;
+  }
+
+  if (fileInfo.size < MIN_WINDOWS_INSTALLER_BYTES) {
+    throw new Error(
+      'Stažený instalátor je poškozený nebo neúplný. Stáhněte aktualizaci znovu.'
+    );
+  }
+
+  const handle = await open(installerPath, 'r');
+  try {
+    const header = Buffer.alloc(2);
+    const { bytesRead } = await handle.read(header, 0, 2, 0);
+    const isWindowsExecutable =
+      bytesRead >= 2 && header[0] === 0x4d && header[1] === 0x5a;
+    if (!isWindowsExecutable) {
+      throw new Error(
+        'Stažený soubor není instalátor Windows. Release mohl být smazán — stáhněte aktualizaci znovu.'
+      );
+    }
+  } finally {
+    await handle.close();
+  }
+}
+
+function launchViaExplorer(installerPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const child = spawn('cmd.exe', ['/d', '/c', 'start', '', installerPath], {
+      detached: true,
+      windowsHide: true,
+      stdio: 'ignore',
+    });
+    let settled = false;
+    const finish = (error?: Error): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    };
+
+    child.once('error', error => {
+      finish(
+        new Error(
+          `Nepodařilo se spustit instalátor (${error.message}). Soubor: ${installerPath}`
+        )
+      );
+    });
+    child.once('exit', code => {
+      if (code === 0 || code == null) {
+        finish();
+        return;
+      }
+      finish(
+        new Error(
+          `Nepodařilo se spustit instalátor (kód ${code}). Soubor: ${installerPath}`
+        )
+      );
+    });
+    child.unref();
+  });
+}
+
+/**
+ * `child_process.spawn` na Windows u staženého NSIS .exe končí `Spawn UNKNOWN`
+ * (soubor z internetu nebo požadavek na vyšší oprávnění). ShellExecute umí
+ * zobrazit SmartScreen i potvrzení Windows.
+ */
+async function launchWindowsInstaller(installerPath: string): Promise<void> {
+  const openError = await shell.openPath(installerPath);
+  if (!openError) {
+    return;
+  }
+
+  log.warn('shell.openPath failed, falling back to start', openError);
+  try {
+    await launchViaExplorer(installerPath);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : openError;
+    throw new Error(
+      `Nepodařilo se spustit instalátor. ${detail} Můžete ho spustit ručně: ${installerPath}`
+    );
+  }
+}
+
 export async function downloadAppUpdate(options: {
   downloadUrl: string;
   latestVersion: string;
@@ -350,6 +461,12 @@ export async function downloadAppUpdate(options: {
     if (fileInfo.size <= 0) {
       throw new Error('Stažený instalátor je prázdný.');
     }
+    try {
+      await assertInstallerPayload(destination);
+    } catch (error) {
+      await discardPendingInstaller(destination);
+      throw error;
+    }
 
     const pending: PendingAppUpdate = {
       version: options.latestVersion,
@@ -393,6 +510,13 @@ export async function installPendingAppUpdate(options: {
 
   const sendProgress = options.sendProgress ?? broadcastAppUpdateProgress;
 
+  try {
+    await assertInstallerPayload(pending.installerPath);
+  } catch (error) {
+    await discardPendingInstaller(pending.installerPath);
+    throw error;
+  }
+
   if (process.platform === 'darwin') {
     sendProgress({
       phase: 'launching',
@@ -425,11 +549,7 @@ export async function installPendingAppUpdate(options: {
     percent: 100,
   });
 
-  spawn(pending.installerPath, [], {
-    detached: true,
-    stdio: 'ignore',
-    windowsHide: false,
-  }).unref();
+  await launchWindowsInstaller(pending.installerPath);
 
   sendProgress({
     phase: 'complete',
@@ -466,42 +586,23 @@ export async function resolveStartupAppUpdateState(
   const check = await checkForAppUpdate(currentVersion);
   const pending = await getPendingAppUpdate();
 
+  const pendingIsCurrentRelease =
+    check.latestVersion == null || pending?.version === check.latestVersion;
+
   if (
     pending &&
-    check.latestVersion &&
-    !isRemoteVersionNewer(check.latestVersion, pending.version) &&
+    pendingIsCurrentRelease &&
     isRemoteVersionNewer(pending.version, currentVersion)
   ) {
     return { check, pending };
   }
 
-  if (
-    pending &&
-    check.latestVersion &&
-    isRemoteVersionNewer(check.latestVersion, pending.version)
-  ) {
-    try {
-      await unlink(pending.installerPath);
-    } catch {
-      // ignore
-    }
-    await clearPendingAppUpdate();
-    return { check, pending: null };
+  // Jiná verze než aktuální release na GitHubu — včetně smazaného release,
+  // který zůstal jen jako stažený soubor. Při výpadku sítě (latest neznámé)
+  // se stažený instalátor nemaže.
+  if (pending) {
+    await discardPendingInstaller(pending.installerPath);
   }
 
-  if (
-    pending &&
-    (!check.latestVersion ||
-      !isRemoteVersionNewer(pending.version, currentVersion))
-  ) {
-    try {
-      await unlink(pending.installerPath);
-    } catch {
-      // ignore
-    }
-    await clearPendingAppUpdate();
-    return { check, pending: null };
-  }
-
-  return { check, pending };
+  return { check, pending: null };
 }
