@@ -187,11 +187,11 @@ Tab **Přepisy** (ikona **M** v levé liště nebo **Ctrl+Shift+M**) vypadá pod
 - Nahoře název, datum, délka, typ (Audio / Video), použitý Whisper model a odznak **MP4** (co k nahrávce existuje, poznáte ze štítků v seznamu vlevo a z obsahu záložek)
 - Pod tím vpravo **ikona koše** pro smazání nahrávky (a během zpracování tlačítka **Zrušit** / **Zkusit znovu**)
 - Dole záložky a na konci jejich řady **Soubory** — vypadá jako další záložka, ale rozbalí nabídku (otevřít nahrávku, přepis, shrnutí, MP4, vytvořit či přegenerovat MP4, složka nahrávek):
-  - **Shrnutí** — formátovaný text AI shrnutí, tlačítko **Vygenerovat / Přegenerovat shrnutí**, ikona **voleb** (model a styl jsou předvyplněné podle Nastavení AI, změna platí jen pro toto přegenerování), ikona **tužky** pro úpravu textu (tučně, kurzíva, odrážky, číslovaný seznam, odkaz — odkaz obalí označený text, bez označení se vloží jako adresa) a ikona **sdílení** (**Do chatu** / **Sobě**)
+  - **Shrnutí** — formátovaný text AI shrnutí, tlačítko **Vygenerovat / Přegenerovat shrnutí**, ikona **voleb** (model a styl jsou předvyplněné podle Nastavení AI, změna platí jen pro toto přegenerování), ikona **tužky** pro úpravu textu (tučně, kurzíva, odrážky, číslovaný seznam, odkaz — odkaz obalí označený text, bez označení se vloží jako adresa), tlačítko **Kopírovat** a ikona **sdílení** (**Do chatu** / **Sobě**)
   - **Přepis** — přepis jako dialog s barvami řečníků, tlačítko **Spustit přepis / Přepsat znovu**, ikona **voleb** pro výběr staženého modelu a ikona **sdílení** (**Do chatu** / **Sobě**)
   - **Nahrávka** / **Video** — přehrávač přímo v aplikaci
 
-**Označení a kopírování textu:** text přepisu i shrnutí jde označit myší a zkopírovat (**Ctrl+C**).
+**Označení a kopírování textu:** text přepisu i shrnutí jde označit myší a zkopírovat (**Ctrl+C**). U shrnutí **Ctrl+C** i tlačítko **Kopírovat** berou formátování s sebou — tučně, odrážky, číslování a nadpisy. Vložení do dokumentu (třeba Plus4U) proto nezůstane jako holý text.
 
 **Otevření chatu:** po najetí myší na nahrávku v seznamu se vpravo objeví ikona **Otevřít chat této nahrávky**.
 
@@ -350,7 +350,9 @@ Minutes **automaticky kontroluje nové verze** cca 8 sekund po startu (jen u nai
 | Verze je stažena | **Restartovat a nainstalovat** v banneru nebo dole na domovské stránce |
 | Chcete odložit | **Později** — banner se skryje do restartu aplikace |
 
-Instalátor se stáhne do `%APPDATA%\Minutes\minutes\updates\` a spustí se po kliknutí na instalaci. Minutes se zavře a průvodce dokončíte ručně (SmartScreen u unsigned buildu: *Více informací* → *Přesto spustit*).
+Instalátor se stáhne do `%APPDATA%\Minutes\minutes\updates\` (macOS: `~/Library/Application Support/Minutes/minutes/updates/`) a spustí se po kliknutí na instalaci. Minutes se zavře a průvodce dokončíte ručně (SmartScreen u unsigned buildu: *Více informací* → *Přesto spustit*).
+
+Když GitHub release mezitím zmizel nebo se stáhla stránka místo instalátoru, Minutes soubor zahodí a znovu nabídne **Stáhnout**. Když **Restartovat a nainstalovat** hlásí chybu, stáhněte instalátor ručně z [Releases](https://github.com/zmitko-uni/minutes/releases) a spusťte ho.
 
 **Na macOS** je postup jiný: po kliknutí na instalaci se stažený `.dmg` **otevře** a Minutes se zavře. Přetáhněte **Minutes** do složky **Applications** (přepsání předchozí verze) a aplikaci spusťte znovu. Gatekeeper u nepodepsaného buildu může vyžadovat pravý klik → **Otevřít**.
 
@@ -373,6 +375,12 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 ## Řešení problémů
 
 Minutes se snaží u chyb rovnou napsat, co se stalo a co udělat — třeba *Vyčerpaný kredit u poskytovatele AI* nebo *Neplatný API klíč*. Původní technický text zůstává dostupný pod odkazem **Technické podrobnosti** u dané chyby a v **Menu → Minutes → Zobrazit log**.
+
+### Restartovat a nainstalovat nic nespustí
+
+- Po kliknutí se má otevřít průvodce instalace (u nepodepsaného buildu nejdřív SmartScreen: *Více informací* → *Přesto spustit*)
+- Když Minutes napíše, že soubor není instalátor, klikněte znovu na **Stáhnout** — starý soubor patřil ke smazanému release
+- Když chyba zůstane, stáhněte `Minutes-setup-windows-x64.exe` (na Macu `Minutes-mac-arm64.dmg`) z [Releases](https://github.com/zmitko-uni/minutes/releases) a spusťte ho ručně
 
 ### Přepis nebo shrnutí selhalo
 
@@ -493,4 +501,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-10-02*
+*Poslední aktualizace příručky: 2026-10-05*

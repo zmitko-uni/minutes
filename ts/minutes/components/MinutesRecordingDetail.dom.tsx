@@ -1,7 +1,14 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+} from 'react';
 import { ipcRenderer } from 'electron';
 
 import { AxoButton } from '../../axo/AxoButton.dom.tsx';
@@ -19,6 +26,10 @@ import { buildConfiguredAiModelChoices } from '../aiModelChoices.std.ts';
 import { getAiSettings } from '../aiSettingsService.preload.ts';
 import { getCallSummaryExtensionState } from '../callSummaryExtensionService.preload.ts';
 import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
+import {
+  copyFormattedHtml,
+  elementToClipboardHtml,
+} from '../copyRichText.dom.ts';
 import { toFriendlyError } from '../friendlyError.std.ts';
 import { getRecordingArtifactPaths } from '../recordingArtifacts.std.ts';
 import { saveRecordingSummary } from '../recordingFilesService.preload.ts';
@@ -618,6 +629,8 @@ export function MinutesRecordingDetail({
   const [isSavingSummary, setIsSavingSummary] = useState(false);
   const [saveError, setSaveError] = useState<unknown>(null);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const detailBodyRef = useRef<HTMLDivElement | null>(null);
 
   const texts = useRecordingTexts(item);
   const mp4 = useMp4Export(item, onRefresh);
@@ -663,6 +676,7 @@ export function MinutesRecordingDetail({
   useEffect(() => {
     setIsEditingSummary(false);
     setSaveError(null);
+    setCopyMessage(null);
   }, [item.recordingPath]);
 
   // Kliknutí na nález hledání otevře tab, ve kterém nález je. Jinak platí,
@@ -692,6 +706,28 @@ export function MinutesRecordingDetail({
 
   const openInFolder = useCallback((path: string) => {
     ipcRenderer.send('show-item-in-folder', path);
+  }, []);
+
+  const copySummary = useCallback(() => {
+    const root = detailBodyRef.current?.querySelector(
+      '.MinutesSummaryEditor__surface, .MinutesMarkdown'
+    );
+    if (!(root instanceof HTMLElement)) {
+      setCopyMessage('Shrnutí se ještě nenačetlo.');
+      return;
+    }
+    const html = elementToClipboardHtml(root);
+    const plain = root.innerText.trim();
+    try {
+      copyFormattedHtml(html, plain);
+      setCopyMessage(
+        'Shrnutí je ve schránce včetně formátování (tučně, odrážky, nadpisy).'
+      );
+    } catch (error) {
+      setCopyMessage(
+        error instanceof Error ? error.message : 'Kopírování selhalo.'
+      );
+    }
   }, []);
 
   const regenerateSummary = useCallback(() => {
@@ -927,7 +963,7 @@ export function MinutesRecordingDetail({
         </div>
       </header>
 
-      <div className="MinutesTranscriptsTab__detailBody">
+      <div className="MinutesTranscriptsTab__detailBody" ref={detailBodyRef}>
         {activeTab === 'summary' && (
           <>
             <div className="MinutesTranscriptsTab__paneToolbar">
@@ -971,6 +1007,16 @@ export function MinutesRecordingDetail({
                 />
               )}
 
+              {item.hasSummary && (
+                <AxoButton.Root
+                  variant="subtle-primary"
+                  size="sm"
+                  onClick={copySummary}
+                >
+                  Kopírovat
+                </AxoButton.Root>
+              )}
+
               <SharePanel
                 kind="summary"
                 item={item}
@@ -982,6 +1028,10 @@ export function MinutesRecordingDetail({
 
             {saveError != null && (
               <ErrorNotice title="Shrnutí se neuložilo" error={saveError} />
+            )}
+
+            {copyMessage != null && (
+              <p className="MinutesTranscriptsTab__note">{copyMessage}</p>
             )}
 
             {isEditingSummary ? (

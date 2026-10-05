@@ -17,6 +17,7 @@ import { openMinutesLog } from './navigation.preload.ts';
 import { openReadmeModal } from './readmeService.preload.ts';
 import { openMinutesBookmarks } from './bookmarksService.preload.ts';
 import { initializeAppUpdate } from './appUpdateService.preload.ts';
+import { initializeMinutesRichClipboard } from './copyRichText.dom.ts';
 import { initializeMinutesKeyboardShortcuts } from './keyboardShortcuts.preload.ts';
 import { initializeAutomationRenderer } from './automation/automationRenderer.preload.ts';
 
@@ -66,6 +67,7 @@ export function initializeMinutes(): void {
   drop(refreshCallSummaryExtension());
   drop(refreshLocalLlmExtension());
   initializeAppUpdate();
+  initializeMinutesRichClipboard();
   initializeMinutesKeyboardShortcuts();
   initializeAutomationRenderer();
 
