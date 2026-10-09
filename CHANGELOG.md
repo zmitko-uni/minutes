@@ -20,41 +20,51 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.26.0-m1.6.3-beta.1] - 2026-10-05
 
 ### Added
+
 - **Shrnutí nahrávky**: tlačítko **Kopírovat** vloží text do schránky i s formátováním (tučně, odrážky, nadpisy). Stejně se chová označení a **Ctrl+C**, takže shrnutí jde vložit třeba do dokumentu v Plus4U
 
 ### Fixed
+
 - **Aktualizace**: **Restartovat a nainstalovat** už nespadne s chybou Spawn UNKNOWN. Instalátor se otevře přes Windows (SmartScreen, případné potvrzení). Poškozený nebo zastaralý soubor po smazaném release se zahodí a nabídne se nové stažení
 
 ## [8.26.0-m1.6.3] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U, Vizitky a zápis ke schůzce** v aplikaci nejsou — ani v menu, ani v nastavení, ani u nahrávky. Uložené přístupové údaje se při startu smažou
 
 ## [8.26.0-m1.6.0-beta.5] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U, Vizitky a zápis ke schůzce** v aplikaci nejsou — ani v menu, ani v nastavení, ani u nahrávky. Uložené přístupové údaje se při startu smažou
 
 ## [8.26.0-m1.6.0-beta.4] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U** je v této verzi vypnuté — přístupové kódy ani přihlášení přes prohlížeč se nenastavují a uložená tajemství se při startu smažou. Zmizely **Vizitky**, záložka **Schůzka** u nahrávky a zápis shrnutí ke schůzce
 
 ## [8.26.0-m1.6.2] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U** je v této verzi vypnuté — přístupové kódy ani přihlášení přes prohlížeč se nenastavují a uložená tajemství se při startu smažou. Zmizely **Vizitky**, záložka **Schůzka** u nahrávky a zápis shrnutí ke schůzce
 
 ## [8.26.0-m1.6.0-beta.3] - 2026-09-24
