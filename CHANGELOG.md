@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.6.3-beta.2] - 2026-10-09
+
+### Added
 
 - **MCP hlasování**: nástroj `create_poll` vytvoří Signal anketu se 2–10 možnostmi a volitelným vícenásobným výběrem; `vote_poll` odešle, změní nebo odebere vlastní hlas a `get_poll_results` průběžně vrací počty hlasů, procenta, hlasující a stav ukončení. Výsledky ankety jsou také součástí `get_message`
 
