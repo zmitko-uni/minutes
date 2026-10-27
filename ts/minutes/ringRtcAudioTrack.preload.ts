@@ -22,6 +22,7 @@ import {
 import {
   readRenderedPcmEvent,
   readRingRtcAudioReadyEvent,
+  readRingRtcAudioRealignedEvent,
   readRingRtcAudioSkippedEvent,
 } from './ringRtcRenderedPcmProgress.std.ts';
 import { configureRingRtcRecordingAudioContext } from './ringRtcAudioContext.std.ts';
@@ -65,6 +66,8 @@ export class RingRtcAudioTrack {
   #lastDropLogAt = 0;
   #skippedSamplesObserved = 0;
   #lastSkipLogAt = 0;
+  #realignedSamplesObserved = 0;
+  #lastRealignLogAt = 0;
   #degradedStartAllowed = false;
   #degradedStartRequested = false;
   readonly #readyPromise: Promise<void>;
@@ -105,6 +108,11 @@ export class RingRtcAudioTrack {
       const skippedSamples = readRingRtcAudioSkippedEvent(data);
       if (skippedSamples !== undefined) {
         this.#recordSkippedSamples(skippedSamples);
+        return;
+      }
+      const realignedSamples = readRingRtcAudioRealignedEvent(data);
+      if (realignedSamples !== undefined) {
+        this.#recordRealignedSamples(realignedSamples);
         return;
       }
       if (
@@ -243,6 +251,12 @@ export class RingRtcAudioTrack {
           'of the call to catch up after stalled rendering'
       );
     }
+    if (this.#realignedSamplesObserved > 0) {
+      log.warn(
+        `RingRTC audio recording dropped ${formatSamplesAsMs(this.#realignedSamplesObserved)} ` +
+          'to keep local and remote audio in sync'
+      );
+    }
     try {
       this.#api.stopAudioTap();
     } finally {
@@ -332,6 +346,21 @@ export class RingRtcAudioTrack {
       'RingRTC audio rendering fell behind the call; ' +
         `skipped ${formatSamplesAsMs(skippedSamples)} to get back to live audio ` +
         `(${formatSamplesAsMs(this.#skippedSamplesObserved)} so far)`
+    );
+  }
+
+  #recordRealignedSamples(realignedSamples: number): void {
+    this.#realignedSamplesObserved += realignedSamples;
+
+    const now = Date.now();
+    if (now - this.#lastRealignLogAt < DROP_LOG_INTERVAL_MS) {
+      return;
+    }
+    this.#lastRealignLogAt = now;
+    log.warn(
+      'RingRTC audio sources drifted apart; ' +
+        `pulled the leading one back by ${formatSamplesAsMs(realignedSamples)} ` +
+        `(${formatSamplesAsMs(this.#realignedSamplesObserved)} so far)`
     );
   }
 
