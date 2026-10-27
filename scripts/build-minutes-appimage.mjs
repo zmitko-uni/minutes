@@ -46,7 +46,7 @@ run('Check preload module initializers', 'pnpm run check:minutes:preload');
 run(
   'AppImage (unsigned)',
   [
-    'npx electron-builder',
+    'pnpm exec electron-builder',
     '--linux AppImage',
     '--x64',
     '--publish never',

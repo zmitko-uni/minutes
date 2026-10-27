@@ -62,7 +62,7 @@ run('Check preload module initializers', 'pnpm run check:minutes:preload');
 run(
   isMac ? 'DMG (unsigned)' : 'NSIS installer (unsigned)',
   [
-    'npx electron-builder',
+    'pnpm exec electron-builder',
     isMac ? '--mac dmg' : '--win nsis',
     isMac ? '--arm64' : '--x64',
     '--publish never',
