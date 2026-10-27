@@ -16,6 +16,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.26.0-m1.6.3-beta.8] - 2026-10-27
+
+### Added
+- (doplňte před příštím release)
+
 ### Fixed
 
 - **Štítek člena ve skupině**: v nastavení skupiny jde znovu nastavit vlastní štítek (viditelný jen v té skupině). Stejně se znovu zapnou ostatní funkce Signalu, které se řídí vzdálenou konfigurací podle verze
