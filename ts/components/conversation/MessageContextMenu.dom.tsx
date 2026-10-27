@@ -154,7 +154,7 @@ export function MessageContextMenu({
         )}
         {onForwardWithContext && (
           <AxoMenuBuilder.Item
-            symbol="message-arrow"
+            symbol="message-arrow-forward"
             onSelect={() => {
               shouldReturnFocusToTrigger.current = false;
               onForwardWithContext();

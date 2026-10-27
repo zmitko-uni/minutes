@@ -40,7 +40,7 @@ export function MinutesSelectModeContextActions({
         disabled={!canForward}
         onClick={onForward}
       >
-        <AxoSymbol.Icon symbol="message-arrow" size={20} label={null} />
+        <AxoSymbol.Icon symbol="message-arrow-forward" size={20} label={null} />
       </button>
     </>
   );

@@ -18,6 +18,10 @@ describe('minutesVersionForSignalFeatureFlags', () => {
       minutesVersionForSignalFeatureFlags('v8.26.0-m1.6.3-beta.7'),
       '8.26.0'
     );
+    assert.equal(
+      minutesVersionForSignalFeatureFlags('8.32.0-m1.6.3-beta.8'),
+      '8.32.0'
+    );
   });
 
   it('leaves Signal versions unchanged', () => {

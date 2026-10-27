@@ -289,7 +289,7 @@ export function NavTabs({
             label={MINUTES_NAV_TAB_LABELS.transcripts}
             iconClassName="NavTabs__ItemIcon--MinutesTranscripts"
             navTabClassName="NavTabs__Item--MinutesTranscripts"
-            unreadStats={null}
+            unreadCount={0}
           />
           <NavTabsItem
             i18n={i18n}
@@ -297,7 +297,7 @@ export function NavTabs({
             label={MINUTES_NAV_TAB_LABELS.bookmarks}
             iconClassName="NavTabs__ItemIcon--MinutesBookmarks"
             navTabClassName="NavTabs__Item--MinutesBookmarks"
-            unreadStats={null}
+            unreadCount={0}
           />
           {storiesEnabled && (
             <NavTabsItem

@@ -29,6 +29,9 @@ import {
 } from './callLinks.std.ts';
 import { parseStrict } from './schemas.std.ts';
 import * as Bytes from '../Bytes.std.ts';
+import { installMinutesRingrtcCompat } from '../minutes/ringrtcCompat.std.ts';
+
+installMinutesRingrtcCompat();
 
 /**
  * RingRTC conversions

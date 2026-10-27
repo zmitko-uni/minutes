@@ -1,7 +1,6 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import * as KeyboardLayout from '../services/keyboardLayout.dom.ts';
 import { showMinutesTranscriptsTab } from './navTabsService.preload.ts';
 
 function isOpenTranscriptionQueueShortcut(event: KeyboardEvent): boolean {
@@ -16,8 +15,7 @@ function isOpenTranscriptionQueueShortcut(event: KeyboardEvent): boolean {
     return false;
   }
 
-  const key = KeyboardLayout.lookup(event);
-  return key === 'm' || key === 'M';
+  return event.key === 'm' || event.key === 'M';
 }
 
 export function initializeMinutesKeyboardShortcuts(): void {

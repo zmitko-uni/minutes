@@ -337,6 +337,7 @@ async function loadFilteredSearchMessages(
       query: queryText,
       conversationId,
       options: { limit: fetchLimit },
+      filterByUnread: false,
     });
     const filtered = messages
       .map(mapAutomationMessage)
