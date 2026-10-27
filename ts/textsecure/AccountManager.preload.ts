@@ -89,12 +89,16 @@ import { signalProtocolStore } from '../SignalProtocolStore.preload.ts';
 import { itemStorage } from './Storage.preload.ts';
 import { deriveAccessKeyFromProfileKey } from '../util/zkgroup.node.ts';
 import { wrappingAdd24 } from '../util/wrappingAdd.std.ts';
-import { everDone as registrationEverDone } from '../util/registration.preload.ts';
+import {
+  markDone,
+  everDone as registrationEverDone,
+} from '../util/registration.preload.ts';
 import {
   isRelinkingToSameAccount as getIsRelinkingToSameAccount,
   isCleanStart as getIsCleanStart,
 } from '../util/isRelinkingToSameAccount.std.ts';
 import type { PhoneNumberDiscoverability } from '../util/phoneNumberDiscoverability.std.ts';
+import { getRecoveryPassword } from '../util/getRecoveryPassword.preload.ts';
 
 const { isNumber, omit, orderBy } = lodash;
 
@@ -104,7 +108,7 @@ type StorageKeyByServiceIdKind = Record<ServiceIdKind, keyof StorageAccessType>;
 
 const DAY = 24 * 60 * 60 * 1000;
 
-const PROFILE_KEY_LENGTH = 32;
+export const PROFILE_KEY_LENGTH = 32;
 const KEY_TOO_OLD_THRESHOLD = 14 * DAY;
 
 export const KYBER_KEY_ID_KEY = {
@@ -1232,6 +1236,7 @@ export default class AccountManager extends EventTarget {
           sessionId: options.sessionId,
           aciPublicKey: aciKeyPair.publicKey,
           registrationLockToken: options.registrationLockToken,
+          recoveryPassword: getRecoveryPassword(accountEntropyPool),
           phoneNumberDiscoverability: options.phoneNumberDiscoverability,
 
           number: options.number,
@@ -1248,10 +1253,10 @@ export default class AccountManager extends EventTarget {
         response.aci.getServiceIdString(),
         '#doCreateAccount'
       );
-      ourPni = normalizePni(
-        response.pni.getServiceIdString(),
-        '#doCreateAccount'
-      );
+      ourPni =
+        response.pni == null
+          ? undefined
+          : normalizePni(response.pni.getServiceIdString(), '#doCreateAccount');
       deviceId = 1;
 
       result = {
@@ -1425,6 +1430,10 @@ export default class AccountManager extends EventTarget {
     const me = window.ConversationController.getOurConversationOrThrow();
     await me.setProfileKey(Bytes.toBase64(profileKey), {
       reason: 'registration',
+    });
+    window.SignalCI?.handleEvent('setProfileKey', {
+      profileKeyBase64: Bytes.toBase64(profileKey),
+      reason: 'AccountManager.doCreateAccount',
     });
     await me.updateVerified();
 
@@ -1600,6 +1609,7 @@ export default class AccountManager extends EventTarget {
 
   async #registrationDone(): Promise<void> {
     log.info('registration done');
+    await markDone();
     this.dispatchEvent(new Event('endRegistration'));
   }
 

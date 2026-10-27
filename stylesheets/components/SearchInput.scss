@@ -46,11 +46,12 @@
       color: var(--axo-color-label-placeholder);
     }
 
-    &:focus {
+    &:focus-visible {
       outline: none;
-      @include mixins.keyboard-mode {
-        @include mixins.axo-focus-ring-inset;
-      }
+    }
+
+    &[data-focus-visible='true'] {
+      @include mixins.axo-focus-ring;
     }
 
     &--with-text {

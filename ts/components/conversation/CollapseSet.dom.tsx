@@ -35,7 +35,7 @@ export type Props = CollapseSet & {
   isSelectMode: boolean;
   isSelected: boolean;
   renderItem: (props: RenderItemProps) => JSX.Element;
-  targetedMessage: TargetedMessageType | undefined;
+  targetedMessage: TargetedMessageType | null;
   toggleDeleteMessagesModal: (props: DeleteMessagesPropsType) => void;
   toggleSelectMessage: (
     conversationId: string,
@@ -106,6 +106,7 @@ export function CollapseSetViewer(props: Props): JSX.Element {
     });
 
     if (hasChanged) {
+      // oxlint-disable-next-line react/set-state-in-effect
       setMessageCache(newCache);
     }
   }, [messages, messageCache, setMessageCache]);

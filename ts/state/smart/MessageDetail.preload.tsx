@@ -7,17 +7,10 @@ import { useSelector } from 'react-redux';
 import type { Props as MessageDetailProps } from '../../components/conversation/MessageDetail.dom.tsx';
 import { MessageDetail } from '../../components/conversation/MessageDetail.dom.tsx';
 import { getContactNameColorSelector } from '../selectors/conversations.dom.ts';
-import {
-  getIntl,
-  getInteractionMode,
-  getTheme,
-  getPlatform,
-} from '../selectors/user.std.ts';
+import { getIntl, getTheme, getPlatform } from '../selectors/user.std.ts';
 import { getMessageDetailsSelector } from '../selectors/message.preload.ts';
 import { getPreferredBadgeSelector } from '../selectors/badges.preload.ts';
 import { renderAudioAttachment } from './renderAudioAttachment.preload.tsx';
-import { startConversation } from '../../util/startConversation.dom.ts';
-import { useAccountsActions } from '../ducks/accounts.preload.ts';
 import { useComposerActions } from '../ducks/composer.preload.ts';
 import { useConversationsActions } from '../ducks/conversations.preload.ts';
 import { useGlobalModalActions } from '../ducks/globalModals.preload.ts';
@@ -46,9 +39,7 @@ export const SmartMessageDetail = memo(function SmartMessageDetail({
   const getPreferredBadge = useSelector(getPreferredBadgeSelector);
   const i18n = useSelector(getIntl);
   const platform = useSelector(getPlatform);
-  const interactionMode = useSelector(getInteractionMode);
   const theme = useSelector(getTheme);
-  const { checkForAccount } = useAccountsActions();
   const { endPoll } = useComposerActions();
   const {
     cancelAttachmentDownload,
@@ -69,6 +60,7 @@ export const SmartMessageDetail = memo(function SmartMessageDetail({
     showExpiredOutgoingTapToViewToast,
     showMediaNoLongerAvailableToast,
     showSpoiler,
+    startConversationWithSharedContact,
   } = useConversationsActions();
   const { popPanelForConversation, pushPanelForConversation } = useNavActions();
   const {
@@ -90,7 +82,7 @@ export const SmartMessageDetail = memo(function SmartMessageDetail({
       log.error(
         `MessageDetail: Current panel, and no details for message ${messageId}, popping panel.`
       );
-      popPanelForConversation();
+      void popPanelForConversation();
     }
   }, [currPanelType, messageDetails, messageId, popPanelForConversation]);
 
@@ -110,7 +102,6 @@ export const SmartMessageDetail = memo(function SmartMessageDetail({
 
   return (
     <MessageDetail
-      checkForAccount={checkForAccount}
       clearTargetedMessage={clearSelectedMessage}
       contactNameColor={contactNameColor}
       contacts={contacts}
@@ -120,7 +111,6 @@ export const SmartMessageDetail = memo(function SmartMessageDetail({
       getPreferredBadge={getPreferredBadge}
       i18n={i18n}
       platform={platform}
-      interactionMode={interactionMode}
       cancelAttachmentDownload={cancelAttachmentDownload}
       kickOffAttachmentDownload={kickOffAttachmentDownload}
       markAttachmentAsCorrupted={markAttachmentAsCorrupted}
@@ -149,7 +139,7 @@ export const SmartMessageDetail = memo(function SmartMessageDetail({
       showMediaNoLongerAvailableToast={showMediaNoLongerAvailableToast}
       showSpoiler={showSpoiler}
       showTapToViewNotAvailableModal={showTapToViewNotAvailableModal}
-      startConversation={startConversation}
+      startConversationWithSharedContact={startConversationWithSharedContact}
       theme={theme}
       toggleSafetyNumberModal={toggleSafetyNumberModal}
       viewStory={viewStory}

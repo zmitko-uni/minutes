@@ -112,6 +112,7 @@ import {
   makeSfuRequest,
 } from '../textsecure/WebAPI.preload.ts';
 import { missingCaseError } from '../util/missingCaseError.std.ts';
+import { getNotifyWhileMutedForConversation } from '../util/notifyWhileMuted.preload.ts';
 import { normalizeGroupCallTimestamp } from '../util/ringrtc/normalizeGroupCallTimestamp.std.ts';
 import { requestCameraPermissions } from '../util/callingPermissions.dom.ts';
 import {
@@ -926,7 +927,7 @@ class CallingClass {
 
     log.info(`${logId}: success`);
     const state = callLinkStateFromRingRTC(result.value);
-    const maybeUpdatedRootKey = result.value.rootKey.toString();
+    const maybeUpdatedRootKey = result.value.rootKey.toUnredactedString();
 
     const callLink: CallLinkType = {
       roomId: roomIdHex,
@@ -2788,13 +2789,12 @@ class CallingClass {
         absolutePath = result.absolutePath;
       }
 
-      notificationService.notify({
+      notificationService.rawNotify({
         conversationId,
-        iconPath: absolutePath,
+        iconAbsolutePath: absolutePath ?? null,
         iconUrl: url,
-        message: i18n('icu:calling__presenting--notification-body'),
+        body: i18n('icu:calling__presenting--notification-body'),
         type: NotificationType.IsPresenting,
-        sentAt: 0,
         silent: true,
         title: i18n('icu:calling__presenting--notification-title'),
       });
@@ -2859,15 +2859,12 @@ class CallingClass {
 
       const { url, absolutePath } = await conversation.getAvatarOrIdenticon();
 
-      notificationService.notify({
+      notificationService.rawNotify({
         conversationId,
-        iconPath: absolutePath,
+        iconAbsolutePath: absolutePath ?? null,
         iconUrl: url,
-        message: i18n(
-          'icu:calling__presenting--reconnecting--notification-body'
-        ),
+        body: i18n('icu:calling__presenting--reconnecting--notification-body'),
         type: NotificationType.IsPresenting,
-        sentAt: 0,
         silent: true,
         title: i18n(
           'icu:calling__presenting--reconnecting--notification-title'
@@ -3499,6 +3496,13 @@ class CallingClass {
         RingRTC.cancelGroupRing(groupIdBytes, ringId, null);
       } else if (this.#areAnyCallsActiveOrRinging()) {
         RingRTC.cancelGroupRing(groupIdBytes, ringId, RingCancelReason.Busy);
+      } else if (
+        conversation.isMuted() &&
+        !getNotifyWhileMutedForConversation(conversation.attributes).calls
+      ) {
+        log.info(
+          `${logId}: not notifying for calls while muted. Ignoring ring request`
+        );
       } else if (getIncomingCallNotification()) {
         shouldRing = true;
       } else {
@@ -3632,6 +3636,31 @@ class CallingClass {
       log.warn(`${logId}: ${conversation.idForLogging()} is blocked`);
       return false;
     }
+
+    if (
+      conversation.isMuted() &&
+      !getNotifyWhileMutedForConversation(conversation.attributes).calls
+    ) {
+      log.info(`${logId}: not notifying for calls while muted, ignoring`);
+
+      const eventTimestamp = Date.now();
+      const callEvent = getCallEventDetails({
+        callDetails: getCallDetailsFromDirectCall({
+          peerId: getPeerIdFromConversation(conversation.attributes),
+          call,
+          eventTimestamp,
+        }),
+        event: LocalCallEvent.Missed,
+        eventSource: 'CallingClass.handleIncomingCall',
+        eventTimestamp,
+      });
+      await updateCallHistoryFromLocalEvent({
+        callEvent,
+      });
+
+      return false;
+    }
+
     try {
       // The peer must be 'trusted' before accepting a call from them.
       // This is mostly the safety number check, unverified meaning that they were
@@ -4415,13 +4444,12 @@ class CallingClass {
       }
     }
 
-    notificationService.notify({
+    notificationService.rawNotify({
       conversationId: conversation.id,
-      iconPath: absolutePath,
-      iconUrl: url,
-      message: notificationMessage,
+      iconAbsolutePath: absolutePath ?? null,
+      iconUrl: url ?? null,
+      body: notificationMessage,
       type: NotificationType.IncomingGroupCall,
-      sentAt: 0,
       silent: false,
       title: notificationTitle,
     });
@@ -4432,11 +4460,7 @@ class CallingClass {
     title: string,
     isVideoCall: boolean
   ): Promise<void> {
-    const shouldNotify =
-      !window.SignalContext.activeWindowService.isActive() &&
-      itemStorage.get('call-system-notification', true);
-
-    if (!shouldNotify) {
+    if (window.SignalContext.activeWindowService.isActive()) {
       return;
     }
 
@@ -4475,15 +4499,14 @@ class CallingClass {
       }
     }
 
-    notificationService.notify({
+    notificationService.rawNotify({
       conversationId,
       title: notificationTitle,
-      iconPath: absolutePath,
-      iconUrl: url,
-      message: isVideoCall
+      iconAbsolutePath: absolutePath ?? null,
+      iconUrl: url ?? null,
+      body: isVideoCall
         ? i18n('icu:incomingVideoCall')
         : i18n('icu:incomingAudioCall'),
-      sentAt: 0,
       // The ringtone plays so we don't need sound for the notification
       silent: true,
       type: NotificationType.IncomingCall,

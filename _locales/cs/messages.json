@@ -65,6 +65,21 @@
   "icu:Preferences__DonateTitle": {
     "messageformat": "Přispějte na službu Signal"
   },
+  "icu:LinkedDevicesOnboardingDialog__description": {
+    "messageformat": "Funkce <bold>Propojená zařízení</bold> vám umožňuje bezpečný přístup k účtu Signal a zprávám na kterémkoli z vašich dalších zařízení."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--1": {
+    "messageformat": "Můžete propojit stolní počítač, tablet nebo další telefon."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--2": {
+    "messageformat": "Propojená zařízení spravujete ze svého hlavního zařízení. Propojit můžete až 5 zařízení."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--1": {
+    "messageformat": "Nastavení účtu a záloh lze spravovat pouze na primárním zařízení."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--2": {
+    "messageformat": "Nastavení účtu a zabezpečené zálohy Signal lze spravovat pouze na primárním zařízení."
+  },
   "icu:sentMediaQualityStandard": {
     "messageformat": "Standardní"
   },
@@ -365,9 +380,6 @@
   "icu:NavTabs__ItemIconLabel--UnreadCount": {
     "messageformat": "{count,number} nepřečtených"
   },
-  "icu:NavTabs__ItemIconLabel--MarkedUnread": {
-    "messageformat": "Označeno jako nepřečtené"
-  },
   "icu:NavTabs__ItemLabel--Chats": {
     "messageformat": "Chaty"
   },
@@ -635,20 +647,23 @@
   "icu:SafetyNumberNotReady__learn-more": {
     "messageformat": "Zjistit více"
   },
-  "icu:KeyTransparencyErrorDialog__Title": {
-    "messageformat": "Automatické ověření klíče není momentálně na vašem zařízení k dispozici. Odeslat protokol ladění?"
+  "icu:KeyTransparencyErrorDialog__Title-v2": {
+    "messageformat": "Automatické ověření klíče není pro vaše zařízení momentálně dostupné. Chcete odeslat zprávu a pomoci nám s vylepšením?"
   },
-  "icu:KeyTransparencyErrorDialog__Description": {
-    "messageformat": "Protokoly ladění nám pomáhají diagnostikovat a opravit problém a neobsahují identifikační informace."
+  "icu:KeyTransparencyErrorDialog__Description-v2": {
+    "messageformat": "Přiložení protokolů ladění nám pomůže problém diagnostikovat a opravit. Protokoly neobsahují žádné identifikační údaje. Sdílení je dobrovolné."
   },
-  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label": {
-    "messageformat": "Odeslat protokol ladění"
+  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label-v2": {
+    "messageformat": "Přiložit protokol ladění"
   },
   "icu:KeyTransparencyErrorDialog__ShareDebugLog__ViewButton": {
     "messageformat": "Zobrazit"
   },
   "icu:KeyTransparencyErrorDialog__Submit": {
     "messageformat": "Odeslat"
+  },
+  "icu:KeyTransparencyErrorDialog__Cancel": {
+    "messageformat": "Ne, díky"
   },
   "icu:KeyTransparencyOnboardingDialog__Title": {
     "messageformat": "Signal nyní podporuje automatické ověření šifrování"
@@ -745,12 +760,6 @@
   },
   "icu:maximumAttachments": {
     "messageformat": "K této zprávě již nelze přidat více příloh."
-  },
-  "icu:fileSizeWarning": {
-    "messageformat": "Je nám líto, vybraný soubor překračuje limit velikosti zprávy. {limit,number} {units}"
-  },
-  "icu:videoFileSizeWarning": {
-    "messageformat": "Je nám líto, vybrané video překračuje limit pro velikosti zprávy. {limit,number}{units}"
   },
   "icu:fileTooLargeWarning": {
     "messageformat": "Tento soubor nelze odeslat, protože je příliš velký. Můžete posílat soubory o velikosti až {limit,number}{units}."
@@ -1003,6 +1012,9 @@
   },
   "icu:mute": {
     "messageformat": "Ztlumit"
+  },
+  "icu:muted": {
+    "messageformat": "Ztlumeno"
   },
   "icu:cannotUpdateDetail-v2": {
     "messageformat": "Aplikaci Signal nebylo možné aktualizovat. <retryUpdateButton>Zkuste aktualizaci opakovat</retryUpdateButton> nebo navštivte {url} a nainstalujte ji ručně. Poté <contactSupportLink>kontaktujte podporu</contactSupportLink> ohledně tohoto problému"
@@ -1466,6 +1478,9 @@
   "icu:ConversationMerge--learn-more": {
     "messageformat": "Zjistit více"
   },
+  "icu:ConversationMerge--explainer-dialog--label": {
+    "messageformat": "Historie zpráv byla sloučena"
+  },
   "icu:ConversationMerge--explainer-dialog--line-1": {
     "messageformat": "Po komunikaci s {obsoleteConversationTitle} jste zjistil/a, že toto číslo patří k {conversationTitle}. Toto telefonní číslo je soukromé."
   },
@@ -1622,9 +1637,6 @@
   "icu:Preferences__EmojiSkinToneDefaultSetting__Label": {
     "messageformat": "Odstín pleti emoji"
   },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__Title": {
-    "messageformat": "Složky s chaty"
-  },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Title": {
     "messageformat": "Přidat složku s chaty"
   },
@@ -1636,12 +1648,6 @@
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Description--WithChatFolders": {
     "messageformat": "{chatFoldersCount, plural, one {{chatFoldersCount,number} složka} few {{chatFoldersCount,number} složky} many {{chatFoldersCount,number} složek} other {{chatFoldersCount,number} složek}}"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button": {
-    "messageformat": "Nastavit"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button--WithChatFolders": {
-    "messageformat": "Spravovat"
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__ChatFolderItem__ContextMenu__EditFolder": {
     "messageformat": "Upravit složku"
@@ -3881,18 +3887,6 @@
   "icu:calling__preview--minimize": {
     "messageformat": "Zmenšit náhled"
   },
-  "icu:calling__change-view": {
-    "messageformat": "Změnit zobrazení"
-  },
-  "icu:calling__view_mode--paginated": {
-    "messageformat": "Zobrazení v mřížce"
-  },
-  "icu:calling__view_mode--overflow": {
-    "messageformat": "Zobrazení v postranním panelu"
-  },
-  "icu:calling__view_mode--speaker": {
-    "messageformat": "Zobrazení řečníka"
-  },
   "icu:calling__view_mode--updated": {
     "messageformat": "Zobrazení aktualizováno"
   },
@@ -3971,29 +3965,11 @@
   "icu:notMuted": {
     "messageformat": "Není vypnuto"
   },
-  "icu:muteHour": {
-    "messageformat": "Ztlumit na jednu hodinu"
-  },
-  "icu:muteEightHours": {
-    "messageformat": "Ztlumit na 8 hodin"
-  },
-  "icu:muteDay": {
-    "messageformat": "Ztlumit na jeden den"
-  },
-  "icu:muteWeek": {
-    "messageformat": "Ztlumit na jeden týden"
-  },
-  "icu:muteAlways": {
-    "messageformat": "Vždy ztlumit"
-  },
   "icu:unmute": {
     "messageformat": "Zrušit ztlumení"
   },
   "icu:MuteMenu__label": {
     "messageformat": "Ztlumit chat na…"
-  },
-  "icu:MuteMenu__labelChatFolder": {
-    "messageformat": "Ztlumit tyto chaty na…"
   },
   "icu:MuteMenu__hour": {
     "messageformat": "1 hodinu"
@@ -4937,9 +4913,6 @@
   "icu:showConversationDetails--direct": {
     "messageformat": "Nastavení chatu"
   },
-  "icu:ConversationDetails__unmute--title": {
-    "messageformat": "Zrušit ztlumení tohoto chatu?"
-  },
   "icu:ConversationDetails--group-link": {
     "messageformat": "Odkaz skupiny"
   },
@@ -5174,17 +5147,110 @@
   "icu:EditNicknameAndNoteModal__Note__Placeholder": {
     "messageformat": "Poznámka"
   },
-  "icu:ConversationNotificationsSettings__mentions__label": {
+  "icu:WhileMuted__title": {
+    "messageformat": "Při ztlumení"
+  },
+  "icu:WhileMuted__description": {
+    "messageformat": "Vyberte, jaká oznámení se mají zobrazovat, když je tento chat ztlumený."
+  },
+  "icu:WhileMuted__calls__title": {
+    "messageformat": "Volání"
+  },
+  "icu:WhileMuted__calls__description": {
+    "messageformat": "Vyzvánět nebo upozornit při zahájení hovoru, i když je tento chat ztlumený."
+  },
+  "icu:WhileMuted__mentions__title": {
     "messageformat": "Zmínky"
   },
-  "icu:ConversationNotificationsSettings__mentions__info": {
-    "messageformat": "Přijímat oznámení, když jste zmíněni ve ztlumených chatech"
+  "icu:WhileMuted__mentions__description": {
+    "messageformat": "Upozornit, když vás někdo @zmíní, i když je tento chat ztlumený."
   },
-  "icu:ConversationNotificationsSettings__mentions__select__always-notify": {
-    "messageformat": "Vždy upozornit"
+  "icu:WhileMuted__replies__title": {
+    "messageformat": "Odpovědi"
   },
-  "icu:ConversationNotificationsSettings__mentions__select__dont-notify-for-mentions-if-muted": {
-    "messageformat": "Neoznamovat, pokud je ztlumeno"
+  "icu:WhileMuted__replies__description": {
+    "messageformat": "Upozornit, když někdo odpoví na vaši zprávu, i když je tento chat ztlumený."
+  },
+  "icu:WhileMuted__value--none": {
+    "messageformat": "Žádná"
+  },
+  "icu:WhileMuted__value--calls": {
+    "messageformat": "Volání"
+  },
+  "icu:WhileMuted__value--mentions": {
+    "messageformat": "Zmínky"
+  },
+  "icu:WhileMuted__value--replies": {
+    "messageformat": "Odpovědi"
+  },
+  "icu:WhileMuted__value--calls-mentions": {
+    "messageformat": "Hovory, zmínky"
+  },
+  "icu:WhileMuted__value--calls-replies": {
+    "messageformat": "Hovory, odpovědi"
+  },
+  "icu:WhileMuted__value--mentions-replies": {
+    "messageformat": "Zmínky, odpovědi"
+  },
+  "icu:WhileMuted__value--calls-mentions-replies": {
+    "messageformat": "Hovory, zmínky, odpovědi"
+  },
+  "icu:Preferences__WhileMuted__description": {
+    "messageformat": "Vyberte, jaká oznámení se mají zobrazovat u ztlumených chatů."
+  },
+  "icu:Preferences__WhileMuted__calls__description": {
+    "messageformat": "Vyzvánět nebo upozornit při zahájení hovoru ve ztlumených chatech."
+  },
+  "icu:Preferences__WhileMuted__mentions__description": {
+    "messageformat": "Upozornit, když vás někdo zmíní ve ztlumených chatech."
+  },
+  "icu:Preferences__WhileMuted__replies__description": {
+    "messageformat": "Upozornit, když někdo odpoví na vaši zprávu ve ztlumených chatech."
+  },
+  "icu:UnreadReminders__title": {
+    "messageformat": "Připomínky nepřečtených zpráv"
+  },
+  "icu:UnreadReminders__description": {
+    "messageformat": "Občas upozornit na nepřečtené zprávy, i když je tento chat ztlumený."
+  },
+  "icu:Preferences__UnreadReminders__description": {
+    "messageformat": "Občas upozornit na nepřečtené zprávy ve ztlumených chatech."
+  },
+  "icu:UnreadReminders__notification--messages--1": {
+    "messageformat": "{messageCount, plural, one {Máte {messageCount,number} nepřečtenou zprávu od {person1}.} few {Máte {messageCount,number} nepřečtené zprávy od {person1}.} many {Máte {messageCount,number} nepřečtených zpráv od {person1}.} other {Máte {messageCount,number} nepřečtených zpráv od {person1}.}}"
+  },
+  "icu:UnreadReminders__notification--messages--2": {
+    "messageformat": "{messageCount, plural, one {Máte {messageCount,number} nepřečtenou zprávu od {person1} a {person2}.} few {Máte {messageCount,number} nepřečtené zprávy od {person1} a {person2}.} many {Máte {messageCount,number} nepřečtených zpráv od {person1} a {person2}.} other {Máte {messageCount,number} nepřečtených zpráv od {person1} a {person2}.}}"
+  },
+  "icu:UnreadReminders__notification--messages--many": {
+    "messageformat": "{messageCount, plural, one {Máte {messageCount,number} nepřečtenou zprávu od {person1}, {person2} a dalších.} few {Máte {messageCount,number} nepřečtené zprávy od {person1}, {person2} a dalších.} many {Máte {messageCount,number} nepřečtených zpráv od {person1}, {person2} a dalších.} other {Máte {messageCount,number} nepřečtených zpráv od {person1}, {person2} a dalších.}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-mentions": {
+    "messageformat": "{messageCount, plural, one {Máte {messageCount,number} nepřečtenou zprávu včetně {mentionSummary}.} few {Máte {messageCount,number} nepřečtené zprávy včetně {mentionSummary}.} many {Máte {messageCount,number} nepřečtených zpráv včetně {mentionSummary}.} other {Máte {messageCount,number} nepřečtených zpráv včetně {mentionSummary}.}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-replies": {
+    "messageformat": "{messageCount, plural, one {Máte {messageCount,number} nepřečtenou zprávu včetně {replySummary}.} few {Máte {messageCount,number} nepřečtené zprávy včetně {replySummary}.} many {Máte {messageCount,number} nepřečtených zpráv včetně {replySummary}.} other {Máte {messageCount,number} nepřečtených zpráv včetně {replySummary}.}}"
+  },
+  "icu:UnreadReminders__notification--counts--messages": {
+    "messageformat": "{messageCount, plural, one {Máte {messageCount,number} nepřečtenou zprávu.} few {Máte {messageCount,number} nepřečtené zprávy.} many {Máte {messageCount,number} nepřečtených zpráv.} other {Máte {messageCount,number} nepřečtených zpráv.}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--1": {
+    "messageformat": "{mentionCount, plural, one {jedné zmínky o vás od {person1}} few {{mentionCount,number} zmínek o vás od {person1}} many {{mentionCount,number} zmínek o vás od {person1}} other {{mentionCount,number} zmínek o vás od {person1}}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--2": {
+    "messageformat": "{mentionCount, plural, one {{mentionCount,number} zmínka o vás od {person1} a {person2}} few {{mentionCount,number} zmínky o vás od {person1} a {person2}} many {{mentionCount,number} zmínek o vás od {person1} a {person2}} other {{mentionCount,number} zmínek o vás od {person1} a {person2}}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--many": {
+    "messageformat": "{mentionCount, plural, one {{mentionCount,number} zmínka o vás od {person1} a dalších} few {{mentionCount,number} zmínky o vás od {person1} a dalších} many {{mentionCount,number} zmínek o vás od {person1} a dalších} other {{mentionCount,number} zmínek o vás od {person1} a dalších}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--1": {
+    "messageformat": "{replyCount, plural, one {jedné odpovědi od {person1}} few {{replyCount,number} odpovědí od {person1}} many {{replyCount,number} odpovědí od {person1}} other {{replyCount,number} odpovědí od {person1}}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--2": {
+    "messageformat": "{replyCount, plural, one {{replyCount,number} odpověď od {person1} a {person2}} few {{replyCount,number} odpovědi od {person1} a {person2}} many {{replyCount,number} odpovědí od {person1} a {person2}} other {{replyCount,number} odpovědí od {person1} a {person2}}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--many": {
+    "messageformat": "{replyCount, plural, one {{replyCount,number} odpověď od {person1} a dalších} few {{replyCount,number} odpovědi od {person1} a dalších} many {{replyCount,number} odpovědí od {person1} a dalších} other {{replyCount,number} odpovědí od {person1} a dalších}}"
   },
   "icu:GroupLinkManagement--clipboard": {
     "messageformat": "Odkaz skupiny zkopírován."
@@ -5242,9 +5308,6 @@
   },
   "icu:GroupMembersSearchDialog__SearchResults__Title": {
     "messageformat": "Výsledky hledání"
-  },
-  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
-    "messageformat": "Přidat člena"
   },
   "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
     "messageformat": "Přidat členy"
@@ -5537,6 +5600,9 @@
   },
   "icu:CaptchaDialog__second-paragraph": {
     "messageformat": "Po ověření můžete pokračovat v zasílání zpráv. Všechny pozastavené zprávy budou automaticky odeslány."
+  },
+  "icu:CaptchaDialog__continue": {
+    "messageformat": "Pokračovat"
   },
   "icu:CaptchaDialog--can-close__title": {
     "messageformat": "Pokračovat bez ověření?"
@@ -6010,6 +6076,9 @@
   "icu:Preferences__reaction-notifications-description": {
     "messageformat": "Upozornit, když někdo reaguje na vaši zprávu"
   },
+  "icu:Preferences__button--account": {
+    "messageformat": "Účet"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Obecné"
   },
@@ -6079,6 +6148,42 @@
   "icu:Preferences--system": {
     "messageformat": "Systémový"
   },
+  "icu:Preferences--signal-login": {
+    "messageformat": "Signal Login"
+  },
+  "icu:Preferences--signal-login-description": {
+    "messageformat": "Váš Signal Login slouží k obnovení vašeho účtu. Tyto klíče si bezpečně uložte do důvěryhodného správce hesel. <learnMoreLink>Zjistit více</learnMoreLink>."
+  },
+  "icu:Preferences--signal-login-description--learn-more": {
+    "messageformat": "Zjistit více"
+  },
+  "icu:Preferences__SignalAccount__label": {
+    "messageformat": "Účet a obnovení"
+  },
+  "icu:Preferences__SignalAccount__description": {
+    "messageformat": "2 klíče"
+  },
+  "icu:Preferences__SignalAccountKeys__Title": {
+    "messageformat": "Váš Signal Login"
+  },
+  "icu:Preferences__SignalAccountKeys__Description": {
+    "messageformat": "Uložte jej na bezpečné místo. Své přihlašovací údaje budete potřebovat k obnovení účtu a dat. Nikdy jej s nikým nesdílejte."
+  },
+  "icu:Preferences__SignalAccountKeys__AccountID": {
+    "messageformat": "ID účtu"
+  },
+  "icu:Preferences__SignalAccountKeys__RecoveryKey": {
+    "messageformat": "Klíč pro obnovení"
+  },
+  "icu:Preferences__SignalAccountKeys__Save": {
+    "messageformat": "Uložit"
+  },
+  "icu:Preferences__Account__LinkedDevice__label": {
+    "messageformat": "Toto je propojené zařízení"
+  },
+  "icu:Preferences__Account__LinkedDevice__description": {
+    "messageformat": "Chcete-li spravovat nastavení účtu, otevřete Signal na svém hlavním zařízení."
+  },
   "icu:Preferences--zoom": {
     "messageformat": "Úroveň přiblížení"
   },
@@ -6109,8 +6214,56 @@
   "icu:Preferences--advanced": {
     "messageformat": "Rozšířené možnosti"
   },
+  "icu:Preferences--change-signal-pin": {
+    "messageformat": "Změnit PIN"
+  },
+  "icu:Preferences--change-signal-pin-button": {
+    "messageformat": "Změnit"
+  },
+  "icu:Preferences--create-signal-pin": {
+    "messageformat": "Vytvořit PIN"
+  },
+  "icu:Preferences--create-signal-pin-button": {
+    "messageformat": "Vytvořit"
+  },
   "icu:Preferences--signal-pin": {
     "messageformat": "Signal PIN"
+  },
+  "icu:Preferences--signal-pin__footer": {
+    "messageformat": "PIN uchovává vaše informace v aplikaci Signal šifrované tak, abyste k nim měli přístup pouze vy. Váš PIN nemůže být obnoven. Váš profil, nastavení a kontakty se po opětovné instalaci aplikace Signal obnoví. <learnMoreLink>Zjistit více</learnMoreLink>"
+  },
+  "icu:Preferences--signal-pin-advanced-settings": {
+    "messageformat": "Pokročilá nastavení PIN"
+  },
+  "icu:Preferences--disable-signal-pin": {
+    "messageformat": "Vypnout PIN"
+  },
+  "icu:Preferences--disable-signal-pin--button": {
+    "messageformat": "Vypnout"
+  },
+  "icu:Preferences--disable-signal-pin--footer": {
+    "messageformat": "Pokud PIN vypnete, přijdete při opětovné registraci Signal o všechna data, jestliže si je ručně nezazálohujete a neobnovíte. Dokud je PIN vypnutý, nelze zapnout Zámek registrace."
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--title": {
+    "messageformat": "PIN se nepodařilo vypnout kvůli zámku registrace"
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--body": {
+    "messageformat": "Před vypnutím PIN musíte nejprve vypnout Zámek registrace."
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--ok": {
+    "messageformat": "OK"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--title": {
+    "messageformat": "PIN se nepodařilo vypnout kvůli zálohování"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--body": {
+    "messageformat": "Před vypnutím PIN musíte nejprve vypnout zálohování."
+  },
+  "icu:Preferences--enable-signal-pin": {
+    "messageformat": "Zapnout PIN"
+  },
+  "icu:Preferences--enable-signal-pin--button": {
+    "messageformat": "Zapnout"
   },
   "icu:Preferences--pin-reminders--header": {
     "messageformat": "Připomínání PIN"
@@ -6118,8 +6271,11 @@
   "icu:Preferences--pin-reminders--description": {
     "messageformat": "Časem se vás budeme ptát méně často."
   },
-  "icu:Preferences--notification-content": {
-    "messageformat": "Obsah oznámení"
+  "icu:Preferences--registration-lock__label": {
+    "messageformat": "Zámek registrace"
+  },
+  "icu:Preferences--registration-lock__footer": {
+    "messageformat": "Vyžadovat Signal PIN při opětovné registraci vašeho telefonního čísla v aplikaci Signal."
   },
   "icu:Preferences__Chats__TextInputSection__Title": {
     "messageformat": "Zadávání textu"
@@ -6127,11 +6283,47 @@
   "icu:Preferences__Chats__ChatFoldersSection__Title": {
     "messageformat": "Složky s chaty"
   },
+  "icu:Preferences__Notifications__Show__Label": {
+    "messageformat": "Zobrazit"
+  },
   "icu:Preferences__Notifications__SoundsSection__Title": {
     "messageformat": "Zvuky"
   },
   "icu:Preferences__Notifications__AppBadgeSection__Title": {
     "messageformat": "Odznak aplikace"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title-v2": {
+    "messageformat": "Počet nepřečtených"
+  },
+  "icu:Preferences__Notifications__Reset__title": {
+    "messageformat": "Obnovit výchozí nastavení oznámení včetně vlastních nastavení pro jednotlivé chaty."
+  },
+  "icu:Preferences__Notifications__Reset__button": {
+    "messageformat": "Obnovit"
+  },
+  "icu:Preferences__Notifications__Reset__modal--body": {
+    "messageformat": "Obnovit výchozí nastavení oznámení pro všechny chaty?"
+  },
+  "icu:Preferences__Notifications__Reset__modal--confirm": {
+    "messageformat": "Obnovit"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Label": {
+    "messageformat": "Počet oznámení"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Description": {
+    "messageformat": "Zvolte, zda má počet oznámení zobrazovat počet nepřečtených zpráv, nebo nepřečtených chatů"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadMessages": {
+    "messageformat": "Nepřečtené zprávy"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadChats": {
+    "messageformat": "Nepřečtené chaty"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats": {
+    "messageformat": "Zahrnovat ztlumené chaty do odznaku aplikace"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats__description": {
+    "messageformat": "Odznaky složek s chaty budou vždy zahrnovat ztlumené chaty"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Exportovat historii chatů"
@@ -6283,9 +6475,6 @@
   "icu:NotificationProfiles--setting": {
     "messageformat": "Profily oznámení"
   },
-  "icu:NotificationProfiles--setup": {
-    "messageformat": "Nastavit"
-  },
   "icu:NotificationProfiles--title": {
     "messageformat": "Profily oznámení"
   },
@@ -6297,9 +6486,6 @@
   },
   "icu:NotificationProfiles--manage-description": {
     "messageformat": "Přidejte nebo upravte profily oznámení"
-  },
-  "icu:NotificationProfiles--manage-profiles": {
-    "messageformat": "{profileCount, plural, one {Jeden profil} few {{profileCount,number} profily} many {{profileCount,number} profilů} other {{profileCount,number} profilů}}"
   },
   "icu:NotificationProfiles--create": {
     "messageformat": "Vytvořit profil"
@@ -6700,9 +6886,6 @@
   "icu:Preferences__pnp__row--body": {
     "messageformat": "Zvolte si, kdo uvidí vaše telefonní číslo a kdo vás pomocí něj může v aplikaci Signal kontaktovat."
   },
-  "icu:Preferences__pnp__row--button": {
-    "messageformat": "Změnit…"
-  },
   "icu:Preferences__pnp__sharing--title": {
     "messageformat": "Kdo uvidí moje číslo"
   },
@@ -6751,14 +6934,8 @@
   "icu:Preferences--read-receipts": {
     "messageformat": "Potvrzení o přečtení"
   },
-  "icu:Preferences--read-receipts--description": {
-    "messageformat": "Pokud je tato funkce vypnutá, nebudou se vám zobrazovat potvrzení o přečtení od ostatních."
-  },
   "icu:Preferences--typing-indicators": {
     "messageformat": "Indikátory psaní"
-  },
-  "icu:Preferences--typing-indicators--description": {
-    "messageformat": "Pokud je tato funkce vypnutá, neuvidíte u ostatních, že právě píšou."
   },
   "icu:Preferences--messaging-help": {
     "messageformat": "Zobrazovat a sdílet informace o přečtení a psaní zpráv. Pokud tuto možnost zakážete, neuvidíte potvrzení o přečtení ani indikátory psaní od ostatních."
@@ -6865,11 +7042,23 @@
   "icu:InstallScreenUpdateDialog--update-required__title": {
     "messageformat": "Je vyžadována aktualizace"
   },
+  "icu:InstallScreenUpdateDialog--checking-for-updates": {
+    "messageformat": "Kontrola aktualizací"
+  },
+  "icu:InstallScreenUpdateDialog--updating-signal": {
+    "messageformat": "Probíhá aktualizace aplikace Signal"
+  },
+  "icu:InstallScreenUpdateDialog--download-progress": {
+    "messageformat": "Stahování {currentBytes} z {totalBytes} ({percentage,number,percent})…"
+  },
   "icu:InstallScreenUpdateDialog--update-required__body": {
-    "messageformat": "Pro dokončení synchronizace svých zpráv aktualizujte desktopovou verzi aplikace Signal."
+    "messageformat": "Abyste mohli pokračovat, aktualizujte Signal Desktop."
   },
   "icu:InstallScreenUpdateDialog--update-required__action-update": {
     "messageformat": "Aktualizovat"
+  },
+  "icu:InstallScreenUpdateDialog--update-required__action-update__mas": {
+    "messageformat": "Přejít do App Store"
   },
   "icu:InstallScreenUpdateDialog--unsupported-os__title": {
     "messageformat": "Je vyžadována aktualizace"
@@ -6903,6 +7092,9 @@
   },
   "icu:StandaloneRegistration--PhoneNumber--waiting": {
     "messageformat": "Zkuste to prosím znovu za {duration}"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--RegionCodeSelector--Label": {
+    "messageformat": "Vyberte kód země"
   },
   "icu:StandaloneRegistration--PhoneNumber--placeholder": {
     "messageformat": "Telefonní číslo"
@@ -7425,6 +7617,12 @@
   },
   "icu:MediaPermissionsModal__step-2": {
     "messageformat": "Zapněte Signal"
+  },
+  "icu:MediaPermissionsModal__step-2--windows--microphone": {
+    "messageformat": "Povolte aplikaci Signal přístup k mikrofonu"
+  },
+  "icu:MediaPermissionsModal__step-2--windows--camera": {
+    "messageformat": "Povolte aplikaci Signal přístup ke kameře"
   },
   "icu:MediaPermissionsModal__open": {
     "messageformat": "Přejít do nastavení"
@@ -7966,11 +8164,17 @@
   "icu:ContextMenu--button": {
     "messageformat": "Kontextová nabídka"
   },
+  "icu:EditUsernameModalBody__username-label": {
+    "messageformat": "Uživatelské jméno"
+  },
   "icu:EditUsernameModalBody__username-placeholder": {
     "messageformat": "Uživatelské jméno"
   },
   "icu:EditUsernameModalBody__username-helper": {
     "messageformat": "Uživatelská jména jsou vždy spárována s číselnou kombinací."
+  },
+  "icu:EditUsernameModalBody__discriminator-label": {
+    "messageformat": "Číslice uživatelského jména"
   },
   "icu:EditUsernameModalBody__learn-more": {
     "messageformat": "Zjistit více"
@@ -8093,11 +8297,50 @@
   "icu:PinReminderModal__pin-input-error": {
     "messageformat": "Nesprávný PIN. Zkusit znovu"
   },
+  "icu:PinReminderModal__forgot": {
+    "messageformat": "Zapomněl/a jsem PIN"
+  },
   "icu:PinReminderModal__confirm": {
     "messageformat": "Potvrdit"
   },
   "icu:PinReminderCompletedToast": {
     "messageformat": "PIN je správný. Připomeneme se vám zase později."
+  },
+  "icu:PinChangeModal__title--create": {
+    "messageformat": "Změnit Signal PIN"
+  },
+  "icu:PinChangeModal__title--create--without-pin": {
+    "messageformat": "Vytvořte si svůj Signal PIN"
+  },
+  "icu:PinChangeModal__body--create": {
+    "messageformat": "Svůj PIN můžete změnit, dokud je toto zařízení zaregistrováno. <learnMoreLink>Zjistit více</learnMoreLink>"
+  },
+  "icu:PinChangeModal__body--create--without-pin": {
+    "messageformat": "PIN uchovává vaše informace v aplikaci Signal šifrované tak, abyste k nim měli přístup pouze vy. Váš profil, nastavení a kontakty se po opětovné instalaci obnoví. Pro spuštění aplikace nebudete PIN potřebovat. <learnMoreLink>Zjistit více</learnMoreLink>"
+  },
+  "icu:PinChangeModal__title--confirm": {
+    "messageformat": "Potvrďte svůj Signal PIN"
+  },
+  "icu:PinChangeModal__body--confirm": {
+    "messageformat": "Zadejte PIN, který jste právě vytvořili."
+  },
+  "icu:PinChangeModal__pin-input-placeholder--create": {
+    "messageformat": "Zadejte nový PIN"
+  },
+  "icu:PinChangeModal__pin-input-placeholder--confirm": {
+    "messageformat": "Potvrďte PIN"
+  },
+  "icu:PinChangeModal__cancel": {
+    "messageformat": "Zrušit"
+  },
+  "icu:PinChangeModal__continue": {
+    "messageformat": "Pokračovat"
+  },
+  "icu:PinChangeModal__confirm": {
+    "messageformat": "Potvrdit"
+  },
+  "icu:PinChangeCompletedToast": {
+    "messageformat": "Nový PIN vytvořen."
   },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal desktop již brzy nebude podporovat verzi {OS} na vašem počítači. Chcete-li službu Signal používat i nadále, aktualizujte operační systém svého počítače do {expirationDate}. <learnMoreLink>Zjistit více</learnMoreLink>"
@@ -8315,12 +8558,6 @@
   "icu:CallLinkPendingParticipantModal__DenyButtonLabel": {
     "messageformat": "Zamítnout vstup"
   },
-  "icu:CallLinkRestrictionsSelect__Option--Off": {
-    "messageformat": "Vypnout"
-  },
-  "icu:CallLinkRestrictionsSelect__Option--On": {
-    "messageformat": "Zapnout"
-  },
   "icu:CallLinkAddNameModal__Title": {
     "messageformat": "Přidat název hovoru"
   },
@@ -8368,6 +8605,39 @@
   },
   "icu:SaveMultiDialog__title": {
     "messageformat": "Uložit přílohy"
+  },
+  "icu:EmbeddedContact__message": {
+    "messageformat": "Zpráva"
+  },
+  "icu:ContactDetail__message": {
+    "messageformat": "Zpráva"
+  },
+  "icu:ContactDetail__add-to-group": {
+    "messageformat": "Přidat do skupiny"
+  },
+  "icu:ContactDetail__nickname": {
+    "messageformat": "Přezdívka"
+  },
+  "icu:ContactDetail__note": {
+    "messageformat": "Poznámky"
+  },
+  "icu:email-v2": {
+    "messageformat": "E-mail"
+  },
+  "icu:home-v2": {
+    "messageformat": "Osobní"
+  },
+  "icu:mobile-v2": {
+    "messageformat": "Mobil"
+  },
+  "icu:work-v2": {
+    "messageformat": "Práce"
+  },
+  "icu:phone-v2": {
+    "messageformat": "Telefon"
+  },
+  "icu:address-v2": {
+    "messageformat": "Adresa"
   },
   "icu:WhatsNew__modal-title": {
     "messageformat": "Co je nového"
@@ -8533,6 +8803,9 @@
   },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Děkujeme, že podporujete Signal. Váš příspěvek pomáhá podporovat naše poslání chránit svobodu projevu a umožnit bezpečnou komunikaci milionům lidí na celém světě prostřednictvím technologie ochrany soukromí s otevřeným zdrojovým kódem. Pokud jste obyvatelem USA, uschovejte si toto potvrzení pro své daňové záznamy. Nadace Signal Technology Foundation je nezisková organizace osvobozená od daní ve Spojených státech amerických podle § 501c3 daňového zákona. Naše daňové identifikační číslo je 82-4506840. Společnost Signal za tento příspěvek neposkytla žádné zboží ani služby."
+  },
+  "icu:MessageCta__Donate": {
+    "messageformat": "Přispět teď"
   },
   "icu:Donations__OfflineTooltip": {
     "messageformat": "Jste offline. Chcete-li dokončit platbu příspěvku, připojte se k internetu."
@@ -8841,13 +9114,19 @@
     "messageformat": "Drobná vylepšení, opravy chyb a zvýšení výkonu. Děkujeme, že používáte Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.24--1": {
-    "messageformat": "Zjednodušili jsme vyhledávání členů skupiny na stránce nastavení skupiny."
+  "icu:WhatsNew__8.30--0": {
+    "messageformat": "Vylepšení výkonu u videohovorů."
   },
-  "icu:WhatsNew__8.25--0": {
-    "messageformat": "V nastavení vzhledu jsme přidali dvě nové úrovně přiblížení (110 % a 90 %)."
+  "icu:WhatsNew__8.30--1": {
+    "messageformat": "Přidali jsme také užitečnou zkratku pro otevření systémového nastavení ve Windows, pokud se pokusíte připojit k videohovoru a Signal nemá přístup ke kameře."
   },
-  "icu:WhatsNew__8.26--0": {
-    "messageformat": "Vylepšené vyhledávání členů skupiny."
+  "icu:WhatsNew__8.32--0": {
+    "messageformat": "Filtr nepřečtených zpráv je nyní podporován i ve složkách a ve vyhledávání."
+  },
+  "icu:WhatsNew__8.32--1": {
+    "messageformat": "Spolehlivější odesílání i při slabém připojení. Díky, <GH3mmmbulus></GH3mmmbulus>!"
+  },
+  "icu:WhatsNew__8.32--2": {
+    "messageformat": "Zkratka „(N)“ teď správně odpovídá emoji palce dolů. Palec nahoru pro <lnicola></lnicola> za opravu chyby."
   }
 }

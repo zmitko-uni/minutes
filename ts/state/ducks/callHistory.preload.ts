@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { ReadonlyDeep } from 'type-fest';
-import type { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import lodash from 'lodash';
-import type { StateType as RootStateType } from '../reducer.preload.ts';
 import {
   clearCallHistoryDataAndSync,
   markAllCallHistoryReadAndSync,
@@ -28,7 +26,7 @@ import {
 } from '../selectors/callHistory.std.ts';
 import {
   getCallsHistoryForRedux,
-  getCallsHistoryUnreadCountForRedux,
+  getCallsHistoryUnreadCountsByConversationIdForRedux,
   loadCallHistory,
 } from '../../services/callHistoryLoader.preload.ts';
 import { makeLookup } from '../../util/makeLookup.std.ts';
@@ -38,6 +36,7 @@ import type { ShowErrorModalActionType } from './globalModals.preload.ts';
 import { SHOW_ERROR_MODAL } from './globalModals.preload.ts';
 import type { ErrorModalDataProps } from '../../components/ErrorModal.dom.tsx';
 import { strictAssert } from '../../util/assert.std.ts';
+import type { AsyncStateThunk, StateDispatch } from '../types.std.ts';
 
 const { debounce, omit } = lodash;
 
@@ -46,7 +45,7 @@ const log = createLogger('callHistory');
 export type CallHistoryState = ReadonlyDeep<{
   // This informs the app that underlying call history data has changed.
   edition: number;
-  unreadCount: number;
+  unreadCountsByConversationId: Record<string, number>;
   callHistoryByCallId: Record<string, CallHistoryDetails>;
 }>;
 
@@ -74,13 +73,13 @@ export type CallHistoryReload = ReadonlyDeep<{
   type: typeof CALL_HISTORY_RELOAD;
   payload: {
     callsHistory: ReadonlyArray<CallHistoryDetails>;
-    callsHistoryUnreadCount: number;
+    callsHistoryUnreadCountsByConversationId: Record<string, number>;
   };
 }>;
 
 export type CallHistoryUpdateUnread = ReadonlyDeep<{
   type: typeof CALL_HISTORY_UPDATE_UNREAD;
-  payload: number;
+  payload: Record<string, number>;
 }>;
 
 export type CallHistoryAction = ReadonlyDeep<
@@ -94,18 +93,20 @@ export type CallHistoryAction = ReadonlyDeep<
 export function getEmptyState(): CallHistoryState {
   return {
     edition: 0,
-    unreadCount: 0,
+    unreadCountsByConversationId: {},
     callHistoryByCallId: {},
   };
 }
 
 const updateCallHistoryUnreadCountDebounced = debounce(
-  async (
-    dispatch: ThunkDispatch<RootStateType, unknown, CallHistoryUpdateUnread>
-  ) => {
+  async (dispatch: StateDispatch<CallHistoryUpdateUnread>) => {
     try {
-      const unreadCount = await DataReader.getCallHistoryUnreadCount();
-      dispatch({ type: CALL_HISTORY_UPDATE_UNREAD, payload: unreadCount });
+      const unreadCountsByConversationId =
+        await DataReader.getCallHistoryUnreadCountsByConversationId();
+      dispatch({
+        type: CALL_HISTORY_UPDATE_UNREAD,
+        payload: unreadCountsByConversationId,
+      });
     } catch (error) {
       log.error(
         'Error updating call history unread count',
@@ -128,7 +129,7 @@ function updateConversationsUnreadCounts(
 
 function updateCallHistoryUnreadCount(
   conversationIdsOrConversationPeerIds: ReadonlyArray<string>
-): ThunkAction<void, RootStateType, unknown, CallHistoryUpdateUnread> {
+): AsyncStateThunk<CallHistoryUpdateUnread> {
   return async dispatch => {
     updateConversationsUnreadCounts(conversationIdsOrConversationPeerIds);
     await updateCallHistoryUnreadCountDebounced(dispatch);
@@ -137,7 +138,7 @@ function updateCallHistoryUnreadCount(
 
 function markCallHistoryRead(
   callId: string
-): ThunkAction<void, RootStateType, unknown, CallHistoryUpdateUnread> {
+): AsyncStateThunk<CallHistoryUpdateUnread> {
   return async () => {
     await markCallHistoryReadWithoutSync({
       mode: 'only-target-call',
@@ -149,7 +150,7 @@ function markCallHistoryRead(
 
 export function markCallHistoryReadInConversation(
   callId: string
-): ThunkAction<void, RootStateType, unknown, CallHistoryUpdateUnread> {
+): AsyncStateThunk<CallHistoryUpdateUnread> {
   return async (_dispatch, getState) => {
     const callHistorySelector = getCallHistorySelector(getState());
     const callHistory = callHistorySelector(callId);
@@ -160,12 +161,7 @@ export function markCallHistoryReadInConversation(
   };
 }
 
-function markCallsTabViewed(): ThunkAction<
-  void,
-  RootStateType,
-  unknown,
-  CallHistoryUpdateUnread
-> {
+function markCallsTabViewed(): AsyncStateThunk<CallHistoryUpdateUnread> {
   return async (_dispatch, getState) => {
     const latestCall = getCallHistoryLatestCall(getState());
     if (latestCall != null) {
@@ -196,10 +192,7 @@ function resetCallHistory(): CallHistoryReset {
   return { type: CALL_HISTORY_RESET };
 }
 
-function clearAllCallHistory(): ThunkAction<
-  void,
-  RootStateType,
-  unknown,
+function clearAllCallHistory(): AsyncStateThunk<
   CallHistoryReset | ToastActionType | ShowErrorModalActionType
 > {
   return async (dispatch, getState) => {
@@ -245,25 +238,21 @@ function clearAllCallHistory(): ThunkAction<
       updateConversationsUnreadCounts(unreadConversationIds);
 
       // Just force a reload, even if the clear failed.
-      dispatch(reloadCallHistory());
+      void dispatch(reloadCallHistory());
     }
   };
 }
 
-export function reloadCallHistory(): ThunkAction<
-  void,
-  RootStateType,
-  unknown,
-  CallHistoryReload
-> {
+export function reloadCallHistory(): AsyncStateThunk<CallHistoryReload> {
   return async dispatch => {
     try {
       await loadCallHistory();
       const callsHistory = getCallsHistoryForRedux();
-      const callsHistoryUnreadCount = getCallsHistoryUnreadCountForRedux();
+      const callsHistoryUnreadCountsByConversationId =
+        getCallsHistoryUnreadCountsByConversationIdForRedux();
       dispatch({
         type: CALL_HISTORY_RELOAD,
-        payload: { callsHistory, callsHistoryUnreadCount },
+        payload: { callsHistory, callsHistoryUnreadCountsByConversationId },
       });
     } catch (error) {
       log.error('Error reloading call history', Errors.toLogFormat(error));
@@ -312,12 +301,13 @@ export function reducer(
     case CALL_HISTORY_UPDATE_UNREAD:
       return {
         ...state,
-        unreadCount: action.payload,
+        unreadCountsByConversationId: action.payload,
       };
     case CALL_HISTORY_RELOAD:
       return {
         edition: state.edition + 1,
-        unreadCount: action.payload.callsHistoryUnreadCount,
+        unreadCountsByConversationId:
+          action.payload.callsHistoryUnreadCountsByConversationId,
         callHistoryByCallId: makeLookup(action.payload.callsHistory, 'callId'),
       };
     default:

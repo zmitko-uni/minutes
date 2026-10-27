@@ -58,7 +58,7 @@ export const SmartHeroRow = memo(function SmartHeroRow({
   const { toggleAboutContactModal, toggleProfileNameWarningModal } =
     useGlobalModalActions();
   const openConversationDetails = useCallback(() => {
-    pushPanelForConversation({ type: PanelType.ConversationDetails });
+    void pushPanelForConversation({ type: PanelType.ConversationDetails });
   }, [pushPanelForConversation]);
   const { viewUserStories } = useStoriesActions();
   const {
@@ -91,7 +91,14 @@ export const SmartHeroRow = memo(function SmartHeroRow({
     }
 
     return computeGroupNameHash(titleNoDefault) === groupVerifiedNameHash;
-  }, [groupVerifiedNameHash, titleNoDefault, type]);
+  }, [
+    // oxlint-disable-next-line react/preserve-manual-memoization
+    groupVerifiedNameHash,
+    // oxlint-disable-next-line react/preserve-manual-memoization
+    titleNoDefault,
+    // oxlint-disable-next-line react/preserve-manual-memoization
+    type,
+  ]);
 
   return (
     <div className={tw('mt-10 flex justify-center')}>

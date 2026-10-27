@@ -2,8 +2,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { Dialog } from 'radix-ui';
-import type { CSSProperties, FC, MouseEvent, ReactNode } from 'react';
-import { memo, useMemo, useState } from 'react';
+import type {
+  CSSProperties,
+  FC,
+  MouseEvent,
+  ReactNode,
+  Ref,
+  RefCallback,
+} from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AxoBaseDialog } from './_internal/AxoBaseDialog.dom.tsx';
 import type { AxoSymbol } from './AxoSymbol.dom.tsx';
 import { tw } from './tw.dom.tsx';
@@ -14,7 +21,14 @@ import { AxoTooltip } from './AxoTooltip.dom.tsx';
 import { AxoTheme } from './AxoTheme.dom.tsx';
 import { useAxoIntl } from './_internal/AxoIntl.dom.tsx';
 import { variants } from './_internal/variants.dom.tsx';
-import { unreachable } from './_internal/assert.std.tsx';
+import { assert, unreachable } from './_internal/assert.std.tsx';
+import {
+  createStrictContext,
+  useStrictContext,
+  useStrictContextNullable,
+} from './_internal/StrictContext.dom.tsx';
+import { forwardExtraPropsForRadix } from './_internal/props.dom.tsx';
+import { mergeRefs } from '@react-aria/utils';
 
 const { useContentEscapeBehavior } = AxoBaseDialog;
 
@@ -55,6 +69,15 @@ export namespace AxoDialog {
    * <AxoDialog.Root>
    * --------------------------------------------------------------------------
    */
+
+  type RootContextType = Readonly<{
+    hasHeader: boolean;
+    setHasHeader: (hasHeader: boolean) => void;
+    hasFooter: boolean;
+    setHasFooter: (hasFooter: boolean) => void;
+  }>;
+
+  const RootContext = createStrictContext<RootContextType>('AxoDialog.Root');
 
   export type RootProps = Readonly<{
     /**
@@ -121,10 +144,24 @@ export namespace AxoDialog {
    * ```
    */
   export const Root: FC<RootProps> = memo(props => {
+    const [hasHeader, setHasHeader] = useState(false);
+    const [hasFooter, setHasFooter] = useState(false);
+
+    const context = useMemo((): RootContextType => {
+      return {
+        hasHeader,
+        setHasHeader,
+        hasFooter,
+        setHasFooter,
+      };
+    }, [hasHeader, setHasHeader, hasFooter, setHasFooter]);
+
     return (
-      <Dialog.Root open={props.open} onOpenChange={props.onOpenChange} modal>
-        {props.children}
-      </Dialog.Root>
+      <RootContext value={context}>
+        <Dialog.Root open={props.open} onOpenChange={props.onOpenChange} modal>
+          {props.children}
+        </Dialog.Root>
+      </RootContext>
     );
   });
 
@@ -136,6 +173,10 @@ export namespace AxoDialog {
    */
 
   export type TriggerProps = Readonly<{
+    /**
+     * Trigger doesn't have its own styles so it should always be set to true
+     */
+    asChild: true;
     /**
      * The element that opens the dialog when clicked.
      */
@@ -158,12 +199,11 @@ export namespace AxoDialog {
 
   /**
    * Width of the dialog.
-   * - `xs` – 300px
-   * - `sm` – 360px
-   * - `md` – 420px
+   * - `sm` – 320px
+   * - `md` – 400px
    * - `lg` – 720px
    */
-  export type ContentSize = 'xs' | 'sm' | 'md' | 'lg';
+  export type ContentSize = 'sm' | 'md' | 'lg';
 
   /**
    * How dangerous the cancel action is considered.
@@ -173,10 +213,9 @@ export namespace AxoDialog {
   export type ContentEscape = AxoBaseDialog.ContentEscape;
 
   const ContentSizeStyles = variants<ContentSize>('AxoDialog.ContentSize', {
-    xs: tw('w-[300px] min-w-[300px]'),
-    sm: tw('w-[360px] min-w-[360px]'),
-    md: tw('w-[420px] min-w-[360px]'),
-    lg: tw('w-[720px] min-w-[360px]'),
+    sm: tw('w-[320px] min-w-[320px]'),
+    md: tw('w-[400px] min-w-[320px]'),
+    lg: tw('w-[720px] min-w-[320px]'),
   });
 
   export type ContentProps = Readonly<{
@@ -248,7 +287,15 @@ export namespace AxoDialog {
    * --------------------------------------------------------------------------
    */
 
+  type HeaderContextType = Readonly<{
+    floating: boolean;
+  }>;
+
+  const HeaderContext =
+    createStrictContext<HeaderContextType>('AxoDialog.Header');
+
   export type HeaderProps = Readonly<{
+    floating?: boolean;
     /**
      * Should be `Back`, `Title`, and/or `Close` elements.
      */
@@ -261,15 +308,38 @@ export namespace AxoDialog {
    * empty so the title stays centered.
    */
   export const Header: FC<HeaderProps> = memo(props => {
+    const { floating = false, children } = props;
+    const { setHasHeader } = useStrictContext(RootContext);
+
+    const ref: RefCallback<HTMLElement> = useCallback(
+      node => {
+        if (!floating) {
+          setHasHeader(node != null);
+        }
+        return () => {
+          setHasHeader(false);
+        };
+      },
+      [floating, setHasHeader]
+    );
+
+    const context = useMemo((): HeaderContextType => {
+      return { floating };
+    }, [floating]);
+
     return (
-      <div
-        className={tw(
-          'grid items-center p-2.5',
-          'grid-cols-[[back-slot]_1fr_[title-slot]_auto_[close-slot]_1fr]'
-        )}
-      >
-        {props.children}
-      </div>
+      <HeaderContext value={context}>
+        <div
+          ref={ref}
+          className={tw(
+            'grid items-center p-2.5',
+            'grid-cols-[[back-slot]_1fr_[title-slot]_auto_[close-slot]_1fr]',
+            floating && tw('pointer-events-none absolute inset-x-0 top-0 z-10')
+          )}
+        >
+          {children}
+        </div>
+      </HeaderContext>
     );
   });
 
@@ -282,11 +352,6 @@ export namespace AxoDialog {
 
   export type TitleProps = Readonly<{
     /**
-     * There must always be a title for the dialog, but if you don't want it to
-     * be visually displayed you can pass `screenReaderOnly: true`
-     */
-    screenReaderOnly?: boolean;
-    /**
      * The title text.
      */
     children: ReactNode;
@@ -296,13 +361,15 @@ export namespace AxoDialog {
    * An accessible title to be announced when the dialog is opened.
    */
   export const Title: FC<TitleProps> = memo(props => {
+    const header = useStrictContextNullable(HeaderContext);
     return (
       <Dialog.Title
         className={tw(
-          'col-[title-slot] px-3.5 py-0.5',
           'truncate text-center',
           'type-body-medium font-semibold text-primary',
-          props.screenReaderOnly && 'sr-only'
+          header != null && tw('col-[title-slot] px-3.5 py-0.5'),
+          header == null && tw('mb-2.5'),
+          header?.floating && tw('sr-only')
         )}
       >
         {props.children}
@@ -329,11 +396,12 @@ export namespace AxoDialog {
    */
   export const Back: FC<BackProps> = memo(props => {
     const intl = useAxoIntl();
+    const { floating } = useStrictContext(HeaderContext);
     return (
-      <div className={tw('col-[back-slot] text-start')}>
+      <div className={tw('pointer-events-auto col-[back-slot] text-start')}>
         <AxoIconButton.Root
           size="sm"
-          variant="implied-secondary"
+          variant={floating ? 'elevated-secondary' : 'implied-secondary'}
           symbol="chevron-[start]"
           label={intl.get('AxoDialog.Back')}
           tooltip={false}
@@ -355,12 +423,17 @@ export namespace AxoDialog {
    */
   export const Close: FC = memo(() => {
     const intl = useAxoIntl();
+    const { floating } = useStrictContext(HeaderContext);
     return (
-      <div className={tw('col-[close-slot] text-end leading-none')}>
+      <div
+        className={tw(
+          'pointer-events-auto col-[close-slot] text-end leading-none'
+        )}
+      >
         <Dialog.Close asChild>
           <AxoIconButton.Root
             size="sm"
-            variant="implied-secondary"
+            variant={floating ? 'material-subtle' : 'implied-secondary'}
             symbol="x"
             label={intl.get('AxoDialog.Close')}
             tooltip={false}
@@ -432,12 +505,6 @@ export namespace AxoDialog {
      */
     maxHeight?: number;
     /**
-     * Set to true if the dialog has no footer after it, hides the bottom scroll hint.
-     * TODO: Find a CSS solution to this so it's just automatic
-     */
-    noFooterHideBottomScrollHint?: boolean;
-
-    /**
      * Force the dialog to always be at its maxHeight
      */
     forceMaxHeight?: boolean;
@@ -452,8 +519,10 @@ export namespace AxoDialog {
    * Automatically shows scroll hints and a thin scrollbar.
    */
   export const Body: FC<BodyProps> = memo(props => {
+    const { hasHeader, hasFooter } = useStrictContext(RootContext);
+    const scrollbarWidthDefault = hasHeader && hasFooter ? 'thin' : 'none';
     const {
-      scrollbarWidth = 'thin',
+      scrollbarWidth = scrollbarWidthDefault,
       padding = 'lg',
       maxHeight = 440,
       forceMaxHeight,
@@ -492,8 +561,31 @@ export namespace AxoDialog {
         styles.paddingInline = paddingInline;
       }
 
+      let paddingBlockDefault: string;
+      if (padding === 'lg') {
+        paddingBlockDefault = '24px';
+      } else if (padding === 'md') {
+        paddingBlockDefault = '16px';
+      } else if (padding === 'sm') {
+        paddingBlockDefault = '12px';
+      } else if (padding === 'deprecated-only-scrollbar-gutter') {
+        paddingBlockDefault = '2px';
+      } else {
+        unreachable(padding);
+      }
+
+      styles.paddingBlockStart = hasHeader ? '2px' : paddingBlockDefault;
+      styles.paddingBlockEnd = hasFooter ? '2px' : paddingBlockDefault;
+
       return styles;
-    }, [forceMaxHeight, maxHeight, padding, scrollbarWidth]);
+    }, [
+      forceMaxHeight,
+      maxHeight,
+      padding,
+      scrollbarWidth,
+      hasHeader,
+      hasFooter,
+    ]);
 
     return (
       <AxoScrollArea.Root
@@ -501,10 +593,8 @@ export namespace AxoDialog {
         scrollbarWidth={scrollbarWidth}
         scrollbarVisibility="as-needed"
       >
-        <AxoScrollArea.Hint edge="top" />
-        {!props.noFooterHideBottomScrollHint && (
-          <AxoScrollArea.Hint edge="bottom" />
-        )}
+        {!hasHeader && <AxoScrollArea.Hint edge="top" />}
+        {!hasFooter && <AxoScrollArea.Hint edge="bottom" />}
         <AxoScrollArea.Viewport>
           <AxoScrollArea.Content>
             <div style={style}>{props.children}</div>
@@ -557,8 +647,23 @@ export namespace AxoDialog {
    * A row of action buttons at the bottom of the dialog.
    */
   export const Footer: FC<FooterProps> = memo(props => {
+    const { setHasFooter } = useStrictContext(RootContext);
+
+    const ref: RefCallback<HTMLElement> = useCallback(
+      node => {
+        setHasFooter(node != null);
+        return () => {
+          setHasFooter(false);
+        };
+      },
+      [setHasFooter]
+    );
+
     return (
-      <div className={tw('flex flex-wrap items-center gap-3 px-3 py-2.5')}>
+      <div
+        ref={ref}
+        className={tw('flex flex-wrap items-center gap-3 px-3 py-2.5')}
+      >
         {props.children}
       </div>
     );
@@ -661,6 +766,8 @@ export namespace AxoDialog {
     | 'subtle-destructive'
     | 'subtle-secondary';
 
+  export type Arrow = 'next' | 'external-link';
+
   export type ActionProps = Readonly<{
     /**
      * Visual style of the button.
@@ -673,7 +780,7 @@ export namespace AxoDialog {
     /**
      * When `true`, shows a forward arrow on the trailing side.
      */
-    arrow?: boolean | null;
+    arrow?: Arrow | null;
     /**
      * When `true`, shows a loading spinner and prevents interaction.
      */
@@ -686,6 +793,10 @@ export namespace AxoDialog {
      * Event handler called when the button is clicked.
      */
     onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+    /**
+     * When `true`, takes initial focus when rendered.
+     */
+    autoFocus?: boolean | null;
     /**
      * The button label.
      */
@@ -700,12 +811,13 @@ export namespace AxoDialog {
       <AxoButton.Root
         variant={props.variant}
         symbol={props.symbol}
-        arrow={props.arrow ? 'next' : null}
+        arrow={props.arrow}
         pending={props.pending}
         disabled={props.disabled}
         size="md"
         width="grow"
         onClick={props.onClick}
+        autoFocus={props.autoFocus}
       >
         {props.children}
       </AxoButton.Root>
@@ -766,4 +878,35 @@ export namespace AxoDialog {
   });
 
   IconAction.displayName = 'AxoDialog.IconAction';
+
+  /**
+   * <AxoDialog.StoryTrigger>
+   * --------------------------------------------------------------------------
+   */
+
+  export type StoryTriggerProps = Readonly<{
+    ref?: Ref<HTMLButtonElement>;
+  }>;
+
+  export const StoryTrigger: FC<StoryTriggerProps> = memo(props => {
+    const { ref, ...rest } = props;
+    const innerRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+      assert(innerRef.current).click();
+    }, []);
+
+    return (
+      <AxoButton.Root
+        ref={mergeRefs(innerRef, ref)}
+        size="md"
+        variant="strong-primary"
+        {...forwardExtraPropsForRadix(rest)}
+      >
+        Open Dialog
+      </AxoButton.Root>
+    );
+  });
+
+  StoryTrigger.displayName = 'AxoDialog.StoryTrigger';
 }

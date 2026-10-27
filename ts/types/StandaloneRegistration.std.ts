@@ -26,6 +26,7 @@ export enum RegistrationStage {
   CREATE_PIN = 'CREATE_PIN',
   CREATE_PIN_CONFIRM = 'CREATE_PIN_CONFIRM',
   ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
+  UPDATE_REQUIRED = 'UPDATE_REQUIRED',
 }
 
 export const StageOrder: Record<RegistrationStage, number> = {
@@ -37,6 +38,7 @@ export const StageOrder: Record<RegistrationStage, number> = {
   [RegistrationStage.CREATE_PIN]: 5,
   [RegistrationStage.CREATE_PIN_CONFIRM]: 6,
   [RegistrationStage.ACCOUNT_LOCKED]: 7,
+  [RegistrationStage.UPDATE_REQUIRED]: 8,
 };
 
 // A few special-cases are always allowed:
@@ -44,6 +46,7 @@ export const StageOrder: Record<RegistrationStage, number> = {
 //   2. You can start from the initial PHONE_NUMBER stage, as well as these three
 //      for fixing partial registrations: PROFILE_ENTRY, VERIFY_PIN, CREATE_PIN
 //   3. You can always make an update to the existing stage
+//   4. You can always go to the UPDATE_REQUIRED stage
 export const ValidNextStages: Record<
   RegistrationStage,
   Set<RegistrationStage>
@@ -69,6 +72,7 @@ export const ValidNextStages: Record<
     RegistrationStage.CREATE_PIN, // so we can go back
   ]),
   [RegistrationStage.ACCOUNT_LOCKED]: new Set([]),
+  [RegistrationStage.UPDATE_REQUIRED]: new Set([]),
 };
 
 // There's no 'complete' stage, just a check we do when we are done
@@ -393,6 +397,18 @@ export type AccountLockedStage = {
   stage: RegistrationStage.ACCOUNT_LOCKED;
 };
 
+export type UpdateRequiredStage = {
+  // Server has told us that we need to update Signal Desktop before we move forward.
+  // Prerequisites:
+  //   - a new version is available to download
+  //   - the user could potentially choose to do this even if not required
+  // Behaviors:
+  //   - allow user to download the new version and kick off the install
+  //   - show any errors that happen during the process
+  //   - restart the app to finish the installation
+  stage: RegistrationStage.UPDATE_REQUIRED;
+};
+
 export type RegistrationWorkflow =
   | PhoneNumberStage
   | CaptchaStage
@@ -401,4 +417,5 @@ export type RegistrationWorkflow =
   | VerifyPINStage
   | CreatePINStage
   | CreatePINConfirmStage
-  | AccountLockedStage;
+  | AccountLockedStage
+  | UpdateRequiredStage;

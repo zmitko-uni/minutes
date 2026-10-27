@@ -95,9 +95,8 @@ export function GroupMembersSearchDialog(
   );
 
   const handleSelectAddMember = useCallback(() => {
-    onOpenChange(false);
     onSelectAddMember();
-  }, [onOpenChange, onSelectAddMember]);
+  }, [onSelectAddMember]);
 
   const handleSelectInviteViaGroupLink = useCallback(() => {
     strictAssert(canInviteViaGroupLink, 'cannot invite via group link');
@@ -123,12 +122,7 @@ export function GroupMembersSearchDialog(
           />
           <FilterMenu i18n={i18n} filter={filter} onFilterChange={setFilter} />
         </AxoDialog.Search>
-        <AxoDialog.Body
-          scrollbarWidth="none"
-          padding="md"
-          noFooterHideBottomScrollHint
-          forceMaxHeight
-        >
+        <AxoDialog.Body padding="md" forceMaxHeight>
           <div className={tw('flex flex-col gap-2 pb-4')}>
             {searchQuery === '' ? (
               <AlphabeticMemberList
@@ -208,9 +202,11 @@ function SearchField(props: SearchFieldProps): ReactNode {
     <AxoSearchField.Root
       value={props.searchValue}
       onValueChange={props.onSearchValueChange}
-      placeholder={placeholder}
-      autoFocus
-    />
+    >
+      <AxoSearchField.Icon />
+      <AxoSearchField.Input placeholder={placeholder} autoFocus />
+      <AxoSearchField.Clear />
+    </AxoSearchField.Root>
   );
 }
 
@@ -239,10 +235,6 @@ function FilterMenu(props: FilterMenuProps): ReactNode {
           variant="implied-secondary"
           label={i18n('icu:GroupMembersSearchDialog__FilterMenu__Label')}
           pressed={props.filter !== GroupMembersSearchDialogFilter.All}
-          tooltip={{
-            label: i18n('icu:GroupMembersSearchDialog__FilterMenu__Label'),
-            onlyShowOnFocusForUserInputDeviceEvents: true,
-          }}
         />
       </AxoDropdownMenu.Trigger>
       <AxoDropdownMenu.Content>

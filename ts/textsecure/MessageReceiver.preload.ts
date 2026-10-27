@@ -324,7 +324,7 @@ export default class MessageReceiver
   readonly #decryptedQueue: PQueue;
   #retryCachedTimeout: NodeJS.Timeout | undefined;
   readonly #serverTrustRoots: Array<PublicKey>;
-  #stoppingProcessing?: boolean;
+  #stoppingProcessing?: string;
   #pniIdentityKeyCheckRequired?: boolean;
 
   constructor({ storage, serverTrustRoots }: MessageReceiverOptions) {
@@ -497,7 +497,7 @@ export default class MessageReceiver
 
   public startProcessingQueue(): void {
     log.info('startProcessingQueue');
-    this.#stoppingProcessing = false;
+    this.#stoppingProcessing = undefined;
 
     drop(this.#addCachedMessagesToQueue());
   }
@@ -513,9 +513,13 @@ export default class MessageReceiver
     );
   }
 
-  public stopProcessing(): void {
-    log.info('stopProcessing');
-    this.#stoppingProcessing = true;
+  public stopProcessing(reason: string): void {
+    log.info(`stopProcessing: ${reason}`);
+    this.#stoppingProcessing = reason;
+  }
+
+  public getStoppingProcessing(): string | undefined {
+    return this.#stoppingProcessing;
   }
 
   public hasEmptied(): boolean {
@@ -2205,6 +2209,14 @@ export default class MessageReceiver
       });
     }
 
+    if (attachments.length > 1) {
+      log.warn(
+        `${logId}: story has ${attachments.length} attachments; ` +
+          'dropping all but the first'
+      );
+      attachments.splice(1);
+    }
+
     const groupV2 = msg.group ? processGroupV2Context(msg.group) : undefined;
     if (groupV2 && this.#isGroupBlocked(groupV2.id)) {
       log.warn(`${logId}: ignored; destined for blocked group`);
@@ -3558,6 +3570,7 @@ export default class MessageReceiver
         type: callLinkUpdateSyncType,
         rootKey,
         adminKey,
+        timestamp: envelope.timestamp,
       },
       this.#removeFromCache.bind(this, envelope)
     );

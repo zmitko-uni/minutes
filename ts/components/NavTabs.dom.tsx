@@ -11,19 +11,21 @@ import { Tooltip, TooltipPlacement } from './Tooltip.dom.tsx';
 import { Theme } from '../util/theme.std.ts';
 import type { UnreadStats } from '../util/countUnreadStats.std.ts';
 import { MINUTES_NAV_TAB_LABELS } from '../minutes/navTabs.std.ts';
+import { getUnreadCountForBadge } from '../util/countUnreadStats.std.ts';
+import type { UnreadCountBadgeType } from '../types/StorageKeys.std.ts';
 
 type NavTabsItemBadgesProps = Readonly<{
   i18n: LocalizerType;
   hasError?: boolean;
   hasPendingUpdate?: boolean;
-  unreadStats: UnreadStats | null;
+  unreadCount: number;
 }>;
 
 function NavTabsItemBadges({
   i18n,
   hasError,
   hasPendingUpdate,
-  unreadStats,
+  unreadCount,
 }: NavTabsItemBadgesProps) {
   if (hasError) {
     return (
@@ -40,31 +42,17 @@ function NavTabsItemBadges({
     return <div className="NavTabs__ItemUpdateBadge" />;
   }
 
-  if (unreadStats != null) {
-    if (unreadStats.unreadCount > 0) {
-      const total =
-        unreadStats.unreadCount + unreadStats.readChatsMarkedUnreadCount;
-      return (
-        <span className="NavTabs__ItemUnreadBadge">
-          <span className="NavTabs__ItemIconLabel">
-            {i18n('icu:NavTabs__ItemIconLabel--UnreadCount', {
-              count: total,
-            })}
-          </span>
-          <span aria-hidden>{total}</span>
+  if (unreadCount > 0) {
+    return (
+      <span className="NavTabs__ItemUnreadBadge">
+        <span className="NavTabs__ItemIconLabel">
+          {i18n('icu:NavTabs__ItemIconLabel--UnreadCount', {
+            count: unreadCount,
+          })}
         </span>
-      );
-    }
-
-    if (unreadStats.readChatsMarkedUnreadCount > 0) {
-      return (
-        <span className="NavTabs__ItemUnreadBadge">
-          <span className="NavTabs__ItemIconLabel">
-            {i18n('icu:NavTabs__ItemIconLabel--MarkedUnread')}
-          </span>
-        </span>
-      );
-    }
+        <span aria-hidden>{unreadCount}</span>
+      </span>
+    );
   }
 
   return null;
@@ -77,7 +65,7 @@ type NavTabProps = Readonly<{
   id: NavTab;
   label: string;
   navTabClassName: string;
-  unreadStats: UnreadStats | null;
+  unreadCount: number;
   hasPendingUpdate?: boolean;
 }>;
 
@@ -88,7 +76,7 @@ function NavTabsItem({
   id,
   label,
   navTabClassName,
-  unreadStats,
+  unreadCount,
   hasPendingUpdate,
 }: NavTabProps) {
   const isRTL = i18n.getLocaleDirection() === 'rtl';
@@ -113,7 +101,7 @@ function NavTabsItem({
             />
             <NavTabsItemBadges
               i18n={i18n}
-              unreadStats={unreadStats}
+              unreadCount={unreadCount}
               hasError={hasError}
               hasPendingUpdate={hasPendingUpdate}
             />
@@ -125,7 +113,7 @@ function NavTabsItem({
 }
 
 export type NavTabPanelProps = Readonly<{
-  otherTabsUnreadStats: UnreadStats;
+  otherTabsUnreadCount: number;
   collapsed: boolean;
   hasFailedStorySends: boolean;
   hasPendingUpdate: boolean;
@@ -133,7 +121,7 @@ export type NavTabPanelProps = Readonly<{
 }>;
 
 export type NavTabsToggleProps = Readonly<{
-  otherTabsUnreadStats: UnreadStats | null;
+  otherTabsUnreadCount: number;
   i18n: LocalizerType;
   hasFailedStorySends: boolean;
   hasPendingUpdate: boolean;
@@ -146,7 +134,7 @@ export function NavTabsToggle({
   hasFailedStorySends,
   hasPendingUpdate,
   navTabsCollapsed,
-  otherTabsUnreadStats,
+  otherTabsUnreadCount,
   onToggleNavTabsCollapse,
 }: NavTabsToggleProps): JSX.Element {
   function handleToggle() {
@@ -179,7 +167,7 @@ export function NavTabsToggle({
             <span className="NavTabs__ItemLabel">{label}</span>
             <NavTabsItemBadges
               i18n={i18n}
-              unreadStats={otherTabsUnreadStats}
+              unreadCount={otherTabsUnreadCount}
               hasError={hasFailedStorySends}
               hasPendingUpdate={hasPendingUpdate}
             />
@@ -207,6 +195,7 @@ export type NavTabsProps = Readonly<{
   storiesEnabled: boolean;
   unreadCallsCount: number;
   unreadConversationsStats: UnreadStats;
+  unreadCountBadgeType: UnreadCountBadgeType;
   unreadStoriesCount: number;
 }>;
 
@@ -227,6 +216,7 @@ export function NavTabs({
   storiesEnabled,
   unreadCallsCount,
   unreadConversationsStats,
+  unreadCountBadgeType,
   unreadStoriesCount,
 }: NavTabsProps): JSX.Element {
   function handleSelectionChange(key: Key) {
@@ -271,7 +261,7 @@ export function NavTabs({
           // These are all shown elsewhere when nav tabs are shown
           hasFailedStorySends={false}
           hasPendingUpdate={false}
-          otherTabsUnreadStats={null}
+          otherTabsUnreadCount={0}
         />
         <TabList className="NavTabs__TabList">
           <NavTabsItem
@@ -280,7 +270,10 @@ export function NavTabs({
             label={i18n('icu:NavTabs__ItemLabel--Chats')}
             iconClassName="NavTabs__ItemIcon--Chats"
             navTabClassName="NavTabs__Item--Chats"
-            unreadStats={unreadConversationsStats}
+            unreadCount={getUnreadCountForBadge(
+              unreadConversationsStats,
+              unreadCountBadgeType
+            )}
           />
           <NavTabsItem
             i18n={i18n}
@@ -288,11 +281,7 @@ export function NavTabs({
             label={i18n('icu:NavTabs__ItemLabel--Calls')}
             iconClassName="NavTabs__ItemIcon--Calls"
             navTabClassName="NavTabs__Item--Calls"
-            unreadStats={{
-              unreadCount: unreadCallsCount,
-              unreadMentionsCount: 0,
-              readChatsMarkedUnreadCount: 0,
-            }}
+            unreadCount={unreadCallsCount}
           />
           <NavTabsItem
             i18n={i18n}
@@ -318,11 +307,7 @@ export function NavTabs({
               iconClassName="NavTabs__ItemIcon--Stories"
               hasError={hasFailedStorySends}
               navTabClassName="NavTabs__Item--Stories"
-              unreadStats={{
-                unreadCount: unreadStoriesCount,
-                unreadMentionsCount: 0,
-                readChatsMarkedUnreadCount: 0,
-              }}
+              unreadCount={unreadStoriesCount}
             />
           )}
           <NavTabsItem
@@ -331,7 +316,7 @@ export function NavTabs({
             label={i18n('icu:NavTabs__ItemLabel--Settings')}
             iconClassName="NavTabs__ItemIcon--Settings"
             navTabClassName="NavTabs__Item--Settings"
-            unreadStats={null}
+            unreadCount={0}
             hasPendingUpdate={hasPendingUpdate}
           />
         </TabList>

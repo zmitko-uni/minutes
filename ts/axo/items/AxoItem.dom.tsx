@@ -7,30 +7,33 @@ import type { AxoIconButton } from '../AxoIconButton.dom.tsx';
 import { forwardExtraPropsForRadix } from '../_internal/props.dom.tsx';
 import { AxoBaseItem } from './_AxoBaseItem.dom.tsx';
 import { AriaList } from '../aria/AriaList.dom.tsx';
+import type { AxoTokens } from '../AxoTokens.std.ts';
 
 /**
  * @example Anatomy
  * ```tsx
  * <AxoItem.Group>
  *   <AxoItem.Root>
- *     <AxoItem.Icon />
+ *     <AxoItem.Leading>
+ *       <AxoItem.Icon />
+ *     </AxoItem.Leading>
  *     <AxoItem.Content>
- *       <AxoItem.Body>
- *         <AxoItem.Title />
- *         <AxoItem.Value />
- *         <AxoItem.Description />
- *         <AxoItem.HiddenTrigger />
- *       </AxoItem.Body>
+ *       <AxoItem.Label />
+ *       <AxoItem.Value/>
+ *       <AxoItem.Description />
+ *       <AxoItem.HiddenTrigger />
  *       <AxoItem.Accessory>
  *         <AxoItem.Action />
  *         <AxoItem.IconAction />
  *         <AxoSelect.Root />
  *         <AxoSwitch.Root />
  *       </AxoItem.Accessory>
+ *       <AxoItem.Trailing>
+ *         <AxoItem.Arrow />
+ *       </AxoItem.Trailing>
  *     </AxoItem.Content>
- *     <AxoItem.Arrow />
  *   </AxoItem.Root>
- * </AxoItem.Layout>
+ * </AxoItem.Group>
  * ```
  */
 export namespace AxoItem {
@@ -39,14 +42,20 @@ export namespace AxoItem {
    * --------------------------------------------------------------------------
    */
 
+  export type Spacing = 'md' | 'sm';
+
   export type GroupProps = Readonly<{
+    spacing?: Spacing;
     children: ReactNode;
   }>;
 
   export const Group: FC<GroupProps> = memo(props => {
+    const { spacing = 'md' } = props;
     return (
       <AriaList.Root asChild>
-        <AxoBaseItem.Group spacing="md">{props.children}</AxoBaseItem.Group>
+        <AxoBaseItem.Group spacing={spacing}>
+          {props.children}
+        </AxoBaseItem.Group>
       </AriaList.Root>
     );
   });
@@ -58,20 +67,50 @@ export namespace AxoItem {
    * --------------------------------------------------------------------------
    */
 
+  export type Variant = 'secondary' | 'destructive';
+
   export type RootProps = Readonly<{
     id?: string;
+    variant?: Variant;
+    /**
+     * Dims the contents of the item and disables its `HiddenTrigger`.
+     * Accessories (switches, selects, button) must be disabled separately.
+     */
+    disabled?: boolean;
     children: ReactNode;
   }>;
 
   export const Root: FC<RootProps> = memo(props => {
     return (
       <AriaList.Item asChild id={props.id}>
-        <AxoBaseItem.Root>{props.children}</AxoBaseItem.Root>
+        <AxoBaseItem.Root variant={props.variant} disabled={props.disabled}>
+          {props.children}
+        </AxoBaseItem.Root>
       </AriaList.Item>
     );
   });
 
   Root.displayName = 'AxoItem.Root';
+
+  /**
+   * <AxoItem.Leading>
+   * --------------------------------------------------------------------------
+   */
+
+  export type LeadingProps = Readonly<{
+    centerToFullHeight?: boolean;
+    children: ReactNode;
+  }>;
+
+  export const Leading: FC<LeadingProps> = memo(props => {
+    return (
+      <AxoBaseItem.Leading centerToFullHeight={props.centerToFullHeight}>
+        {props.children}
+      </AxoBaseItem.Leading>
+    );
+  });
+
+  Leading.displayName = 'AxoItem.Leading';
 
   /**
    * <AxoItem.Icon>
@@ -89,6 +128,31 @@ export namespace AxoItem {
   Icon.displayName = 'AxoItem.Icon';
 
   /**
+   * <AxoItem.IconAvatar>
+   * --------------------------------------------------------------------------
+   */
+
+  export type IconAvatarSize = AxoBaseItem.IconAvatarSize;
+
+  export type IconAvatarProps = Readonly<{
+    size: IconAvatarSize;
+    symbol: AxoSymbol.Name;
+    color?: AxoTokens.Avatar.ColorName | null;
+  }>;
+
+  export const IconAvatar: FC<IconAvatarProps> = memo(props => {
+    return (
+      <AxoBaseItem.IconAvatar
+        size={props.size}
+        symbol={props.symbol}
+        color={props.color}
+      />
+    );
+  });
+
+  IconAvatar.displayName = 'AxoItem.IconAvatar';
+
+  /**
    * <AxoItem.Content>
    * --------------------------------------------------------------------------
    */
@@ -104,39 +168,24 @@ export namespace AxoItem {
   Content.displayName = 'AxoItem.Content';
 
   /**
-   * <AxoItem.Body>
+   * <AxoItem.Label>
    * --------------------------------------------------------------------------
    */
 
-  export type BodyProps = Readonly<{
-    children: ReactNode;
-  }>;
-
-  export const Body: FC<BodyProps> = memo(props => {
-    return <AxoBaseItem.Body>{props.children}</AxoBaseItem.Body>;
-  });
-
-  Body.displayName = 'AxoItem.Body';
-
-  /**
-   * <AxoItem.Title>
-   * --------------------------------------------------------------------------
-   */
-
-  export type TitleProps = Readonly<{
+  export type LabelProps = Readonly<{
     id?: string;
     children: ReactNode;
   }>;
 
-  export const Title: FC<TitleProps> = memo(props => {
+  export const Label: FC<LabelProps> = memo(props => {
     return (
       <AriaList.Label asChild id={props.id}>
-        <AxoBaseItem.Title>{props.children}</AxoBaseItem.Title>
+        <AxoBaseItem.Label>{props.children}</AxoBaseItem.Label>
       </AriaList.Label>
     );
   });
 
-  Title.displayName = 'AxoItem.Title';
+  Label.displayName = 'AxoItem.Label';
 
   /**
    * <AxoItem.Value>
@@ -184,17 +233,21 @@ export namespace AxoItem {
    */
 
   export type HiddenTriggerProps = Readonly<{
+    ref?: Ref<HTMLButtonElement>;
     label?: string;
     labelledby?: string;
     onClick: (event: MouseEvent<HTMLButtonElement>) => void;
   }>;
 
   export const HiddenTrigger: FC<HiddenTriggerProps> = memo(props => {
+    const { ref, label, labelledby, onClick, ...rest } = props;
     return (
       <AxoBaseItem.HiddenTrigger
-        label={props.label}
-        labelledby={props.labelledby}
-        onClick={props.onClick}
+        ref={ref}
+        label={label}
+        labelledby={labelledby}
+        onClick={onClick}
+        {...forwardExtraPropsForRadix(rest)}
       />
     );
   });
@@ -207,11 +260,16 @@ export namespace AxoItem {
    */
 
   export type AccessoryProps = Readonly<{
+    centerToFullHeight?: boolean;
     children: ReactNode;
   }>;
 
   export const Accessory: FC<AccessoryProps> = memo(props => {
-    return <AxoBaseItem.Accessory>{props.children}</AxoBaseItem.Accessory>;
+    return (
+      <AxoBaseItem.Accessory centerToFullHeight={props.centerToFullHeight}>
+        {props.children}
+      </AxoBaseItem.Accessory>
+    );
   });
 
   Accessory.displayName = 'AxoItem.Accessory';
@@ -258,25 +316,42 @@ export namespace AxoItem {
    * --------------------------------------------------------------------------
    */
 
-  export type IconActionVariant = 'implied-secondary';
+  export type IconActionVariant =
+    | 'implied-secondary'
+    | 'subtle-affirmative'
+    | 'subtle-destructive';
 
   export type IconActionProps = Readonly<{
     ref?: Ref<HTMLButtonElement | null>;
     variant: IconActionVariant;
     label: string;
     symbol: AxoSymbol.Name;
+    disabled?: boolean;
+    pending?: boolean;
     tooltip?: AxoIconButton.RootProps['tooltip'];
     onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   }>;
 
   export const IconAction: FC<IconActionProps> = memo(props => {
-    const { ref, variant, label, symbol, onClick, tooltip, ...rest } = props;
+    const {
+      ref,
+      variant,
+      label,
+      symbol,
+      onClick,
+      disabled,
+      pending,
+      tooltip,
+      ...rest
+    } = props;
     return (
       <AxoBaseItem.IconAction
         ref={ref}
         variant={variant}
         label={label}
         symbol={symbol}
+        disabled={disabled}
+        pending={pending}
         onClick={onClick}
         tooltip={tooltip}
         {...forwardExtraPropsForRadix(rest)}
@@ -287,12 +362,33 @@ export namespace AxoItem {
   IconAction.displayName = 'AxoItem.IconAction';
 
   /**
+   * <AxoItem.Trailing>
+   * --------------------------------------------------------------------------
+   */
+
+  export type TrailingProps = Readonly<{
+    children: ReactNode;
+  }>;
+
+  export const Trailing: FC<TrailingProps> = memo(props => {
+    return <AxoBaseItem.Trailing>{props.children}</AxoBaseItem.Trailing>;
+  });
+
+  Trailing.displayName = 'AxoItem.Trailing';
+
+  /**
    * <AxoItem.Arrow>
    * --------------------------------------------------------------------------
    */
 
-  export const Arrow: FC = memo(() => {
-    return <AxoBaseItem.Arrow />;
+  export type ArrowKind = 'next' | 'external-link';
+
+  export type ArrowProps = Readonly<{
+    kind?: ArrowKind;
+  }>;
+
+  export const Arrow: FC<ArrowProps> = memo(props => {
+    return <AxoBaseItem.Arrow kind={props.kind} />;
   });
 
   Arrow.displayName = 'AxoItem.Arrow';

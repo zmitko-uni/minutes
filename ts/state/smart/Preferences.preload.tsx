@@ -13,11 +13,16 @@ import {
   getConversationSelector,
   getConversationsWithCustomColorSelector,
   getMe,
-  getOtherTabsUnreadStats,
+  getOtherTabsUnreadCount,
 } from '../selectors/conversations.dom.ts';
 import {
   getBackupKey,
   getCustomColors,
+  getGlobalNotifyWhileMuted,
+  getGlobalShowUnreadReminders,
+  getHasRegistrationLock,
+  getHasSvrPin,
+  getIsSvrPinPending,
   getItems,
   getNavTabsCollapsed,
   getPreferredLeftPaneWidth,
@@ -35,7 +40,7 @@ import { SIGNAL_ACI } from '../../types/SignalConversation.std.ts';
 import { saveAttachmentToDisk } from '../../util/migrations.preload.ts';
 import { format } from '../../types/PhoneNumber.std.ts';
 import {
-  areWePrimaryDevice,
+  getAreWePrimaryDevice,
   getIntl,
   getTheme,
   getUser,
@@ -98,7 +103,7 @@ import {
   SmartNotificationProfilesCreateFlow,
   SmartNotificationProfilesHome,
 } from './PreferencesNotificationProfiles.preload.tsx';
-import { isLocalBackupsEnabled } from '../../util/isLocalBackupsEnabled.preload.ts';
+import { isLocalBackupsEnabled } from '../../util/isLocalBackupsEnabled.dom.ts';
 import { getBackupKeyHash } from '../../services/backups/crypto.preload.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
 import { AppProvider } from '../../windows/AppProvider.dom.tsx';
@@ -113,6 +118,8 @@ import {
 
 import type { SettingsLocation } from '../../types/Nav.std.ts';
 import type { StorageAccessType } from '../../types/Storage.d.ts';
+import type { NotifyWhileMutedKey } from '../../util/notifyWhileMuted.std.ts';
+import { NOTIFY_WHILE_MUTED_FIELDS } from '../../util/notifyWhileMuted.std.ts';
 import type { ThemeType } from '../../util/preload.preload.ts';
 import type { WidthBreakpoint } from '../../components/_util.std.ts';
 import type { StateType } from '../reducer.preload.ts';
@@ -120,11 +127,20 @@ import { DonationsErrorBoundary } from '../../components/DonationsErrorBoundary.
 import type { SmartPreferencesChatFoldersPageProps } from './PreferencesChatFoldersPage.preload.tsx';
 import type { SmartPreferencesEditChatFolderPageProps } from './PreferencesEditChatFolderPage.preload.tsx';
 import type { ExternalProps as SmartNotificationProfilesProps } from './PreferencesNotificationProfiles.preload.tsx';
-import type { ZoomFactorType } from '../../types/StorageKeys.std.ts';
+import {
+  STORAGE_KEY_DEFAULTS,
+  type ZoomFactorType,
+} from '../../types/StorageKeys.std.ts';
 import type { BlockedConversation } from '../../components/Preferences.dom.tsx';
 import { pinReminderService } from '../../services/pinReminder.preload.ts';
+import { useGlobalModalActions } from '../ducks/globalModals.preload.ts';
+import { maybeUpdateRegistrationLock } from '../../util/registrationLock.preload.ts';
+import { disableSignalPin } from '../../util/disableSignalPin.preload.ts';
 
-const DEFAULT_NOTIFICATION_SETTING = 'message';
+const RESETTABLE_GLOBAL_NOTIFICATION_ITEMS = [
+  ...Object.values(NOTIFY_WHILE_MUTED_FIELDS),
+  'showUnreadReminders',
+] as const;
 
 function renderUpdateDialog(
   props: Readonly<{ containerWidthBreakpoint: WidthBreakpoint }>
@@ -156,10 +172,8 @@ function renderNotificationProfilesCreateFlow(
   return <SmartNotificationProfilesCreateFlow {...props} />;
 }
 
-function renderProfileEditor(options: {
-  contentsRef: MutableRefObject<HTMLDivElement | null>;
-}): JSX.Element {
-  return <SmartProfileEditor contentsRef={options.contentsRef} />;
+function renderProfileEditor(): JSX.Element {
+  return <SmartProfileEditor />;
 }
 
 function renderDonationsPane({
@@ -225,14 +239,18 @@ export function SmartPreferences(): JSX.Element | null {
     setGlobalDefaultConversationColor,
     toggleNavTabsCollapse,
   } = useItemsActions();
-  const { removeCustomColorOnConversations, resetAllChatColors } =
-    useConversationsActions();
+  const {
+    removeCustomColorOnConversations,
+    resetAllChatColors,
+    resetAllNotificationSettings: resetAllPerChatNotificationSettings,
+  } = useConversationsActions();
   const { startUpdate } = useUpdatesActions();
   const { changeLocation } = useNavActions();
   const { showToast, openFileInFolder } = useToastActions();
   const { internalAddDonationReceipt } = useDonationsActions();
   const { startPlaintextExport, startLocalBackupExport } = useBackupActions();
   const { addVisibleMegaphone } = useMegaphonesActions();
+  const { showPinChangeModal } = useGlobalModalActions();
 
   // Selectors
 
@@ -247,14 +265,14 @@ export function SmartPreferences(): JSX.Element | null {
   const hasFailedStorySends = useSelector(getHasAnyFailedStorySends);
   const me = useSelector(getMe);
   const navTabsCollapsed = useSelector(getNavTabsCollapsed);
-  const otherTabsUnreadStats = useSelector(getOtherTabsUnreadStats);
+  const otherTabsUnreadCount = useSelector(getOtherTabsUnreadCount);
   const preferredWidthFromStorage = useSelector(getPreferredLeftPaneWidth);
   const getPreferredBadge = useSelector(getPreferredBadgeSelector);
   const theme = useSelector(getTheme);
   const donationReceipts = useSelector(
     (state: StateType) => state.donations.receipts
   );
-  const weArePrimaryDevice = useSelector(areWePrimaryDevice);
+  const weArePrimaryDevice = useSelector(getAreWePrimaryDevice);
   const conversationSelector = useSelector(getConversationSelector);
 
   const shouldShowUpdateDialog = dialogType !== DialogType.None;
@@ -662,7 +680,7 @@ export function SmartPreferences(): JSX.Element | null {
     const value =
       (items[key] as StorageAccessType[K] | undefined) ?? defaultValue;
     const setter = (newValue: StorageAccessType[K]) => {
-      putItem(key, newValue);
+      void putItem(key, newValue);
       callback?.(newValue);
     };
 
@@ -717,7 +735,7 @@ export function SmartPreferences(): JSX.Element | null {
 
   const [hasAudioNotifications, onAudioNotificationsChange] = createItemsAccess(
     'audio-notification',
-    false
+    STORAGE_KEY_DEFAULTS['audio-notification']
   );
   const [hasAutoConvertEmoji, onAutoConvertEmojiChange] = createItemsAccess(
     'autoConvertEmoji',
@@ -733,18 +751,32 @@ export function SmartPreferences(): JSX.Element | null {
     'auto-download-update',
     true
   );
-  const [hasCallNotifications, onCallNotificationsChange] = createItemsAccess(
-    'call-system-notification',
-    true
-  );
   const [hasIncomingCallNotifications, onIncomingCallNotificationsChange] =
     createItemsAccess('incoming-call-notification', true);
   const [hasCallRingtoneNotification, onCallRingtoneNotificationChange] =
     createItemsAccess('call-ringtone-notification', true);
   const [hasCountMutedConversations, onCountMutedConversationsChange] =
-    createItemsAccess('badge-count-muted-conversations', false, () => {
-      window.Whisper.events.emit('updateUnreadCount');
-    });
+    createItemsAccess(
+      'badge-count-muted-conversations',
+      STORAGE_KEY_DEFAULTS['badge-count-muted-conversations'],
+      () => {
+        window.Whisper.events.emit('updateUnreadCount');
+        const account =
+          window.ConversationController.getOurConversationOrThrow();
+        account.captureChange('badge-count-muted-conversations');
+      }
+    );
+  const [unreadCountBadgeType, onUnreadCountBadgeTypeChange] =
+    createItemsAccess(
+      'unreadCountBadgeType',
+      STORAGE_KEY_DEFAULTS.unreadCountBadgeType,
+      () => {
+        const account =
+          window.ConversationController.getOurConversationOrThrow();
+        account.captureChange('unreadCountBadgeType');
+        window.Whisper.events.emit('updateUnreadCount');
+      }
+    );
   const [hasHideMenuBar, onHideMenuBarChange] = createItemsAccess(
     'hide-menu-bar',
     false,
@@ -755,23 +787,81 @@ export function SmartPreferences(): JSX.Element | null {
   );
   const [hasMessageAudio, onMessageAudioChange] = createItemsAccess(
     'audioMessage',
-    false
+    STORAGE_KEY_DEFAULTS.audioMessage
   );
   const [hasNotificationAttention, onNotificationAttentionChange] =
-    createItemsAccess('notification-draw-attention', false);
+    createItemsAccess(
+      'notification-draw-attention',
+      STORAGE_KEY_DEFAULTS['notification-draw-attention']
+    );
   const [hasReactionNotifications, onReactionNotificationsChange] =
-    createItemsAccess('reaction-notification', true);
+    createItemsAccess(
+      'reaction-notification',
+      STORAGE_KEY_DEFAULTS['reaction-notification'],
+      () => {
+        const account =
+          window.ConversationController.getOurConversationOrThrow();
+        account.captureChange('reaction-notification');
+      }
+    );
 
   const [notificationContent, onNotificationContentChange] = createItemsAccess(
     'notification-setting',
-    'message'
+    STORAGE_KEY_DEFAULTS['notification-setting']
   );
   const hasNotifications = notificationContent !== 'off';
   const onNotificationsChange = (value: boolean) => {
-    putItem(
+    void putItem(
       'notification-setting',
-      value ? DEFAULT_NOTIFICATION_SETTING : 'off'
+      value ? STORAGE_KEY_DEFAULTS['notification-setting'] : 'off'
     );
+  };
+
+  const notifyWhileMuted = useSelector(getGlobalNotifyWhileMuted);
+  const onNotifyWhileMutedChange = (
+    key: NotifyWhileMutedKey,
+    value: boolean
+  ) => {
+    const itemKey = NOTIFY_WHILE_MUTED_FIELDS[key];
+    void putItem(itemKey, value);
+    const account = window.ConversationController.getOurConversationOrThrow();
+    account.captureChange(itemKey);
+  };
+
+  const hasUnreadReminders = useSelector(getGlobalShowUnreadReminders);
+  const onUnreadRemindersChange = (value: boolean) => {
+    void putItem('showUnreadReminders', value);
+    const account = window.ConversationController.getOurConversationOrThrow();
+    account.captureChange('showUnreadReminders');
+  };
+
+  const onResetNotificationSettings = () => {
+    // Reset global settings
+    onNotificationContentChange(STORAGE_KEY_DEFAULTS['notification-setting']);
+    onReactionNotificationsChange(
+      STORAGE_KEY_DEFAULTS['reaction-notification']
+    );
+    onNotificationAttentionChange(
+      STORAGE_KEY_DEFAULTS['notification-draw-attention']
+    );
+    onAudioNotificationsChange(STORAGE_KEY_DEFAULTS['audio-notification']);
+    onMessageAudioChange(STORAGE_KEY_DEFAULTS.audioMessage);
+    onUnreadCountBadgeTypeChange(STORAGE_KEY_DEFAULTS.unreadCountBadgeType);
+    onCountMutedConversationsChange(
+      STORAGE_KEY_DEFAULTS['badge-count-muted-conversations']
+    );
+
+    const account = window.ConversationController.getOurConversationOrThrow();
+    for (const itemKey of RESETTABLE_GLOBAL_NOTIFICATION_ITEMS) {
+      if (itemStorage.get(itemKey) === STORAGE_KEY_DEFAULTS[itemKey]) {
+        continue;
+      }
+      drop(itemStorage.put(itemKey, STORAGE_KEY_DEFAULTS[itemKey]));
+      account.captureChange(itemKey);
+    }
+
+    // Reset per-chat settings
+    resetAllPerChatNotificationSettings();
   };
 
   const [hasPinReminders, onPinRemindersChange] = createItemsAccess(
@@ -786,6 +876,14 @@ export function SmartPreferences(): JSX.Element | null {
     'always-relay-calls',
     false
   );
+
+  const hasSvrPin = useSelector(getHasSvrPin);
+  const hasRegistrationLock = useSelector(getHasRegistrationLock);
+  const onRegistrationLockChange = (value: boolean) => {
+    drop(maybeUpdateRegistrationLock(value));
+  };
+  const isSvrPinPending = useSelector(getIsSvrPinPending);
+
   const [hasStoriesDisabled, onHasStoriesDisabledChanged] = createItemsAccess(
     'hasStoriesDisabled',
     false,
@@ -860,6 +958,7 @@ export function SmartPreferences(): JSX.Element | null {
       // information.
       await writeProfile(getConversation(account), {
         keepAvatar: true,
+        reupload: false,
       });
     }
   );
@@ -917,6 +1016,18 @@ export function SmartPreferences(): JSX.Element | null {
     drop(itemStorage.put('sfuUrl', value));
   }, []);
 
+  const saveAccountKeysPDF = useCallback(async () => {
+    const data = await window.Events.generatePDF({
+      view: 'account-keys',
+      serviceId: me.serviceId,
+      backupKey,
+    });
+    await saveAttachmentToDisk({
+      name: 'Signal_AccountKeys.pdf',
+      data,
+    });
+  }, [me.serviceId, backupKey]);
+
   if (currentLocation.tab !== NavTab.Settings) {
     return null;
   }
@@ -924,7 +1035,7 @@ export function SmartPreferences(): JSX.Element | null {
   const settingsLocation = currentLocation.details;
 
   const setSettingsLocation = (location: SettingsLocation) => {
-    changeLocation({
+    void changeLocation({
       tab: NavTab.Settings,
       details: location,
     });
@@ -962,6 +1073,7 @@ export function SmartPreferences(): JSX.Element | null {
         defaultConversationColor={defaultConversationColor}
         deviceName={deviceName}
         disableLocalBackups={backupsService.disableLocalBackups}
+        disableSignalPin={disableSignalPin}
         emojiSkinToneDefault={emojiSkinToneDefault}
         phoneNumber={phoneNumber}
         doDeleteAllData={doDeleteAllData}
@@ -980,7 +1092,6 @@ export function SmartPreferences(): JSX.Element | null {
         hasAutoDownloadUpdate={hasAutoDownloadUpdate}
         hasAutoLaunch={hasAutoLaunch}
         hasKeepMutedChatsArchived={hasKeepMutedChatsArchived}
-        hasCallNotifications={hasCallNotifications}
         hasCallRingtoneNotification={hasCallRingtoneNotification}
         hasContentProtection={hasContentProtection}
         hasCountMutedConversations={hasCountMutedConversations}
@@ -1000,12 +1111,15 @@ export function SmartPreferences(): JSX.Element | null {
         hasPreferContactAvatars={hasPreferContactAvatars}
         hasReactionNotifications={hasReactionNotifications}
         hasReadReceipts={hasReadReceipts}
+        hasRegistrationLock={hasRegistrationLock}
         hasRelayCalls={hasRelayCalls}
         hasSealedSenderIndicators={hasSealedSenderIndicators}
         hasSpellCheck={hasSpellCheck}
         hasStoriesDisabled={hasStoriesDisabled}
+        hasSvrPin={hasSvrPin}
         hasTextFormatting={hasTextFormatting}
         hasTypingIndicators={hasTypingIndicators}
+        hasUnreadReminders={hasUnreadReminders}
         i18n={i18n}
         initialSpellCheckSetting={initialSpellCheckSetting}
         isAutoDownloadUpdatesSupported={isAutoDownloadUpdatesSupported}
@@ -1018,6 +1132,7 @@ export function SmartPreferences(): JSX.Element | null {
           isMinimizeToAndStartInSystemTraySupported
         }
         isNotificationAttentionSupported={isNotificationAttentionSupported}
+        isSvrPinPending={isSvrPinPending}
         isSyncSupported={isSyncSupported}
         isSystemTraySupported={isSystemTraySupported}
         isInternalUser={isInternalUser}
@@ -1029,13 +1144,13 @@ export function SmartPreferences(): JSX.Element | null {
         me={me}
         navTabsCollapsed={navTabsCollapsed}
         notificationContent={notificationContent}
+        notifyWhileMuted={notifyWhileMuted}
         onAudioNotificationsChange={onAudioNotificationsChange}
         onAutoConvertEmojiChange={onAutoConvertEmojiChange}
         onAutoDownloadAttachmentChange={onAutoDownloadAttachmentChange}
         onAutoDownloadUpdateChange={onAutoDownloadUpdateChange}
         onAutoLaunchChange={onAutoLaunchChange}
         onBackupKeyViewed={onBackupKeyViewed}
-        onCallNotificationsChange={onCallNotificationsChange}
         onCallRingtoneNotificationChange={onCallRingtoneNotificationChange}
         onContentProtectionChange={onContentProtectionChange}
         onCountMutedConversationsChange={onCountMutedConversationsChange}
@@ -1061,11 +1176,14 @@ export function SmartPreferences(): JSX.Element | null {
         onNotificationAttentionChange={onNotificationAttentionChange}
         onNotificationContentChange={onNotificationContentChange}
         onNotificationsChange={onNotificationsChange}
+        onNotifyWhileMutedChange={onNotifyWhileMutedChange}
         onStartUpdate={startUpdate}
         onPreferContactAvatarsChange={onPreferContactAvatarsChange}
         onReactionNotificationsChange={onReactionNotificationsChange}
         onReadReceiptsChange={onReadReceiptsChange}
+        onRegistrationLockChange={onRegistrationLockChange}
         onRelayCallsChange={onRelayCallsChange}
+        onResetNotificationSettings={onResetNotificationSettings}
         onSealedSenderIndicatorsChange={onSealedSenderIndicatorsChange}
         onSelectedCameraChange={onSelectedCameraChange}
         onSelectedMicrophoneChange={onSelectedMicrophoneChange}
@@ -1077,12 +1195,14 @@ export function SmartPreferences(): JSX.Element | null {
         onToggleNavTabsCollapse={toggleNavTabsCollapse}
         onTypingIndicatorsChange={onTypingIndicatorsChange}
         onUniversalExpireTimerChange={onUniversalExpireTimerChange}
+        onUnreadCountBadgeTypeChange={onUnreadCountBadgeTypeChange}
+        onUnreadRemindersChange={onUnreadRemindersChange}
         onWhoCanFindMeChange={onWhoCanFindMeChange}
         onWhoCanSeeMeChange={onWhoCanSeeMeChange}
         onZoomFactorChange={onZoomFactorChange}
         openFileInFolder={openFileInFolder}
         osName={osName}
-        otherTabsUnreadStats={otherTabsUnreadStats}
+        otherTabsUnreadCount={otherTabsUnreadCount}
         settingsLocation={settingsLocation}
         pickLocalBackupFolder={pickLocalBackupFolder}
         preferredSystemLocales={preferredSystemLocales}
@@ -1119,12 +1239,14 @@ export function SmartPreferences(): JSX.Element | null {
         setGlobalDefaultConversationColor={setGlobalDefaultConversationColor}
         setSettingsLocation={setSettingsLocation}
         shouldShowUpdateDialog={shouldShowUpdateDialog}
+        showPinChangeModal={showPinChangeModal}
         showToast={showToast}
         startLocalBackupExport={startLocalBackupExport}
         startPlaintextExport={startPlaintextExport}
         theme={theme}
         themeSetting={themeSetting}
         universalExpireTimer={universalExpireTimer}
+        unreadCountBadgeType={unreadCountBadgeType}
         validateBackup={validateBackup}
         whoCanFindMe={whoCanFindMe}
         whoCanSeeMe={whoCanSeeMe}
@@ -1161,6 +1283,7 @@ export function SmartPreferences(): JSX.Element | null {
         sfuUrl={items.sfuUrl}
         setSfuUrl={setSfuUrl}
         forceKeyTransparencyCheck={forceKeyTransparencyCheck}
+        saveAccountKeysPDF={saveAccountKeysPDF}
         keyTransparencySelfHealth={items.keyTransparencySelfHealth}
         weArePrimaryDevice={weArePrimaryDevice}
       />

@@ -64,6 +64,9 @@ function mockMessageTimelineItem(
       isSignalConversation: false,
       isSMS: false,
       isSpoilerExpanded: {},
+      isTargeted: false,
+      isTargetedCounter: null,
+      isTargetedSource: null,
       isVoiceMessagePlayed: false,
       previews: [],
       readStatus: ReadStatus.Read,
@@ -264,7 +267,6 @@ const actions = () => ({
     'acknowledgeGroupMemberNameCollisions'
   ),
   blockGroupLinkRequests: action('blockGroupLinkRequests'),
-  checkForAccount: action('checkForAccount'),
   clearInvitedServiceIdsForNewlyCreatedGroup: action(
     'clearInvitedServiceIdsForNewlyCreatedGroup'
   ),
@@ -301,6 +303,7 @@ const actions = () => ({
   showLightbox: action('showLightbox'),
   showLightboxForViewOnceMedia: action('showLightboxForViewOnceMedia'),
   doubleCheckMissingQuoteReference: action('doubleCheckMissingQuoteReference'),
+  handleClickCtaButton: action('handleClickCtaButton'),
 
   openGiftBadge: action('openGiftBadge'),
   showPinMessageDialog: action('showPinMessageDialog'),
@@ -366,7 +369,6 @@ const renderItem = ({
     isSignalConversation={false}
     i18n={i18n}
     interactivity={MessageInteractivity.Normal}
-    interactionMode="keyboard"
     isNextItemCallingNotification={false}
     theme={ThemeType.light}
     platform="darwin"
@@ -386,7 +388,8 @@ const renderItem = ({
     shouldCollapseBelow={false}
     shouldHideMetadata={false}
     shouldRenderDateHeader={false}
-    targetedMessage={undefined}
+    startConversationWithSharedContact={() => null}
+    targetedMessage={null}
     {...actions()}
   />
 );

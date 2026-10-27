@@ -1,5 +1,6 @@
 // Copyright 2020 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
+// oxlint-disable max-classes-per-file
 
 import { z } from 'zod';
 import PQueue from 'p-queue';
@@ -104,6 +105,7 @@ import type {
 } from '../types/PinnedMessage.std.ts';
 import type { Emoji } from '../axo/emoji.std.ts';
 import type { BlockedNumber } from '../types/StorageKeys.std.ts';
+import { isAciString } from '../util/isAciString.std.ts';
 
 const log = createLogger('SendMessage');
 
@@ -487,6 +489,11 @@ class Message {
             organization = contactEntry.organization;
           }
 
+          const hasNickname = Boolean(
+            contactEntry.nickname?.familyName ||
+            contactEntry.nickname?.givenName
+          );
+
           return {
             name,
             email,
@@ -494,6 +501,16 @@ class Message {
             address,
             avatar,
             organization,
+            aciBinary: isAciString(contactEntry.aci)
+              ? toAciObject(contactEntry.aci).getServiceIdBinary()
+              : null,
+            note: contactEntry.note || null,
+            nickname: hasNickname
+              ? {
+                  given: contactEntry.nickname?.givenName || null,
+                  family: contactEntry.nickname?.familyName || null,
+                }
+              : null,
           };
         }
       );
@@ -748,7 +765,6 @@ export function addPniSignatureMessageToProto({
   };
 }
 
-// oxlint-disable-next-line max-classes-per-file
 export class MessageSender {
   pendingMessages: {
     [id: string]: PQueue;

@@ -25,6 +25,8 @@ import type { PropsPreloadType as PreferencesPropsType } from './components/Pref
 import type { WindowsNotificationData } from './services/notifications.preload.ts';
 import type { QueryStatsOptions } from './sql/main.main.ts';
 import type { SocketStatuses } from './textsecure/SocketManager.preload.ts';
+import type { SignalClipboardType } from './windows/clipboard.preload.ts';
+import type { PDFWindowPropsType } from './windows/pdf/types.std.ts';
 
 export type IPCType = {
   addSetupMenuItems: () => void;
@@ -51,7 +53,7 @@ export type IPCType = {
   removeSetupMenuItems: () => unknown;
   setAutoHideMenuBar: (value: boolean) => void;
   setAutoLaunch: (value: boolean) => Promise<void>;
-  setBadge: (badge: number | 'marked-unread') => void;
+  setBadgeCount: (badgeCount: number) => void;
   setMediaPermissions: (value: boolean) => Promise<void>;
   setMediaCameraPermissions: (value: boolean) => Promise<void>;
   setMenuBarVisibility: (value: boolean) => void;
@@ -123,6 +125,7 @@ type SettingsWindowPropsType = {
 
 export type SignalCoreType = {
   AboutWindowProps?: AboutWindowPropsType;
+  PDFWindowProps?: PDFWindowPropsType;
   CallDiagnosticWindowProps?: CallDiagnosticWindowPropsType;
   DebugLogWindowProps?: DebugLogWindowPropsType;
   PermissionsWindowProps?: PermissionsWindowPropsType;
@@ -146,13 +149,10 @@ declare global {
   // We want to extend various globals, so we need to use interfaces.
   // oxlint-disable-next-line typescript/consistent-type-definitions
   interface Window {
-    enterKeyboardMode: () => void;
-    enterMouseMode: () => void;
     getAppInstance: () => string | undefined;
     getBuildCreation: () => number;
     getBuildExpiration: () => number;
     getHostName: () => string;
-    getInteractionMode: () => 'mouse' | 'keyboard';
     getServerPublicParams: () => string;
     getGenericServerPublicParams: () => string;
     getBackupServerPublicParams: () => string;
@@ -203,11 +203,7 @@ declare global {
     // TODO DESKTOP-4801
     SignalContext: SignalContextType;
 
-    SignalClipboard: {
-      clear: () => void;
-      clearIfNeeded: () => void;
-      copyTextTemporarily: (text: string, clearAfterMs: number) => void;
-    };
+    SignalClipboard: SignalClipboardType;
 
     minutes?: Readonly<{
       buildId: string;
@@ -226,6 +222,7 @@ declare global {
     assert: typeof assert;
     testUtilities: {
       setup: MochaOptions;
+      timeout: number | undefined;
       debug: (info: unknown) => void;
       onTestEvent: (event: unknown) => void;
       initialize: () => Promise<void>;

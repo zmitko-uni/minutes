@@ -65,6 +65,21 @@
   "icu:Preferences__DonateTitle": {
     "messageformat": "Signal को डोनेट करें"
   },
+  "icu:LinkedDevicesOnboardingDialog__description": {
+    "messageformat": "<bold>लिंक किए गए डिवाइस</bold> से आपको यह सुविधा मिलती है कि आप अपने किसी भी अन्य डिवाइस में अपना Signal अकाउंट और मैसेज सुरक्षित ढंग से खोल पाएं।"
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--1": {
+    "messageformat": "अपने डेस्कटॉप, टैबलेट या किसी अन्य फ़ोन को आसानी से लिंक करें।"
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--2": {
+    "messageformat": "आपका प्राइमरी डिवाइस ही लिंक किए गए डिवाइस को मैनेज करता है। ज़्यादा से ज़्यादा 5 डिवाइस लिंक किए जा सकते हैं।"
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--1": {
+    "messageformat": "अकाउंट सेटिंग और बैकअप को सिर्फ़ आपके प्राइमरी डिवाइस पर ही मैनेज किया जा सकता है।"
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--2": {
+    "messageformat": "अकाउंट सेटिंग और Signal सिक्योर बैकअप को सिर्फ़ आपके प्राइमरी डिवाइस पर ही मैनेज किया जा सकता है।"
+  },
   "icu:sentMediaQualityStandard": {
     "messageformat": "स्टैंडर्ड"
   },
@@ -365,9 +380,6 @@
   "icu:NavTabs__ItemIconLabel--UnreadCount": {
     "messageformat": "{count,number} अनरीड"
   },
-  "icu:NavTabs__ItemIconLabel--MarkedUnread": {
-    "messageformat": "अनरीड के तौर पर मार्क करें"
-  },
   "icu:NavTabs__ItemLabel--Chats": {
     "messageformat": "चैट"
   },
@@ -635,20 +647,23 @@
   "icu:SafetyNumberNotReady__learn-more": {
     "messageformat": "और जानें"
   },
-  "icu:KeyTransparencyErrorDialog__Title": {
-    "messageformat": "फ़िलहाल आपके डिवाइस पर 'ऑटोमैटिक की वेरिफ़िकेशन' की सुविधा उपलब्ध नहीं है। डीबग लॉग सबमिट करना है?"
+  "icu:KeyTransparencyErrorDialog__Title-v2": {
+    "messageformat": "फ़िलहाल, आपके डिवाइस पर 'ऑटोमैटिक की वेरिफ़िकेशन' की सुविधा उपलब्ध नहीं है। इसे बेहतर बनाने में हमारी मदद करने के लिए रिपोर्ट सबमिट करनी है?"
   },
-  "icu:KeyTransparencyErrorDialog__Description": {
-    "messageformat": "डीबग लॉग से हमें समस्या को पहचानने और उसे ठीक करने में मदद मिलती है और इनमें आपकी पहचान से जुड़ी कोई जानकारी नहीं होती।"
+  "icu:KeyTransparencyErrorDialog__Description-v2": {
+    "messageformat": "आपके डीबग लॉग शामिल करने से हमें समस्या की वजह का पता लगाने और उसे ठीक करने में मदद मिलती है। हालांकि, इसमें आपकी पहचान से जुड़ी कोई जानकारी नहीं होती है। इसे शेयर करना या न करना, आपके ऊपर है।"
   },
-  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label": {
-    "messageformat": "डीबग लॉग शेयर करें"
+  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label-v2": {
+    "messageformat": "डीबग लॉग शामिल करें"
   },
   "icu:KeyTransparencyErrorDialog__ShareDebugLog__ViewButton": {
     "messageformat": "देखें"
   },
   "icu:KeyTransparencyErrorDialog__Submit": {
     "messageformat": "सबमिट करें"
+  },
+  "icu:KeyTransparencyErrorDialog__Cancel": {
+    "messageformat": "नहीं, रहने दें"
   },
   "icu:KeyTransparencyOnboardingDialog__Title": {
     "messageformat": "Signal अब एनक्रिप्शन को ऑटोमैटिक तरीके से वेरिफ़ाई कर सकता है"
@@ -745,12 +760,6 @@
   },
   "icu:maximumAttachments": {
     "messageformat": "इस मैसेज में और अटैचमेंट नहीं जोड़े जा सकते।"
-  },
-  "icu:fileSizeWarning": {
-    "messageformat": "माफ़ करें, चुनी गई फ़ाइल का साइज़ मैसेज के लिए तय सीमा से ज़्यादा है। {limit,number}{units}"
-  },
-  "icu:videoFileSizeWarning": {
-    "messageformat": "माफ़ करें, चुनी गई वीडियो फ़ाइल, मैसेज के लिए साइज़ की तय सीमा से बड़ी है। {limit,number}{units}"
   },
   "icu:fileTooLargeWarning": {
     "messageformat": "यह फ़ाइल नहीं भेजी जा सकती, क्योंकि यह बहुत बड़ी है। {limit,number}{units} तक की फ़ाइलें भेजी जा सकती हैं।"
@@ -1003,6 +1012,9 @@
   },
   "icu:mute": {
     "messageformat": "म्यूट करें"
+  },
+  "icu:muted": {
+    "messageformat": "म्यूट किया हुआ"
   },
   "icu:cannotUpdateDetail-v2": {
     "messageformat": "Signal अपेडट नहीं हो सका। <retryUpdateButton>फिर से अपडेट</retryUpdateButton> करने की कोशिश करें या इसे मैन्युअल तरीके से इंस्टॉल करने के लिए {url} पर जाएं। इसके बाद, इस समस्या के बारे में <contactSupportLink>सपोर्ट टीम को बताएं</contactSupportLink>"
@@ -1466,6 +1478,9 @@
   "icu:ConversationMerge--learn-more": {
     "messageformat": "और जानें"
   },
+  "icu:ConversationMerge--explainer-dialog--label": {
+    "messageformat": "पुराने मैसेज मर्ज कर दिए गए हैं"
+  },
   "icu:ConversationMerge--explainer-dialog--line-1": {
     "messageformat": "{obsoleteConversationTitle} को मैसेज भेजने के बाद आपको पता चला कि यह नंबर {conversationTitle} का है। उनका फ़ोन नंबर प्राइवेट है।"
   },
@@ -1622,9 +1637,6 @@
   "icu:Preferences__EmojiSkinToneDefaultSetting__Label": {
     "messageformat": "इमोजी स्किन टोन"
   },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__Title": {
-    "messageformat": "चैट फ़ोल्डर"
-  },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Title": {
     "messageformat": "चैट फ़ोल्डर जोड़ें"
   },
@@ -1636,12 +1648,6 @@
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Description--WithChatFolders": {
     "messageformat": "{chatFoldersCount, plural, one {{chatFoldersCount,number} फ़ोल्डर} other {{chatFoldersCount,number} फ़ोल्डर}}"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button": {
-    "messageformat": "सेटअप करें"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button--WithChatFolders": {
-    "messageformat": "मैनेज करें"
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__ChatFolderItem__ContextMenu__EditFolder": {
     "messageformat": "फ़ोल्डर एडिट करें"
@@ -3881,18 +3887,6 @@
   "icu:calling__preview--minimize": {
     "messageformat": "प्रीव्यू छोटा करें"
   },
-  "icu:calling__change-view": {
-    "messageformat": "व्यू बदलें"
-  },
-  "icu:calling__view_mode--paginated": {
-    "messageformat": "ग्रिड व्यू"
-  },
-  "icu:calling__view_mode--overflow": {
-    "messageformat": "साइडबार व्यू"
-  },
-  "icu:calling__view_mode--speaker": {
-    "messageformat": "स्पीकर व्यू"
-  },
   "icu:calling__view_mode--updated": {
     "messageformat": "व्यू अपडेट किया गया"
   },
@@ -3906,7 +3900,7 @@
     "messageformat": "साइडबार"
   },
   "icu:calling__layout--speaker": {
-    "messageformat": "स्पीकर"
+    "messageformat": "वक्ता"
   },
   "icu:calling__SelectPresentingSourcesModal--title": {
     "messageformat": "स्क्रीन शेयर करें"
@@ -3971,29 +3965,11 @@
   "icu:notMuted": {
     "messageformat": "म्यूट नहीं है"
   },
-  "icu:muteHour": {
-    "messageformat": "एक घंटे के लिए म्यूट करें"
-  },
-  "icu:muteEightHours": {
-    "messageformat": "आठ घंटे के लिए म्यूट करें"
-  },
-  "icu:muteDay": {
-    "messageformat": "एक दिन के लिए म्यूट करें"
-  },
-  "icu:muteWeek": {
-    "messageformat": "एक हफ़्ते के लिए म्यूट करें"
-  },
-  "icu:muteAlways": {
-    "messageformat": "हमेशा के लिए म्यूट करें"
-  },
   "icu:unmute": {
     "messageformat": "अनम्यूट करें"
   },
   "icu:MuteMenu__label": {
     "messageformat": "इतने समय के लिए यह चैट म्यूट करें…"
-  },
-  "icu:MuteMenu__labelChatFolder": {
-    "messageformat": "ये चैट इतने समय के लिए म्यूट करें…"
   },
   "icu:MuteMenu__hour": {
     "messageformat": "1 घंटा"
@@ -4937,9 +4913,6 @@
   "icu:showConversationDetails--direct": {
     "messageformat": "चैट सेटिंग"
   },
-  "icu:ConversationDetails__unmute--title": {
-    "messageformat": "इस चैट को अनम्यूट करना है?"
-  },
   "icu:ConversationDetails--group-link": {
     "messageformat": "ग्रुप लिंक"
   },
@@ -5174,17 +5147,110 @@
   "icu:EditNicknameAndNoteModal__Note__Placeholder": {
     "messageformat": "नोट"
   },
-  "icu:ConversationNotificationsSettings__mentions__label": {
+  "icu:WhileMuted__title": {
+    "messageformat": "म्यूट होने पर"
+  },
+  "icu:WhileMuted__description": {
+    "messageformat": "चुनें कि जब यह चैट म्यूट हो, तब आपको कौन-से नोटिफ़िकेशन दिखें।"
+  },
+  "icu:WhileMuted__calls__title": {
+    "messageformat": "कॉल"
+  },
+  "icu:WhileMuted__calls__description": {
+    "messageformat": "यह चैट म्यूट होने के दौरान अगर कोई कॉल आए, तो घंटी या नोटिफ़िकेशन पाएं।"
+  },
+  "icu:WhileMuted__mentions__title": {
     "messageformat": "मेंशन"
   },
-  "icu:ConversationNotificationsSettings__mentions__info": {
-    "messageformat": "म्यूट की गई चैट में मेंशन किए जाने पर नोटिफ़िकेशन पाएं"
+  "icu:WhileMuted__mentions__description": {
+    "messageformat": "इस चैट के म्यूट होने के दौरान @मेंशन किए जाने पर नोटिफ़िकेशन पाएं।"
   },
-  "icu:ConversationNotificationsSettings__mentions__select__always-notify": {
-    "messageformat": "हमेशा सूचना भेजें"
+  "icu:WhileMuted__replies__title": {
+    "messageformat": "जवाब"
   },
-  "icu:ConversationNotificationsSettings__mentions__select__dont-notify-for-mentions-if-muted": {
-    "messageformat": "म्यूट रहने पर सूचना नहीं भेजें"
+  "icu:WhileMuted__replies__description": {
+    "messageformat": "यह चैट म्यूट होने के दौरान, अगर कोई आपके मैसेज का जवाब दे तो नोटिफ़िकेशन पाएं।"
+  },
+  "icu:WhileMuted__value--none": {
+    "messageformat": "कोई नहीं"
+  },
+  "icu:WhileMuted__value--calls": {
+    "messageformat": "कॉल"
+  },
+  "icu:WhileMuted__value--mentions": {
+    "messageformat": "मेंशन"
+  },
+  "icu:WhileMuted__value--replies": {
+    "messageformat": "जवाब"
+  },
+  "icu:WhileMuted__value--calls-mentions": {
+    "messageformat": "कॉल, मेंशन"
+  },
+  "icu:WhileMuted__value--calls-replies": {
+    "messageformat": "कॉल, जवाब"
+  },
+  "icu:WhileMuted__value--mentions-replies": {
+    "messageformat": "मेंशन, जवाब"
+  },
+  "icu:WhileMuted__value--calls-mentions-replies": {
+    "messageformat": "कॉल, मेंशन, जवाब"
+  },
+  "icu:Preferences__WhileMuted__description": {
+    "messageformat": "चुनें कि म्यूट की हुई चैट के लिए कौन-से नोटिफ़िकेशन दिखाने हैं।"
+  },
+  "icu:Preferences__WhileMuted__calls__description": {
+    "messageformat": "म्यूट की गई चैट में, कॉल आने पर घंटी या नोटिफ़िकेशन पाएं।"
+  },
+  "icu:Preferences__WhileMuted__mentions__description": {
+    "messageformat": "म्यूट की गई चैट में, आपको मेंशन किए जाने पर नोटिफ़िकेशन पाएं।"
+  },
+  "icu:Preferences__WhileMuted__replies__description": {
+    "messageformat": "म्यूट की गई चैट में, जब कोई आपके मैसेज का जवाब दे तो नोटिफ़िकेशन पाएं।"
+  },
+  "icu:UnreadReminders__title": {
+    "messageformat": "नहीं पढ़े गए रिमाइंडर"
+  },
+  "icu:UnreadReminders__description": {
+    "messageformat": "अगर म्यूट की गई इस चैट में नहीं पढ़े गए मैसेज हों, तो बीच-बीच में नोटिफ़िकेशन पाएं।"
+  },
+  "icu:Preferences__UnreadReminders__description": {
+    "messageformat": "अगर म्यूट की गई चैट में अनरीड मैसेज हों, तो बीच-बीच में नोटिफ़िकेशन पाएं।"
+  },
+  "icu:UnreadReminders__notification--messages--1": {
+    "messageformat": "{messageCount, plural, one {आपके पास {messageCount,number} अनरीड मैसेज है, जो {person1} ने भेजा है।} other {आपके पास {messageCount,number} अनरीड मैसेज हैं, जो {person1} ने भेजे हैं।}}"
+  },
+  "icu:UnreadReminders__notification--messages--2": {
+    "messageformat": "{messageCount, plural, one {आपके पास {messageCount,number} अनरीड मैसेज है, जो {person1} और {person2} ने भेजा है।} other {आपके पास {messageCount,number} अनरीड मैसेज हैं, जो {person1} और {person2} ने भेजे हैं।}}"
+  },
+  "icu:UnreadReminders__notification--messages--many": {
+    "messageformat": "{messageCount, plural, one {आपके पास {messageCount,number} अनरीड मैसेज है, जो {person1}, {person2} और अन्य ने भेजा है।} other {आपके पास {messageCount,number} अनरीड मैसेज हैं, जो {person1}, {person2} और अन्य ने भेजे हैं।}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-mentions": {
+    "messageformat": "{messageCount, plural, one {आपके पास {messageCount,number} अनरीड मैसेज है, जिसमें {mentionSummary} भी शामिल है।} other {आपके पास {messageCount,number} अनरीड मैसेज हैं, जिनमें {mentionSummary} भी शामिल है।}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-replies": {
+    "messageformat": "{messageCount, plural, one {आपके पास {messageCount,number} अनरीड मैसेज है, जिसमें {replySummary} भी शामिल है।} other {आपके पास {messageCount,number} अनरीड मैसेज हैं, जिनमें {replySummary} भी शामिल है।}}"
+  },
+  "icu:UnreadReminders__notification--counts--messages": {
+    "messageformat": "{messageCount, plural, one {आपके पास {messageCount,number} अनरीड मैसेज है।} other {आपके पास {messageCount,number} अनरीड मैसेज हैं।}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--1": {
+    "messageformat": "{mentionCount, plural, one {{person1} ने आपको एक जगह मेंशन किया है} other {{person1} ने आपको {mentionCount,number} बार मेंशन किया है}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--2": {
+    "messageformat": "{mentionCount, plural, one {{person1} और {person2} ने आपको {mentionCount,number} बार मेंशन किया है} other {{person1} और {person2} ने आपको {mentionCount,number} बार मेंशन किया है}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--many": {
+    "messageformat": "{mentionCount, plural, one {{person1} और अन्य ने आपको {mentionCount,number} बार मेंशन किया है} other {{person1} और अन्य ने आपको {mentionCount,number} बार मेंशन किया है}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--1": {
+    "messageformat": "{replyCount, plural, one {{person1} की ओर से एक जवाब} other {{person1} की ओर से {replyCount,number} जवाब}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--2": {
+    "messageformat": "{replyCount, plural, one {{person1} और {person2} से मिला {replyCount,number} जवाब} other {{person1} और {person2} से मिले {replyCount,number} जवाब}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--many": {
+    "messageformat": "{replyCount, plural, one {{person1} और अन्य से मिला {replyCount,number} जवाब} other {{person1} और अन्य से मिले {replyCount,number} जवाब}}"
   },
   "icu:GroupLinkManagement--clipboard": {
     "messageformat": "ग्रुप लिंक कॉपी किया गया।"
@@ -5242,9 +5308,6 @@
   },
   "icu:GroupMembersSearchDialog__SearchResults__Title": {
     "messageformat": "खोज नतीजे"
-  },
-  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
-    "messageformat": "सदस्य जोड़ें"
   },
   "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
     "messageformat": "सदस्य जोड़ें"
@@ -5537,6 +5600,9 @@
   },
   "icu:CaptchaDialog__second-paragraph": {
     "messageformat": "वेरिफ़िकेशन पूरा होने के बाद मैसेज भेजे जा सकते हैं। आपके जो भी मैसेज रुके हुए थे वे सब अपने-आप भेज दिए जाएंगे।"
+  },
+  "icu:CaptchaDialog__continue": {
+    "messageformat": "जारी रखें"
   },
   "icu:CaptchaDialog--can-close__title": {
     "messageformat": "वेरिफ़िकेशन के बिना जारी रखना है?"
@@ -6010,6 +6076,9 @@
   "icu:Preferences__reaction-notifications-description": {
     "messageformat": "आपके मैसेज पर कोई रिएक्ट करे तो नोटिफ़िकेशन पाएं"
   },
+  "icu:Preferences__button--account": {
+    "messageformat": "अकाउंट"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "सामान्य"
   },
@@ -6079,6 +6148,42 @@
   "icu:Preferences--system": {
     "messageformat": "सिस्टम"
   },
+  "icu:Preferences--signal-login": {
+    "messageformat": "Signal Login"
+  },
+  "icu:Preferences--signal-login-description": {
+    "messageformat": "आपके Signal Login का इस्तेमाल आपके अकाउंट को रिकवर और रीस्टोर करने के लिए किया जाता है। इन 'की' को अपने किसी भरोसेमंद पासवर्ड मैनेजर में सुरक्षित रूप से स्टोर करें। <learnMoreLink>ज़्यादा जानें</learnMoreLink>।"
+  },
+  "icu:Preferences--signal-login-description--learn-more": {
+    "messageformat": "और जानें"
+  },
+  "icu:Preferences__SignalAccount__label": {
+    "messageformat": "अकाउंट और रिकवरी"
+  },
+  "icu:Preferences__SignalAccount__description": {
+    "messageformat": "2 'की'"
+  },
+  "icu:Preferences__SignalAccountKeys__Title": {
+    "messageformat": "आपका Signal Login"
+  },
+  "icu:Preferences__SignalAccountKeys__Description": {
+    "messageformat": "इसे सुरक्षित जगह पर रखें, अपना अकाउंट और डेटा रिकवर करने के लिए आपको अपनी लॉगिन जानकारी की ज़रूरत होती है। इसे कभी किसी को न बताएं।"
+  },
+  "icu:Preferences__SignalAccountKeys__AccountID": {
+    "messageformat": "अकाउंट ID"
+  },
+  "icu:Preferences__SignalAccountKeys__RecoveryKey": {
+    "messageformat": "'रिकवरी की'"
+  },
+  "icu:Preferences__SignalAccountKeys__Save": {
+    "messageformat": "सेव करें"
+  },
+  "icu:Preferences__Account__LinkedDevice__label": {
+    "messageformat": "यह लिंक किया गया डिवाइस है"
+  },
+  "icu:Preferences__Account__LinkedDevice__description": {
+    "messageformat": "अपने अकाउंट की सेटिंग मैनेज करने के लिए, अपने प्राइमरी डिवाइस पर Signal खोलें।"
+  },
   "icu:Preferences--zoom": {
     "messageformat": "ज़ूम लेवल"
   },
@@ -6109,8 +6214,56 @@
   "icu:Preferences--advanced": {
     "messageformat": "ऐडवांस"
   },
+  "icu:Preferences--change-signal-pin": {
+    "messageformat": "अपना पिन बदलें"
+  },
+  "icu:Preferences--change-signal-pin-button": {
+    "messageformat": "बदलें"
+  },
+  "icu:Preferences--create-signal-pin": {
+    "messageformat": "पिन बनाएं"
+  },
+  "icu:Preferences--create-signal-pin-button": {
+    "messageformat": "बनाएं"
+  },
   "icu:Preferences--signal-pin": {
     "messageformat": "Signal पिन"
+  },
+  "icu:Preferences--signal-pin__footer": {
+    "messageformat": "पिन की मदद से Signal पर आपकी जानकारी एनक्रिप्टेड रूप में स्टोर की जाती है, ताकि सिर्फ़ आप ही उसे देख पाएं। पिन को रिकवर नहीं किया जा सकता। Signal को रीइंस्टॉल करने पर आपकी प्रोफ़ाइल, सेटिंग, और कॉन्टैक्ट भी रीस्टोर हो जाएंगे। <learnMoreLink>और जानें</learnMoreLink>"
+  },
+  "icu:Preferences--signal-pin-advanced-settings": {
+    "messageformat": "ऐडवांस पिन सेटिंग"
+  },
+  "icu:Preferences--disable-signal-pin": {
+    "messageformat": "पिन की सुविधा बंद करें"
+  },
+  "icu:Preferences--disable-signal-pin--button": {
+    "messageformat": "बंद करें"
+  },
+  "icu:Preferences--disable-signal-pin--footer": {
+    "messageformat": "अगर आपने पिन हटा दिया है, तो Signal पर दोबारा रजिस्टर करने पर आपका सारा डेटा मिट जाएगा। हालांकि, अगर आपने मैन्युअल तरीके से डेटा का बैकअप लिया है, तो आपके पास रीस्टोर करने का विकल्प रहेगा। पिन बंद रहने पर रजिस्ट्रेशन लॉक चालू नहीं किया जा सकता।"
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--title": {
+    "messageformat": "रजिस्ट्रेशन लॉक चालू होने की वजह से पिन बंद नहीं हो पाया"
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--body": {
+    "messageformat": "पिन हटाने से पहले रजिस्ट्रेशन लॉक हटाएं।"
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--ok": {
+    "messageformat": "ठीक है"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--title": {
+    "messageformat": "बैकअप चालू की वजह से पिन बंद नहीं हो पाया"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--body": {
+    "messageformat": "पिन हटाने से पहले बैकअप बंद करें।"
+  },
+  "icu:Preferences--enable-signal-pin": {
+    "messageformat": "पिन की सुविधा चालू करें"
+  },
+  "icu:Preferences--enable-signal-pin--button": {
+    "messageformat": "चालू करें"
   },
   "icu:Preferences--pin-reminders--header": {
     "messageformat": "पिन के लिए रिमाइंडर"
@@ -6118,8 +6271,11 @@
   "icu:Preferences--pin-reminders--description": {
     "messageformat": "धीरे-धीरे हम इसके बारे में पूछना कम कर देंगे"
   },
-  "icu:Preferences--notification-content": {
-    "messageformat": "नोटिफ़िकेशन का कॉन्टेंट"
+  "icu:Preferences--registration-lock__label": {
+    "messageformat": "रजिस्ट्रेशन लॉक"
+  },
+  "icu:Preferences--registration-lock__footer": {
+    "messageformat": "Signal में अपना फ़ोन नंबर दोबारा रजिस्टर करने के लिए Signal पिन ज़रूरी होता है।"
   },
   "icu:Preferences__Chats__TextInputSection__Title": {
     "messageformat": "टेक्स्ट इनपुट"
@@ -6127,11 +6283,47 @@
   "icu:Preferences__Chats__ChatFoldersSection__Title": {
     "messageformat": "चैट फ़ोल्डर"
   },
+  "icu:Preferences__Notifications__Show__Label": {
+    "messageformat": "दिखाएं"
+  },
   "icu:Preferences__Notifications__SoundsSection__Title": {
     "messageformat": "आवाज़"
   },
   "icu:Preferences__Notifications__AppBadgeSection__Title": {
     "messageformat": "ऐप बैज"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title-v2": {
+    "messageformat": "अनरीड बैज"
+  },
+  "icu:Preferences__Notifications__Reset__title": {
+    "messageformat": "नोटिफ़िकेशन सेटिंग को डिफ़ॉल्ट पर रीसेट करें, जिसमें चैट की कस्टम सेटिंग भी शामिल हैं।"
+  },
+  "icu:Preferences__Notifications__Reset__button": {
+    "messageformat": "रीसेट करें"
+  },
+  "icu:Preferences__Notifications__Reset__modal--body": {
+    "messageformat": "क्या सभी चैट के लिए नोटिफ़िकेशन सेटिंग को डिफ़ॉल्ट पर रीसेट करना है?"
+  },
+  "icu:Preferences__Notifications__Reset__modal--confirm": {
+    "messageformat": "रीसेट करें"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Label": {
+    "messageformat": "बैज की संख्या"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Description": {
+    "messageformat": "यह चुनें कि आपको बैज काउंट में अनरीड मैसेज की संख्या दिखे या अनरीड चैट की"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadMessages": {
+    "messageformat": "अनरीड मैसेज"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadChats": {
+    "messageformat": "अनरीड चैट"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats": {
+    "messageformat": "ऐप बैज में म्यूट की गईं चैट शामिल करें"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats__description": {
+    "messageformat": "चैट फ़ोल्डर बैज में म्यूट की गईं चैट हमेशा शामिल रहेंगी"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "पुरानी चैट एक्सपोर्ट करें"
@@ -6283,9 +6475,6 @@
   "icu:NotificationProfiles--setting": {
     "messageformat": "नोटिफ़िकेशन प्रोफ़ाइल"
   },
-  "icu:NotificationProfiles--setup": {
-    "messageformat": "सेटअप करें"
-  },
   "icu:NotificationProfiles--title": {
     "messageformat": "नोटिफ़िकेशन प्रोफ़ाइल"
   },
@@ -6297,9 +6486,6 @@
   },
   "icu:NotificationProfiles--manage-description": {
     "messageformat": "नोटिफ़िकेशन प्रोफ़ाइल जोड़ें या एडिट करें"
-  },
-  "icu:NotificationProfiles--manage-profiles": {
-    "messageformat": "{profileCount, plural, one {एक प्रोफ़ाइल} other {{profileCount,number} प्रोफ़ाइल}}"
   },
   "icu:NotificationProfiles--create": {
     "messageformat": "प्रोफ़ाइल बनाएं"
@@ -6700,9 +6886,6 @@
   "icu:Preferences__pnp__row--body": {
     "messageformat": "चुनें कि कौन आपका फ़ोन नंबर देख सकता है और कौन इसके ज़रिए आपसे Signal पर संपर्क कर सकता है।"
   },
-  "icu:Preferences__pnp__row--button": {
-    "messageformat": "बदलें…"
-  },
   "icu:Preferences__pnp__sharing--title": {
     "messageformat": "मेरा नंबर कौन देख सकता है"
   },
@@ -6751,14 +6934,8 @@
   "icu:Preferences--read-receipts": {
     "messageformat": "मैसेज पढ़े जाने की सूचना"
   },
-  "icu:Preferences--read-receipts--description": {
-    "messageformat": "इस सुविधा के बंद होने पर, आपको पता नहीं चल पाएगा कि दूसरे लोगों ने आपका मैसेज पढ़ा है या नहीं।"
-  },
   "icu:Preferences--typing-indicators": {
     "messageformat": "टाइप किए जाने की सूचना"
-  },
-  "icu:Preferences--typing-indicators--description": {
-    "messageformat": "इस सुविधा के बंद होने पर, आपको पता नहीं चल पाएगा कि दूसरे लोग टाइप कर रहे हैं या नहीं।"
   },
   "icu:Preferences--messaging-help": {
     "messageformat": "मैसेज देखे जाने या टाइप किए जाने की सूचना देखें और शेयर करें। इसे बंद रखने पर, आपको पता नहीं चल पाएगा कि दूसरों ने आपका मैसेज पढ़ा है या वे जवाब टाइप कर रहे हैं।"
@@ -6865,11 +7042,23 @@
   "icu:InstallScreenUpdateDialog--update-required__title": {
     "messageformat": "अपडेट ज़रूरी है"
   },
+  "icu:InstallScreenUpdateDialog--checking-for-updates": {
+    "messageformat": "नए अपडेट खोजे जा रहे हैं"
+  },
+  "icu:InstallScreenUpdateDialog--updating-signal": {
+    "messageformat": "Signal अपडेट हो रहा है"
+  },
+  "icu:InstallScreenUpdateDialog--download-progress": {
+    "messageformat": "{totalBytes} में से {currentBytes} ({percentage,number,percent}) डाउनलोड हो रहा है..."
+  },
   "icu:InstallScreenUpdateDialog--update-required__body": {
-    "messageformat": "अपने मैसेज को सिंक करने के लिए Signal डेस्कटॉप अभी अपडेट करें।"
+    "messageformat": "जारी रखने के लिए, Signal डेस्कटॉप को अपडेट करें।"
   },
   "icu:InstallScreenUpdateDialog--update-required__action-update": {
     "messageformat": "अपडेट करें"
+  },
+  "icu:InstallScreenUpdateDialog--update-required__action-update__mas": {
+    "messageformat": "App Store पर जाएं"
   },
   "icu:InstallScreenUpdateDialog--unsupported-os__title": {
     "messageformat": "अपडेट ज़रूरी है"
@@ -6903,6 +7092,9 @@
   },
   "icu:StandaloneRegistration--PhoneNumber--waiting": {
     "messageformat": "कृपया {duration} बाद फिर से कोशिश करें"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--RegionCodeSelector--Label": {
+    "messageformat": "देश का कोड चुनें"
   },
   "icu:StandaloneRegistration--PhoneNumber--placeholder": {
     "messageformat": "फ़ोन नंबर"
@@ -7425,6 +7617,12 @@
   },
   "icu:MediaPermissionsModal__step-2": {
     "messageformat": "'Signal' चालू करें"
+  },
+  "icu:MediaPermissionsModal__step-2--windows--microphone": {
+    "messageformat": "Signal को माइक्रोफ़ोन का ऐक्सेस दें"
+  },
+  "icu:MediaPermissionsModal__step-2--windows--camera": {
+    "messageformat": "Signal को कैमरे का ऐक्सेस दें"
   },
   "icu:MediaPermissionsModal__open": {
     "messageformat": "सेटिंग पर जाएं"
@@ -7966,11 +8164,17 @@
   "icu:ContextMenu--button": {
     "messageformat": "कॉन्टेक्स्ट मेन्यू"
   },
+  "icu:EditUsernameModalBody__username-label": {
+    "messageformat": "यूज़रनेम"
+  },
   "icu:EditUsernameModalBody__username-placeholder": {
     "messageformat": "यूज़रनेम"
   },
   "icu:EditUsernameModalBody__username-helper": {
     "messageformat": "यूज़रनेम के साथ हमेशा नंबर का एक सेट होता है।"
+  },
+  "icu:EditUsernameModalBody__discriminator-label": {
+    "messageformat": "यूज़रनेम नंबर"
   },
   "icu:EditUsernameModalBody__learn-more": {
     "messageformat": "और जानें"
@@ -8093,11 +8297,50 @@
   "icu:PinReminderModal__pin-input-error": {
     "messageformat": "पिन सही नहीं है। फिर से कोशिश करें"
   },
+  "icu:PinReminderModal__forgot": {
+    "messageformat": "पिन याद नहीं है"
+  },
   "icu:PinReminderModal__confirm": {
     "messageformat": "पुष्टि करें"
   },
   "icu:PinReminderCompletedToast": {
     "messageformat": "पिन सही है। हम आपको बाद में फिर से याद दिलाएंगे।"
+  },
+  "icu:PinChangeModal__title--create": {
+    "messageformat": "अपना Signal पिन बदलें"
+  },
+  "icu:PinChangeModal__title--create--without-pin": {
+    "messageformat": "अपना Signal पिन बनाएं"
+  },
+  "icu:PinChangeModal__body--create": {
+    "messageformat": "डिवाइस रजिस्टर रहने के दौरान पिन कभी भी बदला जा सकता है। <learnMoreLink>और जानें</learnMoreLink>"
+  },
+  "icu:PinChangeModal__body--create--without-pin": {
+    "messageformat": "पिन की मदद से Signal पर आपकी जानकारी एनक्रिप्टेड रूप में स्टोर की जाती है, ताकि सिर्फ़ आप ही उसे देख पाएं। रीइंस्टॉल करने पर आपकी प्रोफ़ाइल, सेटिंग, और कॉन्टैक्ट भी रीस्टोर हो जाएंगे। आपको ऐप खोलने के लिए पिन की ज़रूरत नहीं पड़ेगी। <learnMoreLink>और जानें</learnMoreLink>"
+  },
+  "icu:PinChangeModal__title--confirm": {
+    "messageformat": "Signal पिन की पुष्टि करें"
+  },
+  "icu:PinChangeModal__body--confirm": {
+    "messageformat": "ताज़ा पिन डालें।"
+  },
+  "icu:PinChangeModal__pin-input-placeholder--create": {
+    "messageformat": "नया पिन डालें"
+  },
+  "icu:PinChangeModal__pin-input-placeholder--confirm": {
+    "messageformat": "पिन की पुष्टि करें"
+  },
+  "icu:PinChangeModal__cancel": {
+    "messageformat": "कैंसिल करें"
+  },
+  "icu:PinChangeModal__continue": {
+    "messageformat": "जारी रखें"
+  },
+  "icu:PinChangeModal__confirm": {
+    "messageformat": "पुष्टि करें"
+  },
+  "icu:PinChangeCompletedToast": {
+    "messageformat": "नया पिन बनाया गया।"
   },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Signal डेस्कटॉप जल्द ही आपके कंप्यूटर के {OS} वर्ज़न पर काम नहीं करेगा। Signal का इस्तेमाल जारी रखने के लिए, अपने कंप्यूटर के ऑपरेटिंग सिस्टम को {expirationDate} तक अपडेट करें। <learnMoreLink>और जानें</learnMoreLink>"
@@ -8315,12 +8558,6 @@
   "icu:CallLinkPendingParticipantModal__DenyButtonLabel": {
     "messageformat": "एंट्री नामंज़ूर करें"
   },
-  "icu:CallLinkRestrictionsSelect__Option--Off": {
-    "messageformat": "बंद करें"
-  },
-  "icu:CallLinkRestrictionsSelect__Option--On": {
-    "messageformat": "चालू करें"
-  },
   "icu:CallLinkAddNameModal__Title": {
     "messageformat": "कॉल का नाम जोड़ें"
   },
@@ -8368,6 +8605,39 @@
   },
   "icu:SaveMultiDialog__title": {
     "messageformat": "अटैचमेंट सेव करें"
+  },
+  "icu:EmbeddedContact__message": {
+    "messageformat": "मैसेज"
+  },
+  "icu:ContactDetail__message": {
+    "messageformat": "मैसेज"
+  },
+  "icu:ContactDetail__add-to-group": {
+    "messageformat": "ग्रुप में जोड़ें"
+  },
+  "icu:ContactDetail__nickname": {
+    "messageformat": "निकनेम"
+  },
+  "icu:ContactDetail__note": {
+    "messageformat": "नोट"
+  },
+  "icu:email-v2": {
+    "messageformat": "ईमेल"
+  },
+  "icu:home-v2": {
+    "messageformat": "आवास"
+  },
+  "icu:mobile-v2": {
+    "messageformat": "मोबाइल"
+  },
+  "icu:work-v2": {
+    "messageformat": "ऑफ़िस"
+  },
+  "icu:phone-v2": {
+    "messageformat": "फ़ोन"
+  },
+  "icu:address-v2": {
+    "messageformat": "पता"
   },
   "icu:WhatsNew__modal-title": {
     "messageformat": "नया क्या है"
@@ -8533,6 +8803,9 @@
   },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Signal को सहयोग करने के लिए आपका धन्यवाद। आपका यह योगदान, ओपन सोर्स प्राइवेसी वाली टेक्नोलॉजी के ज़रिए हमारे मिशन को आगे बढ़ाने में मदद करता है। यह टेक्नोलॉजी अभिव्यक्ति की आज़ादी की रक्षा करती है और दुनिया भर के लाखों-करोड़ों लोगों को सुरक्षित तरीके से आपस में जुड़ने और बातचीत करने की सुविधा देती है। अगर आप अमेरिका से हैं, तो कृपया इस रसीद को अपने टैक्स रिकॉर्ड के लिए संभालकर रखें। Signal Technology Foundation, अमेरिका में रजिस्टर एक गैर-लाभकारी संस्था है। इसे डोनेशन देने से इंटरनल रेवेन्यू कोड की धारा 501c3 के तहत टैक्स में छूट मिलती है। हमारी फ़ेडरल टैक्स ID है: 82-4506840. Signal ने इस योगदान के बदले कोई वस्तु या सेवा प्रदान नहीं की है।"
+  },
+  "icu:MessageCta__Donate": {
+    "messageformat": "अभी डोनेट करें"
   },
   "icu:Donations__OfflineTooltip": {
     "messageformat": "आप ऑफ़लाइन हैं। डोनेशन पूरा करने के लिए इंटरनेट से कनेक्ट करें।"
@@ -8841,13 +9114,19 @@
     "messageformat": "कई छोटे सुधार किए गए हैं, बग हटाए गए हैं, और परफ़ॉर्मेंस बेहतर की गई है। Signal के साथ बने रहने के लिए धन्यवाद!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.24--1": {
-    "messageformat": "हमने ग्रुप सेटिंग पेज पर ग्रुप मेंबर को खोजना आसान बना दिया है। इससे आपको फटाफट यह पता चल जाएगा कि तीसरे सालाना फ़ैमिली रियूनियन BBQ ग्रुप में आपकी मां ने दूर की उस मौसेरी बहन या फुफेरे भाई को भी जोड़ दिया है, जिसे आप मुश्किल से पहचानते हैं।"
+  "icu:WhatsNew__8.30--0": {
+    "messageformat": "परफ़ॉर्मेंस में हुए कुछ सुधारों के बाद, वीडियो कॉल के दौरान भले ही आपके चेहरे पर मुस्कान न हो, लेकिन आपका CPU मन ही मन मुस्कुरा रहा होगा, क्योंकि उस पर अब थोड़ा कम ज़ोर पड़ेगा।"
   },
-  "icu:WhatsNew__8.25--0": {
-    "messageformat": "हमने अपीयरेंस सेटिंग में ज़ूम के दो नए लेवल जोड़े हैं, ताकि आप आसानी से अपने मैसेज 110% (या 90%) ज़ूम करके देख सकें।"
+  "icu:WhatsNew__8.30--1": {
+    "messageformat": "हमने Windows पर आपकी सिस्टम सेटिंग खोलने का एक आसान शॉर्टकट भी जोड़ा है, ताकि अगर आप वीडियो कॉल में शामिल होने की कोशिश करें और Signal के पास कैमरे का ऐक्सेस न हो, तो आप आसानी से सेटिंग बदल सकें। अब यह जानना आसान हो गया है कि आपको क्या करना होगा ताकि लोग आपको देख सकें।"
   },
-  "icu:WhatsNew__8.26--0": {
-    "messageformat": "खुद को जानना-तलाशना तो ताउम्र चलता ही रहेगा, लेकिन अब ग्रुप मेंबर सर्च में खुद को खोजना थोड़ा आसान हो गया है क्योंकि वहां आप की मौजूदगी अब 'आप' के रूप में ही दिखेगी।"
+  "icu:WhatsNew__8.32--0": {
+    "messageformat": "अब मैसेज फ़ोल्डर और सर्च इंटरफ़ेस में भी 'अनरीड' फ़िल्टर की सुविधा उपलब्ध है, जिससे आसानी से पता चल जाए कि आपसे क्या छूट गया है।"
+  },
+  "icu:WhatsNew__8.32--1": {
+    "messageformat": "खराब नेटवर्क में भी अपलोड करने की सुविधा बेहतर की गई है। सादर, <GH3mmmbulus></GH3mmmbulus>!"
+  },
+  "icu:WhatsNew__8.32--2": {
+    "messageformat": "'(N)' शॉर्टकट अब 'थम्स डाउन' इमोजी को सही ढंग से दर्शा रहा है। बग ठीक करने के लिए <lnicola></lnicola> का शुक्रिया।"
   }
 }

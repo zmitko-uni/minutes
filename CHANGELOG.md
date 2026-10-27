@@ -13,6 +13,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Changed
+
+- **Základ aplikace**: Minutes Beta vychází ze Signal Desktop 8.32.0
+
 ### Added
 - (doplňte před příštím release)
 

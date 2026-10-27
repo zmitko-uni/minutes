@@ -36,6 +36,7 @@ import type {
   ProcessedUnpinMessage,
 } from './Types.d.ts';
 import { GiftBadgeStates } from '../types/GiftBadgeStates.std.ts';
+import { AddressType, ContactFormType } from '../types/EmbeddedContact.std.ts';
 import type { RawBodyRange } from '../types/BodyRange.std.ts';
 import {
   APPLICATION_OCTET_STREAM,
@@ -51,7 +52,11 @@ import { PaymentEventKind } from '../types/Payment.std.ts';
 import { filterAndClean } from '../util/BodyRange.node.ts';
 import { bytesToUuid } from '../util/uuidToBytes.std.ts';
 import { createName } from '../util/attachmentPath.node.ts';
-import { partitionBodyAndNormalAttachments } from '../util/Attachment.std.ts';
+import {
+  getMessageAttachmentClass,
+  getValidMessageAttachments,
+  partitionBodyAndNormalAttachments,
+} from '../util/Attachment.std.ts';
 import { isNotNil } from '../util/isNotNil.std.ts';
 import { createLogger } from '../logging/log.std.ts';
 
@@ -65,6 +70,8 @@ const log = createLogger('processDataMessage');
 
 const FLAGS = Proto.DataMessage.Flags;
 export const ATTACHMENT_MAX = 32;
+
+const MAX_WAVEFORM_LENGTH = 100;
 
 export function processAttachment(
   attachment: Proto.AttachmentPointer
@@ -96,6 +103,8 @@ export function processAttachment(
     height,
     caption,
     blurHash,
+    audioWaveform,
+    audioDurationSeconds,
   } = attachment;
 
   if (!isNumber(size)) {
@@ -139,6 +148,11 @@ export function processAttachment(
       : undefined,
     key: Bytes.isNotEmpty(key) ? Bytes.toBase64(key) : undefined,
     size,
+    audioWaveform:
+      audioWaveform == null
+        ? undefined
+        : Array.from(audioWaveform.subarray(0, MAX_WAVEFORM_LENGTH)),
+    duration: audioDurationSeconds ?? undefined,
   };
 }
 
@@ -264,16 +278,124 @@ function processContact(
   }
 
   return contact.slice(0, 1).map(item => {
+    const {
+      aciBinary,
+      name,
+      number,
+      email,
+      address,
+      avatar,
+      organization,
+      nickname,
+      note,
+    } = item;
     return {
-      ...item,
-      avatar: item.avatar
+      aci: aciBinary ? fromAciUuidBytes(aciBinary) : undefined,
+      name: name
         ? {
-            avatar: processAttachment(item.avatar.avatar),
-            isProfile: Boolean(item.avatar.isProfile),
+            givenName: dropNull(name.givenName),
+            familyName: dropNull(name.familyName),
+            prefix: dropNull(name.prefix),
+            suffix: dropNull(name.suffix),
+            middleName: dropNull(name.middleName),
+            nickname: dropNull(name.nickname),
           }
         : undefined,
+      number: number
+        .map(({ value, type, label }) =>
+          value
+            ? {
+                value,
+                type: processContactPhoneType(type),
+                label: dropNull(label),
+              }
+            : undefined
+        )
+        .filter(isNotNil),
+      email: email
+        .map(({ value, type, label }) =>
+          value
+            ? {
+                value,
+                type: processContactEmailType(type),
+                label: dropNull(label),
+              }
+            : undefined
+        )
+        .filter(isNotNil),
+      address: address.map(addr => ({
+        type: processContactAddressType(addr.type),
+        label: dropNull(addr.label),
+        street: dropNull(addr.street),
+        pobox: dropNull(addr.pobox),
+        neighborhood: dropNull(addr.neighborhood),
+        city: dropNull(addr.city),
+        region: dropNull(addr.region),
+        postcode: dropNull(addr.postcode),
+        country: dropNull(addr.country),
+      })),
+      organization: dropNull(organization),
+      avatar: avatar
+        ? {
+            avatar: processAttachment(avatar.avatar),
+            isProfile: Boolean(avatar.isProfile),
+          }
+        : undefined,
+      nickname: nickname
+        ? {
+            givenName: nickname.given ?? undefined,
+            familyName: nickname.family ?? undefined,
+          }
+        : undefined,
+      note: note ?? undefined,
     };
   });
+}
+
+function processContactPhoneType(
+  type: Proto.DataMessage.Contact.Phone.$NullableType | null
+): ContactFormType {
+  const { Type } = Proto.DataMessage.Contact.Phone;
+  switch (type) {
+    case Type.MOBILE:
+      return ContactFormType.MOBILE;
+    case Type.WORK:
+      return ContactFormType.WORK;
+    case Type.CUSTOM:
+      return ContactFormType.CUSTOM;
+    default:
+      return ContactFormType.HOME;
+  }
+}
+
+function processContactEmailType(
+  type: Proto.DataMessage.Contact.Email.$NullableType | null
+): ContactFormType {
+  const { Type } = Proto.DataMessage.Contact.Email;
+  switch (type) {
+    case Type.MOBILE:
+      return ContactFormType.MOBILE;
+    case Type.WORK:
+      return ContactFormType.WORK;
+    case Type.CUSTOM:
+      return ContactFormType.CUSTOM;
+    default:
+      return ContactFormType.HOME;
+  }
+}
+
+function processContactAddressType(
+  type: Proto.DataMessage.Contact.PostalAddress.$NullableType | null
+): AddressType {
+  const { Type } = Proto.DataMessage.Contact.PostalAddress;
+  switch (type) {
+    case Type.WORK:
+      return AddressType.WORK;
+    case Type.CUSTOM:
+      return AddressType.CUSTOM;
+    default:
+      return AddressType.HOME;
+  }
 }
 
 function isLinkPreviewDateValid(value: unknown): value is number {
@@ -311,13 +433,16 @@ export function processPreview(
 function processSticker(
   sticker?: Proto.DataMessage.Sticker | null
 ): ProcessedSticker | undefined {
-  if (!sticker) {
+  if (!sticker?.packId || !sticker.packKey) {
+    if (sticker) {
+      log.warn('Dropping sticker without packId and packKey');
+    }
     return undefined;
   }
 
   return {
-    packId: sticker.packId ? Bytes.toHex(sticker.packId) : undefined,
-    packKey: sticker.packKey ? Bytes.toBase64(sticker.packKey) : undefined,
+    packId: Bytes.toHex(sticker.packId),
+    packKey: Bytes.toBase64(sticker.packKey),
     stickerId: sticker.stickerId ?? 0,
     emoji:
       sticker.emoji != null
@@ -546,15 +671,25 @@ export function processDataMessage(
     }))
     .filter(isNotNil);
 
+  const logId = `processDataMessage(${timestamp})`;
+
   const { bodyAttachment, attachments } = partitionBodyAndNormalAttachments(
     { attachments: processedAttachments ?? [] },
-    { logId: `processDataMessage(${timestamp})` }
+    { logId }
   );
 
+  const renderableAttachments = getValidMessageAttachments(attachments);
+  if (attachments[0] && renderableAttachments.length < attachments.length) {
+    log.warn(
+      `${logId}: message leads with ${getMessageAttachmentClass(attachments)} but ` +
+        `has ${attachments.length} attachments; dropping ` +
+        `${attachments.length - renderableAttachments.length}`
+    );
+  }
   const result: ProcessedDataMessage = {
     body: message.body ?? '',
     bodyAttachment,
-    attachments,
+    attachments: renderableAttachments,
     groupV2: processGroupV2Context(message.groupV2),
     flags: message.flags ?? 0,
     expireTimer: DurationInSeconds.fromSeconds(message.expireTimer ?? 0),
@@ -625,10 +760,12 @@ export function processDataMessage(
 
   const attachmentCount = result.attachments.length;
   if (attachmentCount > ATTACHMENT_MAX) {
-    throw new Error(
+    log.warn(
       `Too many attachments: ${attachmentCount} included in one message, ` +
         `max is ${ATTACHMENT_MAX}`
     );
+
+    result.attachments = result.attachments.slice(0, ATTACHMENT_MAX);
   }
 
   return result;

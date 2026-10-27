@@ -17,6 +17,7 @@ import { Bootstrap } from '../bootstrap.node.ts';
 import {
   sendTextMessage,
   getTimelineMessageWithText,
+  getLoadedImagesInside,
 } from '../helpers.node.ts';
 
 export const debug = createDebug('mock:test:backfill');
@@ -170,11 +171,12 @@ describe('attachment backfill', function (this: Mocha.Suite) {
     // No download buttons
     debug('waiting for spinner to become visible');
     await startDownload.waitFor({ state: 'detached' });
-    const cancelDownload = conversationStack.getByRole('button', {
-      name: 'Cancel Download',
-    });
+    const cancelDownload = conversationStack
+      .getByRole('button', {
+        name: 'Cancel Download',
+      })
+      .first();
     await cancelDownload.waitFor();
-
     debug('sending pending backfill response');
     await phone.sendRaw(
       desktop,
@@ -517,9 +519,7 @@ describe('attachment backfill', function (this: Mocha.Suite) {
       }
     );
 
-    await conversationStack
-      .locator('.module-image-grid--with-sticker')
-      .waitFor();
+    await getLoadedImagesInside(conversationStack).waitFor();
   });
 
   it('should not request backfill on quote/preview', async () => {

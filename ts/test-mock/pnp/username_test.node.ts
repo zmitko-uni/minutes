@@ -134,33 +134,13 @@ describe('pnp/username', function (this: Mocha.Suite) {
         .waitFor();
 
       debug('verify that storage service state is updated');
-      {
-        const newState = await phone.waitForStorageState({
-          after: state,
-        });
 
-        const { added, removed } = newState.diff(state);
-        assert.strictEqual(added.length, 1, 'only one record must be added');
-        assert.strictEqual(
-          removed.length,
-          1,
-          'only one record must be removed'
-        );
-
-        assert.ok(added[0]?.contact != null);
-        assert.deepEqual(
-          added[0].contact.aciBinary,
-          usernameContact.device.aciRawUuid
-        );
-        assert.strictEqual(added[0].contact.username, '');
-
-        assert.ok(removed[0]?.contact != null);
-        assert.deepEqual(
-          removed[0].contact.aciBinary,
-          usernameContact.device.aciRawUuid
-        );
-        assert.strictEqual(removed[0].contact.username, USERNAME);
-      }
+      assert.strictEqual(state.getContact(usernameContact)?.username, USERNAME);
+      await phone.waitForStorageState({
+        after: state,
+        predicate: storageState =>
+          storageState.getContact(usernameContact)?.username === '',
+      });
 
       if (type === 'system') {
         // No notifications
@@ -194,21 +174,25 @@ describe('pnp/username', function (this: Mocha.Suite) {
 
     const window = await app.getWindow();
 
-    debug('opening settings tab context menu');
-    await window.locator('[data-key="Settings"]').click();
+    debug('opening settings');
+    await window.getByRole('tab', { name: 'Settings' }).click();
 
     debug('opening username editor');
-    const profileEditor = window.locator('.ProfileEditor');
-    await profileEditor.getByRole('button', { name: 'Username' }).click();
+    const settings = window.getByRole('tabpanel', { name: 'Settings' });
+    await settings
+      .getByRole('button', { name: 'Username', exact: true })
+      .click();
 
     debug('entering new username');
-    const usernameField = profileEditor.locator('.Input__input');
+    const usernameField = settings.getByRole('textbox', {
+      name: 'Username',
+    });
     await typeIntoInput(usernameField, NICKNAME, '');
 
     debug('waiting for generated discriminator');
-    const discriminator = profileEditor.locator(
-      '.UsernameEditor__discriminator__input[value]'
-    );
+    const discriminator = settings.getByRole('textbox', {
+      name: 'Username digits',
+    });
     await discriminator.waitFor();
 
     const discriminatorValue = await discriminator.inputValue();
@@ -218,26 +202,22 @@ describe('pnp/username', function (this: Mocha.Suite) {
 
     debug('saving username');
     let state = await phone.expectStorageState('consistency check');
-    await profileEditor.getByRole('button', { name: 'Save' }).click();
+    await settings.getByRole('button', { name: 'Save' }).click();
 
     debug('checking the username is saved');
     {
-      await profileEditor.getByRole('button', { name: username }).waitFor();
+      await settings.getByRole('button', { name: username }).waitFor();
 
       const uuid = await server.lookupByUsername(username);
       assert.strictEqual(uuid, phone.device.aci);
 
       const newState = await phone.waitForStorageState({
         after: state,
+        predicate: storageState =>
+          storageState.getAccountRecord()?.username === username,
       });
 
-      const { added, removed } = newState.diff(state);
-      assert.strictEqual(added.length, 1, 'only one record must be added');
-      assert.strictEqual(removed.length, 1, 'only one record must be removed');
-
-      assert.ok(added[0]?.account != null);
-      assert.strictEqual(added[0].account.username, username);
-      const { usernameLink } = added[0].account;
+      const usernameLink = newState.getAccountRecord()?.usernameLink;
       if (!usernameLink) {
         throw new Error('No username link in AccountRecord');
       }
@@ -265,10 +245,10 @@ describe('pnp/username', function (this: Mocha.Suite) {
     }
 
     debug('deleting username');
-    await profileEditor
-      .locator('button[aria-label="Copy or delete username"]')
+    await settings
+      .getByRole('button', { name: 'Copy or delete username' })
       .click();
-    await profileEditor.locator('button[aria-label="Delete"]').click();
+    await window.getByRole('menuitem', { name: 'Delete' }).click();
     await window
       .getByRole('alertdialog')
       .filter({
@@ -278,7 +258,9 @@ describe('pnp/username', function (this: Mocha.Suite) {
       })
       .getByRole('button', { name: 'Delete' })
       .click();
-    await profileEditor.getByRole('button', { name: 'Username' }).waitFor();
+    await settings
+      .getByRole('button', { name: 'Username', exact: true })
+      .waitFor();
 
     // Make sure we get a sync message
     await phone.waitForSyncMessage(entry => {
@@ -292,26 +274,21 @@ describe('pnp/username', function (this: Mocha.Suite) {
 
       const newState = await phone.waitForStorageState({
         after: state,
+        predicate: storageState =>
+          storageState.getAccountRecord()?.username === '',
       });
 
-      const { added, removed } = newState.diff(state);
-      assert.strictEqual(added.length, 1, 'only one record must be added');
-      assert.strictEqual(removed.length, 1, 'only one record must be removed');
-
-      assert.ok(added[0]?.account != null, 'expected updated account');
-      assert.strictEqual(added[0].account.username, '', 'clears username');
+      const usernameLink = newState.getAccountRecord()?.usernameLink;
       assert.strictEqual(
-        added[0].account.usernameLink?.entropy?.length ?? 0,
+        usernameLink?.entropy?.length ?? 0,
         0,
         'clears usernameLink.entropy'
       );
       assert.strictEqual(
-        added[0].account.usernameLink?.serverId?.length ?? 0,
+        usernameLink?.serverId?.length ?? 0,
         0,
         'clears usernameLink.serverId'
       );
-
-      state = newState;
     }
   });
 

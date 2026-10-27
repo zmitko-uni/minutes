@@ -1,13 +1,9 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
-
 import { isNumber } from 'lodash';
 import { v7 as generateUuid } from 'uuid';
 import { SvrKey } from '@signalapp/libsignal-client/dist/AccountKeys';
-
 import type { ReadonlyDeep } from 'type-fest';
-import type { ThunkAction } from 'redux-thunk';
-
 import { SECOND } from '../../util/durations/constants.std.ts';
 import { toLogFormat } from '../../types/errors.std.ts';
 import { createLogger } from '../../logging/log.std.ts';
@@ -45,6 +41,7 @@ import { itemStorage } from '../../textsecure/Storage.preload.ts';
 import {
   disableStorageService,
   enableStorageService,
+  runStorageServiceUploadJob,
 } from '../../services/storage.preload.ts';
 import { assertDev } from '../../util/assert.std.ts';
 import { FatalErrorType } from '../../types/StandaloneRegistration.std.ts';
@@ -69,16 +66,17 @@ import type {
   RawTimings,
   RegistrationWorkflow,
   Timings,
+  UpdateRequiredStage,
   VerificationCodeStage,
   VerifyPINStage,
 } from '../../types/StandaloneRegistration.std.ts';
 import type { BoundActionCreatorsMapObject } from '../../hooks/useBoundActions.std.ts';
-import type { StateType } from '../reducer.preload.ts';
 import type { OpenInboxActionType } from './app.preload.ts';
 import type { RestoreResponseType } from '../../textsecure/WebAPI.preload.ts';
 import type { NoopActionType } from './noop.std.ts';
 import type { AvatarDataType } from '../../types/Avatar.std.ts';
 import { normalizePin } from '../../util/normalizePin.std.ts';
+import type { AsyncStateThunk, SyncStateThunk } from '../types.std.ts';
 
 const log = createLogger('ducks/standaloneInstaller');
 
@@ -150,12 +148,7 @@ export function startRegistration({
   blankPhoneNumber?: boolean;
   startingPhoneNumber?: string;
   waitUntil?: number;
-} = {}): ThunkAction<
-  Promise<void>,
-  StateType,
-  unknown,
-  UpdateWorkflowActionType
-> {
+} = {}): AsyncStateThunk<UpdateWorkflowActionType> {
   return async (dispatch, getState) => {
     const logId =
       `startRegistration(waitUntil=${waitUntil}, ` +
@@ -202,7 +195,7 @@ export function moveToCaptchaStage({
   phoneNumber: string;
   waitNeeded?: number;
   workflow: PhoneNumberStage;
-}): ThunkAction<Promise<void>, StateType, unknown, UpdateWorkflowActionType> {
+}): AsyncStateThunk<UpdateWorkflowActionType> {
   return async dispatch => {
     const logId = `moveToCaptchaStage(waitNeeded=${waitNeeded}, profileData=${Boolean(previousWorkflow.profileData)})`;
     log.info(logId);
@@ -253,7 +246,7 @@ export function moveToVerificationStage({
   workflow: previousWorkflow,
 }: {
   workflow: CaptchaStage;
-}): ThunkAction<Promise<void>, StateType, unknown, UpdateWorkflowActionType> {
+}): AsyncStateThunk<UpdateWorkflowActionType> {
   return async (dispatch, getState) => {
     const logId = `moveToVerificationPage(profileData=${Boolean(previousWorkflow.profileData)})`;
     log.info(logId);
@@ -276,6 +269,14 @@ export function moveToVerificationStage({
     const captchaToken = await challengeHandler.requestCaptcha({
       reason: 'standalone registration',
     });
+
+    const afterCaptchaWorkflow = getState().standaloneInstaller.workflow;
+    if (afterCaptchaWorkflow?.stage !== RegistrationStage.CAPTCHA) {
+      log.warn(
+        `${logId}: Captcha challenge returned, but workflow is now at stage ${afterCaptchaWorkflow?.stage}`
+      );
+      return;
+    }
 
     try {
       workflow = {
@@ -324,7 +325,7 @@ export function moveToVerificationStage({
       if (
         error instanceof LibSignalErrorBase &&
         (error.is(ErrorCode.RegistrationRequestRejected) ||
-          error.is(ErrorCode.RegistrationRequestRejected))
+          error.is(ErrorCode.RegistrationRequestInvalid))
       ) {
         workflow = {
           ...workflow,
@@ -360,10 +361,12 @@ export function moveToVerificationStage({
       failedToSendSMS: false,
     };
     drop(
-      requestVerificationCode({
-        transport: VerificationTransport.SMS,
-        workflow: nextWorkflow,
-      })(dispatch, getState, undefined)
+      dispatch(
+        requestVerificationCode({
+          transport: VerificationTransport.SMS,
+          workflow: nextWorkflow,
+        })
+      )
     );
   };
 }
@@ -394,7 +397,7 @@ export function requestVerificationCode({
 }: {
   transport: VerificationTransport;
   workflow: VerificationCodeStage;
-}): ThunkAction<Promise<void>, StateType, unknown, UpdateWorkflowActionType> {
+}): AsyncStateThunk<UpdateWorkflowActionType> {
   return async dispatch => {
     let workflow: VerificationCodeStage = previousWorkflow;
     const {
@@ -570,7 +573,7 @@ export function submitVerificationCode({
 }: {
   code: string;
   workflow: VerificationCodeStage;
-}): ThunkAction<Promise<void>, StateType, unknown, UpdateWorkflowActionType> {
+}): AsyncStateThunk<UpdateWorkflowActionType> {
   return async dispatch => {
     const { codeSendCount, failedSubmitCodeCount } = previousWorkflow;
     const logId =
@@ -667,8 +670,13 @@ export function submitVerificationCode({
           PartialRegistrationType.EXISTING__PROFILE
         );
       } else {
-        // We own storage service; no prior data there. We just turn it on!
-        enableStorageService();
+        enableStorageService(
+          'submitVerificationCode: just created account, no prior data in storage service'
+        );
+        runStorageServiceUploadJob({
+          reason:
+            'submitVerificationCode: just created account, no prior data in storage service',
+        });
         await itemStorage.put(
           'standaloneRegistrationPartialState',
           PartialRegistrationType.NEW_ACCOUNT__PROFILE
@@ -702,9 +710,10 @@ export function submitVerificationCode({
           },
           avatars: undefined,
         };
-      }
-
-      if (!accountState) {
+      } else {
+        enableStorageService(
+          'submitVerificationCode: Got a random error back from account creation'
+        );
         workflow = {
           ...workflow,
           status: {
@@ -755,7 +764,7 @@ export function finishProfileEntryStage({
 }: {
   profileData: ProfileData;
   workflow: ProfileEntryStage;
-}): ThunkAction<Promise<void>, StateType, unknown, UpdateWorkflowActionType> {
+}): AsyncStateThunk<UpdateWorkflowActionType> {
   return async dispatch => {
     const logId = `finishProfileEntry(accountCreated=${previousWorkflow.accountState.created})`;
     log.info(logId);
@@ -863,8 +872,8 @@ export function verifyPIN({
 }: {
   pin: string;
   workflow: VerifyPINStage;
-}): ThunkAction<Promise<void>, StateType, unknown, UpdateWorkflowActionType> {
-  return async (dispatch, getState) => {
+}): AsyncStateThunk<UpdateWorkflowActionType> {
+  return async dispatch => {
     const { dataForReglockAccountCreate } = previousWorkflow;
     const logId = `verifyPIN(reglock=${Boolean(dataForReglockAccountCreate)})`;
     log.info(logId);
@@ -917,12 +926,14 @@ export function verifyPIN({
             // Something has really gone wrong - we're in reglock, but SVR has nothing for us
             dispatch(updateWorkflow(workflow, FatalErrorType.UNEXPECTED));
           } else {
-            // No reglock and nothing in SVR - let's allow the user to create a new PIN
-            enableStorageService();
+            enableStorageService(
+              'verifyPIN: nothing in SVR; will start afresh with new key'
+            );
             await itemStorage.put(
               'standaloneRegistrationPartialState',
               PartialRegistrationType.NEW_ACCOUNT__PIN
             );
+            // No reglock and nothing in SVR - let's allow the user to create a new PIN
             dispatch(goToCreatePINStage());
           }
         } else {
@@ -954,12 +965,14 @@ export function verifyPIN({
     if (!dataForReglockAccountCreate) {
       try {
         await itemStorage.put('svrPin', pin);
+        await itemStorage.put('isSvrPinStored', false);
         await itemStorage.put(
           'temporaryRegistrationMasterKey',
           toBase64(masterKey)
         );
         await itemStorage.put('standaloneRegistrationPartialState', undefined);
-        enableStorageService();
+        await itemStorage.put('registrationLock', false);
+        enableStorageService('verifyPIN: No reglock, got temporary master key');
       } catch (error) {
         log.error(
           `${logId}: error saving data after creating account`,
@@ -1001,7 +1014,7 @@ export function verifyPIN({
         return;
       }
 
-      await completeRegistration({ workflow })(dispatch, getState, undefined);
+      await dispatch(completeRegistration({ workflow }));
       return;
     }
 
@@ -1014,7 +1027,7 @@ export function verifyPIN({
 
     try {
       disableStorageService(
-        'standaloneInstaller/verifyPIN, about to create account'
+        'standaloneInstaller/verifyPIN: Reglock, about to create account'
       );
       await accountManager.registerAsPrimaryDevice({
         number: phoneNumber,
@@ -1028,6 +1041,12 @@ export function verifyPIN({
         toLogFormat(error)
       );
 
+      workflow = {
+        ...workflow,
+        status: {
+          type: 'ready',
+        },
+      };
       dispatch({
         type: UPDATE_WORKFLOW,
         payload: {
@@ -1050,6 +1069,10 @@ export function verifyPIN({
         profileData.phoneNumberDiscoverability
       );
 
+      // Created account with reglock so it remains on
+      await itemStorage.put('isSvrPinStored', true);
+      await itemStorage.put('registrationLock', true);
+
       const ourConversation =
         window.ConversationController.getOurConversationOrThrow();
       const existingAvatars = ourConversation.get('avatars');
@@ -1057,20 +1080,16 @@ export function verifyPIN({
         ourConversation.set({ avatars });
         await DataWriter.updateConversation(ourConversation.attributes);
       }
-
-      enableStorageService();
     } catch (error) {
+      // The account is created, so we should let the user go to the inbox
       log.error(
         `${logId}: error saving data after creating account`,
         toLogFormat(error)
       );
-      dispatch({
-        type: UPDATE_WORKFLOW,
-        payload: {
-          workflow,
-          fatalError: FatalErrorType.UNEXPECTED,
-        },
-      });
+    } finally {
+      enableStorageService(
+        'verifyPIN: Created account with reglock, tried to set things up'
+      );
     }
 
     try {
@@ -1092,24 +1111,14 @@ export function verifyPIN({
           : undefined,
       });
     } catch (error) {
+      // The account is created, so we should let the user go to the inbox
       log.error(
         `${logId}: error queueing important jobs after creating account`,
         toLogFormat(error)
       );
-      dispatch({
-        type: UPDATE_WORKFLOW,
-        payload: {
-          workflow,
-          fatalError: FatalErrorType.UNEXPECTED,
-        },
-      });
     }
 
-    await completeRegistration({ workflow: previousWorkflow })(
-      dispatch,
-      getState,
-      undefined
-    );
+    await dispatch(completeRegistration({ workflow: previousWorkflow }));
   };
 }
 
@@ -1150,7 +1159,7 @@ export function createPIN({
 }: {
   pin: string;
   workflow: CreatePINConfirmStage;
-}): ThunkAction<Promise<void>, StateType, unknown, UpdateWorkflowActionType> {
+}): AsyncStateThunk<UpdateWorkflowActionType> {
   return async (dispatch, getState) => {
     const logId = `createPIN(pinLength=${pin.length})`;
     log.info(logId);
@@ -1174,6 +1183,7 @@ export function createPIN({
       dispatch(updateWorkflow(workflow));
 
       await itemStorage.put('svrPin', pin);
+      await itemStorage.put('isSvrPinStored', false);
       await itemStorage.put('standaloneRegistrationPartialState', undefined);
 
       await registrationJobQueue.add({
@@ -1195,7 +1205,7 @@ export function createPIN({
       return;
     }
 
-    await completeRegistration({ workflow })(dispatch, getState, undefined);
+    await dispatch(completeRegistration({ workflow }));
   };
 }
 
@@ -1209,17 +1219,22 @@ export function goToAccountLockedStage(): UpdateWorkflowActionType {
   return updateWorkflow(workflow);
 }
 
+function goToUpdateRequiredStage(): UpdateWorkflowActionType {
+  const logId = 'goToUpdateRequiredStage';
+  log.info(logId);
+
+  const workflow: UpdateRequiredStage = {
+    stage: RegistrationStage.UPDATE_REQUIRED,
+  };
+  return updateWorkflow(workflow);
+}
+
 export function completeRegistration({
   workflow: previousWorkflow,
 }: {
   workflow: VerifyPINStage | CreatePINStage | CreatePINConfirmStage;
-}): ThunkAction<
-  Promise<void>,
-  StateType,
-  unknown,
-  OpenInboxActionType | UpdateWorkflowActionType
-> {
-  return async (dispatch, getState) => {
+}): AsyncStateThunk<OpenInboxActionType | UpdateWorkflowActionType> {
+  return async dispatch => {
     const logId = `completeRegistration`;
     log.info(logId);
 
@@ -1228,9 +1243,12 @@ export function completeRegistration({
       `${logId}: Stage ${previousWorkflow.stage} is not a valid 'before complete' stage`
     );
 
+    // Can be reached by skipping PIN creation during registration.
+    await itemStorage.put('standaloneRegistrationPartialState', undefined);
+
     window.IPC.removeSetupMenuItems();
 
-    await openInbox()(dispatch, getState, undefined);
+    await dispatch(openInbox());
 
     dispatch({
       type: UPDATE_WORKFLOW,
@@ -1247,12 +1265,7 @@ export function completeRegistration({
 
 function deleteAvatarFromDisk(
   avatarData: AvatarDataType
-): ThunkAction<
-  Promise<void>,
-  StateType,
-  unknown,
-  OpenInboxActionType | UpdateWorkflowActionType
-> {
+): AsyncStateThunk<OpenInboxActionType | UpdateWorkflowActionType> {
   return async (dispatch, getState) => {
     const logId = 'deleteAvatarFromDisk';
     const state = getState();
@@ -1296,12 +1309,7 @@ function deleteAvatarFromDisk(
 function replaceAvatar(
   curr: AvatarDataType,
   prev?: AvatarDataType
-): ThunkAction<
-  void,
-  StateType,
-  unknown,
-  OpenInboxActionType | UpdateWorkflowActionType
-> {
+): SyncStateThunk<OpenInboxActionType | UpdateWorkflowActionType> {
   return (dispatch, getState) => {
     const logId = 'replaceAvatar';
     const state = getState();
@@ -1345,12 +1353,7 @@ function replaceAvatar(
 }
 function saveAvatarToDisk(
   avatarData: AvatarDataType
-): ThunkAction<
-  Promise<void>,
-  StateType,
-  unknown,
-  OpenInboxActionType | UpdateWorkflowActionType
-> {
+): AsyncStateThunk<OpenInboxActionType | UpdateWorkflowActionType> {
   return async (dispatch, getState) => {
     const logId = 'saveAvatarToDisk';
     const state = getState();
@@ -1409,6 +1412,7 @@ export const actions = {
   goToAccountLockedStage,
   goToCreatePINStage,
   goToProfileEntryStage,
+  goToUpdateRequiredStage,
   goToVerifyPINStage,
   moveToCaptchaStage,
   moveToVerificationStage,
@@ -1431,12 +1435,12 @@ export const useStandaloneInstallerActions = (): BoundActionCreatorsMapObject<
 // Utilities
 
 function analyzeError(error: Error): FatalErrorType {
-  // TODO: might want to do something here for rate limit errors
   if (error instanceof LibSignalErrorBase) {
     if (
       error.is(ErrorCode.ChatServiceInactive) ||
       error.is(ErrorCode.IoError) ||
-      error.is(ErrorCode.PossibleCaptiveNetwork)
+      error.is(ErrorCode.PossibleCaptiveNetwork) ||
+      error.is(ErrorCode.RateLimitedError)
     ) {
       return FatalErrorType.OFFLINE;
     }
@@ -1496,19 +1500,35 @@ export function reducer(
       return getEmptyState();
     }
 
-    if (newWorkflow.stage === RegistrationStage.PHONE_NUMBER) {
-      log.info(
-        `UPDATE_WORKFLOW: Transitioning from ${previousWorkflow?.stage ?? '<none>'} to ${newWorkflow.stage}`
-      );
+    const previousOrder = previousWorkflow?.stage
+      ? StageOrder[previousWorkflow.stage]
+      : StageOrder[RegistrationStage.PHONE_NUMBER] - 1;
+    const currentOrder = StageOrder[newWorkflow.stage];
+    const direction =
+      currentOrder >= previousOrder ? Direction.FORWARD : Direction.BACKWARD;
+
+    if (previousWorkflow?.stage === newWorkflow.stage) {
       return {
         ...state,
         workflow: newWorkflow,
         fatalError,
-        direction:
-          previousWorkflow &&
-          previousWorkflow.stage !== RegistrationStage.PHONE_NUMBER
-            ? Direction.BACKWARD
-            : Direction.FORWARD,
+        direction,
+      };
+    }
+
+    if (
+      newWorkflow.stage === RegistrationStage.PHONE_NUMBER ||
+      newWorkflow.stage === RegistrationStage.UPDATE_REQUIRED
+    ) {
+      log.info(
+        `UPDATE_WORKFLOW: Transitioning from ${previousWorkflow?.stage ?? '<none>'} to ${newWorkflow.stage}`
+      );
+
+      return {
+        ...state,
+        workflow: newWorkflow,
+        fatalError,
+        direction,
       };
     }
 
@@ -1525,7 +1545,7 @@ export function reducer(
           ...state,
           workflow: newWorkflow,
           fatalError,
-          direction: Direction.FORWARD,
+          direction,
         };
       }
 
@@ -1535,15 +1555,6 @@ export function reducer(
       return {
         ...state,
         fatalError: FatalErrorType.UNEXPECTED,
-      };
-    }
-
-    if (previousWorkflow.stage === newWorkflow.stage) {
-      return {
-        ...state,
-        workflow: newWorkflow,
-        fatalError,
-        direction: Direction.FORWARD,
       };
     }
 
@@ -1562,15 +1573,11 @@ export function reducer(
       `UPDATE_WORKFLOW: Transitioning from ${previousWorkflow.stage} to ${newWorkflow.stage}`
     );
 
-    const previousOrder = StageOrder[previousWorkflow.stage];
-    const currentOrder = StageOrder[previousWorkflow.stage];
-
     return {
       ...state,
       workflow: newWorkflow,
       fatalError,
-      direction:
-        currentOrder >= previousOrder ? Direction.FORWARD : Direction.BACKWARD,
+      direction,
     };
   }
 

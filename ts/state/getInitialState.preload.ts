@@ -1,7 +1,6 @@
 // Copyright 2022 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { getEmptyState as accountsEmptyState } from './ducks/accounts.preload.ts';
 import { getEmptyState as appEmptyState } from './ducks/app.preload.ts';
 import { getEmptyState as audioPlayerEmptyState } from './ducks/audioPlayer.preload.ts';
 import { getEmptyState as audioRecorderEmptyState } from './ducks/audioRecorder.preload.ts';
@@ -44,7 +43,6 @@ import { getEmptyState as userEmptyState } from './ducks/user.preload.ts';
 import { getEmptyState as usernameEmptyState } from './ducks/username.preload.ts';
 
 import OS from '../util/os/osMain.node.ts';
-import { getInteractionMode } from '../services/InteractionMode.dom.ts';
 import { makeLookup } from '../util/makeLookup.std.ts';
 import {
   ATTACHMENTS_PATH,
@@ -70,7 +68,7 @@ export function getInitialState(
     badgesState,
     callLinks,
     callHistory: calls,
-    callHistoryUnreadCount,
+    callHistoryUnreadCountsByConversationId,
     chatFolders,
     donations,
     gifs,
@@ -95,7 +93,7 @@ export function getInitialState(
     callHistory: {
       ...callHistoryEmptyState(),
       callHistoryByCallId: makeLookup(calls, 'callId'),
-      unreadCount: callHistoryUnreadCount,
+      unreadCountsByConversationId: callHistoryUnreadCountsByConversationId,
     },
     calling: {
       ...callingEmptyState(),
@@ -149,7 +147,6 @@ function generateConversationsState(): ConversationsStateType {
 
 function getEmptyState(): StateType {
   return {
-    accounts: accountsEmptyState(),
     app: appEmptyState(),
     audioPlayer: audioPlayerEmptyState(),
     audioRecorder: audioRecorderEmptyState(),
@@ -229,7 +226,6 @@ function generateUserState({
     ...userEmptyState(),
     attachmentsPath: ATTACHMENTS_PATH,
     i18n: window.SignalContext.i18n,
-    interactionMode: getInteractionMode(),
     isMainWindowFullScreen: mainWindowStats.isFullScreen,
     isMainWindowMaximized: mainWindowStats.isMaximized,
     localeMessages: window.SignalContext.i18n.getLocaleMessages(),

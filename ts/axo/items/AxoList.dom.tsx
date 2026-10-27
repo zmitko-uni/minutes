@@ -1,11 +1,30 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
-import type { FC, ReactNode } from 'react';
+import type { FC, ReactNode, Ref } from 'react';
 import { memo } from 'react';
 import { tw } from '../tw.dom.tsx';
 import { AriaLabelled } from '../aria/AriaLabelled.dom.tsx';
 
 export namespace AxoList {
+  /**
+   * <AxoList.Group>
+   * --------------------------------------------------------------------------
+   */
+
+  export type GroupProps = Readonly<{
+    children: ReactNode;
+  }>;
+
+  export const Group: FC<GroupProps> = memo(props => {
+    return (
+      <div className={tw('group/axo-list-group flex flex-col gap-4')}>
+        {props.children}
+      </div>
+    );
+  });
+
+  Group.displayName = 'AxoList.Group';
+
   /**
    * <AxoList.Root>
    * --------------------------------------------------------------------------
@@ -19,7 +38,9 @@ export namespace AxoList {
   export const Root: FC<RootProps> = memo(props => {
     return (
       <AriaLabelled.Root asChild label={props.accessibilityLabel}>
-        <section>{props.children}</section>
+        <section className={tw('group/axo-list-root min-w-min')}>
+          {props.children}
+        </section>
       </AriaLabelled.Root>
     );
   });
@@ -42,15 +63,15 @@ export namespace AxoList {
   Header.displayName = 'AxoList.Header';
 
   /**
-   * <AxoList.Title>
+   * <AxoList.Label>
    * --------------------------------------------------------------------------
    */
 
-  export type TitleProps = Readonly<{
+  export type LabelProps = Readonly<{
     children: ReactNode;
   }>;
 
-  export const Title: FC<TitleProps> = memo(props => {
+  export const Label: FC<LabelProps> = memo(props => {
     return (
       <AriaLabelled.Label asChild>
         <h2 className={tw('type-body-medium font-semibold')}>
@@ -60,7 +81,7 @@ export namespace AxoList {
     );
   });
 
-  Title.displayName = 'AxoList.Title';
+  Label.displayName = 'AxoList.Label';
 
   /**
    * <AxoList.Description>
@@ -87,15 +108,17 @@ export namespace AxoList {
    */
 
   export type BodyProps = Readonly<{
+    ref?: Ref<HTMLDivElement>;
     children: ReactNode;
   }>;
 
   export const Body: FC<BodyProps> = memo(props => {
     return (
       <div
+        ref={props.ref}
         className={tw(
           'min-w-fit',
-          'curved-20 bg-surface-card p-1.5 shadow-elevation-0',
+          'curved-2xl bg-surface-card p-1 shadow-elevation-0',
           'forced-colors:bg-[Canvas] forced-colors:text-[CanvasText]',
           'forced-colors:border forced-colors:border-[ButtonBorder]'
         )}
@@ -123,15 +146,15 @@ export namespace AxoList {
   Footer.displayName = 'AxoList.Footer';
 
   /**
-   * <AxoList.Help>
+   * <AxoList.FooterDescription>
    * --------------------------------------------------------------------------
    */
 
-  export type HelpProps = Readonly<{
+  export type FooterDescriptionProps = Readonly<{
     children: ReactNode;
   }>;
 
-  export const Help: FC<HelpProps> = memo(props => {
+  export const FooterDescription: FC<FooterDescriptionProps> = memo(props => {
     return (
       <AriaLabelled.Description asChild>
         <p
@@ -146,5 +169,5 @@ export namespace AxoList {
     );
   });
 
-  Help.displayName = 'AxoList.Help';
+  FooterDescription.displayName = 'AxoList.FooterDescription';
 }

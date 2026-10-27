@@ -43,7 +43,6 @@ const MESSAGE_DEFAULT_PROPS = {
   canDeleteForEveryone: false,
   canRetryDeleteForEveryone: false,
   retryDeleteForEveryone: shouldNeverBeCalled,
-  checkForAccount: shouldNeverBeCalled,
   clearSelectedMessage: shouldNeverBeCalled,
   clearTargetedMessage: shouldNeverBeCalled,
   containerWidthBreakpoint: WidthBreakpoint.Medium,
@@ -53,6 +52,7 @@ const MESSAGE_DEFAULT_PROPS = {
   isMessageRequestAccepted: true,
   markAttachmentAsCorrupted: shouldNeverBeCalled,
   messageExpanded: shouldNeverBeCalled,
+  handleClickCtaButton: shouldNeverBeCalled,
   onReplyToMessage: shouldNeverBeCalled,
   onToggleSelect: shouldNeverBeCalled,
   openGiftBadge: shouldNeverBeCalled,
@@ -79,7 +79,7 @@ const MESSAGE_DEFAULT_PROPS = {
   showLightboxForViewOnceMedia: shouldNeverBeCalled,
   showMediaNoLongerAvailableToast: shouldNeverBeCalled,
   showTapToViewNotAvailableModal: shouldNeverBeCalled,
-  startConversation: shouldNeverBeCalled,
+  startConversationWithSharedContact: shouldNeverBeCalled,
   textDirection: TextDirection.Default,
   viewStory: shouldNeverBeCalled,
 };
@@ -121,9 +121,9 @@ export function EditHistoryMessagesModal({
 
   return (
     <AxoDialog.Root open onOpenChange={closeEditHistoryModal}>
-      <AxoDialog.Content size="sm" escape="cancel-is-noop">
-        <AxoDialog.Header>
-          <AxoDialog.Title screenReaderOnly>
+      <AxoDialog.Content size="md" escape="cancel-is-noop">
+        <AxoDialog.Header floating>
+          <AxoDialog.Title>
             {i18n('icu:EditHistoryMessagesModal__title')}
           </AxoDialog.Title>
           <AxoDialog.Close />
@@ -267,7 +267,6 @@ export function EditHistoryMessagesModal({
             })}
           </div>
         </AxoDialog.Body>
-        <AxoDialog.Footer />
       </AxoDialog.Content>
     </AxoDialog.Root>
   );

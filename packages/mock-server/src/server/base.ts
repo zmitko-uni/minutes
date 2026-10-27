@@ -15,10 +15,16 @@ import {
   BackupCredentialType,
   BackupLevel,
   CallLinkAuthCredentialResponse,
+  ClientZkProfileOperations,
   CreateCallLinkCredentialRequest,
   CreateCallLinkCredentialResponse,
+  ExpiringProfileKeyCredentialResponse,
   GenericServerSecretParams,
   GroupPublicParams,
+  GroupSecretParams,
+  ProfileKey,
+  ProfileKeyCommitment,
+  ProfileKeyCredentialPresentation,
   ProfileKeyCredentialRequest,
   ServerSecretParams,
   ServerZkAuthOperations,
@@ -164,6 +170,8 @@ export type RegisterDeviceOptions = Readonly<
   ) & {
     registrationId: RegistrationId;
     pniRegistrationId: RegistrationId | undefined;
+    registrationLockToken?: string | null;
+    unidentifiedAccessKey: Buffer<ArrayBuffer> | undefined;
   }
 >;
 
@@ -367,6 +375,11 @@ export type HardcodedResponseError = {
 
 const debug = createDebug('mock:server:base');
 
+function getDeviceUsername(device: Device): string {
+  // This is awkward, but WebSockets use it.
+  return `${device.aci}.${device.deviceId}`;
+}
+
 // NOTE: This class is currently extended only by src/api/server.ts
 export abstract class Server {
   private readonly devices = new Map<AciString, Array<Device>>();
@@ -384,6 +397,7 @@ export abstract class Server {
     AciString,
     Map<string, Buffer<ArrayBuffer>>
   >();
+  private readonly registrationLockTokensByACI = new Map<AciString, string>();
   private readonly provisioningCodes = new Map<
     string,
     Map<ProvisioningCode, ProvisionIdString>
@@ -423,6 +437,7 @@ export abstract class Server {
   private readonly backupMediaCursorById = new Map<string, BackupMediaCursor>();
   private readonly remoteConfig = new Map<string, RemoteConfigValueType>();
 
+  protected nextAci: AciString | undefined;
   protected privCertificate: ServerCertificate | undefined;
   protected privZKSecret: ServerSecretParams | undefined;
   protected privGenericServerSecret: GenericServerSecretParams | undefined;
@@ -453,6 +468,12 @@ export abstract class Server {
   //
 
   public async generateAci(): Promise<AciString> {
+    const nextAci = this.nextAci;
+    if (nextAci) {
+      this.nextAci = undefined;
+      return nextAci;
+    }
+
     let result: AciString;
     do {
       result = uuidv4() as AciString;
@@ -474,6 +495,10 @@ export abstract class Server {
   // Provisioning
   //
 
+  public setNextAci(aci: AciString | undefined): void {
+    this.nextAci = aci;
+  }
+
   public async generateProvisionId(): Promise<ProvisionIdString> {
     let result: ProvisionIdString;
     do {
@@ -491,6 +516,21 @@ export abstract class Server {
     id: ProvisionIdString,
     abortSignal?: AbortSignal,
   ): Promise<ProvisioningResponse>;
+
+  public setRegistrationLockToken(
+    aci: AciString,
+    registrationLock: string | undefined,
+  ): void {
+    if (!registrationLock) {
+      this.registrationLockTokensByACI.delete(aci);
+      return;
+    }
+
+    this.registrationLockTokensByACI.set(aci, registrationLock);
+  }
+  public getRegistrationLockToken(aci: AciString): string | undefined {
+    return this.registrationLockTokensByACI.get(aci);
+  }
 
   public setRegisterResponseData(data: Partial<RegisterAccountResponse>): void {
     this.registerResponseData = data;
@@ -518,6 +558,8 @@ export abstract class Server {
     pniRegistrationId,
     password,
     authCredentialSalt: maybeAuthCredentialSalt,
+    registrationLockToken,
+    unidentifiedAccessKey,
   }: RegisterDeviceOptions): Promise<Device> {
     if (provisionId && !this.usedProvisionIds.has(provisionId)) {
       throw new Error('Use generateProvisionId() to create new provision id');
@@ -539,6 +581,16 @@ export abstract class Server {
       authCredentialSalt = maybeAuthCredentialSalt;
     }
 
+    const currentToken = this.getRegistrationLockToken(aci);
+    if (currentToken && registrationLockToken !== currentToken) {
+      const errorText =
+        'registerDevice: Matching registrationLock was not provided!';
+      debug(errorText);
+      const error = new Error(errorText);
+      error.name = 'RegistrationLock';
+      throw error;
+    }
+
     let list = this.devices.get(aci);
     if (!list) {
       list = [];
@@ -557,6 +609,9 @@ export abstract class Server {
       isProvisioned: !!password,
       authCredentialSalt,
     });
+    if (unidentifiedAccessKey?.length && !device.accessKey?.length) {
+      device.accessKey = unidentifiedAccessKey;
+    }
 
     if (isPrimary) {
       assert(!this.primaryByServiceId.has(aci), 'Duplicate primary device');
@@ -574,6 +629,55 @@ export abstract class Server {
 
     debug('registered device number=%j aci=%s pni=%s', number, aci, pni);
     return device;
+  }
+
+  public deleteAccount(primaryDevice: Device): void {
+    const { aci, pni } = primaryDevice;
+
+    const devices = this.devices.get(aci);
+
+    this.devices.delete(aci);
+    this.primaryByServiceId.delete(aci);
+    if (pni) {
+      this.primaryByServiceId.delete(pni);
+    }
+
+    // Note: we purposefully want to exclude these to test account recovery scenarios
+    // storageManifestByAci
+    // storageItemsByAci
+
+    devices?.forEach((device) => {
+      const username = getDeviceUsername(device);
+      this.devicesByAuth.delete(username);
+      this.messageQueue.delete(device);
+      this.webSockets.delete(device);
+
+      const auth = this.storageAuthByDevice.get(device);
+      if (auth) {
+        this.storageAuthByDevice.delete(device);
+        this.storageAuthByUsername.delete(auth.username);
+      }
+    });
+
+    const username = this.usernameByAci.get(aci);
+    if (username) {
+      this.usernameByAci.delete(aci);
+      this.aciByUsername.delete(username);
+    }
+
+    const reservedUsername = this.reservedUsernameByAci.get(aci);
+    if (reservedUsername) {
+      this.reservedUsernameByAci.delete(aci);
+      this.aciByReservedUsername.delete(reservedUsername);
+    }
+
+    const linkId = this.usernameLinkIdByServiceId.get(aci);
+    if (linkId !== undefined) {
+      this.usernameLinkIdByServiceId.delete(aci);
+      this.usernameLinkById.delete(linkId);
+    }
+
+    this.backupAuthReqByAci.delete(aci);
   }
 
   // Called from primary device
@@ -621,6 +725,7 @@ export abstract class Server {
       registrationId,
       pniRegistrationId,
       password,
+      unidentifiedAccessKey: undefined,
     });
 
     debug('provisioned device id=%j aci=%j', device.deviceId, device.aci);
@@ -628,8 +733,7 @@ export abstract class Server {
   }
 
   private setDeviceAuthPassword(device: Device, password: string) {
-    // This is awkward, but WebSockets use it.
-    const username = `${device.aci}.${device.deviceId}`;
+    const username = getDeviceUsername(device);
 
     // Add auth only after successfully registering the device
     assert(
@@ -1039,27 +1143,27 @@ export abstract class Server {
   }
 
   public getStorageManifest(
-    device: Device,
+    aci: AciString,
   ): Proto.StorageManifest.Params | undefined {
-    return this.storageManifestByAci.get(device.aci);
+    return this.storageManifestByAci.get(aci);
   }
 
   public async applyStorageWrite(
-    device: Device,
+    aci: AciString,
     { manifest, clearAll, insertItem, deleteKey }: Proto.WriteOperation.Params,
     shouldNotify = true,
   ): Promise<StorageWriteResult> {
     if (!manifest) {
       return { error: 'missing `writeOperation.manifest`' };
     }
-    if (!manifest.version) {
+    if (manifest.version === null) {
       return { error: 'missing `writeOperation.manifest.version`' };
     }
 
-    const existing = this.getStorageManifest(device);
+    const existing = this.getStorageManifest(aci);
     if (existing) {
       // Atomicity
-      assert(existing.version, 'consistency check');
+      assert(typeof existing.version === 'bigint', 'consistency check');
       if (manifest.version !== existing.version + 1n) {
         debug(
           'not updating storage manifest, current version=%j new version=%j',
@@ -1071,8 +1175,8 @@ export abstract class Server {
     }
 
     if (clearAll) {
-      debug('clearing storage items for=%j', device.debugId);
-      this.clearStorageItems(device);
+      debug('clearing storage items for=%j', aci);
+      this.clearStorageItems(aci);
     }
 
     for (const item of insertItem ?? []) {
@@ -1081,54 +1185,50 @@ export abstract class Server {
         item.value instanceof Uint8Array,
         'insertItem.value must be a Buffer',
       );
-      this.setStorageItem(
-        device,
-        Buffer.from(item.key),
-        Buffer.from(item.value),
-      );
+      this.setStorageItem(aci, Buffer.from(item.key), Buffer.from(item.value));
     }
 
     for (const key of deleteKey ?? []) {
-      this.deleteStorageItem(device, Buffer.from(key));
+      this.deleteStorageItem(aci, Buffer.from(key));
     }
 
     debug(
       'updating storage manifest to version=%d for=%j',
       manifest.version,
-      device.debugId,
+      aci,
     );
-    this.storageManifestByAci.set(device.aci, manifest);
+    this.storageManifestByAci.set(aci, manifest);
 
     if (shouldNotify) {
-      await this.onStorageManifestUpdate(device, manifest.version);
+      await this.onStorageManifestUpdate(aci, manifest.version);
     }
 
     return { updated: true };
   }
 
-  private clearStorageItems(device: Device): void {
-    this.storageItemsByAci.get(device.aci)?.clear();
+  private clearStorageItems(aci: AciString): void {
+    this.storageItemsByAci.get(aci)?.clear();
   }
 
   private setStorageItem(
-    device: Device,
+    aci: AciString,
     key: Buffer<ArrayBuffer>,
     value: Buffer<ArrayBuffer>,
   ): void {
-    let map = this.storageItemsByAci.get(device.aci);
+    let map = this.storageItemsByAci.get(aci);
     if (!map) {
       map = new Map();
-      this.storageItemsByAci.set(device.aci, map);
+      this.storageItemsByAci.set(aci, map);
     }
 
     map.set(key.toString('hex'), value);
   }
 
   public getStorageItem(
-    device: Device,
+    aci: AciString,
     key: Buffer<ArrayBuffer>,
   ): Buffer<ArrayBuffer> | undefined {
-    const map = this.storageItemsByAci.get(device.aci);
+    const map = this.storageItemsByAci.get(aci);
     if (!map) {
       return undefined;
     }
@@ -1136,8 +1236,8 @@ export abstract class Server {
     return map.get(key.toString('hex'));
   }
 
-  public getAllStorageKeys(device: Device): Array<Buffer<ArrayBuffer>> {
-    const map = this.storageItemsByAci.get(device.aci);
+  public getAllStorageKeys(aci: AciString): Array<Buffer<ArrayBuffer>> {
+    const map = this.storageItemsByAci.get(aci);
     if (!map) {
       return [];
     }
@@ -1146,13 +1246,13 @@ export abstract class Server {
   }
 
   public getStorageItems(
-    device: Device,
+    aci: AciString,
     keys: ReadonlyArray<Buffer<ArrayBuffer>>,
   ): Array<Proto.StorageItem.Params> | undefined {
     const result = new Array<Proto.StorageItem.Params>();
 
     for (const key of keys) {
-      const value = this.getStorageItem(device, key);
+      const value = this.getStorageItem(aci, key);
       if (value !== undefined) {
         result.push({ key, value });
       }
@@ -1161,8 +1261,8 @@ export abstract class Server {
     return result;
   }
 
-  public deleteStorageItem(device: Device, key: Buffer<ArrayBuffer>): void {
-    const map = this.storageItemsByAci.get(device.aci);
+  public deleteStorageItem(aci: AciString, key: Buffer<ArrayBuffer>): void {
+    const map = this.storageItemsByAci.get(aci);
     if (!map) {
       return;
     }
@@ -1171,7 +1271,7 @@ export abstract class Server {
   }
 
   protected abstract onStorageManifestUpdate(
-    device: Device,
+    aci: AciString,
     version: bigint,
   ): Promise<void>;
 
@@ -1517,16 +1617,21 @@ export abstract class Server {
     serviceId: ServiceIdString,
     deviceId = PRIMARY_DEVICE_ID,
   ): Promise<Device | undefined> {
+    const byServiceId = this.devices.get(serviceId as AciString);
+    if (byServiceId) {
+      return byServiceId.find((device) => device.deviceId === deviceId);
+    }
+
     const primary = this.primaryByServiceId.get(serviceId);
     if (primary == null) {
       return undefined;
     }
 
-    const list = this.devices.get(primary.aci);
-    if (list === undefined) {
+    const byAci = this.devices.get(primary.aci);
+    if (byAci === undefined) {
       return undefined;
     }
-    return list.find((device) => device.deviceId === deviceId);
+    return byAci.find((device) => device.deviceId === deviceId);
   }
 
   public async removeDeviceByServiceId(
@@ -1628,10 +1733,15 @@ export abstract class Server {
     });
   }
 
-  public async issueExpiringProfileKeyCredential(
-    { aci, profileKeyCommitment }: Device,
-    request: ProfileKeyCredentialRequest,
-  ): Promise<Buffer<ArrayBuffer> | undefined> {
+  public async issueExpiringProfileKeyCredential({
+    aci,
+    profileKeyCommitment,
+    request,
+  }: {
+    aci: AciString;
+    profileKeyCommitment: ProfileKeyCommitment | undefined;
+    request: ProfileKeyCredentialRequest;
+  }): Promise<Buffer<ArrayBuffer> | undefined> {
     if (!profileKeyCommitment) {
       return undefined;
     }
@@ -1648,6 +1758,44 @@ export abstract class Server {
           today + PROFILE_KEY_CREDENTIAL_EXPIRATION,
         )
         .serialize(),
+    );
+  }
+
+  async getProfileKeyPresentation({
+    aci,
+    profileKey,
+    profileKeyCommitment: providedProfileKeyCommitment,
+    groupParams,
+  }: {
+    aci: AciString;
+    profileKey: ProfileKey;
+    profileKeyCommitment: ProfileKeyCommitment | undefined;
+    groupParams: GroupSecretParams;
+  }): Promise<ProfileKeyCredentialPresentation> {
+    const ops = new ClientZkProfileOperations(this.zkSecret.getPublicParams());
+
+    const ctx = ops.createProfileKeyCredentialRequestContext(
+      Aci.parseFromServiceIdString(aci),
+      profileKey,
+    );
+    const profileKeyCommitment =
+      providedProfileKeyCommitment ??
+      profileKey.getCommitment(Aci.parseFromServiceIdString(aci));
+    const response = await this.issueExpiringProfileKeyCredential({
+      aci,
+      profileKeyCommitment,
+      request: ctx.getRequest(),
+    });
+    assert.ok(response, `Member device ${aci} not initialized`);
+
+    const credential = ops.receiveExpiringProfileKeyCredential(
+      ctx,
+      new ExpiringProfileKeyCredentialResponse(response),
+    );
+
+    return ops.createExpiringProfileKeyCredentialPresentation(
+      groupParams,
+      credential,
     );
   }
 

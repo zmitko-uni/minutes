@@ -153,7 +153,10 @@ describe('groups/terminate', function (this: Mocha.Suite) {
 
     let group: Group;
     {
-      state = await phone.waitForStorageState({ after: state });
+      state = await phone.waitForStorageState({
+        after: state,
+        predicate: storageState => storageState.getAllGroupRecords().length > 0,
+      });
       const groups = await phone.getAllGroups(state);
       assert.strictEqual(groups.length, 1, '1 group');
 
@@ -171,10 +174,7 @@ describe('groups/terminate', function (this: Mocha.Suite) {
 
     await window.getByRole('menuitem', { name: 'Group settings' }).click();
 
-    await conversationStack
-      .locator('.conversation-details-panel')
-      .getByRole('button', { name: 'End group' })
-      .click();
+    await conversationStack.getByRole('button', { name: 'End group' }).click();
 
     await window
       .getByRole('alertdialog', { name: `End "${group.title}"?` })

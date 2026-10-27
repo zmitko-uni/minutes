@@ -56,7 +56,7 @@ export function DatePicker(props: PropsType): JSX.Element {
     >
       <Group
         className={tw(
-          'flex min-w-0 flex-1 items-center rounded-lg border-[2.5px] border-transparent bg-primary px-2 py-0.5 keyboard-mode:focus-within:axo-focus-ring'
+          'flex min-w-0 flex-1 items-center rounded-lg border-[2.5px] border-transparent bg-primary px-2 py-0.5 focus-visible-within:axo-focus-ring'
         )}
       >
         <DateInput className={tw('inline-flex items-center')}>
@@ -64,7 +64,7 @@ export function DatePicker(props: PropsType): JSX.Element {
             <DateSegment
               className={classNames(
                 tw(
-                  'inline-block px-px type-body-medium outline-none focus:bg-secondary'
+                  'inline-block px-px type-body-medium focus:bg-secondary focus-visible:outline-none'
                 ),
                 isDisabled ? tw('text-placeholder') : null
               )}
@@ -74,7 +74,9 @@ export function DatePicker(props: PropsType): JSX.Element {
         </DateInput>
         <Button
           className={classNames(
-            tw('ms-auto p-0.5 outline-none focus-visible:bg-secondary'),
+            tw(
+              'ms-auto p-0.5 focus-visible:bg-secondary focus-visible:outline-none'
+            ),
             isDisabled ? tw('text-placeholder') : null
           )}
         >
@@ -116,7 +118,7 @@ export function DatePicker(props: PropsType): JSX.Element {
             className={tw(
               'overflow-auto',
               'rounded-[10px] bg-surface-secondary shadow-elevation-1',
-              'outline-none keyboard-mode:data-focused:axo-focus-ring'
+              'focus-visible:outline-none data-focus-visible:axo-focus-ring'
             )}
           >
             <RadixDialog.Title className={tw('sr-only')}>
@@ -159,7 +161,7 @@ export function DatePicker(props: PropsType): JSX.Element {
                           'data-focused:bg-primary',
                           'data-today:font-semibold',
                           'data-selected:bg-secondary-pressed',
-                          'outline-none keyboard-mode:data-focused:axo-focus-ring'
+                          'focus-visible:outline-none data-focus-visible:axo-focus-ring'
                         )}
                         date={date}
                       />
@@ -192,7 +194,7 @@ function ArrowButton(props: ArrowButtonProps) {
         'data-hovered:bg-primary',
         'data-focused:bg-primary',
         'data-selected:bg-secondary-pressed',
-        'outline-none keyboard-mode:data-focused:axo-focus-ring'
+        'focus-visible:outline-none data-focus-visible:axo-focus-ring'
       )}
     >
       <AxoSymbol.Icon

@@ -158,8 +158,10 @@ export namespace AxoSelect {
     'group relative inline-flex items-center',
     'rounded-full text-start type-body-medium font-medium text-primary',
     'disabled:text-disabled',
-    'outline-none keyboard-mode:focus:axo-focus-ring',
-    'forced-colors:border'
+    'focus-visible:axo-focus-ring',
+    'forced-colors:border',
+    'forced-colors:text-[ButtonText]',
+    'disabled:forced-colors:text-[GrayText]'
   );
 
   const TriggerVariants = variants<TriggerVariant>('AxoSelect.TriggerVariant', {
@@ -224,6 +226,10 @@ export namespace AxoSelect {
 
   export type TriggerProps = Readonly<{
     /**
+     * HTML `id` used to associate a `<label htmlFor={id}>` with this button.
+     */
+    id?: string;
+    /**
      * Visual style of the button. Defaults to `default`.
      */
     variant?: TriggerVariant;
@@ -263,6 +269,7 @@ export namespace AxoSelect {
 
     return (
       <Select.Trigger
+        id={props.id}
         className={tw(TriggerVariants.get(variant), TriggerWidths.get(width))}
       >
         <div className={TriggerChevronContentStyles.get(chevron)}>

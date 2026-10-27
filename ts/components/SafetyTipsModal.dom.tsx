@@ -21,7 +21,7 @@ export function SafetyTipsModal({
   const [page, setPage] = useState<'summary' | 'details'>('summary');
   return (
     <AxoDialog.Root open onOpenChange={onClose}>
-      <AxoDialog.Content size="sm" escape="cancel-is-noop">
+      <AxoDialog.Content size="md" escape="cancel-is-noop">
         {page === 'summary' ? (
           <SafetyTipsSummary
             i18n={i18n}
@@ -73,17 +73,17 @@ function SafetyTipsSummary({
   return (
     <>
       <AxoDialog.Header>
-        <div className={tw('sr-only')}>
-          <AxoDialog.Description>
-            {i18n('icu:SafetyTipsModal__Title-v2')}
-          </AxoDialog.Description>
-        </div>
         <AxoDialog.Title>
           {i18n('icu:SafetyTipsModal__Title-v2')}
         </AxoDialog.Title>
         <AxoDialog.Close />
       </AxoDialog.Header>
       <AxoDialog.Body>
+        <div className={tw('sr-only')}>
+          <AxoDialog.Description>
+            {i18n('icu:SafetyTipsModal__Title-v2')}
+          </AxoDialog.Description>
+        </div>
         <div className={tw('py-4')}>
           <ul className={tw('mb-7 space-y-9')}>
             {tips.map(tip => (
@@ -251,7 +251,6 @@ function SafetyTipsDetails({ i18n }: { i18n: LocalizerType }): JSX.Element {
             <div className={pageIndex === 0 ? tw('invisible') : ''}>
               <AxoIconButton.Root
                 variant="strong-secondary"
-                iconWeight={300}
                 label={i18n('icu:previous')}
                 tooltip={false}
                 symbol="chevron-[start]"
@@ -284,7 +283,6 @@ function SafetyTipsDetails({ i18n }: { i18n: LocalizerType }): JSX.Element {
                 symbol="chevron-[end]"
                 variant="strong-secondary"
                 tooltip={false}
-                iconWeight={300}
                 label={i18n('icu:next')}
                 disabled={pageIndex === maxPageIndex}
                 size="sm"

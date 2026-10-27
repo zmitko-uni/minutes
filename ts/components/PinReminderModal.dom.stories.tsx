@@ -18,6 +18,7 @@ export function Default(): JSX.Element {
     <PinReminderModal
       open
       onCancel={action('onCancel')}
+      onForgotPin={action('onForgotPin')}
       onPinEntry={() => Math.random() > 0.5}
       i18n={i18n}
     />
@@ -30,6 +31,7 @@ export function WrongPin(): JSX.Element {
       internalHasValidationError
       open
       onCancel={action('onCancel')}
+      onForgotPin={action('onForgotPin')}
       onPinEntry={() => Math.random() > 0.5}
       i18n={i18n}
     />

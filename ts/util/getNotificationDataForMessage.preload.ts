@@ -374,7 +374,7 @@ export function getNotificationDataForMessage(
       };
     }
 
-    if (contentType === MIME.IMAGE_GIF || Attachment.isGIF(attachments)) {
+    if (contentType === MIME.IMAGE_GIF || Attachment.isGIF(attachment)) {
       return {
         bodyRanges,
         emoji: Emoji.FERRIS_WHEEL,
@@ -441,7 +441,7 @@ export function getNotificationDataForMessage(
       callHistorySelector: getCallHistorySelector(state),
       conversationSelector: getConversationSelector(state),
       selectedMessageIds: getSelectedMessageIds(state),
-      targetedMessageId: getTargetedMessage(state)?.id,
+      targetedMessageId: getTargetedMessage(state)?.id ?? null,
     });
     if (callingNotification) {
       const text = getCallingNotificationText(callingNotification, i18n);
@@ -479,8 +479,10 @@ export function getNotificationDataForMessage(
   const { contact: contacts } = attributes;
   if (contacts && contacts.length) {
     return {
-      // oxlint-disable-next-line typescript/no-non-null-assertion
-      text: EmbeddedContact.getName(contacts[0]!) || i18n('icu:unknownContact'),
+      text:
+        // oxlint-disable-next-line typescript/no-non-null-assertion
+        EmbeddedContact.getDisplayName(contacts[0]!) ||
+        i18n('icu:unknownContact'),
       emoji: Emoji.BUST_IN_SILHOUETTE,
     };
   }

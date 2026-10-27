@@ -1,5 +1,11 @@
 # @signalapp/types
 
+## 0.3.0
+
+### Minor Changes
+
+- e8fd531: Add MuteExpiration
+
 ## 0.2.0
 
 ### Minor Changes

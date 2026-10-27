@@ -154,7 +154,8 @@ export namespace AxoAvatar {
             RootSizes.get(props.size),
             props.ring != null && RingSizes.get(props.size),
             props.ring === 'unread' && 'border-selected',
-            props.ring === 'read' && 'border-(--axo-color-label-secondary)'
+            props.ring === 'read' && 'border-(--axo-color-label-secondary)',
+            'forced-color-adjust-none'
           )}
         >
           {props.children}
@@ -256,10 +257,7 @@ export namespace AxoAvatar {
       <button
         type="button"
         aria-label={props.label ?? undefined}
-        className={tw(
-          baseContentStyles,
-          'outline-none keyboard-mode:focus:axo-focus-ring'
-        )}
+        className={tw(baseContentStyles, 'focus-visible:axo-focus-ring')}
         onClick={handleClick}
       >
         {props.children}
@@ -279,20 +277,40 @@ export namespace AxoAvatar {
      * The icon to display. Sized proportionally to the avatar.
      */
     symbol: AxoSymbol.Name;
+    /**
+     * Color theme for background.
+     */
+    color?: AxoTokens.Avatar.ColorName | null;
   }>;
 
   /**
    * Displays a centered icon on a secondary fill background.
    */
   export const Icon: FC<IconProps> = memo(props => {
+    const { color } = props;
     const size = useStrictContext(SizeContext);
+
+    const style = useMemo((): CSSProperties => {
+      const values =
+        color != null ? AxoTokens.Avatar.getColorValues(color) : null;
+      return {
+        fontSize: size * 0.55,
+        background: values?.bg,
+        color: values?.fg,
+      };
+    }, [size, color]);
+
     return (
       <span
         className={tw(
           'flex size-full items-center justify-center',
-          DefaultColor
+          'rounded-full',
+          'forced-colors:bg-[Canvas]',
+          'forced-colors:text-[CanvasText]',
+          'forced-colors:border',
+          color == null && DefaultColor
         )}
-        style={{ fontSize: size * 0.55 }}
+        style={style}
       >
         <AxoSymbol.InlineGlyph symbol={props.symbol} label={null} />
       </span>
@@ -381,6 +399,7 @@ export namespace AxoAvatar {
         onLoad={handleLoad}
         className={tw(
           'size-full object-cover object-center',
+          'rounded-full',
           props.blur && 'scale-110 blur-thin',
           'transition-[filter] duration-100 ease-out-cubic',
           !isLoaded && 'opacity-0'
@@ -425,7 +444,11 @@ export namespace AxoAvatar {
         src={src}
         width={1024}
         height={1024}
-        className={tw('size-full object-cover object-center')}
+        className={tw(
+          'size-full object-cover object-center',
+          'rounded-full',
+          'forced-color-adjust-none'
+        )}
         style={style}
       />
     );
@@ -468,7 +491,7 @@ export namespace AxoAvatar {
           'flex flex-col items-center-safe justify-center-safe gap-2',
           // oxlint-disable-next-line better-tailwindcss/no-restricted-classes
           'bg-[#000]/20 text-[#fff] hover:bg-[#000]/40',
-          'outline-none keyboard-mode:focus:axo-focus-ring'
+          'focus-visible:axo-focus-ring'
         )}
       >
         <AxoSymbol.Icon size={24} symbol="press" label={null} />
@@ -509,7 +532,7 @@ export namespace AxoAvatar {
         width={256}
         height={256}
         viewBox="0 0 256 256"
-        className={tw('size-full fill-current')}
+        className={tw('size-full fill-current', 'rounded-full')}
         style={style}
       >
         <text
@@ -723,10 +746,7 @@ export namespace AxoAvatar {
         type="button"
         aria-label={props.label}
         onClick={handleClick}
-        className={tw(
-          baseBadgeStyles,
-          'outline-none keyboard-mode:focus:axo-focus-ring'
-        )}
+        className={tw(baseBadgeStyles, 'focus-visible:axo-focus-ring')}
       >
         {props.children}
       </button>

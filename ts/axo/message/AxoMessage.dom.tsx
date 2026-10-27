@@ -300,6 +300,7 @@ export namespace AxoMessage {
       <AxoSymbol.InlineGlyph
         symbol={OutgoingStatusSymbols.get(props.status)}
         label={null}
+        preferWide
       />
     );
 
@@ -342,9 +343,7 @@ export namespace AxoMessage {
       <button
         type="button"
         onClick={handleClick}
-        className={tw(
-          'rounded-xs outline-0 keyboard-mode:focus:axo-focus-ring'
-        )}
+        className={tw('rounded-xs focus-visible:axo-focus-ring')}
       >
         {props.children}
       </button>

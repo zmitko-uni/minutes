@@ -7,7 +7,10 @@ import { ServiceId } from '@signalapp/libsignal-client';
 import { MuteExpiration } from '@signalapp/types';
 
 import { uuidToBytes, bytesToUuid } from '../util/uuidToBytes.std.ts';
-import { deriveMasterKeyFromGroupV1 } from '../Crypto.node.ts';
+import {
+  constantTimeEqual,
+  deriveMasterKeyFromGroupV1,
+} from '../Crypto.node.ts';
 import * as Bytes from '../Bytes.std.ts';
 import {
   deriveGroupFields,
@@ -18,11 +21,14 @@ import { assertDev, strictAssert } from '../util/assert.std.ts';
 import { dropNull } from '../util/dropNull.std.ts';
 import { normalizeProfileName } from '../util/normalizeProfileName.std.ts';
 import { missingCaseError } from '../util/missingCaseError.std.ts';
+import { resolveLegacyNotifyForMentionsIfMuted } from '../util/notifyWhileMuted.std.ts';
 import { isNotNil } from '../util/isNotNil.std.ts';
 import {
   PhoneNumberSharingMode,
   parsePhoneNumberSharingMode,
 } from '../types/PhoneNumberSharingMode.std.ts';
+import type { UnreadCountBadgeType } from '../types/StorageKeys.std.ts';
+import { STORAGE_KEY_DEFAULTS } from '../types/StorageKeys.std.ts';
 import {
   PhoneNumberDiscoverability,
   parsePhoneNumberDiscoverability,
@@ -57,6 +63,7 @@ import {
   toUntaggedPni,
 } from '../types/ServiceId.std.ts';
 import { isAciString } from '../util/isAciString.std.ts';
+import { isSignalServiceId } from '../types/SignalConversation.std.ts';
 import * as Stickers from '../types/Stickers.preload.ts';
 import type {
   StoryDistributionWithMembersType,
@@ -137,6 +144,8 @@ import { isKnownProtoEnumMember } from '../util/isKnownProtoEnumMember.std.ts';
 import { Emoji } from '../axo/emoji.std.ts';
 import { getOurAddress } from '../util/sendToGroup.preload.ts';
 import { QualifiedAddress } from '../types/QualifiedAddress.std.ts';
+import { callLinkCleanupService } from './expiring/callLinkCleanupService.preload.ts';
+import { defunctCallLinkCleanupService } from './expiring/defunctCallLinkCleanupService.preload.ts';
 
 const { isEqual } = lodash;
 
@@ -194,6 +203,29 @@ function fromRecordVerified(
       return VERIFIED_ENUM.UNVERIFIED;
     default:
       return VERIFIED_ENUM.DEFAULT;
+  }
+}
+
+function toOptionalBool(value: boolean | undefined): Proto.OptionalBool {
+  if (value === true) {
+    return Proto.OptionalBool.ENABLED;
+  }
+  if (value === false) {
+    return Proto.OptionalBool.DISABLED;
+  }
+  return Proto.OptionalBool.UNSET;
+}
+
+function fromOptionalBool(
+  value: Proto.$NullableOptionalBool | null | undefined
+): boolean | undefined {
+  switch (value) {
+    case Proto.OptionalBool.ENABLED:
+      return true;
+    case Proto.OptionalBool.DISABLED:
+      return false;
+    default:
+      return undefined;
   }
 }
 
@@ -311,7 +343,8 @@ export async function toContactRecord(
   const aci = conversation.getAci();
   const username = conversation.get('username');
   const ourID = window.ConversationController.getOurConversationId();
-  const pni = conversation.getPni();
+  // If we don't have an ACI, then serviceId might be a PNI.
+  const pni = conversation.getPni() ?? conversation.getServiceIdAsPni();
   const e164 = conversation.get('e164');
 
   const profileKey = conversation.get('profileKey');
@@ -319,6 +352,8 @@ export async function toContactRecord(
   const verified = conversation.get('verified');
   const nicknameGivenName = conversation.get('nicknameGivenName');
   const nicknameFamilyName = conversation.get('nicknameFamilyName');
+  const sharedGivenName = conversation.get('sharedGivenName');
+  const sharedFamilyName = conversation.get('sharedFamilyName');
   const hideStory = conversation.get('hideStory');
 
   const blockedServiceId = serviceId
@@ -352,6 +387,10 @@ export async function toContactRecord(
     profileKey: profileKey ? Bytes.fromBase64(profileKey) : null,
     givenName: conversation.get('profileName') || null,
     familyName: conversation.get('profileFamilyName') || null,
+    sharedName:
+      sharedGivenName || sharedFamilyName
+        ? { given: sharedGivenName || null, family: sharedFamilyName || null }
+        : null,
     nickname:
       nicknameGivenName || nicknameFamilyName
         ? {
@@ -374,6 +413,12 @@ export async function toContactRecord(
     markedUnread: Boolean(conversation.get('markedUnread')),
     mutedUntilTimestamp: MuteExpiration.toProto(
       conversation.get('muteExpiresAt')
+    ),
+    notifyForCallsIfMuted: toOptionalBool(
+      conversation.get('notifyForCallsIfMuted')
+    ),
+    showUnreadReminders: toOptionalBool(
+      conversation.get('showUnreadReminders')
     ),
     avatarColor: conversation.get('colorFromPrimary') ?? null,
     hideStory: hideStory ?? null,
@@ -409,6 +454,22 @@ export function toAccountRecord({
       break;
     default:
       throw missingCaseError(localPhoneNumberSharingMode);
+  }
+
+  const localUnreadCountBadgeType = itemStorage.get(
+    'unreadCountBadgeType',
+    STORAGE_KEY_DEFAULTS.unreadCountBadgeType
+  );
+  let unreadBadgeType: Proto.AccountRecord.UnreadBadgeType;
+  switch (localUnreadCountBadgeType) {
+    case 'unread-messages':
+      unreadBadgeType = Proto.AccountRecord.UnreadBadgeType.UNREAD_MESSAGES;
+      break;
+    case 'unread-chats':
+      unreadBadgeType = Proto.AccountRecord.UnreadBadgeType.UNREAD_CHATS;
+      break;
+    default:
+      throw missingCaseError(localUnreadCountBadgeType);
   }
 
   const phoneNumberDiscoverability = parsePhoneNumberDiscoverability(
@@ -510,9 +571,11 @@ export function toAccountRecord({
     }
   }
 
-  const override = notificationProfileSyncDisabled
-    ? itemStorage.get('notificationProfileOverrideFromPrimary')
-    : itemStorage.get('notificationProfileOverride');
+  const areWePrimaryDevice = window.ConversationController.areWePrimaryDevice();
+  const override =
+    notificationProfileSyncDisabled && !areWePrimaryDevice
+      ? itemStorage.get('notificationProfileOverrideFromPrimary')
+      : itemStorage.get('notificationProfileOverride');
 
   let notificationProfileManualOverride: Proto.AccountRecord.NotificationProfileManualOverride.Params | null =
     null;
@@ -610,6 +673,21 @@ export function toAccountRecord({
 
     displayBadgesOnProfile: itemStorage.get('displayBadgesOnProfile') ?? null,
     keepMutedChatsArchived: itemStorage.get('keepMutedChatsArchived') ?? null,
+    unreadBadgeType,
+
+    notifyForCallsIfMuted: toOptionalBool(
+      itemStorage.get('notifyForCallsIfMuted')
+    ),
+    notifyForMentionsIfMuted: toOptionalBool(
+      itemStorage.get('notifyForMentionsIfMuted')
+    ),
+    notifyForRepliesIfMuted: toOptionalBool(
+      itemStorage.get('notifyForRepliesIfMuted')
+    ),
+    notifyWhenContactJoins: toOptionalBool(
+      itemStorage.get('notifyWhenContactJoins')
+    ),
+    showUnreadReminders: toOptionalBool(itemStorage.get('showUnreadReminders')),
 
     hasSetMyStoriesPrivacy: itemStorage.get('hasSetMyStoriesPrivacy') ?? null,
     hasViewedOnboardingStory:
@@ -623,6 +701,13 @@ export function toAccountRecord({
 
     hasSeenAdminDeleteEducationDialog:
       itemStorage.get('hasSeenAdminDeleteEducationDialog') ?? null,
+
+    includeMutedChatsInBadge: toOptionalBool(
+      itemStorage.get('badge-count-muted-conversations')
+    ),
+    reactionNotifications: toOptionalBool(
+      itemStorage.get('reaction-notification')
+    ),
 
     avatarColor: ourConversation.get('colorFromPrimary') ?? null,
     automaticKeyVerificationDisabled:
@@ -695,8 +780,21 @@ export function toGroupV2Record(
     mutedUntilTimestamp: MuteExpiration.toProto(
       conversation.get('muteExpiresAt')
     ),
-    dontNotifyForMentionsIfMuted: Boolean(
-      conversation.get('dontNotifyForMentionsIfMuted')
+    // Deprecated, but still derived from its replacement so that older clients keep
+    // honoring the setting.
+    dontNotifyForMentionsIfMuted:
+      conversation.get('notifyForMentionsIfMuted') === false,
+    notifyForCallsIfMuted: toOptionalBool(
+      conversation.get('notifyForCallsIfMuted')
+    ),
+    notifyForMentionsIfMuted: toOptionalBool(
+      conversation.get('notifyForMentionsIfMuted')
+    ),
+    notifyForRepliesIfMuted: toOptionalBool(
+      conversation.get('notifyForRepliesIfMuted')
+    ),
+    showUnreadReminders: toOptionalBool(
+      conversation.get('showUnreadReminders')
     ),
     hideStory: Boolean(conversation.get('hideStory')),
     avatarColor: avatarColor ?? null,
@@ -788,24 +886,37 @@ export function toCallLinkRecord(
   };
 }
 
-export function toDefunctOrPendingCallLinkRecord(
-  callLink: DefunctCallLinkType | PendingCallLinkType
+export function toPendingCallLinkRecord(
+  callLink: PendingCallLinkType
 ): Proto.CallLinkRecord.Params {
   const rootKey = toRootKeyBytes(callLink.rootKey);
   const adminPasskey = callLink.adminKey
     ? toAdminKeyBytes(callLink.adminKey)
     : null;
 
-  strictAssert(rootKey, 'toDefunctOrPendingCallLinkRecord: no rootKey');
-  strictAssert(
-    adminPasskey,
-    'toDefunctOrPendingCallLinkRecord: no adminPasskey'
-  );
+  strictAssert(rootKey, 'toPendingCallLinkRecord: no rootKey');
+  strictAssert(adminPasskey, 'toPendingCallLinkRecord: no adminPasskey');
 
   return {
     rootKey,
     adminPasskey,
     deletedAtTimestampMs: null,
+    $unknown: fromStorageUnknownFields(callLink.storageUnknownFields),
+  };
+}
+
+export function toDefunctCallLinkRecord(
+  callLink: DefunctCallLinkType
+): Proto.CallLinkRecord.Params {
+  const rootKey = toRootKeyBytes(callLink.rootKey);
+  const deletedAtTimestampMs = BigInt(callLink.addedAt);
+
+  strictAssert(rootKey, 'toDefunctCallLinkRecord: no rootKey');
+
+  return {
+    rootKey,
+    adminPasskey: null,
+    deletedAtTimestampMs,
     $unknown: fromStorageUnknownFields(callLink.storageUnknownFields),
   };
 }
@@ -1005,7 +1116,7 @@ type RecordClassObject = {
   [key: string]: any;
 };
 
-function areNicknamesEqual(
+function areNamesEqual(
   local: Proto.ContactRecord.Name.Params | undefined | null,
   remote: Proto.ContactRecord.Name.Params | undefined | null
 ): boolean {
@@ -1066,10 +1177,10 @@ function logRecordChanges(
       continue;
     }
 
-    if (key === 'nickname') {
-      const areEqual = areNicknamesEqual(localValue, remoteValue);
+    if (key === 'nickname' || key === 'sharedName') {
+      const areEqual = areNamesEqual(localValue, remoteValue);
       if (!areEqual) {
-        details.push('nickname');
+        details.push(key);
       }
       continue;
     }
@@ -1298,7 +1409,17 @@ export async function mergeGroupV2Record(
     hideStory: groupV2Record.hideStory,
     isArchived: groupV2Record.archived,
     markedUnread: groupV2Record.markedUnread,
-    dontNotifyForMentionsIfMuted: groupV2Record.dontNotifyForMentionsIfMuted,
+    notifyForCallsIfMuted: fromOptionalBool(
+      groupV2Record.notifyForCallsIfMuted
+    ),
+    notifyForMentionsIfMuted: resolveLegacyNotifyForMentionsIfMuted(
+      groupV2Record.dontNotifyForMentionsIfMuted,
+      fromOptionalBool(groupV2Record.notifyForMentionsIfMuted)
+    ).notifyForMentionsIfMuted,
+    notifyForRepliesIfMuted: fromOptionalBool(
+      groupV2Record.notifyForRepliesIfMuted
+    ),
+    showUnreadReminders: fromOptionalBool(groupV2Record.showUnreadReminders),
     storageID,
     storageVersion,
     storySendMode,
@@ -1396,6 +1517,7 @@ export async function mergeContactRecord(
   const pni = dropNull(contactRecord.pni);
   const pniSignatureVerified = contactRecord.pniSignatureVerified || false;
   const serviceId = aci || pni;
+  const details: Array<string> = [];
 
   // All contacts must have UUID
   if (!serviceId) {
@@ -1413,6 +1535,11 @@ export async function mergeContactRecord(
     return { shouldDrop: true, details: ['our own uuid'] };
   }
 
+  // Release notes chat state is synced via AccountRecord, not ContactRecord
+  if (isSignalServiceId(serviceId)) {
+    return { shouldDrop: true, details: ['signal release notes aci'] };
+  }
+
   const { conversation } = window.ConversationController.maybeMergeContacts({
     aci,
     e164,
@@ -1420,11 +1547,6 @@ export async function mergeContactRecord(
     fromPniSignature: pniSignatureVerified,
     reason: 'mergeContactRecord',
   });
-
-  const details = logRecordChanges(
-    await toContactRecord(conversation),
-    originalContactRecord
-  );
 
   // We're going to ignore this; it's likely a PNI-only contact we've already merged
   if (conversation.getServiceId() !== serviceId) {
@@ -1452,21 +1574,27 @@ export async function mergeContactRecord(
   });
 
   let needsProfileFetch = false;
+  let needsStorageServiceSync = false;
   const isFirstSync = !itemStorage.get('storageFetchComplete');
 
   const localProfileKey = conversation.get('profileKey');
-  if (
-    (isFirstSync || !localProfileKey) &&
-    contactRecord.profileKey &&
-    contactRecord.profileKey.length > 0
-  ) {
-    log.info(
-      `mergeContactRecord: ${conversation.idForLogging()} had no profileKey; using remote`
-    );
+  const haveRemoteProfileKey = contactRecord.profileKey.length > 0;
+  if ((isFirstSync || !localProfileKey) && haveRemoteProfileKey) {
+    if (!localProfileKey) {
+      details.push('updated profile key, had nothing local');
+    } else {
+      details.push(`updated profile key, isFirstSync=${isFirstSync}`);
+    }
     needsProfileFetch = await conversation.setProfileKey(
       Bytes.toBase64(contactRecord.profileKey),
       { viaStorageServiceSync: true, reason: 'mergeContactRecord' }
     );
+  } else if (
+    localProfileKey &&
+    haveRemoteProfileKey &&
+    localProfileKey !== Bytes.toBase64(contactRecord.profileKey)
+  ) {
+    needsStorageServiceSync = true;
   }
 
   const remoteName = normalizeProfileName(contactRecord.givenName);
@@ -1475,28 +1603,81 @@ export async function mergeContactRecord(
   const localFamilyName = conversation.get('profileFamilyName');
   const noLocalProfileName = !localName && !localFamilyName;
   if (remoteName && (isFirstSync || noLocalProfileName)) {
-    log.info(
-      `mergeContactRecord: ${conversation.idForLogging()} had no profileName; using remote`
-    );
-    details.push('updated profile name');
+    if (noLocalProfileName) {
+      details.push('updated profile name, had nothing local');
+    } else {
+      details.push(`updated profile name, isFirstSync=${isFirstSync}`);
+    }
+
     conversation.set({
       profileName: remoteName,
       profileFamilyName: remoteFamilyName,
     });
 
     needsProfileFetch = true;
+  } else if (
+    (remoteName && localName && remoteName !== localName) ||
+    (remoteFamilyName &&
+      localFamilyName &&
+      remoteFamilyName !== localFamilyName)
+  ) {
+    needsProfileFetch = true;
+    needsStorageServiceSync = true;
+  }
+
+  const weArePrimary = window.ConversationController.areWePrimaryDevice();
+  const existingSystemGivenName = conversation.get('systemGivenName');
+  const existingSystemFamilyName = conversation.get('systemFamilyName');
+  const existingSystemNickname = conversation.get('systemNickname');
+  const remoteSystemGivenName = contactRecord.systemGivenName || undefined;
+  const remoteSystemFamilyName = contactRecord.systemFamilyName || undefined;
+  const remoteSystemNickname = contactRecord.systemNickname || undefined;
+  const haveAnySystemData = Boolean(
+    existingSystemGivenName ||
+    existingSystemFamilyName ||
+    existingSystemNickname
+  );
+  const hasSystemNameChanged =
+    existingSystemGivenName !== remoteSystemGivenName ||
+    existingSystemFamilyName !== remoteSystemFamilyName ||
+    existingSystemNickname !== remoteSystemNickname;
+  if (
+    (!weArePrimary || isFirstSync || !haveAnySystemData) &&
+    hasSystemNameChanged
+  ) {
+    details.push(`system name changed, isFirstSync=${isFirstSync}`);
+    conversation.set({
+      systemGivenName: remoteSystemGivenName,
+      systemFamilyName: remoteSystemFamilyName,
+      systemNickname: remoteSystemNickname,
+    });
+  } else if (weArePrimary && haveAnySystemData && hasSystemNameChanged) {
+    needsStorageServiceSync = true;
   }
   conversation.set({
-    systemGivenName: dropNull(contactRecord.systemGivenName || null),
-    systemFamilyName: dropNull(contactRecord.systemFamilyName || null),
-    systemNickname: dropNull(contactRecord.systemNickname || null),
     nicknameGivenName: dropNull(contactRecord.nickname?.given || null),
     nicknameFamilyName: dropNull(contactRecord.nickname?.family || null),
+    sharedGivenName: dropNull(contactRecord.sharedName?.given || null),
+    sharedFamilyName: dropNull(contactRecord.sharedName?.family || null),
     note: dropNull(contactRecord.note),
   });
 
   // https://github.com/signalapp/Signal-Android/blob/fc3db538bcaa38dc149712a483d3032c9c1f3998/app/src/main/java/org/thoughtcrime/securesms/database/RecipientDatabase.kt#L921-L936
-  if (contactRecord.identityKey.length) {
+  const haveRemoteKey = Boolean(contactRecord.identityKey.length);
+  const identityRecord = signalProtocolStore.getIdentityRecord(serviceId);
+  const haveLocalKey = Boolean(identityRecord);
+  const keysMatch =
+    haveRemoteKey &&
+    identityRecord &&
+    contactRecord.identityKey.length === identityRecord.publicKey.length &&
+    constantTimeEqual(contactRecord.identityKey, identityRecord.publicKey);
+
+  if ((isFirstSync || !haveLocalKey || keysMatch) && haveRemoteKey) {
+    log.info(
+      `mergeContactRecord: Updating identity/verified for ${conversation.idForLogging()} ` +
+        `(isFirstSync=${isFirstSync}, haveLocalKey=${haveLocalKey}, keysMatch=${keysMatch})`
+    );
+
     const verified = await conversation.safeGetVerified();
     let { identityState } = contactRecord;
     if (identityState == null) {
@@ -1529,6 +1710,9 @@ export async function mergeContactRecord(
         { local: false }
       );
     }
+  } else if (haveRemoteKey && haveLocalKey && !keysMatch && aci) {
+    needsProfileFetch = true;
+    needsStorageServiceSync = true;
   }
 
   await applyMessageRequestState(contactRecord, conversation);
@@ -1542,9 +1726,13 @@ export async function mergeContactRecord(
     hideStory: contactRecord.hideStory,
     isArchived: contactRecord.archived,
     markedUnread: contactRecord.markedUnread,
+    notifyForCallsIfMuted: fromOptionalBool(
+      contactRecord.notifyForCallsIfMuted
+    ),
+    showUnreadReminders: fromOptionalBool(contactRecord.showUnreadReminders),
     storageID,
     storageVersion,
-    needsStorageServiceSync: false,
+    needsStorageServiceSync,
   });
 
   if (contactRecord.hidden) {
@@ -1581,13 +1769,17 @@ export async function mergeContactRecord(
 
   applyAvatarColor(conversation, contactRecord.avatarColor);
 
+  const fullDetails = details.concat(
+    logRecordChanges(await toContactRecord(conversation), originalContactRecord)
+  );
+
   return {
     conversation,
     updatedConversations: [conversation],
     needsProfileFetch,
     oldStorageID,
     oldStorageVersion,
-    details,
+    details: fullDetails,
   };
 }
 
@@ -1617,11 +1809,19 @@ export async function mergeAccountRecord(
     backupTier,
     displayBadgesOnProfile,
     keepMutedChatsArchived,
+    notifyForCallsIfMuted,
+    notifyForMentionsIfMuted,
+    notifyForRepliesIfMuted,
+    notifyWhenContactJoins,
+    showUnreadReminders,
+    unreadBadgeType,
     hasCompletedUsernameOnboarding,
     hasSeenGroupStoryEducationSheet,
     hasSeenAdminDeleteEducationDialog,
     hasSetMyStoriesPrivacy,
     hasViewedOnboardingStory,
+    includeMutedChatsInBadge,
+    reactionNotifications,
     storiesDisabled,
     storyViewReceiptsEnabled,
     username,
@@ -1895,6 +2095,48 @@ export async function mergeAccountRecord(
 
   await itemStorage.put('displayBadgesOnProfile', displayBadgesOnProfile);
   await itemStorage.put('keepMutedChatsArchived', keepMutedChatsArchived);
+  await itemStorage.put(
+    'notifyForCallsIfMuted',
+    fromOptionalBool(notifyForCallsIfMuted) ?? undefined
+  );
+  await itemStorage.put(
+    'notifyForMentionsIfMuted',
+    fromOptionalBool(notifyForMentionsIfMuted) ?? undefined
+  );
+  await itemStorage.put(
+    'notifyForRepliesIfMuted',
+    fromOptionalBool(notifyForRepliesIfMuted) ?? undefined
+  );
+  await itemStorage.put(
+    'notifyWhenContactJoins',
+    fromOptionalBool(notifyWhenContactJoins) ?? undefined
+  );
+  await itemStorage.put(
+    'showUnreadReminders',
+    fromOptionalBool(showUnreadReminders) ?? undefined
+  );
+  {
+    let unreadCountBadgeType: UnreadCountBadgeType;
+    switch (unreadBadgeType) {
+      case Proto.AccountRecord.UnreadBadgeType.UNREAD_CHATS:
+        unreadCountBadgeType = 'unread-chats';
+        break;
+      case Proto.AccountRecord.UnreadBadgeType.UNREAD_MESSAGES:
+        unreadCountBadgeType = 'unread-messages';
+        break;
+      case Proto.AccountRecord.UnreadBadgeType.UNKNOWN_BADGE_TYPE:
+      default:
+        unreadCountBadgeType = STORAGE_KEY_DEFAULTS.unreadCountBadgeType;
+    }
+
+    const previousUnreadCountBadgeType = itemStorage.get(
+      'unreadCountBadgeType'
+    );
+    await itemStorage.put('unreadCountBadgeType', unreadCountBadgeType);
+    if (previousUnreadCountBadgeType !== unreadCountBadgeType) {
+      window.Whisper.events.emit('updateUnreadCount');
+    }
+  }
   await itemStorage.put('hasSetMyStoriesPrivacy', hasSetMyStoriesPrivacy);
   {
     await itemStorage.put('hasViewedOnboardingStory', hasViewedOnboardingStory);
@@ -1915,6 +2157,24 @@ export async function mergeAccountRecord(
   await itemStorage.put(
     'hasSeenAdminDeleteEducationDialog',
     hasSeenAdminDeleteEducationDialog ?? false
+  );
+  {
+    const countMutedConversations =
+      fromOptionalBool(includeMutedChatsInBadge) ??
+      STORAGE_KEY_DEFAULTS['badge-count-muted-conversations'];
+    const previous = itemStorage.get('badge-count-muted-conversations', false);
+    await itemStorage.put(
+      'badge-count-muted-conversations',
+      countMutedConversations
+    );
+    if (previous !== countMutedConversations) {
+      window.Whisper.events.emit('updateUnreadCount');
+    }
+  }
+  await itemStorage.put(
+    'reaction-notification',
+    fromOptionalBool(reactionNotifications) ??
+      STORAGE_KEY_DEFAULTS['reaction-notification']
   );
   {
     await itemStorage.put(
@@ -2021,7 +2281,8 @@ export async function mergeAccountRecord(
     overrideToSave = undefined;
   }
 
-  if (notificationProfileSyncDisabled) {
+  const areWePrimaryDevice = window.ConversationController.areWePrimaryDevice();
+  if (notificationProfileSyncDisabled && !areWePrimaryDevice) {
     await itemStorage.put(
       'notificationProfileOverrideFromPrimary',
       overrideToSave
@@ -2050,19 +2311,23 @@ export async function mergeAccountRecord(
   });
 
   let needsProfileFetch = false;
-  if (profileKey && profileKey.byteLength > 0) {
+  if (
+    !window.ConversationController.areWePrimaryDevice() &&
+    profileKey &&
+    profileKey.byteLength > 0
+  ) {
     needsProfileFetch = await ourConversation.setProfileKey(
       Bytes.toBase64(profileKey),
       { viaStorageServiceSync: true, reason: 'mergeAccountRecord' }
     );
-
-    const avatarUrl = dropNull(accountRecord.avatarUrlPath || null);
-    await ourConversation.setAndMaybeFetchProfileAvatar({
-      avatarUrl,
-      decryptionKey: profileKey,
-    });
-    await itemStorage.put('avatarUrl', avatarUrl);
   }
+
+  const avatarUrl = dropNull(accountRecord.avatarUrlPath || null);
+  await ourConversation.setAndMaybeFetchProfileAvatar({
+    avatarUrl,
+    decryptionKey: profileKey,
+  });
+  await itemStorage.put('avatarUrl', avatarUrl);
 
   applyAvatarColor(ourConversation, accountRecord.avatarColor);
 
@@ -2430,6 +2695,19 @@ export async function mergeStickerPackRecord(
   };
 }
 
+function getEarliestTimestamp(
+  ...timestamps: Array<number | null | undefined>
+): number | undefined {
+  const normalized = timestamps.filter(
+    (timestamp): timestamp is number => timestamp != null && timestamp > 0
+  );
+  if (normalized.length === 0) {
+    return undefined;
+  }
+
+  return Math.min(...normalized);
+}
+
 export async function mergeCallLinkRecord(
   storageID: string,
   storageVersion: number,
@@ -2454,6 +2732,7 @@ export async function mergeCallLinkRecord(
 
   const localCallLinkDbRecord =
     await DataReader.getCallLinkRecordByRoomId(roomId);
+  const defunctCallLink = await DataReader.getDefunctCallLinkByRoomId(roomId);
 
   const details = logRecordChanges(
     localCallLinkDbRecord == null
@@ -2462,9 +2741,12 @@ export async function mergeCallLinkRecord(
     callLinkRecord
   );
 
-  // Note deletedAtTimestampMs can be 0
-  const deletedAtTimestampMs = toNumber(callLinkRecord.deletedAtTimestampMs);
-  const deletedAt = deletedAtTimestampMs || null;
+  const deletedAt =
+    getEarliestTimestamp(
+      toNumber(callLinkRecord.deletedAtTimestampMs),
+      localCallLinkDbRecord?.deletedAt,
+      defunctCallLink?.addedAt
+    ) || null;
   const shouldDrop = Boolean(
     deletedAt && isOlderThan(deletedAt, getMessageQueueTime())
   );
@@ -2493,12 +2775,39 @@ export async function mergeCallLinkRecord(
 
   if (!localCallLinkDbRecord) {
     if (deletedAt) {
-      details.push(
-        `skipping deleted call link with no matching local record deletedAt=${deletedAt}`
-      );
-    } else if (await DataReader.defunctCallLinkExists(roomId)) {
-      details.push('skipping known defunct call link');
-    } else if (callLinkRefreshJobQueue.hasPendingCallLink(storageID)) {
+      if (defunctCallLink) {
+        details.push(
+          `updating known defunct call link; deletedAt=${deletedAt}`
+        );
+        await DataWriter.updateDefunctCallLink({
+          roomId,
+          rootKey: rootKeyString,
+          adminKey: null,
+          addedAt: deletedAt,
+          storageID,
+          storageVersion,
+          storageUnknownFields: callLinkDbRecord.storageUnknownFields,
+          storageNeedsSync: false,
+        });
+      } else {
+        details.push(
+          `creating defunct call link, given no matching local record; deletedAt=${deletedAt}`
+        );
+        await DataWriter.insertDefunctCallLink({
+          roomId,
+          rootKey: rootKeyString,
+          adminKey: null,
+          addedAt: deletedAt,
+          storageID,
+          storageVersion,
+          storageUnknownFields: callLinkDbRecord.storageUnknownFields,
+          storageNeedsSync: false,
+        });
+        drop(
+          defunctCallLinkCleanupService.trigger('just added defunct call link')
+        );
+      }
+    } else if (callLinkRefreshJobQueue.hasPendingCallLink(rootKeyString)) {
       details.push('pending call link refresh, updating storage fields');
       callLinkRefreshJobQueue.updatePendingCallLinkStorageFields(
         rootKeyString,
@@ -2558,11 +2867,12 @@ export async function mergeCallLinkRecord(
   // Deleted in storage but we have it locally: Delete locally too and update redux
   if (deletedAt && localCallLinkDbRecord.deleted !== 1) {
     // Another device deleted the link and uploaded to storage, and we learned about it
-    log.info(`${logId}: Discovered deleted call link, deleting locally`);
-    details.push('deleting locally');
+    log.info(`${logId}: Discovered deleted call link, marking deleted locally`);
+    details.push('marking deleted locally');
     // No need to delete via RingRTC as we assume the originating device did that already
-    await DataWriter.deleteCallLinkAndHistory(roomId);
+    await DataWriter.markCallLinkDeleted(roomId, deletedAt);
     window.reduxActions.calling.handleCallLinkDelete({ roomId });
+    drop(callLinkCleanupService.trigger('marked call link deleted'));
   } else if (!deletedAt && localCallLinkDbRecord.deleted === 1) {
     // Not deleted in storage, but we've marked it as deleted locally.
     // Skip doing anything, we will update things locally after sync.
@@ -2661,6 +2971,14 @@ export async function mergeChatFolderRecord(
 
   const idString = bytesToUuid(remoteChatFolderRecord.id) as ChatFolderId;
   const logPrefix = `mergeChatFolderRecord(${redactedStorageID}, idString)`;
+  const localChatFolder = await DataReader.getChatFolder(idString);
+
+  const localDeletedAt = localChatFolder?.deletedAtTimestampMs ?? 0;
+  const deletedAtTimestampMs: number =
+    getEarliestTimestamp(
+      toNumber(remoteChatFolderRecord.deletedAtTimestampMs),
+      localChatFolder?.deletedAtTimestampMs
+    ) || 0;
 
   const remoteChatFolder: ChatFolder = {
     id: idString,
@@ -2683,8 +3001,8 @@ export async function mergeChatFolderRecord(
       remoteChatFolderRecord.excludedRecipients ?? [],
       logPrefix
     ),
-    deletedAtTimestampMs:
-      toNumber(remoteChatFolderRecord.deletedAtTimestampMs) ?? 0,
+    deletedAtTimestampMs,
+
     storageID,
     storageVersion,
     storageUnknownFields:
@@ -2694,34 +3012,19 @@ export async function mergeChatFolderRecord(
     storageNeedsSync: false,
   };
 
-  const localChatFolder = await DataReader.getChatFolder(remoteChatFolder.id);
-
-  let deletedAtTimestampMs: number;
-
-  const remoteDeletedAt = remoteChatFolder.deletedAtTimestampMs;
-  const localDeletedAt = localChatFolder?.deletedAtTimestampMs ?? 0;
-
-  if (remoteDeletedAt > 0 && localDeletedAt > 0) {
-    if (remoteDeletedAt < localDeletedAt) {
-      deletedAtTimestampMs = remoteDeletedAt;
-    } else {
-      deletedAtTimestampMs = localDeletedAt;
-    }
-  } else if (remoteDeletedAt > 0) {
-    deletedAtTimestampMs = remoteDeletedAt;
-  } else if (localDeletedAt > 0) {
-    deletedAtTimestampMs = localDeletedAt;
-  } else {
-    deletedAtTimestampMs = remoteDeletedAt;
-  }
-
   if (remoteChatFolder.folderType === ChatFolderType.ALL) {
     log.info(`${logPrefix}: Updating or inserting all chats folder`);
     await DataWriter.upsertAllChatsChatFolderFromSync(remoteChatFolder);
   } else if (deletedAtTimestampMs > 0) {
     if (localChatFolder == null) {
       log.info(
-        `${logPrefix}: skipping deleted chat folder, no local record found`
+        `${logPrefix}: creating deleted chat folder with deletedAtTimestampMs=${deletedAtTimestampMs}`
+      );
+      await DataWriter.createChatFolder(remoteChatFolder);
+      drop(
+        chatFolderCleanupService.trigger(
+          'mergeChatFolderRecord: created deleted chat folder'
+        )
       );
     } else if (localDeletedAt === deletedAtTimestampMs) {
       log.info(
@@ -2805,8 +3108,9 @@ export function prepareForDisabledNotificationProfileSync(): {
 
   const notDeletedProfiles = profiles.filter(
     profile =>
-      (profile.storageID && profile.deletedAtTimestampMs == null) ||
-      profile.deletedAtTimestampMs === 0
+      profile.storageID &&
+      (profile.deletedAtTimestampMs == null ||
+        profile.deletedAtTimestampMs === 0)
   );
 
   const toAdd: Array<NotificationProfileType> = [];
@@ -3016,9 +3320,7 @@ export async function mergeNotificationProfileRecord(
           : Proto.NotificationProfile.DayOfWeek.UNKNOWN;
       })
     ),
-    deletedAtTimestampMs: localDeletedAt
-      ? Math.min(localDeletedAt, deletedAt ?? Number.MAX_SAFE_INTEGER)
-      : dropNull(deletedAt),
+    deletedAtTimestampMs: getEarliestTimestamp(localDeletedAt, deletedAt),
     storageID,
     storageVersion,
     storageUnknownFields:
@@ -3030,15 +3332,11 @@ export async function mergeNotificationProfileRecord(
     window.reduxActions.notificationProfiles;
 
   if (!localProfile) {
-    if (deletedAt) {
-      details.push(
-        `skipping deleted notification profile with no matching local record deletedAt=${deletedAt}`
-      );
-    } else {
-      details.push('created new notification profile');
-      await DataWriter.createNotificationProfile(newProfile);
-      profileWasCreated(newProfile);
-    }
+    details.push(
+      `created new notification profile; deletedAtTimestampMs=${newProfile.deletedAtTimestampMs}`
+    );
+    await DataWriter.createNotificationProfile(newProfile);
+    profileWasCreated(newProfile);
 
     return {
       details,

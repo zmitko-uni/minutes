@@ -319,6 +319,8 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
     {
       const newState = await phone.waitForStorageState({
         after: state,
+        predicate: storageState =>
+          storageState.getContact(stranger, ServiceIdKind.PNI) != null,
       });
 
       const aciRecord = newState.getContact(stranger, ServiceIdKind.ACI);
@@ -356,7 +358,8 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
     debug('Verify that we are in MR state');
     const conversationStack = window.locator('.Inbox__conversation-stack');
     await conversationStack
-      .locator('.module-message-request-actions button >> "Continue"')
+      .getByTestId('profile-sharing-actions')
+      .getByRole('button', { name: 'Continue' })
       .waitFor();
 
     debug('Clear message request state on phone');
@@ -378,7 +381,8 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
 
     debug('Wait for MR state to disappear');
     await conversationStack
-      .locator('.module-message-request-actions button >> "Continue"')
+      .getByTestId('message-request-actions')
+      .getByRole('button', { name: 'Continue' })
       .waitFor({ state: 'hidden' });
 
     debug('Send back the response with profile key and pni signature');
@@ -421,22 +425,25 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
     debug('Verify final state');
 
     {
-      const newState = await phone.waitForStorageState({
+      await phone.waitForStorageState({
         after: state,
+        predicate: storageState => {
+          const aciRecord = storageState.getContact(
+            stranger,
+            ServiceIdKind.ACI
+          );
+          const pniRecord = storageState.getContact(
+            stranger,
+            ServiceIdKind.PNI
+          );
+
+          return (
+            aciRecord?.pniSignatureVerified === true &&
+            aciRecord === pniRecord &&
+            phone.getOrphanedStorageKeys().length === 0
+          );
+        },
       });
-
-      const pniRecord = newState.getContact(stranger, ServiceIdKind.PNI);
-      const aciRecord = newState.getContact(stranger, ServiceIdKind.ACI);
-      assert.strictEqual(
-        aciRecord,
-        pniRecord,
-        'ACI Contact must be the same as PNI Contact storage service'
-      );
-      assert(aciRecord, 'ACI Contact must be in storage service');
-
-      assert.deepEqual(aciRecord?.aciBinary, stranger.device.aciRawUuid);
-      assert.deepEqual(aciRecord?.pniBinary, stranger.device.pniRawUuid);
-      assert.strictEqual(aciRecord?.pniSignatureVerified, true);
 
       // Two outgoing, one incoming
       const messages = window.locator('.module-message__text');
@@ -444,8 +451,6 @@ describe('pnp/PNI Signature', function (this: Mocha.Suite) {
 
       // Title transition notification
       await expectSystemMessages(window, [/You started this chat with/]);
-
-      assert.isEmpty(await phone.getOrphanedStorageKeys());
     }
   });
 });

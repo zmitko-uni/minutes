@@ -47,6 +47,7 @@ import { SmartPinMessageDialog } from './PinMessageDialog.preload.tsx';
 import { SmartGroupMemberLabelInfoModal } from './GroupMemberLabelInfoModal.preload.tsx';
 import { SmartTerminateGroupFailedModal } from './TerminateGroupFailedModal.preload.tsx';
 import { SmartPinReminderModal } from './PinReminderModal.preload.tsx';
+import { SmartPinChangeModal } from './PinChangeModal.preload.tsx';
 
 function renderCallLinkAddNameModal(): JSX.Element {
   return <SmartCallLinkAddNameModal />;
@@ -124,6 +125,10 @@ function renderPinMessageDialog(): JSX.Element {
   return <SmartPinMessageDialog />;
 }
 
+function renderPinChangeModal(): JSX.Element {
+  return <SmartPinChangeModal />;
+}
+
 function renderPinReminderModal(): JSX.Element {
   return <SmartPinReminderModal />;
 }
@@ -192,6 +197,7 @@ export const SmartGlobalModalContainer = memo(
       notePreviewModalProps,
       pinMessageDialogData,
       pinReminderState,
+      isPinChangeModalVisible,
       isProfileNameWarningModalVisible,
       profileNameWarningModalConversationType,
       isShortcutGuideModalVisible,
@@ -333,6 +339,7 @@ export const SmartGlobalModalContainer = memo(
         isAboutContactModalVisible={aboutContactModalState != null}
         isKeyTransparencyErrorVisible={isKeyTransparencyErrorVisible}
         isKeyTransparencyOnboardingVisible={isKeyTransparencyOnboardingVisible}
+        isPinChangeModalVisible={isPinChangeModalVisible}
         isProfileNameWarningModalVisible={isProfileNameWarningModalVisible}
         isShortcutGuideModalVisible={isShortcutGuideModalVisible}
         isSignalConnectionsVisible={isSignalConnectionsVisible}
@@ -361,6 +368,7 @@ export const SmartGlobalModalContainer = memo(
           renderMessageRequestActionsConfirmation
         }
         renderNotePreviewModal={renderNotePreviewModal}
+        renderPinChangeModal={renderPinChangeModal}
         renderPinMessageDialog={renderPinMessageDialog}
         renderPinReminderModal={renderPinReminderModal}
         renderPlaintextExportWorkflow={renderPlaintextExportWorkflow}
