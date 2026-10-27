@@ -8,6 +8,7 @@ import type { ReadonlyDeep } from 'type-fest';
 import { createLogger } from '../logging/log.std.ts';
 import { isTestOrMockEnvironment } from '../environment.std.ts';
 import { getValue, isEnabled } from '../RemoteConfig.dom.ts';
+import { minutesVersionForSignalFeatureFlags } from '../minutes/version.std.ts';
 import { isAlpha, isBeta, isProduction, isStaging } from './version.std.ts';
 
 import type { SemverKeyType, ConfigMapType } from '../RemoteConfig.dom.ts';
@@ -62,6 +63,9 @@ export function _isFeatureEnabledInner({
   prodValue: string | undefined;
   isTestEnvironment?: () => boolean;
 }): boolean {
+  // Minutes `-m` versions are not Signal prod/beta, so semver flags never matched.
+  currentVersion = minutesVersionForSignalFeatureFlags(currentVersion);
+
   if (
     isInternalUser ||
     isAlpha(currentVersion) ||

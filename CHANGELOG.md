@@ -18,6 +18,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ### Fixed
 
+- **Štítek člena ve skupině**: v nastavení skupiny jde znovu nastavit vlastní štítek (viditelný jen v té skupině). Stejně se znovu zapnou ostatní funkce Signalu, které se řídí vzdálenou konfigurací podle verze
 - **Nahrávání hovoru**: z nahrávky už nemizí vlastní mikrofon. Když hodiny mikrofonu utekly vůči přehrávání o víc než sekundu, nahrávka od té chvíle obsahovala jen ostatní účastníky; zdroj, který předbíhá, se teď vrací zpět do synchronu
 
 ## [8.26.0-m1.6.3-beta.7] - 2026-10-14

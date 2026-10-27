@@ -57,6 +57,16 @@ export function isMinutesBetaVersion(version: string): boolean {
   return parseMinutesProductVersion(version)?.beta != null;
 }
 
+/**
+ * Signal remote-config flags compare the app version with `isProduction` /
+ * `isBeta`. A Minutes version such as `8.26.0-m1.6.4` is neither, so those
+ * flags stay off. Feature checks should see the Signal base this build is
+ * cut from (`8.26.0`), including Minutes beta builds.
+ */
+export function minutesVersionForSignalFeatureFlags(version: string): string {
+  return parseMinutesProductVersion(version)?.signalBase ?? version;
+}
+
 /** Legacy alpha builds tied to Signal base (8.21.0-alpha.N). */
 export function isLegacyMinutesAlphaVersion(version: string): boolean {
   return /^(\d+\.\d+\.\d+)-alpha\.\d+$/i.test(normalizeVersionTag(version));

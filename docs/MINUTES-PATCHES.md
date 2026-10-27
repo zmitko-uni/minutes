@@ -19,6 +19,7 @@
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
 | `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes). Signal 8.26 `GroupCallSvcConfig` se nepředává — Minutes RingRTC je `2.70.2-minutes.3` (nahrávací tapy), ne stock 2.71.0. Až to bude potřeba: [`FORK-MAINTENANCE.md`](./FORK-MAINTENANCE.md) → *Minutes RingRTC vs Signal 2.71.0* | 3 volání |
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
+| `ts/util/isFeatureEnabled.dom.ts` | semver příznaky remote configu (štítek člena, ankety 1:1, …) se porovnávají se Signal bází z verze Minutes, ne s celým `8.26.0-m…` | 1 volání na začátku `_isFeatureEnabledInner` |
 | `ts/background.preload.ts` | init Minutes služeb, automation rendereru, IPC sumarizace, build expiration a ochrana aktivního hovoru při zamknutí obrazovky | bootstrap |
 | `ts/messages/saveAndNotify.preload.ts` | publikuje `message.received` do explicitně povolených webhooků | webhook hook |
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
