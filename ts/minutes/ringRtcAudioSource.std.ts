@@ -42,6 +42,7 @@ class MinutesRingRtcAudioSource
   #paused = false;
   #stopped = false;
   #reportedSkippedSamples = 0;
+  #reportedRealignedSamples = 0;
 
   constructor() {
     super();
@@ -106,7 +107,20 @@ class MinutesRingRtcAudioSource
       }
     }
     this.#reportSkippedSamples();
+    this.#reportRealignedSamples();
     return true;
+  }
+
+  #reportRealignedSamples(): void {
+    const totalRealignedSamples = this.#timeline.realignedSamples;
+    if (totalRealignedSamples === this.#reportedRealignedSamples) {
+      return;
+    }
+    this.port.postMessage({
+      type: 'timeline-realigned',
+      realignedSamples: totalRealignedSamples - this.#reportedRealignedSamples,
+    } satisfies RingRtcAudioWorkletEvent);
+    this.#reportedRealignedSamples = totalRealignedSamples;
   }
 
   #reportSkippedSamples(): void {

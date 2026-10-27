@@ -40,6 +40,8 @@ export class RingRtcAudioTimeline {
   #degraded = false;
   #stalledSamples = 0;
   #skippedSamples = 0;
+  #realignedSamples = 0;
+  #sourceLeadSamples = 0;
   readonly #prerollSamples: number;
   readonly #stallToleranceSamples: number;
   readonly #maxQueueSamples: number;
@@ -101,6 +103,11 @@ export class RingRtcAudioTimeline {
   /** Samples jumped over to get back to live audio after a render stall. */
   get skippedSamples(): number {
     return this.#skippedSamples;
+  }
+
+  /** Samples a source ran ahead of the other one before being pulled back. */
+  get realignedSamples(): number {
+    return this.#realignedSamples;
   }
 
   startWithAvailableSource(): boolean {
@@ -197,6 +204,7 @@ export class RingRtcAudioTimeline {
     this.#started = !requirePreroll;
     this.#degraded = !requirePreroll;
     this.#stalledSamples = 0;
+    this.#sourceLeadSamples = 0;
   }
 
   render(sampleCount: number): Float32Array<ArrayBuffer> {
@@ -227,6 +235,7 @@ export class RingRtcAudioTimeline {
     }
 
     this.#started = true;
+    this.#realignLeadingSource(sampleCount);
     this.#catchUpIfFallenBehind();
     for (let index = 0; index < sampleCount; index += 1) {
       const local = this.#sampleAt('local', this.#cursor);
@@ -284,6 +293,46 @@ export class RingRtcAudioTimeline {
     const target = liveEdge - this.#prerollSamples;
     this.#skippedSamples += target - this.#cursor;
     this.#cursor = target;
+  }
+
+  /**
+   * Microphone capture and playout run on separate device clocks, so their
+   * native sample counters drift apart. A lagging source is rebased when it
+   * falls behind the cursor, but a leading one only gets further ahead: once
+   * its lead exceeds the queue, the samples at the cursor are trimmed away and
+   * that source stays silent for the rest of the call. When one source keeps
+   * leading a live other source by more than the lag limit, pull it back to
+   * the other source's edge; only the lead itself is lost.
+   */
+  #realignLeadingSource(sampleCount: number): void {
+    const local = this.#knownThrough.local;
+    const remote = this.#knownThrough.remote;
+    // A stalled trailing source is handled by degraded rendering instead.
+    if (
+      local === undefined ||
+      remote === undefined ||
+      Math.min(local, remote) <= this.#cursor ||
+      Math.abs(local - remote) <= this.#maxLagSamples
+    ) {
+      this.#sourceLeadSamples = 0;
+      return;
+    }
+    // Packets of one poll can reach the worklet a render quantum apart.
+    this.#sourceLeadSamples += sampleCount;
+    if (this.#sourceLeadSamples < this.#stallToleranceSamples) {
+      return;
+    }
+    this.#sourceLeadSamples = 0;
+
+    const source: AudioSource = local > remote ? 'local' : 'remote';
+    const lead = Math.abs(local - remote);
+    this.#sourceOffsets[source] = (this.#sourceOffsets[source] ?? 0) - lead;
+    this.#knownThrough[source] = Math.min(local, remote);
+    this.#packets[source] = this.#packets[source].map(packet => ({
+      startSample: packet.startSample - lead,
+      samples: packet.samples,
+    }));
+    this.#realignedSamples += lead;
   }
 
   #trimQueuedPackets(source: AudioSource): void {
