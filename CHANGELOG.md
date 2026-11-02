@@ -13,6 +13,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Zakládání skupin v 8.32**: konfigurace Minutes a Minutes Beta používají aktuální veřejné parametry Signalu pro ověřování zkgroup a záloh. Kontrola při generování a balení aplikace zastaví build, pokud se parametry po upgradu upstreamu znovu rozejdou.
+
 ### Added
 - (doplňte před příštím release)
 

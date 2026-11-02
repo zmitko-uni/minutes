@@ -21,6 +21,11 @@ function run(label, command, env = {}) {
 console.log(`minutes ${isMac ? 'macOS' : 'Windows'} installer build`);
 console.log('This can take 15–30 minutes on first run.\n');
 
+run(
+  'Check Signal production trust parameters',
+  'pnpm run check:minutes:config'
+);
+
 if (process.env.MINUTES_SKIP_VERSION_BUMP !== '1') {
   run('Release version bump', 'pnpm run bump:minutes:release');
   const version = JSON.parse(

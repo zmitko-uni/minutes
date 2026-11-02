@@ -24,6 +24,11 @@ if (process.platform !== 'linux') {
 console.log('Minutes Linux x64 AppImage build');
 console.log('This can take 15–30 minutes on the first run.\n');
 
+run(
+  'Check Signal production trust parameters',
+  'pnpm run check:minutes:config'
+);
+
 if (process.env.MINUTES_SKIP_ICONS !== '1') {
   run('Icons', 'pnpm run build:minutes-icons');
 } else {
