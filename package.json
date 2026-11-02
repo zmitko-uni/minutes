@@ -19,7 +19,7 @@
     "postuninstall": "pnpm run build:acknowledgments",
     "start": "electron .",
     "generate": "run-s generate:phase-0 generate:phase-1",
-    "generate:phase-0": "run-s build:protobuf build:emoji-data build:rolldown:prod",
+    "generate:phase-0": "run-s check:minutes:config build:protobuf build:emoji-data build:rolldown:prod",
     "generate:phase-1": "run-p --aggregate-output --print-label build:icu-types build:compact-locales build:styles:prod get-expire-time build:policy-files build:db-schema",
     "build-release": "pnpm run build",
     "notarize": "echo 'No longer necessary'",
@@ -135,6 +135,7 @@
     "build:minutes:installer": "node scripts/build-minutes-installer.mjs",
     "build:minutes:appimage": "node scripts/build-minutes-appimage.mjs",
     "check:minutes:preload": "node scripts/check-minutes-preload.mjs",
+    "check:minutes:config": "node --test scripts/utils/minutesServerParams_test.mjs",
     "install:minutes-ringrtc": "node scripts/install-minutes-ringrtc.mjs"
   },
   "optionalDependencies": {
