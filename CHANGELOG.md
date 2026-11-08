@@ -16,6 +16,86 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.32.0-m1.6.3-beta.10] - 2026-11-02
+
+### Fixed
+
+- **Zakládání skupin v 8.32**: konfigurace Minutes a Minutes Beta používají aktuální veřejné parametry Signalu pro ověřování zkgroup a záloh. Kontrola při generování a balení aplikace zastaví build, pokud se parametry po upgradu upstreamu znovu rozejdou.
+
+### Added
+- (doplňte před příštím release)
+
+## [8.32.0-m1.6.3-beta.9] - 2026-10-27
+
+### Changed
+
+- **Základ aplikace**: Minutes Beta vychází ze Signal Desktop 8.32.0
+
+### Added
+- (doplňte před příštím release)
+
+## [8.26.0-m1.6.3-beta.8] - 2026-10-27
+
+### Added
+- (doplňte před příštím release)
+
+### Fixed
+
+- **Štítek člena ve skupině**: v nastavení skupiny jde znovu nastavit vlastní štítek (viditelný jen v té skupině). Stejně se znovu zapnou ostatní funkce Signalu, které se řídí vzdálenou konfigurací podle verze
+- **Nahrávání hovoru**: z nahrávky už nemizí vlastní mikrofon. Když hodiny mikrofonu utekly vůči přehrávání o víc než sekundu, nahrávka od té chvíle obsahovala jen ostatní účastníky; zdroj, který předbíhá, se teď vrací zpět do synchronu
+
+## [8.26.0-m1.6.3-beta.7] - 2026-10-14
+
+### Added
+
+- **MCP zprávy**: nové destruktivní nástroje `edit_message` a `delete_message` s nativními pravidly Signalu, podporou zmínek při úpravě a povinným rozsahem mazání pro sebe / pro všechny
+
+### Changed
+
+- **MCP metadata**: zmínky jsou uvedené hned v popisu `send_message` a vysvětlené u parametrů; server hlásí skutečnou verzi aplikace a zprávy vracejí stav smazání i čas poslední úpravy
+
+## [8.26.0-m1.6.3-beta.6] - 2026-10-14
+
+### Added
+
+- (doplňte před příštím release)
+
+### Fixed
+
+- **Start bety**: opraven pád preloadu při inicializaci MCP zmínek; buildy a CI nově kontrolují chybějící inicializační funkce ve výsledném produkčním bundlu
+
+## [8.26.0-m1.6.3-beta.5] - 2026-10-14
+
+### Added
+
+- **MCP zmínky**: `send_message` podporuje skutečné označení členů skupiny pomocí `mentions` (ID kontaktu a úsek textu); kontroluje členství a zachovává ochranu proti duplicitnímu odeslání
+
+## [8.26.0-m1.6.3-beta.4] - 2026-10-14
+
+### Added
+
+- (doplňte před příštím release)
+
+### Fixed
+
+- **MCP zprávy**: `get_messages`, `get_message` a `search_messages` vracejí textové zmínky jako čitelná jména kontaktů místo prázdných zástupných znaků
+
+## [8.26.0-m1.6.3-beta.3] - 2026-10-11
+
+### Added
+
+- (doplňte před příštím release)
+
+### Changed
+
+- **Volání a nahrávání**: beta používá Minutes RingRTC `2.71.0-minutes.1`, založené na Signal RingRTC 2.71.0, se zachovanými audio a video tapy pro nahrávání
+
+## [8.26.0-m1.6.3-beta.2] - 2026-10-09
+
+### Added
+
+- **MCP hlasování**: nástroj `create_poll` vytvoří Signal anketu se 2–10 možnostmi a volitelným vícenásobným výběrem; `vote_poll` odešle, změní nebo odebere vlastní hlas a `get_poll_results` průběžně vrací počty hlasů, procenta, hlasující a stav ukončení. Výsledky ankety jsou také součástí `get_message`
+
 ## [8.26.0-m1.6.4] - 2026-10-05
 
 ### Added
@@ -27,41 +107,51 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.26.0-m1.6.3-beta.1] - 2026-10-05
 
 ### Added
+
 - **Shrnutí nahrávky**: tlačítko **Kopírovat** vloží text do schránky i s formátováním (tučně, odrážky, nadpisy). Stejně se chová označení a **Ctrl+C**, takže shrnutí jde vložit třeba do dokumentu v Plus4U
 
 ### Fixed
+
 - **Aktualizace**: **Restartovat a nainstalovat** už nespadne s chybou Spawn UNKNOWN. Instalátor se otevře přes Windows (SmartScreen, případné potvrzení). Poškozený nebo zastaralý soubor po smazaném release se zahodí a nabídne se nové stažení
 
 ## [8.26.0-m1.6.3] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U, Vizitky a zápis ke schůzce** v aplikaci nejsou — ani v menu, ani v nastavení, ani u nahrávky. Uložené přístupové údaje se při startu smažou
 
 ## [8.26.0-m1.6.0-beta.5] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U, Vizitky a zápis ke schůzce** v aplikaci nejsou — ani v menu, ani v nastavení, ani u nahrávky. Uložené přístupové údaje se při startu smažou
 
 ## [8.26.0-m1.6.0-beta.4] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U** je v této verzi vypnuté — přístupové kódy ani přihlášení přes prohlížeč se nenastavují a uložená tajemství se při startu smažou. Zmizely **Vizitky**, záložka **Schůzka** u nahrávky a zápis shrnutí ke schůzce
 
 ## [8.26.0-m1.6.2] - 2026-10-02
 
 ### Fixed
+
 - **Nahrávka hovoru už neutichne až do konce po krátkém zaseknutí** ([#55](https://github.com/zmitko-uni/minutes/issues/55)) — když se nahrávání pod zátěží počítače zpozdilo o víc než sekundu, zbytek hovoru se uložil jako digitální ticho a přepis pokryl jen začátek. Nahrávání se teď po zaseknutí vrátí k aktuálnímu zvuku — chybí jen těch pár sekund, kdy bylo zaseknuté, zbytek hovoru se nahraje a zůstane časově přesný (sedí řečníci v přepisu i zvuk k obrazu u videa). Varování o poškozené nahrávce v přepisu už neodkazuje jen na minimalizované okno
 
 ### Removed
+
 - **Plus4U** je v této verzi vypnuté — přístupové kódy ani přihlášení přes prohlížeč se nenastavují a uložená tajemství se při startu smažou. Zmizely **Vizitky**, záložka **Schůzka** u nahrávky a zápis shrnutí ke schůzce
 
 ## [8.26.0-m1.6.0-beta.3] - 2026-09-24

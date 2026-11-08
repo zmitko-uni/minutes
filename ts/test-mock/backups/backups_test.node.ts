@@ -24,6 +24,7 @@ import {
   getMessageInTimelineByTimestamp,
   sendTextMessage,
   sendReaction,
+  getLoadedImagesInside,
 } from '../helpers.node.ts';
 import { toBase64 } from '../../Bytes.std.ts';
 import { strictAssert } from '../../util/assert.std.ts';
@@ -286,9 +287,9 @@ describe('backups', function (this: Mocha.Suite) {
     let catPlaintextHash: string;
     {
       const window = await app.getWindow();
-      await getMessageInTimelineByTimestamp(window, catTimestamp)
-        .locator('img')
-        .waitFor();
+      await getLoadedImagesInside(
+        getMessageInTimelineByTimestamp(window, catTimestamp)
+      ).waitFor();
 
       const [catMessage] = await app.getMessagesBySentAt(catTimestamp);
       const [image] = catMessage?.attachments ?? [];
@@ -314,6 +315,9 @@ describe('backups', function (this: Mocha.Suite) {
 
         debug('Waiting for messages to pinned contact to come through');
         await pinnedElem.click();
+        await window
+          .locator('.ConversationView .module-message >> "cat photo"')
+          .waitFor();
 
         const contactElem = leftPane.locator(
           `[data-testid="${friend.device.aci}"] >> "respond 4"`

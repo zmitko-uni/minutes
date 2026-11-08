@@ -32,6 +32,8 @@ import {
 } from '../util/migrations.preload.ts';
 import { drop } from '../util/drop.std.ts';
 import { isShallowEqual } from '../util/isShallowEqual.std.ts';
+import type { NotifyWhileMutedKey } from '../util/notifyWhileMuted.std.ts';
+import { NOTIFY_WHILE_MUTED_FIELDS } from '../util/notifyWhileMuted.std.ts';
 import { getInitials } from '../util/getInitials.std.ts';
 import { clearTimeoutIfNecessary } from '../util/clearTimeoutIfNecessary.std.ts';
 import { getMessageSentTimestamp } from '../util/getMessageSentTimestamp.std.ts';
@@ -85,6 +87,7 @@ import type {
 } from '../types/Colors.std.ts';
 import { strictAssert } from '../util/assert.std.ts';
 import { isConversationMuted } from '../util/isConversationMuted.std.ts';
+import { canConversationBeUnarchived } from '../util/canConversationBeUnarchived.preload.ts';
 import { isConversationSMSOnly } from '../util/isConversationSMSOnly.std.ts';
 import {
   isConversationEverUnregistered,
@@ -104,6 +107,7 @@ import {
   ServiceIdKind,
   normalizeServiceId,
   normalizePni,
+  isPniString,
 } from '../types/ServiceId.std.ts';
 import { isAciString } from '../util/isAciString.std.ts';
 import {
@@ -135,7 +139,9 @@ import {
   getTitleNoDefault,
   hasNumberTitle,
   hasUsernameTitle,
+  hasSharedNameTitle,
   canHaveUsername,
+  canHaveSharedName,
 } from '../util/getTitle.preload.ts';
 import { markConversationRead } from '../util/markConversationRead.preload.ts';
 import { handleMessageSend } from '../util/handleMessageSend.preload.ts';
@@ -264,6 +270,7 @@ import {
   buildGroupLink,
   buildInviteLinkPasswordChange,
   buildModifyMemberLabelChange,
+  buildModifyMemberProfileKeyChange,
   buildModifyMemberRoleChange,
   buildNewGroupLinkChange,
   buildPromoteMemberChange,
@@ -284,11 +291,12 @@ import * as Message from '../types/Message2.preload.ts';
 import { itemStorage } from '../textsecure/Storage.preload.ts';
 import { isUsernameValid } from '../util/Username.dom.ts';
 import type { Emoji } from '../axo/emoji.std.ts';
-import { canConversationOnlyBeMutedAlways } from '../conversations/canConversationOnlyBeMutedAlways.dom.ts';
 import { keyTransparency } from '../services/keyTransparency.preload.ts';
 import type { PollSource } from '../messageModifiers/Polls.preload.ts';
 import { isSignalServiceId } from '../types/SignalConversation.std.ts';
 import { QualifiedAddress } from '../types/QualifiedAddress.std.ts';
+import { registrationJobQueue } from '../jobs/registrationJobQueue.preload.ts';
+import { areWeInGroupWith } from '../util/areWeInGroupWith.preload.ts';
 
 const { compact, isNumber, throttle, debounce } = lodash;
 
@@ -427,7 +435,9 @@ export class ConversationModel {
       this.onChangeProfileKey();
     }
 
-    const clearUsernameTriggers: Array<keyof ConversationAttributesType> = [
+    const clearUsernameOrSharedNameTriggers: Array<
+      keyof ConversationAttributesType
+    > = [
       'name',
       'profileName',
       'profileFamilyName',
@@ -435,10 +445,21 @@ export class ConversationModel {
       'systemGivenName',
       'systemFamilyName',
       'systemNickname',
+      'nicknameGivenName',
+      'nicknameFamilyName',
     ];
 
-    if (clearUsernameTriggers.some(attrName => hasAttributeChanged(attrName))) {
+    if (
+      clearUsernameOrSharedNameTriggers.some(attrName =>
+        hasAttributeChanged(attrName)
+      )
+    ) {
       drop(this.maybeClearUsername());
+      drop(this.maybeClearSharedName());
+    }
+
+    if (hasAttributeChanged('username')) {
+      drop(this.maybeClearSharedName());
     }
 
     if (hasAttributeChanged('members') || hasAttributeChanged('membersV2')) {
@@ -1026,6 +1047,29 @@ export class ConversationModel {
       blocked = true;
     } else if (serviceId && isAciString(serviceId)) {
       drop(itemStorage.blocked.addBlockedServiceId(serviceId, timestamp));
+
+      const profileKey = itemStorage.get('profileKey');
+      if (
+        !wasBlocked &&
+        Bytes.isNotEmpty(profileKey) &&
+        window.ConversationController.areWePrimaryDevice()
+      ) {
+        // If we aren't in any groups with this contact we just blocked, rotate profileKey
+        const shouldWeRotate = !areWeInGroupWith(serviceId);
+        if (shouldWeRotate) {
+          log.info(
+            `${this.idForLogging()}: Newly blocked and not in any shared groups. Rotating profile key.`
+          );
+          drop(
+            registrationJobQueue.add({
+              type: 'RotateProfileKey',
+              id: generateGuid(),
+              oldProfileKeyBase64: Bytes.toBase64(profileKey),
+            })
+          );
+        }
+      }
+
       blocked = true;
     }
 
@@ -1087,6 +1131,10 @@ export class ConversationModel {
     }
 
     return unblocked;
+  }
+
+  isTerminated(): boolean {
+    return this.get('terminated') === true;
   }
 
   async removeContact({
@@ -2404,7 +2452,10 @@ export class ConversationModel {
     | Partial<ConversationAttributesType>
     | undefined {
     const needsTitleTransition =
-      hasNumberTitle(this.attributes) || hasUsernameTitle(this.attributes);
+      hasNumberTitle(this.attributes) ||
+      hasUsernameTitle(this.attributes) ||
+      hasSharedNameTitle(this.attributes);
+
     const update = {
       messageCount: (this.get('messageCount') || 0) + 1,
       sentMessageCount: (this.get('sentMessageCount') || 0) + 1,
@@ -2857,6 +2908,41 @@ export class ConversationModel {
       active_at: this.get('active_at') || Date.now(),
     });
     await DataWriter.updateConversation(this.attributes);
+  }
+
+  async updateProfileKey(): Promise<void> {
+    const logId = 'updateProfileKey';
+
+    if (!isGroupV2(this.attributes)) {
+      throw new Error(
+        `${logId}: Cannot update in non-GV2 conversation ${this.idForLogging()}`
+      );
+    }
+
+    const us = window.ConversationController.getOurConversationOrThrow();
+    if (!us.get('profileKeyCredential')) {
+      log.warn(
+        `${logId}: Missing profileKeyCredential, fetching profile for ourselves`
+      );
+      await us.getProfiles();
+    }
+
+    const profileKeyCredentialBase64 = us.get('profileKeyCredential');
+    strictAssert(
+      profileKeyCredentialBase64,
+      `${logId}: Must have our own profileKeyCredential`
+    );
+
+    await this.modifyGroupV2({
+      name: logId,
+      usingCredentialsFrom: [],
+      createGroupChange: async () =>
+        buildModifyMemberProfileKeyChange({
+          group: this.attributes,
+          profileKeyCredentialBase64,
+          serverPublicParamsBase64: window.getServerPublicParams(),
+        }),
+    });
   }
 
   async cancelJoinRequest(): Promise<void> {
@@ -3629,6 +3715,8 @@ export class ConversationModel {
     pollSource: PollSource;
     terminatorId: string;
     timestamp: number;
+    receivedAtCounter: number;
+    receivedAtDate: number;
     isMeTerminating: boolean;
     expireTimer: DurationInSeconds | undefined;
     expirationStartTimestamp: number | undefined;
@@ -3639,12 +3727,12 @@ export class ConversationModel {
     const terminatorServiceId = terminatorConversation?.getServiceId();
 
     const message = new MessageModel({
-      ...generateMessageId(incrementMessageCounter()),
+      ...generateMessageId(params.receivedAtCounter),
       conversationId: this.id,
       type: 'poll-terminate',
       sent_at: params.timestamp,
       timestamp: params.timestamp,
-      received_at_ms: params.timestamp,
+      received_at_ms: params.receivedAtDate,
       sourceServiceId: terminatorServiceId,
       pollTerminateNotification: {
         question: params.pollQuestion,
@@ -3677,6 +3765,7 @@ export class ConversationModel {
     pinMessage: PinMessageData;
     senderAci: AciString;
     sentAtTimestamp: number;
+    receivedAtCounter: number;
     receivedAtTimestamp: number;
     expireTimer: DurationInSeconds | null;
     expirationStartTimestamp: number | null;
@@ -3685,7 +3774,7 @@ export class ConversationModel {
     const senderIsMe = params.senderAci === ourAci;
 
     const message = new MessageModel({
-      ...generateMessageId(incrementMessageCounter()),
+      ...generateMessageId(params.receivedAtCounter),
       conversationId: this.id,
       type: 'pinned-message-notification',
       sent_at: params.sentAtTimestamp,
@@ -4005,6 +4094,28 @@ export class ConversationModel {
     return this.get('pni');
   }
 
+  getServiceIdAsPni(): PniString | undefined {
+    // If we have an untagged valid guid in the serviceId field, we assume it's an ACI
+    const aci = this.getAci();
+    if (aci) {
+      return undefined;
+    }
+
+    const serviceId = this.getServiceId();
+    if (!serviceId) {
+      return undefined;
+    }
+
+    if (isPniString(serviceId)) {
+      return serviceId;
+    }
+
+    log.warn(
+      'getServiceIdAsPni: serviceId is not a valid guid, and not a tagged PNI string'
+    );
+    return undefined;
+  }
+
   getGroupLink(): string | undefined {
     if (!isGroupV2(this.attributes)) {
       return undefined;
@@ -4202,7 +4313,9 @@ export class ConversationModel {
     clearUnreadMetrics(this.id);
 
     const enabledProfileSharing = !this.get('profileSharing');
-    const unarchivedConversation = this.get('isArchived');
+    const shouldUnarchiveConversation = canConversationBeUnarchived(
+      this.attributes
+    );
 
     log.info(
       `beforeMessageSend(${this.idForLogging()}): ` +
@@ -4235,13 +4348,13 @@ export class ConversationModel {
       // active_at & timestamp to now. We want it to stay the same.
       active_at: isEditMessage ? this.get('active_at') : now,
       timestamp: isEditMessage ? this.get('timestamp') : now,
-      ...(unarchivedConversation ? { isArchived: false } : {}),
+      ...(shouldUnarchiveConversation ? { isArchived: false } : {}),
     });
 
     if (enabledProfileSharing) {
       this.captureChange('beforeMessageSend/mandatoryProfileSharing');
     }
-    if (unarchivedConversation) {
+    if (shouldUnarchiveConversation) {
       this.captureChange('beforeMessageSend/unarchive');
     }
 
@@ -4521,6 +4634,48 @@ export class ConversationModel {
       log.info(
         `maybeClearUsername(${this.idForLogging()}): adding a notification`
       );
+      const { type, e164, username, sharedGivenName, sharedFamilyName } =
+        this.attributes;
+
+      this.set({ needsTitleTransition: undefined });
+
+      await this.addNotification('title-transition-notification', {
+        readStatus: ReadStatus.Read,
+        seenStatus: SeenStatus.Unseen,
+        titleTransition: {
+          renderInfo: {
+            type,
+            e164,
+            username,
+            sharedGivenName,
+            sharedFamilyName,
+          },
+        },
+      });
+    }
+
+    await DataWriter.updateConversation(this.attributes);
+    this.captureChange('clearUsername');
+  }
+
+  async maybeClearSharedName(): Promise<void> {
+    const { sharedGivenName, sharedFamilyName } = this.attributes;
+
+    if (
+      canHaveSharedName(this.attributes) ||
+      (!sharedGivenName && !sharedFamilyName)
+    ) {
+      return;
+    }
+
+    log.info(
+      `maybeClearSharedName(${this.idForLogging()}): clearing shared name`
+    );
+
+    if (this.get('needsTitleTransition') && getProfileName(this.attributes)) {
+      log.info(
+        `maybeClearSharedName(${this.idForLogging()}): adding a notification`
+      );
       const { type, e164, username } = this.attributes;
 
       this.set({ needsTitleTransition: undefined });
@@ -4533,13 +4688,17 @@ export class ConversationModel {
             type,
             e164,
             username,
+            sharedGivenName,
+            sharedFamilyName,
           },
         },
       });
     }
 
+    this.#doSet({ sharedGivenName: undefined, sharedFamilyName: undefined });
+
     await DataWriter.updateConversation(this.attributes);
-    this.captureChange('clearUsername');
+    this.captureChange('clearSharedName');
   }
 
   async updateUsername(
@@ -5206,10 +5365,10 @@ export class ConversationModel {
       return undefined;
     }
 
-    const ourGroups =
-      window.ConversationController.getAllGroupsInvolvingServiceId(ourAci);
-    return ourGroups
-      .filter(c => c.hasMember(ourAci) && c.hasMember(theirAci))
+    const theirGroups =
+      window.ConversationController.getAllGroupsInvolvingServiceId(theirAci);
+    return theirGroups
+      .filter(c => !c.isTerminated() && c.hasMember(ourAci))
       .sort(
         (left, right) =>
           (right.get('timestamp') || 0) - (left.get('timestamp') || 0)
@@ -5224,8 +5383,7 @@ export class ConversationModel {
 
   async getProfiles(): Promise<void> {
     // request all conversation members' keys
-    const conversations =
-      this.getMembers() as unknown as Array<ConversationModel>;
+    const conversations = this.getMembers();
 
     const groupId = isGroupV2(this.attributes)
       ? (this.get('groupId') ?? null)
@@ -5302,7 +5460,11 @@ export class ConversationModel {
       return;
     }
 
-    if (!this.getAccepted({ ignoreEmptyConvo: true }) && !forceFetch) {
+    const shouldDownload =
+      forceFetch ||
+      this.getAccepted({ ignoreEmptyConvo: true }) ||
+      (await this.#getSharedGroups())?.some(group => group.getAccepted());
+    if (!shouldDownload) {
       this.set({ remoteAvatarUrl: avatarUrl });
       return;
     }
@@ -5352,8 +5514,13 @@ export class ConversationModel {
     profileKey: string,
     {
       viaStorageServiceSync = false,
+      skipProfileFetch = false,
       reason,
-    }: { viaStorageServiceSync?: boolean; reason: string }
+    }: {
+      viaStorageServiceSync?: boolean;
+      skipProfileFetch?: boolean;
+      reason: string;
+    }
   ): Promise<boolean> {
     strictAssert(
       profileKey == null || profileKey.length > 0,
@@ -5402,7 +5569,8 @@ export class ConversationModel {
     if (this.get('needsTitleTransition')) {
       log.info(`${logId}: adding a title transition notification`);
 
-      const { type, e164, username } = this.attributes;
+      const { type, e164, username, sharedGivenName, sharedFamilyName } =
+        this.attributes;
 
       this.set({ needsTitleTransition: undefined });
 
@@ -5414,6 +5582,8 @@ export class ConversationModel {
             type,
             e164,
             username,
+            sharedGivenName,
+            sharedFamilyName,
           },
         },
       });
@@ -5422,7 +5592,7 @@ export class ConversationModel {
     // Don't trigger immediate profile fetches when syncing to remote storage
     this.set(
       { profileKey, accessKey: Bytes.toBase64(derivedAccessKey) },
-      { noTrigger: viaStorageServiceSync }
+      { noTrigger: skipProfileFetch || viaStorageServiceSync }
     );
 
     // We _don't_ update storage service when we find out about a new profileKey unless
@@ -5599,12 +5769,13 @@ export class ConversationModel {
 
     await DataWriter.updateConversation(this.attributes);
 
-    if (
-      source === 'local-delete' &&
-      !window.ConversationController.doWeHaveOtherDevices()
-    ) {
-      log.info(`${logId}}: We have no other devices; not sending sync message`);
-    } else if (source === 'local-delete') {
+    const doWeHaveOtherDevices =
+      window.ConversationController.doWeHaveOtherDevices();
+    const isSignalConvo = isSignalConversation(this.attributes);
+    const shouldSync =
+      source === 'local-delete' && doWeHaveOtherDevices && !isSignalConvo;
+
+    if (shouldSync) {
       log.info(`${logId}: Preparing sync message`);
       const timestamp = Date.now();
 
@@ -5662,6 +5833,12 @@ export class ConversationModel {
       }
 
       log.info(`${logId}: Sync message queue complete`);
+    } else {
+      log.info(`${logId}: not syncing`, {
+        source,
+        doWeHaveOtherDevices,
+        isSignalConvo,
+      });
     }
 
     log.info(`${logId}: Starting delete`);
@@ -5766,7 +5943,10 @@ export class ConversationModel {
   // [X] whitelisted
   // [X] archived
   // [X] markedUnread
-  // [X] dontNotifyForMentionsIfMuted
+  // [X] notifyForCallsIfMuted
+  // [X] notifyForMentionsIfMuted
+  // [X] notifyForRepliesIfMuted
+  // [X] showUnreadReminders
   // [x] firstUnregisteredAt
   captureChange(logMessage: string): void {
     log.info('storageService[captureChange]', logMessage, this.idForLogging());
@@ -5810,19 +5990,9 @@ export class ConversationModel {
   }
 
   setMuteExpiration(
-    expiresAt: MuteExpiration = MuteExpiration.UNMUTED,
+    muteExpiresAt: MuteExpiration = MuteExpiration.UNMUTED,
     { viaStorageServiceSync = false } = {}
   ): void {
-    let muteExpiresAt = expiresAt;
-
-    if (
-      muteExpiresAt > MuteExpiration.UNMUTED &&
-      canConversationOnlyBeMutedAlways(this.attributes)
-    ) {
-      log.error('Invalid mute expiration for only-always-mute conversation');
-      muteExpiresAt = MuteExpiration.ALWAYS;
-    }
-
     const prevExpiration = this.get('muteExpiresAt');
 
     if (prevExpiration === muteExpiresAt) {
@@ -6108,15 +6278,56 @@ export class ConversationModel {
     }
   }
 
-  setDontNotifyForMentionsIfMuted(newValue: boolean): void {
-    const previousValue = Boolean(this.get('dontNotifyForMentionsIfMuted'));
-    if (previousValue === newValue) {
+  setNotifyWhileMuted(key: NotifyWhileMutedKey, newValue: boolean): void {
+    const attributeName = NOTIFY_WHILE_MUTED_FIELDS[key];
+
+    if (this.get(attributeName) === newValue) {
       return;
     }
 
-    this.set({ dontNotifyForMentionsIfMuted: newValue });
+    this.set({ [attributeName]: newValue });
+
     drop(DataWriter.updateConversation(this.attributes));
-    this.captureChange('dontNotifyForMentionsIfMuted');
+    this.captureChange(attributeName);
+  }
+
+  setShowUnreadReminders(newValue: boolean): void {
+    if (this.get('showUnreadReminders') === newValue) {
+      return;
+    }
+
+    this.set({ showUnreadReminders: newValue });
+
+    drop(DataWriter.updateConversation(this.attributes));
+    this.captureChange('showUnreadReminders');
+  }
+
+  private static readonly RESETTABLE_NOTIFICATION_ITEMS = [
+    ...Object.values(NOTIFY_WHILE_MUTED_FIELDS),
+    'showUnreadReminders',
+  ] as const;
+
+  resetNotificationSettings(): void {
+    if (
+      ConversationModel.RESETTABLE_NOTIFICATION_ITEMS.every(
+        name => this.get(name) === undefined
+      )
+    ) {
+      return;
+    }
+
+    this.set({
+      notifyForCallsIfMuted: undefined,
+      notifyForMentionsIfMuted: undefined,
+      notifyForRepliesIfMuted: undefined,
+      showUnreadReminders: undefined,
+    } satisfies Record<
+      (typeof ConversationModel.RESETTABLE_NOTIFICATION_ITEMS)[number],
+      undefined
+    >);
+
+    drop(DataWriter.updateConversation(this.attributes));
+    this.captureChange('resetNotificationSettings');
   }
 
   acknowledgeGroupMemberNameCollisions(

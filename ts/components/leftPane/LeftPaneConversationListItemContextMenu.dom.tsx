@@ -27,7 +27,6 @@ import { strictAssert } from '../../util/assert.std.ts';
 import { UserText } from '../UserText.dom.tsx';
 import { isConversationMuted } from '../../util/isConversationMuted.std.ts';
 import { isInternalFeaturesEnabled } from '../../util/isInternalFeaturesEnabled.dom.ts';
-import { canConversationOnlyBeMutedAlways } from '../../conversations/canConversationOnlyBeMutedAlways.dom.ts';
 import { MinutesContextMenuItems } from '../../minutes/components/MinutesConversationMenuItems.dom.tsx';
 
 export type ChatFolderToggleChat = (
@@ -84,10 +83,8 @@ export const LeftPaneConversationListItemContextMenu: FC<LeftPaneConversationLis
     }, [selectedChatFolder]);
 
     const muteMenu = useMemo(() => {
-      return getConversationMuteMenu(muteExpiresAt, i18n, {
-        canOnlyBeMutedAlways: canConversationOnlyBeMutedAlways(conversation),
-      });
-    }, [muteExpiresAt, i18n, conversation]);
+      return getConversationMuteMenu(muteExpiresAt, i18n);
+    }, [muteExpiresAt, i18n]);
 
     const isMuted = useMemo(() => {
       return isConversationMuted(conversation);

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { ipcRenderer } from 'electron';
+import { createLogger } from '../../logging/log.std.ts';
 import { mkdir } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 
@@ -24,6 +25,11 @@ import { canChangeTimer } from '../../util/canChangeTimer.preload.ts';
 import { canEditGroupInfo } from '../../util/canEditGroupInfo.preload.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
 import { getMessageById } from '../../messages/getMessageById.preload.ts';
+import { sendEditedMessage } from '../../util/sendEditedMessage.preload.ts';
+import { sendDeleteForEveryoneMessage } from '../../util/sendDeleteForEveryoneMessage.preload.ts';
+import { canSendDeleteForEveryone } from '../../util/canDeleteForEveryone.preload.ts';
+import { getMessageSentTimestamp } from '../../util/getMessageSentTimestamp.std.ts';
+import { isSignalConversation } from '../../util/isSignalConversation.dom.ts';
 import { enqueueReactionForSend } from '../../reactions/enqueueReactionForSend.preload.ts';
 import type { AttachmentType } from '../../types/Attachment.std.ts';
 import { AttachmentDownloadUrgency } from '../../types/AttachmentDownload.std.ts';
@@ -32,13 +38,27 @@ import { stringToMIMEType } from '../../types/MIME.std.ts';
 import * as RemoteConfig from '../../RemoteConfig.dom.ts';
 import * as Attachment from '../../util/Attachment.std.ts';
 import { isFileDangerous } from '../../util/isFileDangerous.std.ts';
+import { hasAtMostGraphemes } from '../../util/grapheme.std.ts';
 import { isValidE164 } from '../../util/isValidE164.std.ts';
 import { lookupConversationWithoutServiceId } from '../../util/lookupConversationWithoutServiceId.preload.ts';
 import { processAttachment } from '../../util/processAttachment.preload.ts';
 import { queueAttachmentDownloadsAndMaybeSaveMessage } from '../../util/queueAttachmentDownloads.preload.ts';
 import { readAttachmentData } from '../../util/migrations.preload.ts';
+import { enqueuePollCreateForSend } from '../../util/enqueuePollCreateForSend.dom.ts';
+import { enqueuePollVoteForSend } from '../../polls/enqueuePollVoteForSend.preload.ts';
+import {
+  POLL_OPTION_MAX_LENGTH,
+  POLL_OPTIONS_MAX_COUNT,
+  POLL_OPTIONS_MIN_COUNT,
+  POLL_QUESTION_MAX_LENGTH_SEND,
+} from '../../types/Polls.dom.ts';
 import { callRecordingService } from '../callRecordingService.preload.ts';
 import { sendSignalChatMessage } from '../sendSignalChatMessage.preload.ts';
+import { prepareAutomationMentions } from './messageMentionAutomation.std.ts';
+import {
+  editAutomationMessage,
+  deleteAutomationMessage,
+} from './messageMutationAutomation.dom.ts';
 import { videoRecordingService } from '../videoRecordingService.preload.ts';
 import type {
   AutomationConversation,
@@ -86,6 +106,7 @@ import {
 } from './attachmentFiles.node.ts';
 
 const MAX_QUERY_ITEMS = 500;
+const log = createLogger('minutes/automation');
 const MAX_GROUP_AVATAR_BYTES = 10 * 1024 * 1024;
 const GROUP_AVATAR_DIRECTORY_NAME = 'automation-group-avatars';
 const AUTOMATION_ATTACHMENTS_DIRECTORY_NAME = 'automation-attachments';
@@ -316,6 +337,7 @@ async function loadFilteredSearchMessages(
       query: queryText,
       conversationId,
       options: { limit: fetchLimit },
+      filterByUnread: false,
     });
     const filtered = messages
       .map(mapAutomationMessage)
@@ -403,6 +425,56 @@ function requiredStringArray(
   });
 }
 
+function requiredPollOptions(
+  params: Readonly<Record<string, unknown>>
+): Array<string> {
+  const options = requiredStringArray(params, 'options');
+  if (
+    options.length < POLL_OPTIONS_MIN_COUNT ||
+    options.length > POLL_OPTIONS_MAX_COUNT
+  ) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `options must contain between ${POLL_OPTIONS_MIN_COUNT} and ${POLL_OPTIONS_MAX_COUNT} items`
+    );
+  }
+  if (
+    options.some(option => !hasAtMostGraphemes(option, POLL_OPTION_MAX_LENGTH))
+  ) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `Each option must contain at most ${POLL_OPTION_MAX_LENGTH} characters`
+    );
+  }
+  return options;
+}
+
+function requiredPollOptionIndexes(
+  params: Readonly<Record<string, unknown>>
+): Array<number> {
+  const value = params.optionIndexes;
+  if (
+    !Array.isArray(value) ||
+    value.length > POLL_OPTIONS_MAX_COUNT ||
+    !value.every(
+      index =>
+        typeof index === 'number' && Number.isSafeInteger(index) && index >= 0
+    )
+  ) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `optionIndexes must contain at most ${POLL_OPTIONS_MAX_COUNT} non-negative integers`
+    );
+  }
+  if (new Set(value).size !== value.length) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      'optionIndexes must not contain duplicates'
+    );
+  }
+  return value;
+}
+
 function requiredNonNegativeInteger(
   params: Readonly<Record<string, unknown>>,
   name: string
@@ -463,6 +535,55 @@ function requireExactContact(contactId: string): ConversationModel {
     conversation.getServiceId() == null
   ) {
     return automationError('NOT_FOUND', `Contact not found: ${contactId}`);
+  }
+  return conversation;
+}
+
+function prepareMentionText(
+  conversationId: string,
+  text: string | undefined,
+  mentions: unknown
+) {
+  const conversation = window.ConversationController.get(conversationId);
+  const group =
+    conversation != null && isGroupV2(conversation.attributes)
+      ? conversation
+      : undefined;
+  return prepareAutomationMentions(
+    text,
+    mentions,
+    contactId => {
+      const contact = requireExactContact(contactId);
+      const aci = contact.getAci();
+      return aci == null ? null : { aci, name: contact.getTitle() };
+    },
+    group == null
+      ? undefined
+      : new Set((group.get('membersV2') ?? []).map(member => member.aci))
+  );
+}
+
+function requireMessageMutationConversation(
+  conversationId: string,
+  forSending: boolean
+): ConversationModel {
+  const conversation = window.ConversationController.get(conversationId);
+  if (conversation == null || conversation.id !== conversationId) {
+    return automationError('NOT_FOUND', 'Conversation not found');
+  }
+  if (
+    forSending &&
+    (isSignalConversation(conversation.attributes) ||
+      conversation.isBlocked() ||
+      conversation.get('left') ||
+      conversation.get('terminated') ||
+      (conversation.get('type') === 'group' &&
+        !isGroupV2(conversation.attributes)))
+  ) {
+    return automationError(
+      'INVALID_STATE',
+      'Cannot send message mutations to this conversation'
+    );
   }
   return conversation;
 }
@@ -839,6 +960,8 @@ function requestedMemberRoles(
 }
 
 function mapAutomationMessage(message: MessageType): AutomationMessage {
+  const ourConversationId =
+    window.ConversationController.getOurConversationIdOrThrow();
   return toAutomationMessage(
     message,
     authorId => {
@@ -858,6 +981,16 @@ function mapAutomationMessage(message: MessageType): AutomationMessage {
         return null;
       }
       return { id: author.id, name: author.getTitle().trim() || author.id };
+    },
+    voterId => {
+      const voter = window.ConversationController.get(voterId);
+      return voter == null
+        ? null
+        : {
+            id: voter.id,
+            title: voter.getTitle().trim() || null,
+            isMe: voter.id === ourConversationId,
+          };
     }
   );
 }
@@ -1514,8 +1647,18 @@ export function initializeAutomationRenderer(): void {
     },
     sendMessage: async params => {
       const conversationId = requiredString(params, 'conversationId');
-      const text =
-        params.text === undefined ? undefined : requiredString(params, 'text');
+      const text = optionalTypedString(params, 'text');
+      if (text !== undefined && text.trim().length === 0) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'text must be a non-empty string'
+        );
+      }
+      const prepared = prepareMentionText(
+        conversationId,
+        text,
+        params.mentions
+      );
       const attachmentSpecs = optionalAttachmentSpecs(params);
       if (text == null && attachmentSpecs.length === 0) {
         return automationError(
@@ -1530,9 +1673,10 @@ export function initializeAutomationRenderer(): void {
       );
       const queued = await sendSignalChatMessage(
         conversationId,
-        text,
+        prepared.body,
         'automation/sendMessage',
-        attachments
+        attachments,
+        prepared.bodyRanges
       );
       if (!queued) {
         const error = new Error('Message could not be queued');
@@ -1558,6 +1702,170 @@ export function initializeAutomationRenderer(): void {
         },
       });
       return { queued: true, attachmentCount: attachments.length };
+    },
+    editMessage: async params => {
+      const conversationId = requiredString(params, 'conversationId');
+      const messageId = requiredString(params, 'messageId');
+      requireMessageMutationConversation(conversationId, true);
+      const message = await getMessageById(messageId);
+      return editAutomationMessage(
+        message?.attributes,
+        { conversationId, text: params.text, mentions: params.mentions },
+        {
+          prepareText: (text, mentions) =>
+            prepareMentionText(conversationId, text, mentions),
+          sendEdit: async payload => {
+            await sendEditedMessage(conversationId, payload);
+          },
+        }
+      );
+    },
+    deleteMessage: async params => {
+      const conversationId = requiredString(params, 'conversationId');
+      const messageId = requiredString(params, 'messageId');
+      const conversation = requireMessageMutationConversation(
+        conversationId,
+        params.scope === 'for_everyone'
+      );
+      const message = await getMessageById(messageId);
+      return deleteAutomationMessage(
+        message?.attributes,
+        { conversationId, scope: params.scope },
+        {
+          canDeleteForEveryone: target =>
+            canSendDeleteForEveryone({
+              targetMessage: target,
+              targetConversation: conversation.attributes,
+              ourAci: itemStorage.user.getCheckedAci(),
+              isDeleterGroupAdmin: areWeAdmin(conversation.attributes),
+            }),
+          deleteForMe: async target => {
+            // This native async thunk is typed as returning void by Redux bindings.
+            await Promise.resolve(
+              window.reduxActions.conversations.deleteMessages({
+                conversationId,
+                messageIds: [target.id],
+              })
+            );
+          },
+          deleteForEveryone: async target => {
+            await sendDeleteForEveryoneMessage(conversation.attributes, {
+              id: target.id,
+              timestamp: getMessageSentTimestamp(target, { log }),
+            });
+          },
+        }
+      );
+    },
+    createPoll: async params => {
+      const conversationId = requiredString(params, 'conversationId');
+      const conversation = window.ConversationController.get(conversationId);
+      if (conversation == null || conversation.id !== conversationId) {
+        return automationError('NOT_FOUND', 'Conversation not found');
+      }
+      const question = requiredString(params, 'question');
+      if (!hasAtMostGraphemes(question, POLL_QUESTION_MAX_LENGTH_SEND)) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          `question must contain at most ${POLL_QUESTION_MAX_LENGTH_SEND} characters`
+        );
+      }
+      const options = requiredPollOptions(params);
+      if (
+        params.allowMultiple !== undefined &&
+        typeof params.allowMultiple !== 'boolean'
+      ) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'allowMultiple must be a boolean'
+        );
+      }
+      const allowMultiple = params.allowMultiple === true;
+
+      let message: MessageType | undefined;
+      try {
+        message = await enqueuePollCreateForSend(conversation, {
+          question,
+          options,
+          allowMultiple,
+        });
+      } catch (error) {
+        return automationError(
+          'INVALID_STATE',
+          error instanceof Error ? error.message : 'Poll could not be queued'
+        );
+      }
+      if (message == null) {
+        return automationError('INVALID_STATE', 'Poll could not be queued');
+      }
+      const mapped = mapAutomationMessage(message);
+      return {
+        messageId: mapped.id,
+        conversationId: mapped.conversationId,
+        poll: mapped.poll,
+      };
+    },
+    getPollResults: async params => {
+      const messageId = requiredString(params, 'messageId');
+      const message = await DataReader.getMessageById(messageId);
+      if (message == null) {
+        return automationError('NOT_FOUND', 'Message not found');
+      }
+      const mapped = mapAutomationMessage(message);
+      if (mapped.poll == null) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'The requested message is not a poll'
+        );
+      }
+      return {
+        messageId: mapped.id,
+        conversationId: mapped.conversationId,
+        ...mapped.poll,
+      };
+    },
+    votePoll: async params => {
+      const messageId = requiredString(params, 'messageId');
+      const optionIndexes = requiredPollOptionIndexes(params);
+      const message = await DataReader.getMessageById(messageId);
+      if (message == null) {
+        return automationError('NOT_FOUND', 'Message not found');
+      }
+      const { poll } = message;
+      if (poll == null) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'The requested message is not a poll'
+        );
+      }
+      if (poll.terminatedAt != null) {
+        return automationError('INVALID_STATE', 'The poll is already ended');
+      }
+      if (!poll.allowMultiple && optionIndexes.length > 1) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'This poll allows only one selected option'
+        );
+      }
+      if (optionIndexes.some(index => index >= poll.options.length)) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'optionIndexes contains an option that does not exist'
+        );
+      }
+
+      await enqueuePollVoteForSend({ messageId, optionIndexes });
+      return {
+        queued: true,
+        messageId,
+        conversationId: message.conversationId,
+        optionIndexes,
+        selectedOptions: optionIndexes.map(index => ({
+          index,
+          text: poll.options[index],
+        })),
+        removed: optionIndexes.length === 0,
+      };
     },
     setMessageReaction: async params => {
       const messageId = requiredString(params, 'messageId');

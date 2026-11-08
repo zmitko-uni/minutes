@@ -119,6 +119,7 @@ type HomeProps = {
   contentsRef: MutableRefObject<HTMLDivElement | null>;
   conversations: ReadonlyArray<ConversationType>;
   conversationSelector: GetConversationByIdType;
+  doWeHaveOtherDevices: boolean;
   hasOnboardingBeenSeen: boolean;
   i18n: LocalizerType;
   isSyncEnabled: boolean;
@@ -206,6 +207,7 @@ export function NotificationProfilesCreateFlow({
 
     confirmDiscardIf(isDirty, discardChanges);
   }, [confirmDiscardIf, emoji, name, page]);
+  // oxlint-disable-next-line react/refs
   tryClose.current = onTryClose;
 
   function makeNotificationProfile(): ProfileToSave {
@@ -215,6 +217,7 @@ export function NotificationProfilesCreateFlow({
 
       color,
 
+      // oxlint-disable-next-line react/purity
       createdAtMs: Date.now(),
 
       allowAllCalls,
@@ -334,6 +337,7 @@ export function NotificationProfilesHome({
   contentsRef,
   conversations,
   conversationSelector,
+  doWeHaveOtherDevices,
   hasOnboardingBeenSeen,
   i18n,
   isSyncEnabled,
@@ -361,6 +365,7 @@ export function NotificationProfilesHome({
   useEffect(() => {
     if (page === HomePage.List && !hasOnboardingBeenSeen) {
       if (allProfiles.length === 0) {
+        // oxlint-disable-next-line react/set-state-in-effect
         setIsShowingOnboardModal(true);
       } else {
         setHasOnboardingBeenSeen(true);
@@ -398,6 +403,7 @@ export function NotificationProfilesHome({
           <NotificationProfilesListPage
             allProfiles={allProfiles}
             contentsRef={contentsRef}
+            doWeHaveOtherDevices={doWeHaveOtherDevices}
             i18n={i18n}
             isSyncEnabled={isSyncEnabled}
             loading={loading}
@@ -955,6 +961,7 @@ function NotificationProfilesDonePage({
 function NotificationProfilesListPage({
   allProfiles,
   contentsRef,
+  doWeHaveOtherDevices,
   i18n,
   isSyncEnabled,
   loading,
@@ -965,6 +972,7 @@ function NotificationProfilesListPage({
 }: {
   allProfiles: ReadonlyArray<NotificationProfileType>;
   contentsRef: MutableRefObject<HTMLDivElement | null>;
+  doWeHaveOtherDevices: boolean;
   i18n: LocalizerType;
   isSyncEnabled: boolean;
   loading: boolean;
@@ -978,6 +986,7 @@ function NotificationProfilesListPage({
   >([]);
   useEffect(() => {
     if (!loading) {
+      // oxlint-disable-next-line react/set-state-in-effect
       setCachedProfiles(allProfiles);
     }
   }, [loading, allProfiles]);
@@ -1017,25 +1026,29 @@ function NotificationProfilesListPage({
             </FullWidthButton>
           );
         })}
-        <FullWidthDivider />
-        <FullWidthRow className={tw('flex min-h-[40px] items-start pt-1')}>
-          <div className={tw('grow')}>
-            <div className={tw('type-body-large text-primary')}>
-              {i18n('icu:NotificationProfiles--list--sync')}
-            </div>
-            <div className={tw('mt-1 type-body-small text-secondary')}>
-              {i18n('icu:NotificationProfiles--list--sync--description')}
-            </div>
-          </div>
-          <div className={tw('ms-4')}>
-            <AxoSwitch.Root
-              checked={isSyncEnabled}
-              onCheckedChange={value => {
-                setIsSyncEnabled(value);
-              }}
-            />
-          </div>
-        </FullWidthRow>
+        {doWeHaveOtherDevices && (
+          <>
+            <FullWidthDivider />
+            <FullWidthRow className={tw('flex min-h-[40px] items-start pt-1')}>
+              <div className={tw('grow')}>
+                <div className={tw('type-body-large text-primary')}>
+                  {i18n('icu:NotificationProfiles--list--sync')}
+                </div>
+                <div className={tw('mt-1 type-body-small text-secondary')}>
+                  {i18n('icu:NotificationProfiles--list--sync--description')}
+                </div>
+              </div>
+              <div className={tw('ms-4')}>
+                <AxoSwitch.Root
+                  checked={isSyncEnabled}
+                  onCheckedChange={value => {
+                    setIsSyncEnabled(value);
+                  }}
+                />
+              </div>
+            </FullWidthRow>
+          </>
+        )}
       </Container>
     </>
   );
@@ -1104,7 +1117,8 @@ function NotificationProfilesEditPage({
       <Container contentsRef={contentsRef}>
         <AriaClickable.Root
           className={tw(
-            'group mb-3 flex min-h-[80px] w-full items-center rounded-md border-[2.5px] border-transparent px-[11.5px] outline-none keyboard-mode:data-focused:axo-focus-ring'
+            'group mb-3 flex min-h-[80px] w-full items-center rounded-md border-[2.5px] border-transparent px-[11.5px]',
+            'data-focus-visible:axo-focus-ring'
           )}
         >
           <ProfileAvatar i18n={i18n} profile={profile} size="medium" />
@@ -1248,7 +1262,8 @@ function FullWidthButton({
     <button
       className={classNames(
         tw(
-          'flex w-full items-center rounded-md border-[2.5px] border-transparent px-[11.5px] outline-none keyboard-mode:focus:axo-focus-ring'
+          'flex w-full items-center rounded-md border-[2.5px] border-transparent px-[11.5px]',
+          'focus-visible:axo-focus-ring'
         ),
         className
       )}

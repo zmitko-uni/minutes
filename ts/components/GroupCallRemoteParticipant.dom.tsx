@@ -298,8 +298,12 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
         return;
       }
 
-      canvasEl.width = frameWidth;
-      canvasEl.height = frameHeight;
+      if (canvasEl.width !== frameWidth) {
+        canvasEl.width = frameWidth;
+      }
+      if (canvasEl.height !== frameHeight) {
+        canvasEl.height = frameHeight;
+      }
       canvasContext.putImageData(imageData, 0, 0);
       if (sharingScreen) {
         presentationSourceController.markRendered(canvasEl);
@@ -319,6 +323,7 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
 
     useEffect(() => {
       if (!hasRemoteVideo) {
+        // oxlint-disable-next-line react/set-state-in-effect
         setHasReceivedVideoRecently(false);
       }
     }, [hasRemoteVideo]);
@@ -338,7 +343,13 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
       return () => {
         cancelAnimationFrame(rafId);
       };
-    }, [hasRemoteVideo, isVisible, renderVideoFrame, videoFrameSource]);
+    }, [
+      hasRemoteVideo,
+      isVisible,
+      renderVideoFrame,
+      // oxlint-disable-next-line react/exhaustive-effect-dependencies
+      videoFrameSource,
+    ]);
 
     const setIsOnTopDebounced = useMemo(
       () => debounce(setIsOnTop, CONTAINER_TRANSITION_TIME),
@@ -350,6 +361,7 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
     useEffect(() => {
       if (isActiveSpeakerInSpeakerView !== prevIsActiveSpeakerInSpeakerView) {
         if (isActiveSpeakerInSpeakerView) {
+          // oxlint-disable-next-line react/set-state-in-effect
           setIsOnTop(true);
         } else {
           setIsOnTopDebounced(false);
@@ -531,6 +543,7 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
       }
 
       if (isBlocked) {
+        // oxlint-disable-next-line react/set-state-in-effect
         setErrorDialogTitle(
           <div className="module-ongoing-call__group-call-remote-participant__more-info-modal-title">
             <I18n
@@ -666,8 +679,6 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
               </>
             )}
             {wantsToShowVideo && (
-              // FIXME
-              // oxlint-disable-next-line jsx-a11y/control-has-associated-label
               <canvas
                 className={classNames(
                   'module-ongoing-call__group-call-remote-participant__remote-video',

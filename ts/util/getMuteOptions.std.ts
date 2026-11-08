@@ -23,12 +23,6 @@ export type MuteExpirationOption = MuteOption & {
   value: Exclude<MuteOptionValue, { type: 'custom' }>;
 };
 
-export function isMuteExpirationOption(
-  option: MuteOption
-): option is MuteExpirationOption {
-  return option.value.type !== 'custom';
-}
-
 export function getMuteExpiration(
   value: MuteExpirationOption['value']
 ): MuteExpiration {
@@ -47,20 +41,9 @@ export function getMuteExpiration(
 export function getMuteValuesOptions(
   i18n: LocalizerType,
   options: {
-    canOnlyBeMutedAlways?: boolean;
     isCurrentlyMutedAlways?: boolean;
   } = {}
 ): ReadonlyArray<MuteOption> {
-  const muteAlwaysOption: MuteOption = {
-    name: i18n('icu:MuteMenu__always'),
-    disabled: options.isCurrentlyMutedAlways === true,
-    value: { type: 'always' },
-  };
-
-  if (options.canOnlyBeMutedAlways) {
-    return [muteAlwaysOption];
-  }
-
   return [
     {
       name: i18n('icu:MuteMenu__hour'),
@@ -82,32 +65,11 @@ export function getMuteValuesOptions(
       name: i18n('icu:MuteMenu__until'),
       value: { type: 'custom' },
     },
-    muteAlwaysOption,
-  ];
-}
-
-export function getMuteOptions(
-  muteExpiresAt: null | undefined | MuteExpiration,
-  i18n: LocalizerType,
-  options: {
-    canOnlyBeMutedAlways?: boolean;
-  } = {}
-): Array<MuteOption> {
-  return [
-    ...(muteExpiresAt && isConversationMuted({ muteExpiresAt })
-      ? [
-          {
-            name: i18n('icu:unmute'),
-            value: { type: 'unmute' } as const,
-          },
-        ]
-      : []),
-    ...getMuteValuesOptions(i18n, {
-      canOnlyBeMutedAlways: options.canOnlyBeMutedAlways,
-      isCurrentlyMutedAlways: MuteExpiration.isAlways(
-        muteExpiresAt ?? MuteExpiration.UNMUTED
-      ),
-    }),
+    {
+      name: i18n('icu:MuteMenu__always'),
+      disabled: options.isCurrentlyMutedAlways === true,
+      value: { type: 'always' },
+    },
   ];
 }
 
@@ -118,10 +80,7 @@ export type MuteMenu = Readonly<{
 
 export function getConversationMuteMenu(
   muteExpiresAt: null | undefined | MuteExpiration,
-  i18n: LocalizerType,
-  options: {
-    canOnlyBeMutedAlways?: boolean;
-  } = {}
+  i18n: LocalizerType
 ): MuteMenu {
   if (muteExpiresAt != null && isConversationMuted({ muteExpiresAt })) {
     return {
@@ -137,8 +96,6 @@ export function getConversationMuteMenu(
 
   return {
     label: i18n('icu:MuteMenu__label'),
-    options: getMuteValuesOptions(i18n, {
-      canOnlyBeMutedAlways: options.canOnlyBeMutedAlways,
-    }),
+    options: getMuteValuesOptions(i18n),
   };
 }

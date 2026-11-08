@@ -55,8 +55,8 @@ import type { ShowSendAnywayDialogActionType } from '../../../state/ducks/global
 import { SHOW_SEND_ANYWAY_DIALOG } from '../../../state/ducks/globalModals.preload.ts';
 import type { StoryDistributionListsActionType } from '../../../state/ducks/storyDistributionLists.preload.ts';
 import {
-  DELETE_LIST,
   HIDE_MY_STORIES_FROM,
+  MARK_AS_DELETED,
   MODIFY_LIST,
   VIEWERS_CHANGED,
 } from '../../../state/ducks/storyDistributionLists.preload.ts';
@@ -491,7 +491,7 @@ describe('both/state/ducks/conversations', () => {
         await showConversation({
           conversationId: 'abc123',
           messageId: 'xyz987',
-        })(dispatch, getEmptyRootState, null);
+        })(dispatch, getEmptyRootState);
         const action = dispatch
           .getCalls()
           .map(call => call.args[0])
@@ -509,7 +509,7 @@ describe('both/state/ducks/conversations', () => {
           await showConversation({
             conversationId: 'fake-conversation-id',
             switchToAssociatedView: true,
-          })(dispatch, getEmptyRootState, null);
+          })(dispatch, getEmptyRootState);
           action = dispatch
             .getCalls()
             .map(call => call.args[0])
@@ -713,14 +713,10 @@ describe('both/state/ducks/conversations', () => {
       it('immediately dispatches a CREATE_GROUP_PENDING action, which puts the composer in a loading state', () => {
         const dispatch = sinon.spy();
 
-        createGroup()(
-          dispatch,
-          () => ({
-            ...getEmptyRootState(),
-            conversations: conversationsState,
-          }),
-          null
-        );
+        void createGroup()(dispatch, () => ({
+          ...getEmptyRootState(),
+          conversations: conversationsState,
+        }));
 
         sinon.assert.calledOnce(dispatch);
         sinon.assert.calledWith(dispatch, { type: 'CREATE_GROUP_PENDING' });
@@ -737,14 +733,10 @@ describe('both/state/ducks/conversations', () => {
       });
 
       it('calls groups.createGroupV2', async () => {
-        await createGroup(createGroupStub)(
-          sinon.spy(),
-          () => ({
-            ...getEmptyRootState(),
-            conversations: conversationsState,
-          }),
-          null
-        );
+        await createGroup(createGroupStub)(sinon.spy(), () => ({
+          ...getEmptyRootState(),
+          conversations: conversationsState,
+        }));
 
         sinon.assert.calledOnce(createGroupStub);
         sinon.assert.calledWith(createGroupStub, {
@@ -757,20 +749,16 @@ describe('both/state/ducks/conversations', () => {
       });
 
       it("trims the group's title before calling groups.createGroupV2", async () => {
-        await createGroup(createGroupStub)(
-          sinon.spy(),
-          () => ({
-            ...getEmptyRootState(),
-            conversations: {
-              ...conversationsState,
-              composer: {
-                ...conversationsState.composer,
-                groupName: '  To  Trim \t',
-              },
+        await createGroup(createGroupStub)(sinon.spy(), () => ({
+          ...getEmptyRootState(),
+          conversations: {
+            ...conversationsState,
+            composer: {
+              ...conversationsState.composer,
+              groupName: '  To  Trim \t',
             },
-          }),
-          null
-        );
+          },
+        }));
 
         sinon.assert.calledWith(
           createGroupStub,
@@ -788,8 +776,7 @@ describe('both/state/ducks/conversations', () => {
           () => ({
             ...getEmptyRootState(),
             conversations: conversationsState,
-          }),
-          null
+          })
         );
 
         const pendingAction = dispatch.getCall(0).args[0];
@@ -820,8 +807,7 @@ describe('both/state/ducks/conversations', () => {
           () => ({
             ...getEmptyRootState(),
             conversations: conversationsState,
-          }),
-          null
+          })
         );
 
         await createGroupPromise;
@@ -847,28 +833,18 @@ describe('both/state/ducks/conversations', () => {
 
         const dispatch = sinon.spy();
 
-        await createGroup(createGroupStub)(
-          dispatch,
-          () => ({
-            ...getEmptyRootState(),
-            conversations: conversationsState,
-          }),
-          null
-        );
+        await createGroup(createGroupStub)(dispatch, () => ({
+          ...getEmptyRootState(),
+          conversations: conversationsState,
+        }));
 
         sinon.assert.calledWith(dispatch, {
           type: 'CREATE_GROUP_FULFILLED',
           payload: { invitedServiceIds: [abc] },
         });
 
-        sinon.assert.calledWith(dispatch, {
-          type: TARGETED_CONVERSATION_CHANGED,
-          payload: {
-            conversationId: '9876',
-            messageId: undefined,
-            switchToAssociatedView: true,
-          },
-        });
+        sinon.assert.calledThrice(dispatch);
+        assert.isFunction(dispatch.getCall(2).args[0]);
 
         const fulfilledAction = dispatch.getCall(1).args[0];
         const result = reducer(conversationsState, fulfilledAction);
@@ -1055,14 +1031,10 @@ describe('both/state/ducks/conversations', () => {
       ): CancelVerificationDataByConversationActionType {
         const dispatch = sinon.spy();
 
-        cancelConversationVerification(timestamp)(
-          dispatch,
-          () => ({
-            ...getEmptyRootState(),
-            conversations: conversationsState,
-          }),
-          null
-        );
+        cancelConversationVerification(timestamp)(dispatch, () => ({
+          ...getEmptyRootState(),
+          conversations: conversationsState,
+        }));
 
         return dispatch.getCall(0).args[0];
       }
@@ -1931,14 +1903,10 @@ describe('both/state/ducks/conversations', () => {
       ): ToggleConversationInChooseMembersActionType {
         const dispatch = sinon.spy();
 
-        toggleConversationInChooseMembers(id)(
-          dispatch,
-          () => ({
-            ...getEmptyRootState(),
-            conversations: conversationsState,
-          }),
-          null
-        );
+        toggleConversationInChooseMembers(id)(dispatch, () => ({
+          ...getEmptyRootState(),
+          conversations: conversationsState,
+        }));
 
         return dispatch.getCall(0).args[0];
       }
@@ -2212,7 +2180,7 @@ describe('both/state/ducks/conversations', () => {
 
       it('resetAllChatColors', async () => {
         const dispatch = sinon.spy();
-        await resetAllChatColors()(dispatch, getState, null);
+        await resetAllChatColors()(dispatch, getState);
 
         const [action] = dispatch.getCall(0).args;
         const nextState = reducer(getState().conversations, action);
@@ -2376,7 +2344,7 @@ describe('both/state/ducks/conversations', () => {
         });
       });
     });
-    describe('DELETE_LIST', () => {
+    describe('MARK_AS_DELETED', () => {
       const state: ConversationsStateType = {
         ...getEmptyState(),
         verificationDataByConversation: {
@@ -2401,7 +2369,7 @@ describe('both/state/ducks/conversations', () => {
 
       it('eliminates deleted list entirely', async () => {
         const action: StoryDistributionListsActionType = {
-          type: DELETE_LIST,
+          type: MARK_AS_DELETED,
           payload: {
             deletedAtTimestamp: Date.now(),
             listId: LIST_ID_1,
@@ -2443,7 +2411,7 @@ describe('both/state/ducks/conversations', () => {
         };
 
         const action: StoryDistributionListsActionType = {
-          type: DELETE_LIST,
+          type: MARK_AS_DELETED,
           payload: {
             deletedAtTimestamp: Date.now(),
             listId: LIST_ID_1,
@@ -2475,7 +2443,7 @@ describe('both/state/ducks/conversations', () => {
         };
 
         const action: StoryDistributionListsActionType = {
-          type: DELETE_LIST,
+          type: MARK_AS_DELETED,
           payload: {
             deletedAtTimestamp: Date.now(),
             listId: LIST_ID_1,

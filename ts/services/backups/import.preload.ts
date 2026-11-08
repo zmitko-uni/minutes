@@ -69,6 +69,7 @@ import {
 import { DurationInSeconds, SECOND } from '../../util/durations/index.std.ts';
 import { calculateExpirationTimestamp } from '../../util/expirationTimer.std.ts';
 import { dropNull } from '../../util/dropNull.std.ts';
+import { resolveLegacyNotifyForMentionsIfMuted } from '../../util/notifyWhileMuted.std.ts';
 import {
   deriveGroupID,
   deriveGroupSecretParams,
@@ -169,6 +170,11 @@ import type { ThemeType } from '../../util/preload.preload.ts';
 import { toNumber } from '../../util/toNumber.std.ts';
 import { isKnownProtoEnumMember } from '../../util/isKnownProtoEnumMember.std.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
+import {
+  STORAGE_KEY_DEFAULTS,
+  type UnreadCountBadgeType,
+} from '../../types/StorageKeys.std.ts';
+import { fromAciUuidBytes } from '../../util/ServiceId.node.ts';
 
 const { isNumber } = lodash;
 
@@ -889,6 +895,43 @@ export class BackupImportStream extends Writable {
       'keepMutedChatsArchived',
       accountSettings?.keepMutedChatsArchived === true
     );
+
+    await itemStorage.put(
+      'notifyForCallsIfMuted',
+      accountSettings?.notifyForCallsIfMuted ?? undefined
+    );
+    await itemStorage.put(
+      'notifyForMentionsIfMuted',
+      accountSettings?.notifyForMentionsIfMuted ?? undefined
+    );
+    await itemStorage.put(
+      'notifyForRepliesIfMuted',
+      accountSettings?.notifyForRepliesIfMuted ?? undefined
+    );
+    await itemStorage.put(
+      'notifyWhenContactJoins',
+      accountSettings?.notifyWhenContactJoins ?? undefined
+    );
+    await itemStorage.put(
+      'showUnreadReminders',
+      accountSettings?.showUnreadReminders ?? undefined
+    );
+
+    let unreadCountBadgeType: UnreadCountBadgeType;
+    switch (accountSettings?.unreadBadgeType) {
+      case Backups.AccountData.AccountSettings.UnreadBadgeType.UNREAD_CHATS:
+        unreadCountBadgeType = 'unread-chats';
+        break;
+      case Backups.AccountData.AccountSettings.UnreadBadgeType.UNREAD_MESSAGES:
+        unreadCountBadgeType = 'unread-messages';
+        break;
+      case Backups.AccountData.AccountSettings.UnreadBadgeType
+        .UNKNOWN_BADGE_TYPE:
+      default:
+        unreadCountBadgeType = STORAGE_KEY_DEFAULTS.unreadCountBadgeType;
+    }
+
+    await itemStorage.put('unreadCountBadgeType', unreadCountBadgeType);
     await itemStorage.put(
       'hasSetMyStoriesPrivacy',
       accountSettings?.hasSetMyStoriesPrivacy === true
@@ -925,6 +968,19 @@ export class BackupImportStream extends Writable {
       'hasSeenAdminDeleteEducationDialog',
       accountSettings?.hasSeenAdminDeleteEducationDialog === true
     );
+    if (accountSettings?.includeMutedChatsInBadge != null) {
+      await itemStorage.put(
+        'badge-count-muted-conversations',
+        accountSettings.includeMutedChatsInBadge
+      );
+    }
+
+    if (accountSettings?.reactionNotifications != null) {
+      await itemStorage.put(
+        'reaction-notification',
+        accountSettings.reactionNotifications
+      );
+    }
     await itemStorage.put(
       'preferredReactionEmoji',
       accountSettings?.preferredReactionEmoji?.map(emoji => {
@@ -1130,6 +1186,8 @@ export class BackupImportStream extends Writable {
       systemGivenName: dropNull(contact.systemGivenName),
       systemFamilyName: dropNull(contact.systemFamilyName),
       systemNickname: dropNull(contact.systemNickname),
+      sharedGivenName: dropNull(contact.sharedName?.given),
+      sharedFamilyName: dropNull(contact.sharedName?.family),
       hideStory: contact.hideStory,
       username: dropNull(contact.username),
       expireTimerVersion: 1,
@@ -1497,7 +1555,7 @@ export class BackupImportStream extends Writable {
 
     const callLink: CallLinkType = {
       roomId: getRoomIdFromRootKey(rootKey),
-      rootKey: rootKey.toString(),
+      rootKey: rootKey.toUnredactedString(),
       adminKey: adminKey?.length ? fromAdminKeyBytes(adminKey) : null,
       name,
       restrictions: fromCallLinkRestrictionsProto(restrictions),
@@ -1552,8 +1610,16 @@ export class BackupImportStream extends Writable {
 
     conversation.muteExpiresAt = MuteExpiration.fromProto(chat.muteUntilMs);
     conversation.markedUnread = chat.markedUnread;
-    conversation.dontNotifyForMentionsIfMuted =
-      chat.dontNotifyForMentionsIfMuted;
+    conversation.notifyForCallsIfMuted = dropNull(chat.notifyForCallsIfMuted);
+    conversation.notifyForMentionsIfMuted =
+      resolveLegacyNotifyForMentionsIfMuted(
+        chat.dontNotifyForMentionsIfMuted,
+        chat.notifyForMentionsIfMuted ?? undefined
+      ).notifyForMentionsIfMuted;
+    conversation.notifyForRepliesIfMuted = dropNull(
+      chat.notifyForRepliesIfMuted
+    );
+    conversation.showUnreadReminders = dropNull(chat.showUnreadReminders);
 
     const chatStyle = this.#fromChatStyle(chat.style);
 
@@ -2558,7 +2624,20 @@ export class BackupImportStream extends Writable {
       const { contact: details } = item.contactMessage;
       strictAssert(details != null, 'contactMessage must have a contact');
 
-      const { avatar, name, number, email, address, organization } = details;
+      const {
+        avatar,
+        name,
+        number,
+        email,
+        address,
+        organization,
+        nickname,
+        note,
+        aci,
+      } = details;
+
+      const givenNickname = nickname?.given || undefined;
+      const familyNickname = nickname?.family || undefined;
 
       return {
         message: {
@@ -2641,6 +2720,15 @@ export class BackupImportStream extends Writable {
                     isProfile: false,
                   }
                 : undefined,
+              aci: Bytes.isEmpty(aci) ? undefined : fromAciUuidBytes(aci),
+              note: note || undefined,
+              nickname:
+                givenNickname || familyNickname
+                  ? {
+                      givenName: givenNickname,
+                      familyName: familyNickname,
+                    }
+                  : undefined,
             },
           ],
           reactions: this.#fromReactions(item.contactMessage.reactions),
@@ -2884,10 +2972,11 @@ export class BackupImportStream extends Writable {
     }
 
     if (update.learnedProfileChange) {
-      const { e164, username } = update.learnedProfileChange.previousName ?? {};
-      if (e164 == null && username == null) {
+      const { e164, username, sharedName } =
+        update.learnedProfileChange.previousName ?? {};
+      if (e164 == null && username == null && sharedName == null) {
         log.error(
-          `${options.timestamp}: learnedProfileChange had no previous e164 or username`
+          `${options.timestamp}: learnedProfileChange had no previous e164, username, or sharedName`
         );
         this.#frameErrorCount += 1;
       }
@@ -2899,6 +2988,8 @@ export class BackupImportStream extends Writable {
               type: 'private',
               e164: e164 && e164 !== 0n ? `+${e164}` : undefined,
               username: dropNull(username),
+              // The backup only has the combined name
+              sharedGivenName: dropNull(sharedName),
             },
           },
         },

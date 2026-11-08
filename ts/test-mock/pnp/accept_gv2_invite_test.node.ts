@@ -14,6 +14,7 @@ import {
 import { Bootstrap } from '../bootstrap.node.ts';
 import type { App } from '../bootstrap.node.ts';
 import { acceptConversation, expectSystemMessages } from '../helpers.node.ts';
+import { expect } from 'playwright/test';
 
 export const debug = createDebug('mock:test:gv2');
 
@@ -149,7 +150,8 @@ describe('pnp/accept gv2 invite', function (this: Mocha.Suite) {
 
     debug('Verify that message request state is not visible');
     await conversationStack
-      .locator('.module-message-request-actions button >> "Accept"')
+      .getByTestId('message-request-actions')
+      .getByRole('button', { name: 'Accept' })
       .waitFor({ state: 'hidden' });
 
     await window.getByRole('button', { name: 'More Info' }).click();
@@ -158,19 +160,15 @@ describe('pnp/accept gv2 invite', function (this: Mocha.Suite) {
     debug(
       'Checking that we see all members of group, including (previously) unknown contact'
     );
-    await window
-      .locator('.ConversationDetails-panel-section__title >> "4 members"')
-      .waitFor();
+    await window.getByRole('region', { name: '4 members' }).waitFor();
 
     await window
-      .locator('.conversation-details-panel')
-      .getByText(unknownContact.profileName)
+      .getByRole('listitem', { name: unknownContact.profileName })
       .waitFor();
 
     debug('Leave the group through settings');
 
     await conversationStack
-      .locator('.conversation-details-panel')
       .getByRole('button', { name: 'Leave group' })
       .click();
 
@@ -207,7 +205,8 @@ describe('pnp/accept gv2 invite', function (this: Mocha.Suite) {
 
     debug('Declining');
     await conversationStack
-      .locator('.module-message-request-actions button >> "Block"')
+      .getByTestId('message-request-actions')
+      .getByRole('button', { name: 'Block' })
       .click();
 
     debug('waiting for confirmation modal');
@@ -299,15 +298,10 @@ describe('pnp/accept gv2 invite', function (this: Mocha.Suite) {
     await conversationStack
       .getByRole('button', { name: 'Requests & Invites' })
       .click();
-    await conversationStack
-      .locator('.ConversationDetails__tabs__tab >> text=Invites (1)')
-      .click();
-    await conversationStack
-      .locator(
-        '.ConversationDetails-panel-row__root >> ' +
-          `text=/${first.profileName}.*Invited 1/i`
-      )
-      .waitFor();
+    await conversationStack.getByRole('tab', { name: 'Invites' }).click();
+    await expect(
+      conversationStack.getByRole('listitem', { name: first.profileName })
+    ).toContainText('Invited 1');
   });
 
   it('should decline ACI invite with extra PNI on the invite list', async () => {
@@ -327,7 +321,8 @@ describe('pnp/accept gv2 invite', function (this: Mocha.Suite) {
 
     debug('Declining');
     await conversationStack
-      .locator('.module-message-request-actions button >> "Block"')
+      .getByTestId('message-request-actions')
+      .getByRole('button', { name: 'Block' })
       .click();
 
     debug('waiting for confirmation modal');

@@ -257,8 +257,6 @@ export namespace AxoTooltip {
     keyboardShortcut?: string | null;
     /** Forces the tooltip to stay open when the trigger is clicked. */
     keepOpenOnActivation?: boolean;
-    /** Forces the tooltip to stay closed when calling `.focus()` (ex: restoring focus on menu close) */
-    onlyShowOnFocusForUserInputDeviceEvents?: boolean;
   }>;
 
   export type RootProps = RootConfigProps &
@@ -303,7 +301,6 @@ export namespace AxoTooltip {
       keyboardShortcut,
       experimentalTimestamp,
       keepOpenOnActivation,
-      onlyShowOnFocusForUserInputDeviceEvents,
     } = props;
     const direction = useDirection();
     const collisionBoundary = useContext(CollisionBoundaryContext);
@@ -371,19 +368,14 @@ export namespace AxoTooltip {
       [keepOpenOnActivation]
     );
 
-    const handleFocus = useCallback(
-      (event: FocusEvent) => {
-        if (onlyShowOnFocusForUserInputDeviceEvents) {
-          // Only show the tooltip if the focus event was fired by an input device, not `.focus()`
-          // https://developer.mozilla.org/en-US/docs/Web/API/UIEvent/sourceCapabilities
-          // @ts-expect-error not available in type defs
-          if (event.nativeEvent.sourceCapabilities == null) {
-            event.preventDefault();
-          }
-        }
-      },
-      [onlyShowOnFocusForUserInputDeviceEvents]
-    );
+    const handleFocus = useCallback((event: FocusEvent) => {
+      // Only show the tooltip if the focus event was fired by an input device, not `.focus()`
+      // https://developer.mozilla.org/en-US/docs/Web/API/UIEvent/sourceCapabilities
+      // @ts-expect-error not available in type defs
+      if (event.nativeEvent.sourceCapabilities == null) {
+        event.preventDefault();
+      }
+    }, []);
 
     useEffect(() => {
       if (props.disabled) {
@@ -453,8 +445,8 @@ export namespace AxoTooltip {
                 'text-primary-oncolor',
                 'min-w-12',
                 hasAccessory ? 'max-w-[228px]' : 'max-w-[192px]',
-                'forced-color-adjust-none',
-                'forced-colors:bg-[Highlight] forced-colors:text-[HighlightText]'
+                'forced-colors:bg-transparent',
+                'forced-colors:text-[HighlightText]'
               )}
               onPointerDownOutside={handlePointerDownOutside}
             >
@@ -486,7 +478,8 @@ export namespace AxoTooltip {
                   'bg-material-dim-primary',
                   'backdrop-blur-thin',
                   'rounded-[14px]',
-                  'shadow-elevation-3 shadow-no-outline'
+                  'shadow-elevation-3 shadow-no-outline',
+                  'forced-colors:bg-[Highlight]'
                 )}
               />
               <Label
@@ -499,7 +492,8 @@ export namespace AxoTooltip {
                 <span
                   className={tw(
                     'type-body-small text-secondary-oncolor',
-                    'forced-colors:text-inherit forced-colors:italic'
+                    'forced-colors:text-inherit forced-colors:italic',
+                    'forced-color-adjust-none'
                   )}
                 >
                   {keyboardShortcut}
@@ -509,7 +503,8 @@ export namespace AxoTooltip {
                 <span
                   className={tw(
                     'type-caption whitespace-nowrap text-secondary-oncolor',
-                    'forced-colors:text-inherit forced-colors:italic'
+                    'forced-colors:text-inherit forced-colors:italic',
+                    'forced-color-adjust-none'
                   )}
                 >
                   {formattedTimestamp}
@@ -556,7 +551,9 @@ export namespace AxoTooltip {
         aria-hidden={props.tooltipRepeatsTriggerAccessibleName}
         className={tw(
           'relative',
-          'line-clamp-4 max-h-full text-balance text-ellipsis hyphens-auto'
+          'line-clamp-4 max-h-full text-balance text-ellipsis hyphens-auto',
+          'forced-colors:text-inherit',
+          'forced-color-adjust-none'
         )}
       >
         <span ref={contentRef}>{props.label}</span>

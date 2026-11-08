@@ -226,17 +226,12 @@ function renderUpdateDialog(
     />
   );
 }
-function renderProfileEditor({
-  contentsRef,
-}: {
-  contentsRef: MutableRefObject<HTMLDivElement | null>;
-}): JSX.Element {
+function renderProfileEditor(): JSX.Element {
   return (
     <ProfileEditor
       aboutEmoji={undefined}
       aboutText={undefined}
       color={undefined}
-      contentsRef={contentsRef}
       conversationId="something"
       deleteAvatarFromDisk={action('deleteAvatarFromDisk')}
       deleteUsername={action('deleteUsername')}
@@ -400,6 +395,7 @@ function renderNotificationProfilesHome(
       contentsRef={props.contentsRef}
       conversations={conversations}
       conversationSelector={conversationSelector}
+      doWeHaveOtherDevices
       hasOnboardingBeenSeen={false}
       i18n={i18n}
       isSyncEnabled
@@ -419,6 +415,9 @@ function renderNotificationProfilesHome(
 export default {
   title: 'Components/Preferences',
   component: Preferences,
+  parameters: {
+    layout: 'fullscreen',
+  },
   args: {
     i18n,
     backupKey:
@@ -436,7 +435,7 @@ export default {
           'dfbe6effe70b0611ba0fdc2a9ea3f39f6cb110e6687948f7e5f016c111b7329c',
         groupId:
           '63ee218d2446869e40adfc958ff98263e51f74382b0143328ee4826f20a76f47',
-        kind: 'videoinput' as MediaDeviceKind,
+        kind: 'videoinput',
         label: 'FaceTime HD Camera (Built-in) (9fba:bced)',
       },
       {
@@ -444,7 +443,7 @@ export default {
           'e2db196a31d50ff9b135299dc0beea67f65b1a25a06d8a4ce76976751bb7a08d',
         groupId:
           '218ba7f00d7b1239cca15b9116769e5e7d30cc01104ebf84d667643661e0ecf9',
-        kind: 'videoinput' as MediaDeviceKind,
+        kind: 'videoinput',
         label: 'Logitech Webcam (4e72:9058)',
       },
     ],
@@ -469,7 +468,6 @@ export default {
     hasAutoConvertEmoji: true,
     hasAutoDownloadUpdate: true,
     hasAutoLaunch: true,
-    hasCallNotifications: true,
     hasCallRingtoneNotification: false,
     hasContentProtection: false,
     hasCountMutedConversations: false,
@@ -489,12 +487,15 @@ export default {
     hasPreferContactAvatars: true,
     hasReactionNotifications: true,
     hasReadReceipts: true,
+    hasRegistrationLock: false,
     hasRelayCalls: false,
     hasSealedSenderIndicators: true,
     hasSpellCheck: true,
     hasStoriesDisabled: false,
+    hasSvrPin: false,
     hasTextFormatting: true,
     hasTypingIndicators: true,
+    hasUnreadReminders: true,
     hasKeepMutedChatsArchived: false,
     initialSpellCheckSetting: true,
     isAutoDownloadUpdatesSupported: true,
@@ -502,6 +503,7 @@ export default {
     isHideMenuBarSupported: true,
     isKeyTransparencyAvailable: true,
     isNotificationAttentionSupported: true,
+    isSvrPinPending: false,
     isSyncSupported: true,
     isSystemTraySupported: true,
     isInternalUser: false,
@@ -515,12 +517,9 @@ export default {
     me,
     navTabsCollapsed: false,
     notificationContent: 'name',
+    notifyWhileMuted: { calls: false, mentions: true, replies: true },
     osName: 'windows',
-    otherTabsUnreadStats: {
-      unreadCount: 0,
-      unreadMentionsCount: 0,
-      readChatsMarkedUnreadCount: 0,
-    },
+    otherTabsUnreadCount: 0,
     settingsLocation: {
       page: SettingsPage.Profile,
       state: ProfileEditorPage.None,
@@ -538,6 +537,7 @@ export default {
     themeSetting: 'system',
     theme: ThemeType.light,
     universalExpireTimer: DurationInSeconds.HOUR,
+    unreadCountBadgeType: 'unread-messages',
     weArePrimaryDevice: false,
     whoCanFindMe: PhoneNumberDiscoverability.Discoverable,
     whoCanSeeMe: PhoneNumberSharingMode.Everybody,
@@ -596,7 +596,6 @@ export default {
     onAutoDownloadUpdateChange: action('onAutoDownloadUpdateChange'),
     onAutoLaunchChange: action('onAutoLaunchChange'),
     onBackupKeyViewed: action('onBackupKeyViewed'),
-    onCallNotificationsChange: action('onCallNotificationsChange'),
     onCallRingtoneNotificationChange: action(
       'onCallRingtoneNotificationChange'
     ),
@@ -626,10 +625,13 @@ export default {
     onNotificationAttentionChange: action('onNotificationAttentionChange'),
     onNotificationContentChange: action('onNotificationContentChange'),
     onNotificationsChange: action('onNotificationsChange'),
+    onNotifyWhileMutedChange: action('onNotifyWhileMutedChange'),
     onPreferContactAvatarsChange: action('onPreferContactAvatarsChange'),
     onReactionNotificationsChange: action('onReactionNotificationsChange'),
     onReadReceiptsChange: action('onReadReceiptsChange'),
+    onRegistrationLockChange: action('onRegistrationLockChange'),
     onRelayCallsChange: action('onRelayCallsChange'),
+    onResetNotificationSettings: action('onResetNotificationSettings'),
     onSealedSenderIndicatorsChange: action('onSealedSenderIndicatorsChange'),
     onSelectedCameraChange: action('onSelectedCameraChange'),
     onSelectedMicrophoneChange: action('onSelectedMicrophoneChange'),
@@ -642,6 +644,8 @@ export default {
     onToggleNavTabsCollapse: action('onToggleNavTabsCollapse'),
     onTypingIndicatorsChange: action('onTypingIndicatorsChange'),
     onUniversalExpireTimerChange: action('onUniversalExpireTimerChange'),
+    onUnreadCountBadgeTypeChange: action('onUnreadCountBadgeTypeChange'),
+    onUnreadRemindersChange: action('onUnreadRemindersChange'),
     onWhoCanFindMeChange: action('onWhoCanFindMeChange'),
     onWhoCanSeeMeChange: action('onWhoCanSeeMeChange'),
     onZoomFactorChange: action('onZoomFactorChange'),
@@ -649,7 +653,11 @@ export default {
     pickLocalBackupFolder: () =>
       Promise.resolve('/home/signaluser/Signal Backups/'),
     disableLocalBackups: () => Promise.resolve(),
-    promptOSAuth: () => Promise.resolve('success'),
+    disableSignalPin: () => Promise.resolve(),
+    promptOSAuth: async () => {
+      await sleep(1000);
+      return 'success';
+    },
     refreshCloudBackupStatus: action('refreshCloudBackupStatus'),
     refreshBackupSubscriptionStatus: action('refreshBackupSubscriptionStatus'),
     removeCustomColor: action('removeCustomColor'),
@@ -666,6 +674,7 @@ export default {
       'setGlobalDefaultConversationColor'
     ),
     setSettingsLocation: action('setSettingsLocation'),
+    showPinChangeModal: action('showPinChangeModal'),
     showToast: action('showToast'),
     startLocalBackupExport: action('startLocalBackupExport'),
     startPlaintextExport: action('startPlaintextExport'),
@@ -713,6 +722,9 @@ export default {
     setGroupSvcModeForScreenshare: action('setGroupSvcModeForScreenshare'),
     sfuUrl: 'https://sfu.voip.signal.org',
     setSfuUrl: action('setSfuUrl'),
+    saveAccountKeysPDF: async () => {
+      await sleep(1000);
+    },
     forceKeyTransparencyCheck: async () => {
       await sleep(1000);
     },
@@ -739,6 +751,22 @@ const Template: StoryFn<PropsType> = args => {
 
 export const _Preferences = Template.bind({});
 
+export const Account = Template.bind({});
+Account.args = {
+  settingsLocation: { page: SettingsPage.Account },
+};
+export const AccountE164Less = Template.bind({});
+AccountE164Less.args = {
+  phoneNumber: undefined,
+  me: { ...me, phoneNumber: undefined },
+  settingsLocation: { page: SettingsPage.Account },
+};
+export const AccountKeys = Template.bind({});
+AccountKeys.args = {
+  phoneNumber: undefined,
+  me: { ...me, phoneNumber: undefined },
+  settingsLocation: { page: SettingsPage.AccountKeys },
+};
 export const General = Template.bind({});
 General.args = {
   settingsLocation: { page: SettingsPage.General },
@@ -774,6 +802,16 @@ Calls.args = {
 export const Notifications = Template.bind({});
 Notifications.args = {
   settingsLocation: { page: SettingsPage.Notifications },
+};
+export const NotificationsDisabled = Template.bind({});
+NotificationsDisabled.args = {
+  settingsLocation: { page: SettingsPage.Notifications },
+  hasNotifications: false,
+  notificationContent: 'off',
+};
+export const NotificationsWhileMuted = Template.bind({});
+NotificationsWhileMuted.args = {
+  settingsLocation: { page: SettingsPage.WhileMuted },
 };
 export const Privacy = Template.bind({});
 Privacy.args = {
@@ -904,6 +942,53 @@ NotificationsPageWithThreeProfiles.args = {
         contentsRef={props.contentsRef}
         conversations={conversations}
         conversationSelector={conversationSelector}
+        doWeHaveOtherDevices
+        hasOnboardingBeenSeen
+        i18n={i18n}
+        isSyncEnabled
+        loading={false}
+        markProfileDeleted={action('markProfileDeleted')}
+        preferredBadgeSelector={() => undefined}
+        setHasOnboardingBeenSeen={action('setHasOnboardingBeenSeen')}
+        setIsSyncEnabled={action('setIsSyncEnabled')}
+        setSettingsLocation={props.setSettingsLocation}
+        setProfileOverride={action('setProfileOverride)')}
+        theme={ThemeType.light}
+        updateProfile={action('updateProfile')}
+      />
+    );
+  },
+};
+
+export const NotificationsPageWithThreeProfilesAndNoOtherDevices =
+  Template.bind({});
+NotificationsPageWithThreeProfilesAndNoOtherDevices.args = {
+  settingsLocation: { page: SettingsPage.Notifications },
+  renderNotificationProfilesCreateFlow: (
+    props: SmartNotificationProfilesProps
+  ) => {
+    return (
+      <NotificationProfilesCreateFlow
+        contentsRef={props.contentsRef}
+        conversations={conversations}
+        conversationSelector={conversationSelector}
+        createProfile={action('createProfile')}
+        i18n={i18n}
+        setSettingsLocation={props.setSettingsLocation}
+        preferredBadgeSelector={() => undefined}
+        theme={ThemeType.light}
+      />
+    );
+  },
+  renderNotificationProfilesHome: (props: SmartNotificationProfilesProps) => {
+    return (
+      <NotificationProfilesHome
+        activeProfileId={threeProfiles[0].id}
+        allProfiles={threeProfiles}
+        contentsRef={props.contentsRef}
+        conversations={conversations}
+        conversationSelector={conversationSelector}
+        doWeHaveOtherDevices={false}
         hasOnboardingBeenSeen
         i18n={i18n}
         isSyncEnabled
@@ -1128,12 +1213,61 @@ PrivacyBlockedManyBoth.args = {
 export const PrivacyWhenPrimary = Template.bind({});
 PrivacyWhenPrimary.args = {
   settingsLocation: { page: SettingsPage.Privacy },
+  hasSvrPin: true,
   weArePrimaryDevice: true,
 };
 
 export const GeneralWhenPrimary = Template.bind({});
 GeneralWhenPrimary.args = {
   settingsLocation: { page: SettingsPage.General },
+  hasSvrPin: true,
+  weArePrimaryDevice: true,
+};
+
+export const GeneralWhenPrimaryWithRegLock = Template.bind({});
+GeneralWhenPrimaryWithRegLock.args = {
+  settingsLocation: { page: SettingsPage.General },
+  hasSvrPin: true,
+  hasRegistrationLock: true,
+  weArePrimaryDevice: true,
+};
+
+export const GeneralWhenPrimaryWithoutSignalPin = Template.bind({});
+GeneralWhenPrimaryWithoutSignalPin.args = {
+  settingsLocation: { page: SettingsPage.General },
+  hasSvrPin: false,
+  weArePrimaryDevice: true,
+};
+
+export const GeneralWhenPrimaryAdvancedPinSettings = Template.bind({});
+GeneralWhenPrimaryAdvancedPinSettings.args = {
+  settingsLocation: { page: SettingsPage.SignalPinAdvanced },
+  hasSvrPin: true,
+  weArePrimaryDevice: true,
+};
+
+export const GeneralWhenPrimaryAdvancedPinSettingsBackups = Template.bind({});
+GeneralWhenPrimaryAdvancedPinSettingsBackups.args = {
+  settingsLocation: { page: SettingsPage.SignalPinAdvanced },
+  backupTier: BackupLevel.Free,
+  hasSvrPin: true,
+  weArePrimaryDevice: true,
+};
+
+export const GeneralWhenPrimaryAdvancedPinSettingsRegLock = Template.bind({});
+GeneralWhenPrimaryAdvancedPinSettingsRegLock.args = {
+  settingsLocation: { page: SettingsPage.SignalPinAdvanced },
+  hasRegistrationLock: true,
+  hasSvrPin: true,
+  weArePrimaryDevice: true,
+};
+
+export const GeneralWhenPrimaryAdvancedPinSettingsWithoutPin = Template.bind(
+  {}
+);
+GeneralWhenPrimaryAdvancedPinSettingsWithoutPin.args = {
+  settingsLocation: { page: SettingsPage.SignalPinAdvanced },
+  hasSvrPin: false,
   weArePrimaryDevice: true,
 };
 
@@ -1400,20 +1534,12 @@ export const NavTabsCollapsedWithBadges = Template.bind({});
 NavTabsCollapsedWithBadges.args = {
   navTabsCollapsed: true,
   hasFailedStorySends: false,
-  otherTabsUnreadStats: {
-    unreadCount: 1,
-    unreadMentionsCount: 2,
-    readChatsMarkedUnreadCount: 0,
-  },
+  otherTabsUnreadCount: 1,
 };
 
 export const NavTabsCollapsedWithExclamation = Template.bind({});
 NavTabsCollapsedWithExclamation.args = {
   navTabsCollapsed: true,
   hasFailedStorySends: true,
-  otherTabsUnreadStats: {
-    unreadCount: 1,
-    unreadMentionsCount: 2,
-    readChatsMarkedUnreadCount: 0,
-  },
+  otherTabsUnreadCount: 1,
 };

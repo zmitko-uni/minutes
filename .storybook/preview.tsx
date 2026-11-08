@@ -42,17 +42,6 @@ setEnvironment(Environment.Development, true);
 const i18n = setupI18n('en', messages);
 
 export const globalTypes = {
-  mode: {
-    name: 'Mode',
-    description: 'Application mode',
-    defaultValue: 'mouse',
-    toolbar: {
-      dynamicTitle: true,
-      icon: 'circlehollow',
-      items: ['mouse', 'keyboard'],
-      showName: true,
-    },
-  },
   theme: {
     name: 'Theme',
     description: 'Global theme for components',
@@ -108,6 +97,7 @@ const mockStore: Store<StateType> = createStore(
     ) => state,
     globalModals: (state = {}) => state,
     user: (state = {}) => state,
+    lightbox: (state = {}) => state,
   })
 );
 
@@ -198,7 +188,6 @@ window.Signal = {
 const withGlobalTypesProvider = (Story, context) => {
   const theme =
     context.globals.theme === 'light' ? ThemeType.light : ThemeType.dark;
-  const mode = context.globals.mode;
   const direction = context.globals.direction ?? 'auto';
   const background = context.globals.background;
 
@@ -213,14 +202,6 @@ const withGlobalTypesProvider = (Story, context) => {
   } else {
     document.body.classList.remove('light-theme');
     document.body.classList.add('dark-theme');
-  }
-
-  if (mode === 'mouse') {
-    document.body.classList.remove('keyboard-mode');
-    document.body.classList.add('mouse-mode');
-  } else {
-    document.body.classList.remove('mouse-mode');
-    document.body.classList.add('keyboard-mode');
   }
 
   document.body.classList.toggle(
@@ -319,6 +300,7 @@ function withMutedUntilDialogProvider(Story, context) {
 }
 
 export const decorators = [
+  withMutedUntilDialogProvider,
   withAppProvider,
   withMutedUntilDialogProvider,
   withGlobalTypesProvider,

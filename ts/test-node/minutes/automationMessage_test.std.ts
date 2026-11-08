@@ -57,6 +57,25 @@ describe('automation message mapping', () => {
     ]);
   });
 
+  it('exposes deletion and last-edit state so clients can verify mutations', () => {
+    const result = toAutomationMessage(
+      {
+        id: 'deleted',
+        conversationId: 'group',
+        type: 'outgoing',
+        sent_at: 100,
+        deletedForEveryone: true,
+        editMessageTimestamp: 200,
+      },
+      () => null
+    );
+    assert.deepInclude(result, {
+      deletedForEveryone: true,
+      editedAt: 200,
+      text: null,
+    });
+  });
+
   it('identifies the author of an incoming group message', () => {
     const result = toAutomationMessage(
       {
@@ -80,6 +99,130 @@ describe('automation message mapping', () => {
     assert.deepInclude(result, {
       authorId: 'alice-id',
       authorName: 'Alice',
+    });
+  });
+
+  it('replaces mention placeholders with resolved contact names', () => {
+    const result = toAutomationMessage(
+      {
+        id: 'message-with-mentions',
+        conversationId: 'group-1',
+        type: 'outgoing',
+        sent_at: 250,
+        body: 'Call \uFFFC / \uFFFC',
+        bodyRanges: [
+          {
+            start: 5,
+            length: 1,
+            mentionAci: 'lukas-aci' as AciString,
+          },
+          {
+            start: 9,
+            length: 1,
+            mentionAci: 'tomas-aci' as AciString,
+          },
+        ],
+        attachments: [],
+        reactions: [],
+      },
+      () => null,
+      sourceServiceId => {
+        if (sourceServiceId === 'lukas-aci') {
+          return { id: 'lukas-id', name: 'Lukáš Kutík' };
+        }
+        if (sourceServiceId === 'tomas-aci') {
+          return { id: 'tomas-id', name: 'Tomáš Lesný' };
+        }
+        return null;
+      }
+    );
+
+    assert.equal(result.text, 'Call @Lukáš Kutík / @Tomáš Lesný');
+  });
+
+  it('returns deduplicated current poll results with resolved voters', () => {
+    const result = toAutomationMessage(
+      {
+        id: 'poll-message-1',
+        conversationId: 'group-1',
+        type: 'outgoing',
+        sent_at: 300,
+        body: undefined,
+        attachments: [],
+        reactions: [],
+        poll: {
+          question: 'Kam na oběd?',
+          options: ['Pizza', 'Sushi'],
+          allowMultiple: true,
+          votes: [
+            {
+              fromConversationId: 'alice-id',
+              optionIndexes: [0],
+              voteCount: 1,
+              timestamp: 310,
+            },
+            {
+              fromConversationId: 'alice-id',
+              optionIndexes: [1],
+              voteCount: 2,
+              timestamp: 320,
+            },
+            {
+              fromConversationId: 'bob-id',
+              optionIndexes: [0, 1, 1],
+              voteCount: 1,
+              timestamp: 315,
+            },
+            {
+              fromConversationId: 'carol-id',
+              optionIndexes: [0],
+              voteCount: 1,
+              timestamp: 325,
+              sendStateByConversationId: {},
+            },
+          ],
+          terminatedAt: 350,
+        },
+      },
+      () => null,
+      () => ({ id: 'me-id', name: 'Me' }),
+      voterId => {
+        if (voterId === 'alice-id') {
+          return { id: voterId, title: 'Alice', isMe: false };
+        }
+        if (voterId === 'bob-id') {
+          return { id: voterId, title: 'Bob', isMe: true };
+        }
+        return null;
+      }
+    );
+
+    assert.deepEqual(result.poll, {
+      question: 'Kam na oběd?',
+      allowMultiple: true,
+      terminated: true,
+      terminatedAt: 350,
+      totalVotes: 3,
+      uniqueVoters: 2,
+      options: [
+        {
+          index: 0,
+          text: 'Pizza',
+          voteCount: 1,
+          percentage: 50,
+          voters: [{ id: 'bob-id', title: 'Bob', isMe: true }],
+        },
+        {
+          index: 1,
+          text: 'Sushi',
+          voteCount: 2,
+          percentage: 100,
+          voters: [
+            { id: 'alice-id', title: 'Alice', isMe: false },
+            { id: 'bob-id', title: 'Bob', isMe: true },
+          ],
+        },
+      ],
     });
   });
 

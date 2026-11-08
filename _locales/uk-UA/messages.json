@@ -65,6 +65,21 @@
   "icu:Preferences__DonateTitle": {
     "messageformat": "Підтримати Signal"
   },
+  "icu:LinkedDevicesOnboardingDialog__description": {
+    "messageformat": "<bold>Зв’язані пристрої</bold> дають безпечний доступ до акаунту й повідомлень Signal на будь-якому з додаткових пристроїв."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--1": {
+    "messageformat": "Ви можете зв'язати комп'ютер, планшет або додатковий телефон."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--2": {
+    "messageformat": "Керування зв'язаними пристроями здійснюється з основного. Ви можете зв'язати до 5 пристроїв."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--1": {
+    "messageformat": "Змінювати налаштування акаунту й резервного копіювання можна тільки з основного пристрою."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--2": {
+    "messageformat": "Змінювати налаштування акаунту й надійного резервного копіювання Signal можна тільки з основного пристрою."
+  },
   "icu:sentMediaQualityStandard": {
     "messageformat": "Стандартна"
   },
@@ -365,9 +380,6 @@
   "icu:NavTabs__ItemIconLabel--UnreadCount": {
     "messageformat": "Не прочитано {count,number}"
   },
-  "icu:NavTabs__ItemIconLabel--MarkedUnread": {
-    "messageformat": "Позначені як непрочитані"
-  },
   "icu:NavTabs__ItemLabel--Chats": {
     "messageformat": "Чати"
   },
@@ -635,20 +647,23 @@
   "icu:SafetyNumberNotReady__learn-more": {
     "messageformat": "Докладніше"
   },
-  "icu:KeyTransparencyErrorDialog__Title": {
-    "messageformat": "Автоматичне підтвердження ключа наразі недоступне для вашого пристрою. Надіслати журнал налагодження?"
+  "icu:KeyTransparencyErrorDialog__Title-v2": {
+    "messageformat": "Автоматичне підтвердження ключа наразі недоступне для вашого пристрою. Бажаєте надіслати нам звіт, щоб ми могли над цим попрацювати?"
   },
-  "icu:KeyTransparencyErrorDialog__Description": {
-    "messageformat": "Журнали налагодження допомагають нам визначати й усувати проблеми. Вони не містять особистої інформації."
+  "icu:KeyTransparencyErrorDialog__Description-v2": {
+    "messageformat": "Журнал налагодження допоможе нам визначити й усунути цю проблему. Він не містить особистої інформації. Додавати його необов'язково."
   },
-  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label": {
-    "messageformat": "Надіслати журнал налагодження"
+  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label-v2": {
+    "messageformat": "Долучити журнал налагодження"
   },
   "icu:KeyTransparencyErrorDialog__ShareDebugLog__ViewButton": {
     "messageformat": "Переглянути"
   },
   "icu:KeyTransparencyErrorDialog__Submit": {
     "messageformat": "Надіслати"
+  },
+  "icu:KeyTransparencyErrorDialog__Cancel": {
+    "messageformat": "Не надсилати"
   },
   "icu:KeyTransparencyOnboardingDialog__Title": {
     "messageformat": "Тепер Signal автоматично перевіряє шифрування"
@@ -745,12 +760,6 @@
   },
   "icu:maximumAttachments": {
     "messageformat": "До цього повідомлення неможливо додати ще більше вкладень."
-  },
-  "icu:fileSizeWarning": {
-    "messageformat": "На жаль, розмір обраного файлу перевищує обмеження. {limit,number} {units}"
-  },
-  "icu:videoFileSizeWarning": {
-    "messageformat": "На жаль, розмір обраного відео перевищує обмеження. {limit,number}{units}"
   },
   "icu:fileTooLargeWarning": {
     "messageformat": "Цей файл неможливо надіслати, він завеликий. Максимальний дозволений розмір: {limit,number} {units}."
@@ -1003,6 +1012,9 @@
   },
   "icu:mute": {
     "messageformat": "Вимкнути сповіщення"
+  },
+  "icu:muted": {
+    "messageformat": "Сповіщення вимкнені"
   },
   "icu:cannotUpdateDetail-v2": {
     "messageformat": "Не вдалось оновити Signal. <retryUpdateButton>Запустіть оновлення ще раз</retryUpdateButton> або перейдіть на сторінку {url} для ручного встановлення. Потім <contactSupportLink>повідомте службу підтримки</contactSupportLink> про цю проблему"
@@ -1466,6 +1478,9 @@
   "icu:ConversationMerge--learn-more": {
     "messageformat": "Докладніше"
   },
+  "icu:ConversationMerge--explainer-dialog--label": {
+    "messageformat": "Історію повідомлень об'єднано"
+  },
   "icu:ConversationMerge--explainer-dialog--line-1": {
     "messageformat": "Після спілкування з «{obsoleteConversationTitle}» ви дізналися, що цей номер належить користувачу «{conversationTitle}». Номер телефону користувача приватний."
   },
@@ -1622,9 +1637,6 @@
   "icu:Preferences__EmojiSkinToneDefaultSetting__Label": {
     "messageformat": "Колір шкіри для емоджі"
   },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__Title": {
-    "messageformat": "Папки для чатів"
-  },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Title": {
     "messageformat": "Додати папку для чатів"
   },
@@ -1636,12 +1648,6 @@
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Description--WithChatFolders": {
     "messageformat": "{chatFoldersCount, plural, one {{chatFoldersCount,number} папка} few {{chatFoldersCount,number} папки} many {{chatFoldersCount,number} папок} other {{chatFoldersCount,number} папки}}"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button": {
-    "messageformat": "Налаштувати"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button--WithChatFolders": {
-    "messageformat": "Змінити"
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__ChatFolderItem__ContextMenu__EditFolder": {
     "messageformat": "Змінити вміст папки"
@@ -3881,18 +3887,6 @@
   "icu:calling__preview--minimize": {
     "messageformat": "Зменшити попередній вигляд"
   },
-  "icu:calling__change-view": {
-    "messageformat": "Змінити вигляд"
-  },
-  "icu:calling__view_mode--paginated": {
-    "messageformat": "Сітка"
-  },
-  "icu:calling__view_mode--overflow": {
-    "messageformat": "Бічна панель"
-  },
-  "icu:calling__view_mode--speaker": {
-    "messageformat": "Промовець у центрі"
-  },
   "icu:calling__view_mode--updated": {
     "messageformat": "Вигляд змінено"
   },
@@ -3906,7 +3900,7 @@
     "messageformat": "Бічна панель"
   },
   "icu:calling__layout--speaker": {
-    "messageformat": "Динамік"
+    "messageformat": "Промовець"
   },
   "icu:calling__SelectPresentingSourcesModal--title": {
     "messageformat": "Демонстрація екрана"
@@ -3971,29 +3965,11 @@
   "icu:notMuted": {
     "messageformat": "Сповіщення ввімкнено"
   },
-  "icu:muteHour": {
-    "messageformat": "Не сповіщати 1 годину"
-  },
-  "icu:muteEightHours": {
-    "messageformat": "Не сповіщати 8 годин"
-  },
-  "icu:muteDay": {
-    "messageformat": "Не сповіщати 1 день"
-  },
-  "icu:muteWeek": {
-    "messageformat": "Не сповіщати 1 тиждень"
-  },
-  "icu:muteAlways": {
-    "messageformat": "Ніколи не сповіщати"
-  },
   "icu:unmute": {
     "messageformat": "Увімкнути сповіщення"
   },
   "icu:MuteMenu__label": {
     "messageformat": "Вимкнути сповіщення чату на…"
-  },
-  "icu:MuteMenu__labelChatFolder": {
-    "messageformat": "Вимкнути сповіщення цих чатів на…"
   },
   "icu:MuteMenu__hour": {
     "messageformat": "1 годину"
@@ -4937,9 +4913,6 @@
   "icu:showConversationDetails--direct": {
     "messageformat": "Налаштування чату"
   },
-  "icu:ConversationDetails__unmute--title": {
-    "messageformat": "Увімкнути сповіщення в цьому чаті?"
-  },
   "icu:ConversationDetails--group-link": {
     "messageformat": "Посилання на групу"
   },
@@ -5174,17 +5147,110 @@
   "icu:EditNicknameAndNoteModal__Note__Placeholder": {
     "messageformat": "Примітка"
   },
-  "icu:ConversationNotificationsSettings__mentions__label": {
+  "icu:WhileMuted__title": {
+    "messageformat": "Якщо сповіщення вимкнуто"
+  },
+  "icu:WhileMuted__description": {
+    "messageformat": "Виберіть, що показувати, коли сповіщення в цьому чаті вимкнуто."
+  },
+  "icu:WhileMuted__calls__title": {
+    "messageformat": "Виклики"
+  },
+  "icu:WhileMuted__calls__description": {
+    "messageformat": "Навіть якщо сповіщення від чату вимкнено, у разі виклику лунатиме дзвінок і надходитимуть сповіщення про нього."
+  },
+  "icu:WhileMuted__mentions__title": {
     "messageformat": "Згадки"
   },
-  "icu:ConversationNotificationsSettings__mentions__info": {
-    "messageformat": "Отримувати сповіщення, коли вас згадують, навіть якщо сповіщення від чату вимкнено"
+  "icu:WhileMuted__mentions__description": {
+    "messageformat": "Отримувати сповіщення, коли вас @згадують, навіть якщо сповіщення від чату вимкнено."
   },
-  "icu:ConversationNotificationsSettings__mentions__select__always-notify": {
-    "messageformat": "Завжди сповіщати"
+  "icu:WhileMuted__replies__title": {
+    "messageformat": "Відповіді"
   },
-  "icu:ConversationNotificationsSettings__mentions__select__dont-notify-for-mentions-if-muted": {
-    "messageformat": "Не сповіщати, якщо сповіщення вимкнено"
+  "icu:WhileMuted__replies__description": {
+    "messageformat": "Отримувати сповіщення, коли вам відповідають, навіть якщо сповіщення від чату вимкнено."
+  },
+  "icu:WhileMuted__value--none": {
+    "messageformat": "Ніякі"
+  },
+  "icu:WhileMuted__value--calls": {
+    "messageformat": "Виклики"
+  },
+  "icu:WhileMuted__value--mentions": {
+    "messageformat": "Згадки"
+  },
+  "icu:WhileMuted__value--replies": {
+    "messageformat": "Відповіді"
+  },
+  "icu:WhileMuted__value--calls-mentions": {
+    "messageformat": "Виклики, згадки"
+  },
+  "icu:WhileMuted__value--calls-replies": {
+    "messageformat": "Виклики, відповіді"
+  },
+  "icu:WhileMuted__value--mentions-replies": {
+    "messageformat": "Згадки, відповіді"
+  },
+  "icu:WhileMuted__value--calls-mentions-replies": {
+    "messageformat": "Виклики, згадки, відповіді"
+  },
+  "icu:Preferences__WhileMuted__description": {
+    "messageformat": "Виберіть, що показувати, коли в чатах вимкнуто сповіщення."
+  },
+  "icu:Preferences__WhileMuted__calls__description": {
+    "messageformat": "Навіть якщо сповіщення від чату вимкнено, у разі виклику лунатиме дзвінок і надходитимуть сповіщення про нього."
+  },
+  "icu:Preferences__WhileMuted__mentions__description": {
+    "messageformat": "Отримувати сповіщення, коли вас згадують, навіть якщо сповіщення від чату вимкнено."
+  },
+  "icu:Preferences__WhileMuted__replies__description": {
+    "messageformat": "Отримувати сповіщення, коли вам відповідають, навіть якщо сповіщення від чату вимкнено."
+  },
+  "icu:UnreadReminders__title": {
+    "messageformat": "Нагадування про непрочитані повідомлення"
+  },
+  "icu:UnreadReminders__description": {
+    "messageformat": "Іноді повідомляти, якщо в чаті є непрочитані повідомлення, коли сповіщення вимкнено."
+  },
+  "icu:Preferences__UnreadReminders__description": {
+    "messageformat": "Іноді повідомляти, якщо в чатах із вимкненими сповіщеннями є непрочитані повідомлення."
+  },
+  "icu:UnreadReminders__notification--messages--1": {
+    "messageformat": "{messageCount, plural, one {У вас {messageCount,number} непрочитане повідомлення від користувача {person1}.} few {У вас {messageCount,number} непрочитані повідомлення від користувача {person1}.} many {У вас {messageCount,number} непрочитаних повідомлень від користувача {person1}.} other {У вас {messageCount,number} непрочитаного повідомлення від користувача {person1}.}}"
+  },
+  "icu:UnreadReminders__notification--messages--2": {
+    "messageformat": "{messageCount, plural, one {У вас {messageCount,number} непрочитане повідомлення від користувачів {person1} і {person2}.} few {У вас {messageCount,number} непрочитані повідомлення від користувачів {person1} і {person2}.} many {У вас {messageCount,number} непрочитаних повідомлень від користувачів {person1} і {person2}.} other {У вас {messageCount,number} непрочитаного повідомлення від користувачів {person1} і {person2}.}}"
+  },
+  "icu:UnreadReminders__notification--messages--many": {
+    "messageformat": "{messageCount, plural, one {У вас {messageCount,number} непрочитане повідомлення від користувачів {person1}, {person2} та інших.} few {У вас {messageCount,number} непрочитані повідомлення від користувачів {person1}, {person2} та інших.} many {У вас {messageCount,number} непрочитаних повідомлень від користувачів {person1}, {person2} та інших.} other {У вас {messageCount,number} непрочитаного повідомлення від користувачів {person1}, {person2} та інших.}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-mentions": {
+    "messageformat": "{messageCount, plural, one {У вас {messageCount,number} непрочитане повідомлення, зокрема {mentionSummary}.} few {У вас {messageCount,number} непрочитані повідомлення, зокрема {mentionSummary}.} many {У вас {messageCount,number} непрочитаних повідомлень, зокрема {mentionSummary}.} other {У вас {messageCount,number} непрочитаного повідомлення, зокрема {mentionSummary}.}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-replies": {
+    "messageformat": "{messageCount, plural, one {У вас {messageCount,number} непрочитане повідомлення, зокрема {replySummary}.} few {У вас {messageCount,number} непрочитані повідомлення, зокрема {replySummary}.} many {У вас {messageCount,number} непрочитаних повідомлень, зокрема {replySummary}.} other {У вас {messageCount,number} непрочитаного повідомлення, зокрема {replySummary}.}}"
+  },
+  "icu:UnreadReminders__notification--counts--messages": {
+    "messageformat": "{messageCount, plural, one {У вас {messageCount,number} непрочитане повідомлення.} few {У вас {messageCount,number} непрочитані повідомлення.} many {У вас {messageCount,number} непрочитаних повідомлень.} other {У вас {messageCount,number} непрочитаного повідомлення.}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--1": {
+    "messageformat": "{mentionCount, plural, one {одна згадка від користувача {person1}} few {{mentionCount,number} згадки від користувача {person1}} many {{mentionCount,number} згадок від користувача {person1}} other {{mentionCount,number} згадки від користувача {person1}}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--2": {
+    "messageformat": "{mentionCount, plural, one {{mentionCount,number} згадка від користувачів {person1} і {person2}} few {{mentionCount,number} згадки від користувачів {person1} і {person2}} many {{mentionCount,number} згадок від користувачів {person1} і {person2}} other {{mentionCount,number} згадки від користувачів {person1} і {person2}}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--many": {
+    "messageformat": "{mentionCount, plural, one {{mentionCount,number} згадка від користувача {person1} та інших} few {{mentionCount,number} згадки від користувача {person1} та інших} many {{mentionCount,number} згадок від користувача {person1} та інших} other {{mentionCount,number} згадки від користувача {person1} та інших}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--1": {
+    "messageformat": "{replyCount, plural, one {одна відповідь від користувача {person1}} few {{replyCount,number} відповіді від користувача {person1}} many {{replyCount,number} відповідей від користувача {person1}} other {{replyCount,number} відповіді від користувача {person1}}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--2": {
+    "messageformat": "{replyCount, plural, one {{replyCount,number} відповідь від користувачів {person1} і {person2}} few {{replyCount,number} відповіді від користувачів {person1} і {person2}} many {{replyCount,number} відповідей від користувачів {person1} і {person2}} other {{replyCount,number} відповіді від користувачів {person1} і {person2}}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--many": {
+    "messageformat": "{replyCount, plural, one {{replyCount,number} відповідь від користувача {person1} та інших} few {{replyCount,number} відповіді від користувача {person1} та інших} many {{replyCount,number} відповідей від користувача {person1} та інших} other {{replyCount,number} відповіді від користувача {person1} та інших}}"
   },
   "icu:GroupLinkManagement--clipboard": {
     "messageformat": "Посилання на групу скопійовано."
@@ -5242,9 +5308,6 @@
   },
   "icu:GroupMembersSearchDialog__SearchResults__Title": {
     "messageformat": "Результати пошуку"
-  },
-  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
-    "messageformat": "Додати"
   },
   "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
     "messageformat": "Додати учасників"
@@ -5537,6 +5600,9 @@
   },
   "icu:CaptchaDialog__second-paragraph": {
     "messageformat": "Ви зможете продовжити спілкування після перевірки. Усі зупинені повідомлення буде надіслано автоматично."
+  },
+  "icu:CaptchaDialog__continue": {
+    "messageformat": "Продовжити"
   },
   "icu:CaptchaDialog--can-close__title": {
     "messageformat": "Продовжити без перевірки?"
@@ -6010,6 +6076,9 @@
   "icu:Preferences__reaction-notifications-description": {
     "messageformat": "Отримувати сповіщення, коли на ваші повідомлення реагують"
   },
+  "icu:Preferences__button--account": {
+    "messageformat": "Акаунт"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Загальні"
   },
@@ -6079,6 +6148,42 @@
   "icu:Preferences--system": {
     "messageformat": "Системні налаштування"
   },
+  "icu:Preferences--signal-login": {
+    "messageformat": "Signal Login"
+  },
+  "icu:Preferences--signal-login-description": {
+    "messageformat": "За допомогою Signal Login ви можете відновити свій акаунт і його дані. Зберігайте ці ключі в надійному менеджері паролів. <learnMoreLink>Докладніше</learnMoreLink>."
+  },
+  "icu:Preferences--signal-login-description--learn-more": {
+    "messageformat": "Докладніше"
+  },
+  "icu:Preferences__SignalAccount__label": {
+    "messageformat": "Акаунт і відновлення"
+  },
+  "icu:Preferences__SignalAccount__description": {
+    "messageformat": "2 ключі"
+  },
+  "icu:Preferences__SignalAccountKeys__Title": {
+    "messageformat": "Ваш Signal Login"
+  },
+  "icu:Preferences__SignalAccountKeys__Description": {
+    "messageformat": "Зберігайте цю інформацію в надійному місці. Вона потрібна для відновлення вашого акаунту й даних. Нікому її не повідомляйте."
+  },
+  "icu:Preferences__SignalAccountKeys__AccountID": {
+    "messageformat": "ID акаунту"
+  },
+  "icu:Preferences__SignalAccountKeys__RecoveryKey": {
+    "messageformat": "Ключ відновлення"
+  },
+  "icu:Preferences__SignalAccountKeys__Save": {
+    "messageformat": "Зберегти"
+  },
+  "icu:Preferences__Account__LinkedDevice__label": {
+    "messageformat": "Це зв'язаний пристрій"
+  },
+  "icu:Preferences__Account__LinkedDevice__description": {
+    "messageformat": "Щоб керувати налаштуваннями акаунту, відкрийте Signal на основному пристрої."
+  },
   "icu:Preferences--zoom": {
     "messageformat": "Рівень масштабування"
   },
@@ -6109,8 +6214,56 @@
   "icu:Preferences--advanced": {
     "messageformat": "Додаткові налаштування"
   },
+  "icu:Preferences--change-signal-pin": {
+    "messageformat": "Змінити PIN-код"
+  },
+  "icu:Preferences--change-signal-pin-button": {
+    "messageformat": "Змінити"
+  },
+  "icu:Preferences--create-signal-pin": {
+    "messageformat": "Створити PIN-код"
+  },
+  "icu:Preferences--create-signal-pin-button": {
+    "messageformat": "Створити"
+  },
   "icu:Preferences--signal-pin": {
     "messageformat": "PIN-код Signal"
+  },
+  "icu:Preferences--signal-pin__footer": {
+    "messageformat": "PIN-коди забезпечують шифрування інформації, яка зберігається в Signal, щоб отримати до неї доступ могли тільки ви. Якщо ви забудете PIN-код, відновити його неможливо. PIN-код дасть вам змогу відновити акаунт, налаштування й контакти в разі перевстановлення Signal. <learnMoreLink>Докладніше</learnMoreLink>"
+  },
+  "icu:Preferences--signal-pin-advanced-settings": {
+    "messageformat": "Керування PIN-кодом"
+  },
+  "icu:Preferences--disable-signal-pin": {
+    "messageformat": "Вимкнути PIN-код"
+  },
+  "icu:Preferences--disable-signal-pin--button": {
+    "messageformat": "Вимкнути"
+  },
+  "icu:Preferences--disable-signal-pin--footer": {
+    "messageformat": "Якщо ви вимкнете PIN-код, то в разі повторної реєстрації в Signal усі ваші дані буде втрачено. Щоб цього уникнути, необхідно заздалегідь вручну створити їхню резервну копію. З вимкненим PIN-кодом неможливо ввімкнути блокування реєстрації."
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--title": {
+    "messageformat": "PIN-код не вимкнено через блокування реєстрації"
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--body": {
+    "messageformat": "Щоб вимкнути PIN-код, потрібно спочатку вимкнути блокування реєстрації."
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--ok": {
+    "messageformat": "Зрозуміло"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--title": {
+    "messageformat": "PIN-код не вимкнено через резервне копіювання"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--body": {
+    "messageformat": "Щоб вимкнути PIN-код, потрібно спочатку вимкнути резервне копіювання."
+  },
+  "icu:Preferences--enable-signal-pin": {
+    "messageformat": "Увімкнути PIN-код"
+  },
+  "icu:Preferences--enable-signal-pin--button": {
+    "messageformat": "Увімкнути"
   },
   "icu:Preferences--pin-reminders--header": {
     "messageformat": "Нагадувати PIN-код"
@@ -6118,8 +6271,11 @@
   "icu:Preferences--pin-reminders--description": {
     "messageformat": "З часом нагадування з'являтимуться рідше"
   },
-  "icu:Preferences--notification-content": {
-    "messageformat": "Зміст сповіщень"
+  "icu:Preferences--registration-lock__label": {
+    "messageformat": "Блокувати реєстрацію"
+  },
+  "icu:Preferences--registration-lock__footer": {
+    "messageformat": "Вимагати введення PIN-коду для повторної реєстрації номера телефону в Signal."
   },
   "icu:Preferences__Chats__TextInputSection__Title": {
     "messageformat": "Введення тексту"
@@ -6127,11 +6283,47 @@
   "icu:Preferences__Chats__ChatFoldersSection__Title": {
     "messageformat": "Папки для чатів"
   },
+  "icu:Preferences__Notifications__Show__Label": {
+    "messageformat": "Показати"
+  },
   "icu:Preferences__Notifications__SoundsSection__Title": {
     "messageformat": "Звуки"
   },
   "icu:Preferences__Notifications__AppBadgeSection__Title": {
     "messageformat": "Значок застосунку"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title-v2": {
+    "messageformat": "Лічильник сповіщень"
+  },
+  "icu:Preferences__Notifications__Reset__title": {
+    "messageformat": "Налаштування сповіщень, включно з унікальними налаштуваннями для ваших чатів, буде скинуто до стандартних."
+  },
+  "icu:Preferences__Notifications__Reset__button": {
+    "messageformat": "Скинути"
+  },
+  "icu:Preferences__Notifications__Reset__modal--body": {
+    "messageformat": "Скинути налаштування сповіщень до стандартних у всіх чатах?"
+  },
+  "icu:Preferences__Notifications__Reset__modal--confirm": {
+    "messageformat": "Скинути"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Label": {
+    "messageformat": "Лічильник сповіщень"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Description": {
+    "messageformat": "Виберіть, що показуватиме лічильник сповіщень: кількість непрочитаних повідомлень чи непрочитаних чатів"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadMessages": {
+    "messageformat": "Непрочитані повідомлення"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadChats": {
+    "messageformat": "Непрочитані чати"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats": {
+    "messageformat": "Враховувати повідомлення з чатів із вимкненими сповіщеннями"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats__description": {
+    "messageformat": "У лічильнику папок для чатів завжди буде враховано чати з вимкненими сповіщеннями"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Експортувати історію чатів"
@@ -6283,9 +6475,6 @@
   "icu:NotificationProfiles--setting": {
     "messageformat": "Профілі сповіщень"
   },
-  "icu:NotificationProfiles--setup": {
-    "messageformat": "Налаштувати"
-  },
   "icu:NotificationProfiles--title": {
     "messageformat": "Профілі сповіщень"
   },
@@ -6297,9 +6486,6 @@
   },
   "icu:NotificationProfiles--manage-description": {
     "messageformat": "Додавайте й змінюйте профілі сповіщень"
-  },
-  "icu:NotificationProfiles--manage-profiles": {
-    "messageformat": "{profileCount, plural, one {Один профіль} few {{profileCount,number} профілі} many {{profileCount,number} профілів} other {{profileCount,number} профілю}}"
   },
   "icu:NotificationProfiles--create": {
     "messageformat": "Створити профіль"
@@ -6700,9 +6886,6 @@
   "icu:Preferences__pnp__row--body": {
     "messageformat": "Оберіть, хто зможе бачити ваш номер і зв'язуватися з вами в Signal за номером."
   },
-  "icu:Preferences__pnp__row--button": {
-    "messageformat": "Змінити…"
-  },
   "icu:Preferences__pnp__sharing--title": {
     "messageformat": "Хто може бачити мій номер"
   },
@@ -6751,14 +6934,8 @@
   "icu:Preferences--read-receipts": {
     "messageformat": "Відмітки про читання"
   },
-  "icu:Preferences--read-receipts--description": {
-    "messageformat": "Якщо вимкнути, ви не будете бачити, чи прочитали ваші повідомлення."
-  },
   "icu:Preferences--typing-indicators": {
     "messageformat": "Індикатор набору тексту"
-  },
-  "icu:Preferences--typing-indicators--description": {
-    "messageformat": "Якщо вимкнути, ви не будете бачити індикатор набору тексту, коли інші користувачі набиратимуть повідомлення."
   },
   "icu:Preferences--messaging-help": {
     "messageformat": "Ці функції дають вам і вашим співрозмовникам змогу бачити, що повідомлення прочитано / триває набір тексту. Якщо їх вимкнути, ви не будете бачити відміток про читання ваших повідомлень і індикаторів набору тексту."
@@ -6865,11 +7042,23 @@
   "icu:InstallScreenUpdateDialog--update-required__title": {
     "messageformat": "Необхідне оновлення"
   },
+  "icu:InstallScreenUpdateDialog--checking-for-updates": {
+    "messageformat": "Перевірка оновлень"
+  },
+  "icu:InstallScreenUpdateDialog--updating-signal": {
+    "messageformat": "Оновлення Signal"
+  },
+  "icu:InstallScreenUpdateDialog--download-progress": {
+    "messageformat": "Завантаження: {currentBytes} з {totalBytes} ({percentage,number,percent})…"
+  },
   "icu:InstallScreenUpdateDialog--update-required__body": {
-    "messageformat": "Щоб завершити синхронізацію повідомлень, оновіть Signal Desktop."
+    "messageformat": "Щоб продовжити, потрібно оновити Signal Desktop."
   },
   "icu:InstallScreenUpdateDialog--update-required__action-update": {
     "messageformat": "Оновити"
+  },
+  "icu:InstallScreenUpdateDialog--update-required__action-update__mas": {
+    "messageformat": "Перейти в App Store"
   },
   "icu:InstallScreenUpdateDialog--unsupported-os__title": {
     "messageformat": "Необхідне оновлення"
@@ -6903,6 +7092,9 @@
   },
   "icu:StandaloneRegistration--PhoneNumber--waiting": {
     "messageformat": "Будь ласка, спробуйте ще раз через {duration}"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--RegionCodeSelector--Label": {
+    "messageformat": "Вибір коду країни"
   },
   "icu:StandaloneRegistration--PhoneNumber--placeholder": {
     "messageformat": "Номер телефону"
@@ -7425,6 +7617,12 @@
   },
   "icu:MediaPermissionsModal__step-2": {
     "messageformat": "Надайте дозвіл для Signal"
+  },
+  "icu:MediaPermissionsModal__step-2--windows--microphone": {
+    "messageformat": "Надайте Signal доступ до мікрофона"
+  },
+  "icu:MediaPermissionsModal__step-2--windows--camera": {
+    "messageformat": "Надайте Signal доступ до камери"
   },
   "icu:MediaPermissionsModal__open": {
     "messageformat": "Відкрити налаштування"
@@ -7966,11 +8164,17 @@
   "icu:ContextMenu--button": {
     "messageformat": "Контекстне меню"
   },
+  "icu:EditUsernameModalBody__username-label": {
+    "messageformat": "Ім'я користувача"
+  },
   "icu:EditUsernameModalBody__username-placeholder": {
     "messageformat": "Ім'я користувача"
   },
   "icu:EditUsernameModalBody__username-helper": {
     "messageformat": "Імена користувачів завжди поєднуються з цифрами."
+  },
+  "icu:EditUsernameModalBody__discriminator-label": {
+    "messageformat": "Цифри в імені користувача"
   },
   "icu:EditUsernameModalBody__learn-more": {
     "messageformat": "Докладніше"
@@ -8093,14 +8297,53 @@
   "icu:PinReminderModal__pin-input-error": {
     "messageformat": "Неправильний PIN-код. Спробувати знов"
   },
+  "icu:PinReminderModal__forgot": {
+    "messageformat": "Я не пам'ятаю PIN-коду"
+  },
   "icu:PinReminderModal__confirm": {
     "messageformat": "Підтвердити"
   },
   "icu:PinReminderCompletedToast": {
     "messageformat": "PIN-код правильний. Згодом ми нагадаємо знов."
   },
+  "icu:PinChangeModal__title--create": {
+    "messageformat": "Змінити PIN-код Signal"
+  },
+  "icu:PinChangeModal__title--create--without-pin": {
+    "messageformat": "Створіть PIN-код Signal"
+  },
+  "icu:PinChangeModal__body--create": {
+    "messageformat": "Ви можете змінити PIN-код, якщо цей пристрій зареєстровано. <learnMoreLink>Докладніше</learnMoreLink>"
+  },
+  "icu:PinChangeModal__body--create--without-pin": {
+    "messageformat": "PIN-коди забезпечують шифрування інформації, яка зберігається в Signal, щоб отримати до неї доступ могли тільки ви. PIN-код дасть вам змогу відновити акаунт, налаштування й контакти в разі перевстановлення Signal. Щоб відкрити застосунок, PIN-код не потрібен. <learnMoreLink>Докладніше</learnMoreLink>"
+  },
+  "icu:PinChangeModal__title--confirm": {
+    "messageformat": "Підтвердьте PIN-код Signal"
+  },
+  "icu:PinChangeModal__body--confirm": {
+    "messageformat": "Введіть PIN-код, який ви щойно створили."
+  },
+  "icu:PinChangeModal__pin-input-placeholder--create": {
+    "messageformat": "Введіть новий PIN-код"
+  },
+  "icu:PinChangeModal__pin-input-placeholder--confirm": {
+    "messageformat": "Підтвердьте PIN-код"
+  },
+  "icu:PinChangeModal__cancel": {
+    "messageformat": "Скасувати"
+  },
+  "icu:PinChangeModal__continue": {
+    "messageformat": "Продовжити"
+  },
+  "icu:PinChangeModal__confirm": {
+    "messageformat": "Підтвердити"
+  },
+  "icu:PinChangeCompletedToast": {
+    "messageformat": "Новий PIN-код створено."
+  },
   "icu:UnsupportedOSWarningDialog__body": {
-    "messageformat": "Незабаром Signal Desktop перестане підтримувати версію {OS} вашого комп'ютера. Щоб користуватися Signal і надалі, оновіть операційну систему комп'ютера до {expirationDate}. <learnMoreLink>Докладніше</learnMoreLink>"
+    "messageformat": "Незабаром Signal Desktop перестане підтримувати версію {OS} ОС вашого комп'ютера. Щоб користуватися Signal і надалі, оновіть операційну систему комп'ютера до {expirationDate}. <learnMoreLink>Докладніше</learnMoreLink>"
   },
   "icu:UnsupportedOSErrorDialog__body": {
     "messageformat": "Signal Desktop більше не працює на цьому комп'ютері. Щоб знову користуватися Signal, оновіть версію {OS} вашого комп'ютера. <learnMoreLink>Докладніше</learnMoreLink>"
@@ -8315,12 +8558,6 @@
   "icu:CallLinkPendingParticipantModal__DenyButtonLabel": {
     "messageformat": "Не дозволити приєднатися"
   },
-  "icu:CallLinkRestrictionsSelect__Option--Off": {
-    "messageformat": "Вимк."
-  },
-  "icu:CallLinkRestrictionsSelect__Option--On": {
-    "messageformat": "Увімк."
-  },
   "icu:CallLinkAddNameModal__Title": {
     "messageformat": "Додати назву виклику"
   },
@@ -8368,6 +8605,39 @@
   },
   "icu:SaveMultiDialog__title": {
     "messageformat": "Зберегти вкладення"
+  },
+  "icu:EmbeddedContact__message": {
+    "messageformat": "Повідомлення"
+  },
+  "icu:ContactDetail__message": {
+    "messageformat": "Повідомлення"
+  },
+  "icu:ContactDetail__add-to-group": {
+    "messageformat": "Додати до групи"
+  },
+  "icu:ContactDetail__nickname": {
+    "messageformat": "Умовне ім'я"
+  },
+  "icu:ContactDetail__note": {
+    "messageformat": "Нотатки"
+  },
+  "icu:email-v2": {
+    "messageformat": "Імейл"
+  },
+  "icu:home-v2": {
+    "messageformat": "Дім"
+  },
+  "icu:mobile-v2": {
+    "messageformat": "Мобільний"
+  },
+  "icu:work-v2": {
+    "messageformat": "Робота"
+  },
+  "icu:phone-v2": {
+    "messageformat": "Телефон"
+  },
+  "icu:address-v2": {
+    "messageformat": "Адреса"
   },
   "icu:WhatsNew__modal-title": {
     "messageformat": "Що нового"
@@ -8533,6 +8803,9 @@
   },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Дякуємо за підтримку Signal. Ваш внесок допомагає реалізувати нашу місію: захищати свободу слова і робити можливим безпечне спілкування для мільйонів людей у всьому світі за допомогою технології конфіденційного обміну повідомленнями з відкритим кодом. Якщо ви резидент Сполучених Штатів Америки, збережіть це підтвердження для звітування в податкові органи. Signal Technology Foundation — звільнена від оподаткування неприбуткова організація, створена відповідно до розділу 501c3 податкового кодексу США. Наш федеральний податковий номер: 82–4506840. За цей внесок Signal не надав ні товарів, ні послуг."
+  },
+  "icu:MessageCta__Donate": {
+    "messageformat": "Підтримати"
   },
   "icu:Donations__OfflineTooltip": {
     "messageformat": "Ви не в мережі. Щоб завершити донат, потрібне з'єднання з інтернетом."
@@ -8841,13 +9114,19 @@
     "messageformat": "Дрібні поліпшення, виправлення помилок і покращення роботи застосунку. Дякуємо, що ви з Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.24--1": {
-    "messageformat": "Ми спростили пошук учасників на сторінці налаштувань групи. Тепер ви зможете швидко перевірити, чи мама вже додала вашу троюрідну тітку до групи «Всі свої»."
+  "icu:WhatsNew__8.30--0": {
+    "messageformat": "Завдяки кільком покращенням продуктивності під час відеовикликів ваш CPU почуватиметься значно веселіше (навіть якщо виклик буде не дуже й веселий)."
   },
-  "icu:WhatsNew__8.25--0": {
-    "messageformat": "Ми додали два нові рівні збільшення масштабу в налаштуваннях вигляду, щоб навіть із мінімальними зусиллями ваші повідомлення виглядали на всі 110% (або 90%)."
+  "icu:WhatsNew__8.30--1": {
+    "messageformat": "Крім того, ми додали зручне сполучення клавіш для відкриття системних налаштувань Windows на випадок, якщо ви захочете приєднатися до відеовиклику, а Signal не матиме доступу до камери. Тепер вам буде простіше знайти потрібне налаштування, щоб більше не залишатися за кадром."
   },
-  "icu:WhatsNew__8.26--0": {
-    "messageformat": "Пошук себе може тривати все життя, але принаймні тепер ви легко можете знайти себе в пошуку учасників групи, просто написавши «ти»."
+  "icu:WhatsNew__8.32--0": {
+    "messageformat": "Фільтр непрочитаних повідомлень тепер також доступний у папках із повідомленнями та в пошуку, тож ви легко побачите все, що пропустили."
+  },
+  "icu:WhatsNew__8.32--1": {
+    "messageformat": "Поліпшено надійність вивантаження файлів за умов слабкого з'єднання. Дякуємо, <GH3mmmbulus></GH3mmmbulus>!"
+  },
+  "icu:WhatsNew__8.32--2": {
+    "messageformat": "Тепер «(N)» веде до правильного емоджі — пальця вниз. <lnicola></lnicola>, ставимо палець угору за виправлення цієї помилки."
   }
 }

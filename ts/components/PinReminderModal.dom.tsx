@@ -21,12 +21,14 @@ export function PinReminderModal({
   internalHasValidationError,
   open,
   onCancel,
+  onForgotPin,
   onPinEntry,
 }: {
   internalHasValidationError?: boolean;
   i18n: LocalizerType;
   open: boolean;
   onCancel: () => void;
+  onForgotPin: () => void;
   onPinEntry: (pin: string, ignoreWrongGuess?: boolean) => boolean;
 }): JSX.Element {
   const [pin, setPin] = useState('');
@@ -109,21 +111,30 @@ export function PinReminderModal({
               </div>
               <InputContainer helperElement={helperElement}>
                 <AxoPasswordField.Root
-                  placeholder={i18n(
-                    'icu:PinReminderModal__pin-input-placeholder'
-                  )}
-                  autoFocus
                   maxBytes={PIN_MAX_BYTES}
                   maxGraphemes={PIN_MAX_GRAPHEMES}
                   onValueChange={handlePinChange}
                   value={pin}
-                  autoComplete="current-password"
-                />
+                >
+                  <AxoPasswordField.Input
+                    autoFocus
+                    autoComplete="current-password"
+                    placeholder={i18n(
+                      'icu:PinReminderModal__pin-input-placeholder'
+                    )}
+                  />
+                </AxoPasswordField.Root>
               </InputContainer>
             </div>
           </AxoDialog.Body>
           <AxoDialog.Footer>
             <AxoDialog.Actions>
+              <AxoDialog.Action
+                variant="subtle-secondary"
+                onClick={onForgotPin}
+              >
+                {i18n('icu:PinReminderModal__forgot')}
+              </AxoDialog.Action>
               <AxoDialog.Action
                 variant="strong-primary"
                 onClick={handleSubmit}

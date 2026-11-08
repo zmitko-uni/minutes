@@ -22,6 +22,9 @@ describe('MCP tool access catalog', () => {
 
   it('keeps destructive capabilities behind the explicit destructive level', () => {
     assert.deepEqual(getAutomationToolNamesByAccess('destructive'), [
+      'edit_message',
+      'delete_message',
+      'vote_poll',
       'set_message_reaction',
       'remove_group_members',
       'leave_group',
@@ -89,6 +92,11 @@ describe('AutomationSettingsStore', () => {
         'get_attachment_directories',
         'download_attachment',
         'send_message',
+        'edit_message',
+        'delete_message',
+        'create_poll',
+        'get_poll_results',
+        'vote_poll',
         'set_message_reaction',
         'get_group',
         'find_groups_by_member',

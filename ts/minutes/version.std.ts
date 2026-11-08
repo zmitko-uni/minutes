@@ -4,7 +4,7 @@
 import semver from 'semver';
 
 /** Upstream Signal Desktop release (sync when merging upstream). */
-export const MINUTES_SIGNAL_BASE_VERSION = '8.26.0';
+export const MINUTES_SIGNAL_BASE_VERSION = '8.32.0';
 
 export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-oprave';
 
@@ -55,6 +55,16 @@ export function formatMinutesProductVersion(
 
 export function isMinutesBetaVersion(version: string): boolean {
   return parseMinutesProductVersion(version)?.beta != null;
+}
+
+/**
+ * Signal remote-config flags compare the app version with `isProduction` /
+ * `isBeta`. A Minutes version such as `8.26.0-m1.6.4` is neither, so those
+ * flags stay off. Feature checks should see the Signal base this build is
+ * cut from (`8.26.0`), including Minutes beta builds.
+ */
+export function minutesVersionForSignalFeatureFlags(version: string): string {
+  return parseMinutesProductVersion(version)?.signalBase ?? version;
 }
 
 /** Legacy alpha builds tied to Signal base (8.21.0-alpha.N). */

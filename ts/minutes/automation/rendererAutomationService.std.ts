@@ -11,6 +11,7 @@ import type {
 } from './automationContracts.std.ts';
 import type { AutomationRendererBridge } from './automationRendererBridge.node.ts';
 import type { AutomationPage } from './pagination.std.ts';
+import type { AutomationMention } from './messageMentionAutomation.std.ts';
 
 export class RendererAutomationService {
   readonly bridge: AutomationRendererBridge;
@@ -237,12 +238,53 @@ export class RendererAutomationService {
   sendMessage(options: {
     conversationId: string;
     text?: string;
+    mentions?: ReadonlyArray<AutomationMention>;
     attachments?: ReadonlyArray<
       Readonly<{ path: string; contentType?: string }>
     >;
     idempotencyKey?: string;
   }): Promise<unknown> {
     return this.bridge.request('sendMessage', options);
+  }
+
+  editMessage(options: {
+    conversationId: string;
+    messageId: string;
+    text: string;
+    mentions?: ReadonlyArray<AutomationMention>;
+    idempotencyKey?: string;
+  }): Promise<unknown> {
+    return this.bridge.request('editMessage', options);
+  }
+
+  deleteMessage(options: {
+    conversationId: string;
+    messageId: string;
+    scope: 'for_me' | 'for_everyone';
+    idempotencyKey?: string;
+  }): Promise<unknown> {
+    return this.bridge.request('deleteMessage', options);
+  }
+
+  createPoll(options: {
+    conversationId: string;
+    question: string;
+    options: ReadonlyArray<string>;
+    allowMultiple?: boolean;
+    idempotencyKey?: string;
+  }): Promise<unknown> {
+    return this.bridge.request('createPoll', options);
+  }
+
+  getPollResults(options: { messageId: string }): Promise<unknown> {
+    return this.bridge.request('getPollResults', options);
+  }
+
+  votePoll(options: {
+    messageId: string;
+    optionIndexes: ReadonlyArray<number>;
+  }): Promise<unknown> {
+    return this.bridge.request('votePoll', options);
   }
 
   setMessageReaction(options: {

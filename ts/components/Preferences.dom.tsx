@@ -22,7 +22,10 @@ import { WidthBreakpoint } from './_util.std.ts';
 import { DisappearingTimeDialog } from './DisappearingTimeDialog.dom.tsx';
 import { PhoneNumberDiscoverability } from '../util/phoneNumberDiscoverability.std.ts';
 import { PhoneNumberSharingMode } from '../types/PhoneNumberSharingMode.std.ts';
-import { KEY_TRANSPARENCY_URL } from '../types/support.std.ts';
+import {
+  KEY_TRANSPARENCY_URL,
+  RESTORE_ACCOUNT_URL,
+} from '../types/support.std.ts';
 import { getCustomColorStyle } from '../util/getCustomColorStyle.dom.ts';
 import {
   DEFAULT_DURATIONS_IN_SECONDS,
@@ -49,11 +52,17 @@ import type { MediaDeviceSettings } from '../types/Calling.std.ts';
 import type { ValidationResultType as BackupValidationResultType } from '../services/backups/index.preload.ts';
 import type {
   AutoDownloadAttachmentType,
+  UnreadCountBadgeType,
   NotificationSettingType,
   SentMediaQualitySettingType,
   ZoomFactorType,
   StorageAccessType,
 } from '../types/StorageKeys.std.ts';
+import type {
+  NotifyWhileMuted,
+  NotifyWhileMutedKey,
+} from '../util/notifyWhileMuted.std.ts';
+import { getNotifyWhileMutedSummary } from '../util/notifyWhileMuted.std.ts';
 import type { ThemeSettingType } from '../util/theme.std.ts';
 import type { AnyToast } from '../types/Toast.dom.tsx';
 import { ToastType } from '../types/Toast.dom.tsx';
@@ -73,7 +82,6 @@ import type {
   BackupsSubscriptionType,
   BackupStatusType,
 } from '../types/backups.node.ts';
-import type { UnreadStats } from '../util/countUnreadStats.std.ts';
 import type { BadgeType } from '../badges/types.std.ts';
 import type { MessageCountBySchemaVersionType } from '../sql/Interface.std.ts';
 import type { MessageAttributesType } from '../model-types.d.ts';
@@ -93,15 +101,23 @@ import type { LocalBackupExportMetadata } from '../types/LocalExport.std.ts';
 import { isDonationsPage } from './PreferencesDonations.dom.tsx';
 import type { VisibleRemoteMegaphoneType } from '../types/Megaphone.std.ts';
 import { TitlebarDragArea } from './TitlebarDragArea.dom.tsx';
+import { LinkedDevicesOnboardingDialog } from './preferences/LinkedDevicesOnboardingDialog.dom.tsx';
+import { SignalAccountKeys } from './preferences/SignalAccountKeys.dom.tsx';
+import { SignalAccountKeysButton } from './preferences/SignalAccountKeysButton.dom.tsx';
 import type { PreferredBadgeSelectorType } from '../state/selectors/badges.preload.ts';
 import { Emoji } from '../axo/emoji.std.ts';
+import { AxoAlertDialog } from '../axo/AxoAlertDialog.dom.tsx';
 import { AxoConfirmDialog } from '../axo/AxoConfirmDialog.dom.tsx';
+import { AxoSymbol } from '../axo/AxoSymbol.dom.tsx';
 import moment from 'moment';
 import { AxoItem } from '../axo/items/AxoItem.dom.tsx';
 import { AxoList } from '../axo/items/AxoList.dom.tsx';
-import { AxoSwitch } from '../axo/AxoSwitch.dom.tsx';
-import { AxoSelect } from '../axo/AxoSelect.dom.tsx';
-import type { AxoSymbol } from '../axo/AxoSymbol.dom.tsx';
+import { AxoSwitchItem } from '../axo/items/AxoSwitchItem.dom.tsx';
+import { AxoSelectItem } from '../axo/items/AxoSelectItem.dom.tsx';
+import { AxoClickableItem } from '../axo/items/AxoClickableItem.dom.tsx';
+import { AxoTextItem } from '../axo/items/AxoTextItem.dom.tsx';
+import { AxoPanel } from '../axo/AxoPanel.dom.tsx';
+import { PinLearnMoreLink } from './standaloneRegistration/util/StepComponents.dom.tsx';
 
 const { isNumber, noop, partition } = lodash;
 
@@ -142,7 +158,6 @@ export type PropsDataType = {
   hasAutoConvertEmoji: boolean;
   hasAutoDownloadUpdate: boolean;
   hasAutoLaunch: boolean | undefined;
-  hasCallNotifications: boolean;
   hasCallRingtoneNotification: boolean;
   hasContentProtection: boolean | undefined;
   hasCountMutedConversations: boolean;
@@ -162,15 +177,20 @@ export type PropsDataType = {
   hasPreferContactAvatars: boolean;
   hasReactionNotifications: boolean;
   hasReadReceipts: boolean;
+  hasRegistrationLock: boolean | undefined;
   hasRelayCalls?: boolean;
   hasSpellCheck: boolean | undefined;
   hasStoriesDisabled: boolean;
+  hasSvrPin: boolean;
   hasTextFormatting: boolean;
   hasTypingIndicators: boolean;
+  hasUnreadReminders: boolean;
   hasKeepMutedChatsArchived: boolean;
+  isSvrPinPending: boolean;
   settingsLocation: SettingsLocation;
   lastSyncTime?: number;
   notificationContent: NotificationSettingType;
+  notifyWhileMuted: NotifyWhileMuted;
   osName: 'linux' | 'macos' | 'windows' | undefined;
   phoneNumber: string | undefined;
   selectedCamera?: string;
@@ -179,6 +199,7 @@ export type PropsDataType = {
   sentMediaQualitySetting: SentMediaQualitySettingType;
   themeSetting: ThemeSettingType | undefined;
   universalExpireTimer: DurationInSeconds;
+  unreadCountBadgeType: UnreadCountBadgeType;
   whoCanFindMe: PhoneNumberDiscoverability;
   whoCanSeeMe: PhoneNumberSharingMode;
   zoomFactor: ZoomFactorType | undefined;
@@ -195,7 +216,7 @@ export type PropsDataType = {
   initialSpellCheckSetting: boolean;
   me: ConversationType;
   navTabsCollapsed: boolean;
-  otherTabsUnreadStats: UnreadStats;
+  otherTabsUnreadCount: number;
   preferredWidthFromStorage: number;
   shouldShowUpdateDialog: boolean;
   theme: ThemeType;
@@ -248,9 +269,7 @@ type PropsFunctionType = {
     props: SmartNotificationProfilesProps
   ) => JSX.Element;
 
-  renderProfileEditor: (options: {
-    contentsRef: MutableRefObject<HTMLDivElement | null>;
-  }) => JSX.Element;
+  renderProfileEditor: () => JSX.Element;
   renderToastManager: (
     _: Readonly<{ containerWidthBreakpoint: WidthBreakpoint }>
   ) => JSX.Element;
@@ -271,6 +290,7 @@ type PropsFunctionType = {
   }: {
     deleteExistingBackups: boolean;
   }) => Promise<void>;
+  disableSignalPin: () => Promise<void>;
   doDeleteAllData: () => unknown;
   editCustomColor: (colorId: string, color: CustomColorType) => unknown;
   getMessageCountBySchemaVersion: () => Promise<MessageCountBySchemaVersionType>;
@@ -302,6 +322,7 @@ type PropsFunctionType = {
     }
   ) => unknown;
   setSettingsLocation: (settingsLocation: SettingsLocation) => unknown;
+  showPinChangeModal: () => void;
   showToast: (toast: AnyToast) => unknown;
   startLocalBackupExport: () => void;
   startPlaintextExport: () => unknown;
@@ -328,7 +349,6 @@ type PropsFunctionType = {
   onAutoDownloadUpdateChange: CheckboxChangeHandlerType;
   onAutoLaunchChange: CheckboxChangeHandlerType;
   onBackupKeyViewed: ({ backupKeyHash }: { backupKeyHash: string }) => void;
-  onCallNotificationsChange: CheckboxChangeHandlerType;
   onCallRingtoneNotificationChange: CheckboxChangeHandlerType;
   onContentProtectionChange: CheckboxChangeHandlerType;
   onCountMutedConversationsChange: CheckboxChangeHandlerType;
@@ -349,11 +369,17 @@ type PropsFunctionType = {
   onNotificationAttentionChange: CheckboxChangeHandlerType;
   onNotificationContentChange: SelectChangeHandlerType<NotificationSettingType>;
   onNotificationsChange: CheckboxChangeHandlerType;
+  onNotifyWhileMutedChange: (
+    key: NotifyWhileMutedKey,
+    value: boolean
+  ) => unknown;
   onPinRemindersChange: CheckboxChangeHandlerType;
   onPreferContactAvatarsChange: CheckboxChangeHandlerType;
   onReactionNotificationsChange: CheckboxChangeHandlerType;
   onReadReceiptsChange: CheckboxChangeHandlerType;
+  onRegistrationLockChange: CheckboxChangeHandlerType;
   onRelayCallsChange: CheckboxChangeHandlerType;
+  onResetNotificationSettings: () => unknown;
   onSealedSenderIndicatorsChange: CheckboxChangeHandlerType;
   onSelectedCameraChange: SelectChangeHandlerType<string | undefined>;
   onSelectedMicrophoneChange: SelectChangeHandlerType<AudioDevice | undefined>;
@@ -365,6 +391,8 @@ type PropsFunctionType = {
   onToggleNavTabsCollapse: (navTabsCollapsed: boolean) => void;
   onTypingIndicatorsChange: CheckboxChangeHandlerType;
   onUniversalExpireTimerChange: SelectChangeHandlerType<number>;
+  onUnreadCountBadgeTypeChange: SelectChangeHandlerType<UnreadCountBadgeType>;
+  onUnreadRemindersChange: CheckboxChangeHandlerType;
   onWhoCanFindMeChange: SelectChangeHandlerType<PhoneNumberDiscoverability>;
   onWhoCanSeeMeChange: SelectChangeHandlerType<PhoneNumberSharingMode>;
   onZoomFactorChange: SelectChangeHandlerType<ZoomFactorType>;
@@ -385,6 +413,7 @@ type PropsFunctionType = {
   setGroupSvcMode: (value: string | undefined) => void;
   setGroupSvcModeForScreenshare: (value: string | undefined) => void;
   setSfuUrl: (value: string | undefined) => void;
+  saveAccountKeysPDF: () => Promise<void>;
   forceKeyTransparencyCheck: () => Promise<void>;
   keyTransparencySelfHealth: StorageAccessType['keyTransparencySelfHealth'];
 
@@ -458,6 +487,7 @@ export function Preferences({
   defaultConversationColor,
   deviceName = '',
   disableLocalBackups,
+  disableSignalPin,
   doDeleteAllData,
   editCustomColor,
   emojiSkinToneDefault,
@@ -470,7 +500,6 @@ export function Preferences({
   hasAutoConvertEmoji,
   hasAutoDownloadUpdate,
   hasAutoLaunch,
-  hasCallNotifications,
   hasCallRingtoneNotification,
   hasContentProtection,
   hasCountMutedConversations,
@@ -490,12 +519,15 @@ export function Preferences({
   hasPreferContactAvatars,
   hasReactionNotifications,
   hasReadReceipts,
+  hasRegistrationLock,
   hasRelayCalls,
   hasSealedSenderIndicators,
   hasSpellCheck,
   hasStoriesDisabled,
+  hasSvrPin,
   hasTextFormatting,
   hasTypingIndicators,
+  hasUnreadReminders,
   hasKeepMutedChatsArchived,
   i18n,
   initialSpellCheckSetting,
@@ -506,6 +538,7 @@ export function Preferences({
   isHideMenuBarSupported,
   isKeyTransparencyAvailable,
   isNotificationAttentionSupported,
+  isSvrPinPending,
   isSyncSupported,
   isSystemTraySupported,
   isMinimizeToAndStartInSystemTraySupported,
@@ -517,13 +550,13 @@ export function Preferences({
   me,
   navTabsCollapsed,
   notificationContent,
+  notifyWhileMuted,
   onAudioNotificationsChange,
   onAutoConvertEmojiChange,
   onAutoDownloadAttachmentChange,
   onAutoDownloadUpdateChange,
   onAutoLaunchChange,
   onBackupKeyViewed,
-  onCallNotificationsChange,
   onCallRingtoneNotificationChange,
   onContentProtectionChange,
   onCountMutedConversationsChange,
@@ -544,11 +577,14 @@ export function Preferences({
   onNotificationAttentionChange,
   onNotificationContentChange,
   onNotificationsChange,
+  onNotifyWhileMutedChange,
   onPinRemindersChange,
   onPreferContactAvatarsChange,
   onReactionNotificationsChange,
   onReadReceiptsChange,
+  onRegistrationLockChange,
   onRelayCallsChange,
+  onResetNotificationSettings,
   onSealedSenderIndicatorsChange,
   onSelectedCameraChange,
   onSelectedMicrophoneChange,
@@ -560,10 +596,12 @@ export function Preferences({
   onToggleNavTabsCollapse,
   onTypingIndicatorsChange,
   onUniversalExpireTimerChange,
+  onUnreadCountBadgeTypeChange,
+  onUnreadRemindersChange,
   onWhoCanFindMeChange,
   onWhoCanSeeMeChange,
   onZoomFactorChange,
-  otherTabsUnreadStats,
+  otherTabsUnreadCount,
   settingsLocation,
   phoneNumber = '',
   pickLocalBackupFolder,
@@ -596,6 +634,7 @@ export function Preferences({
   setGlobalDefaultConversationColor,
   setSettingsLocation,
   shouldShowUpdateDialog,
+  showPinChangeModal,
   showToast,
   startLocalBackupExport,
   startPlaintextExport,
@@ -603,6 +642,7 @@ export function Preferences({
   theme,
   themeSetting,
   universalExpireTimer,
+  unreadCountBadgeType,
   validateBackup,
   whoCanFindMe,
   whoCanSeeMe,
@@ -636,6 +676,7 @@ export function Preferences({
   setGroupSvcModeForScreenshare,
   setSfuUrl,
   sfuUrl,
+  saveAccountKeysPDF,
   forceKeyTransparencyCheck,
   keyTransparencySelfHealth,
   weArePrimaryDevice,
@@ -645,6 +686,8 @@ export function Preferences({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmStoriesOff, setConfirmStoriesOff] = useState(false);
   const [confirmContentProtection, setConfirmContentProtection] =
+    useState(false);
+  const [confirmResetNotifications, setConfirmResetNotifications] =
     useState(false);
   const [showSyncFailed, setShowSyncFailed] = useState(false);
   const [nowSyncing, setNowSyncing] = useState(false);
@@ -659,6 +702,25 @@ export function Preferences({
   const [languageSearchInput, setLanguageSearchInput] = useState('');
   const [confirmPnpNotDiscoverable, setConfirmPnpNoDiscoverable] =
     useState(false);
+  const [linkedDevicesOnboarding, setLinkedDevicesOnboarding] = useState(false);
+  const [signalPinAdvancedDisableError, setSignalPinAdvancedDisableError] =
+    useState<'backups' | 'reg-lock' | undefined>();
+  const [isSignalPinDisablePending, setIsSignalPinDisablePending] =
+    useState(false);
+  const handleDisableSignalPin = useCallback(async () => {
+    if (isSignalPinDisablePending) {
+      return;
+    }
+
+    setIsSignalPinDisablePending(true);
+    // Handles errors and shows a global modal if it fails
+    await disableSignalPin();
+    setIsSignalPinDisablePending(false);
+  }, [
+    isSignalPinDisablePending,
+    disableSignalPin,
+    setIsSignalPinDisablePending,
+  ]);
 
   const handleOpenEditChatFoldersPage = useCallback(
     (chatFolderId: ChatFolderId | null) => {
@@ -691,7 +753,7 @@ export function Preferences({
   const onZoomSelectChange = useCallback(
     (value: string) => {
       const number = parseFloat(value);
-      onZoomFactorChange(number as unknown as ZoomFactorType);
+      onZoomFactorChange(number);
     },
     [onZoomFactorChange]
   );
@@ -736,7 +798,10 @@ export function Preferences({
       return;
     }
     elements[0]?.focus();
-  }, [settingsLocation.page]);
+  }, [
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies
+    settingsLocation.page,
+  ]);
 
   const onAudioOutputSelectChange = useCallback(
     (value: string) => {
@@ -841,59 +906,209 @@ export function Preferences({
   let content: JSX.Element | undefined;
 
   if (settingsLocation.page === SettingsPage.Profile) {
-    content = renderProfileEditor({
-      contentsRef: settingsPaneRef,
-    });
+    content = renderProfileEditor();
+  } else if (settingsLocation.page === SettingsPage.Account) {
+    const pageContents = (
+      <AxoList.Group>
+        {!weArePrimaryDevice && (
+          <>
+            <List>
+              <AxoClickableItem.Root
+                symbol="device-laptop"
+                label={i18n('icu:Preferences__Account__LinkedDevice__label')}
+                arrow="next"
+                description={i18n(
+                  'icu:Preferences__Account__LinkedDevice__description'
+                )}
+                onClick={() => setLinkedDevicesOnboarding(true)}
+              />
+            </List>
+            {linkedDevicesOnboarding && (
+              <LinkedDevicesOnboardingDialog
+                i18n={i18n}
+                onDismiss={() => setLinkedDevicesOnboarding(false)}
+              />
+            )}
+          </>
+        )}
+        {!phoneNumber && (
+          <List
+            label={i18n('icu:Preferences--signal-login')}
+            footerDescription={
+              <I18n
+                i18n={i18n}
+                id="icu:Preferences--signal-login-description"
+                components={{
+                  learnMoreLink: () => (
+                    <a
+                      href={RESTORE_ACCOUNT_URL}
+                      rel="noreferrer"
+                      target="_blank"
+                      className={tw('text-primary')}
+                    >
+                      {i18n(
+                        'icu:Preferences--signal-login-description--learn-more'
+                      )}
+                    </a>
+                  ),
+                }}
+              />
+            }
+          >
+            <SignalAccountKeysButton
+              i18n={i18n}
+              promptOSAuth={promptOSAuth}
+              onClick={() => {
+                setSettingsLocation({ page: SettingsPage.AccountKeys });
+              }}
+            />
+          </List>
+        )}
+      </AxoList.Group>
+    );
+    content = (
+      <PreferencesContent
+        contents={pageContents}
+        contentsRef={settingsPaneRef}
+        title={i18n('icu:Preferences__button--account')}
+      />
+    );
+  } else if (settingsLocation.page === SettingsPage.AccountKeys) {
+    const backButton = (
+      <button
+        aria-label={i18n('icu:goBack')}
+        className="Preferences__back-icon"
+        onClick={() => setSettingsLocation({ page: SettingsPage.Account })}
+        type="button"
+      />
+    );
+
+    const pageContents = (
+      <div className={tw('px-4')}>
+        <SignalAccountKeys
+          i18n={i18n}
+          serviceId={me.serviceId}
+          backupKey={backupKey}
+          saveAccountKeysPDF={saveAccountKeysPDF}
+        />
+      </div>
+    );
+    content = (
+      <PreferencesContent
+        backButton={backButton}
+        contents={pageContents}
+        contentsRef={settingsPaneRef}
+        title={i18n('icu:Preferences--signal-login')}
+      />
+    );
   } else if (settingsLocation.page === SettingsPage.General) {
     const pageContents = (
-      <ListGroup>
-        <List help={i18n('icu:Preferences--device-name__description')}>
-          <ValueItem
-            title={i18n('icu:Preferences--phone-number')}
-            value={phoneNumber}
-          />
-          <ValueItem
-            title={i18n('icu:Preferences--device-name')}
+      <AxoList.Group>
+        <List
+          footerDescription={i18n('icu:Preferences--device-name__description')}
+        >
+          {phoneNumber && (
+            <AxoTextItem.Root
+              label={i18n('icu:Preferences--phone-number')}
+              value={phoneNumber}
+            />
+          )}
+          <AxoTextItem.Root
+            label={i18n('icu:Preferences--device-name')}
             value={deviceName}
           />
         </List>
         {weArePrimaryDevice && (
-          <List title={i18n('icu:Preferences--signal-pin')}>
-            <SwitchItem
-              title={i18n('icu:Preferences--pin-reminders--header')}
-              description={i18n('icu:Preferences--pin-reminders--description')}
-              checked={hasPinReminders ?? false}
+          <List
+            label={i18n('icu:Preferences--signal-pin')}
+            footerDescription={
+              <I18n
+                id="icu:Preferences--signal-pin__footer"
+                i18n={i18n}
+                components={{
+                  learnMoreLink: PinLearnMoreLink,
+                }}
+              />
+            }
+          >
+            <ItemWithAction
+              label={
+                hasSvrPin
+                  ? i18n('icu:Preferences--change-signal-pin')
+                  : i18n('icu:Preferences--create-signal-pin')
+              }
+              action={
+                <AxoItem.Action
+                  variant="subtle-secondary"
+                  onClick={showPinChangeModal}
+                >
+                  {hasSvrPin
+                    ? i18n('icu:Preferences--change-signal-pin-button')
+                    : i18n('icu:Preferences--create-signal-pin-button')}
+                </AxoItem.Action>
+              }
+            />
+            <AxoSwitchItem.Root
+              label={i18n('icu:Preferences--pin-reminders--header')}
+              checked={hasSvrPin && (hasPinReminders ?? false)}
+              disabled={!hasSvrPin}
               onCheckedChange={onPinRemindersChange}
             />
           </List>
         )}
-        <List title={i18n('icu:Preferences--system')}>
+        {weArePrimaryDevice && (
+          <List
+            footerDescription={i18n(
+              'icu:Preferences--registration-lock__footer'
+            )}
+          >
+            <AxoSwitchItem.Root
+              label={i18n('icu:Preferences--registration-lock__label')}
+              checked={hasRegistrationLock ?? false}
+              disabled={!hasSvrPin}
+              onCheckedChange={onRegistrationLockChange}
+            />
+          </List>
+        )}
+        {weArePrimaryDevice && (
+          <List>
+            <AxoClickableItem.Root
+              label={i18n('icu:Preferences--signal-pin-advanced-settings')}
+              arrow="next"
+              disabled={isSvrPinPending}
+              onClick={() =>
+                setSettingsLocation({ page: SettingsPage.SignalPinAdvanced })
+              }
+            />
+          </List>
+        )}
+        <List label={i18n('icu:Preferences--system')}>
           {isAutoLaunchSupported && (
-            <SwitchItem
-              title={i18n('icu:autoLaunchDescription')}
+            <AxoSwitchItem.Root
+              label={i18n('icu:autoLaunchDescription')}
               disabled={hasAutoLaunch === undefined}
               checked={hasAutoLaunch ?? false}
               onCheckedChange={onAutoLaunchChange}
             />
           )}
           {isHideMenuBarSupported && (
-            <SwitchItem
-              title={i18n('icu:hideMenuBar')}
+            <AxoSwitchItem.Root
+              label={i18n('icu:hideMenuBar')}
               checked={hasHideMenuBar ?? false}
               onCheckedChange={onHideMenuBarChange}
             />
           )}
           {isSystemTraySupported && (
             <>
-              <SwitchItem
-                title={i18n('icu:SystemTraySetting__minimize-to-system-tray')}
+              <AxoSwitchItem.Root
+                label={i18n('icu:SystemTraySetting__minimize-to-system-tray')}
                 disabled={hasMinimizeToSystemTray === undefined}
                 checked={hasMinimizeToSystemTray ?? false}
                 onCheckedChange={onMinimizeToSystemTrayChange}
               />
               {isMinimizeToAndStartInSystemTraySupported && (
-                <SwitchItem
-                  title={i18n(
+                <AxoSwitchItem.Root
+                  label={i18n(
                     'icu:SystemTraySetting__minimize-to-and-start-in-system-tray'
                   )}
                   disabled={
@@ -907,24 +1122,24 @@ export function Preferences({
             </>
           )}
         </List>
-        <List title={i18n('icu:permissions')}>
-          <SwitchItem
-            title={i18n('icu:mediaPermissionsDescription')}
+        <List label={i18n('icu:permissions')}>
+          <AxoSwitchItem.Root
+            label={i18n('icu:mediaPermissionsDescription')}
             disabled={hasMediaPermissions === undefined}
             checked={hasMediaPermissions ?? false}
             onCheckedChange={onMediaPermissionsChange}
           />
-          <SwitchItem
-            title={i18n('icu:mediaCameraPermissionsDescription')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:mediaCameraPermissionsDescription')}
             disabled={hasMediaCameraPermissions === undefined}
             checked={hasMediaCameraPermissions ?? false}
             onCheckedChange={onMediaCameraPermissionsChange}
           />
         </List>
         {isAutoDownloadUpdatesSupported && (
-          <List title={i18n('icu:Preferences--updates')}>
-            <SwitchItem
-              title={i18n('icu:Preferences__download-update')}
+          <List label={i18n('icu:Preferences--updates')}>
+            <AxoSwitchItem.Root
+              label={i18n('icu:Preferences__download-update')}
               checked={hasAutoDownloadUpdate}
               onCheckedChange={onAutoDownloadUpdateChange}
             />
@@ -934,7 +1149,7 @@ export function Preferences({
         <List>
           {!weArePrimaryDevice && (
             <ItemWithAction
-              title={i18n('icu:clearDataHeader')}
+              label={i18n('icu:clearDataHeader')}
               description={i18n('icu:clearDataExplanation')}
               action={
                 <AxoItem.Action
@@ -963,7 +1178,7 @@ export function Preferences({
 
           {weArePrimaryDevice && (
             <ItemWithAction
-              title={i18n('icu:deleteAccountHeader')}
+              label={i18n('icu:deleteAccountHeader')}
               description={i18n('icu:deleteAccountExplanation')}
               action={
                 <AxoItem.Action
@@ -990,16 +1205,20 @@ export function Preferences({
             </AxoConfirmDialog.Action>
           </AxoConfirmDialog.Root>
         </List>
-      </ListGroup>
+      </AxoList.Group>
     );
     content = (
-      <PreferencesContent
-        contents={pageContents}
-        contentsRef={settingsPaneRef}
-        title={i18n('icu:Preferences__button--general')}
-      />
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Label>
+            {i18n('icu:Preferences__button--general')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
     );
   } else if (isDonationsPage(settingsLocation.page)) {
+    // oxlint-disable-next-line react/refs
     content = renderDonationsPane({
       contentsRef: settingsPaneRef,
       settingsLocation,
@@ -1029,12 +1248,12 @@ export function Preferences({
     }
 
     const pageContents = (
-      <ListGroup>
+      <AxoList.Group>
         <List>
-          <ClickableItem
+          <AxoClickableItem.Root
             symbol="globe"
-            title={i18n('icu:Preferences__Language__Label')}
-            arrow
+            label={i18n('icu:Preferences__Language__Label')}
+            arrow="next"
             value={
               <span
                 className="Preferences__LanguageButton"
@@ -1157,15 +1376,15 @@ export function Preferences({
               </AxoConfirmDialog.Action>
             </AxoConfirmDialog.Root>
           )}
-          <SelectItem
+          <AxoSelectItem.Root
             symbol="contrast"
-            title={i18n('icu:Preferences--theme')}
+            label={i18n('icu:Preferences--theme')}
             disabled={themeSetting === undefined}
-            value={themeSetting ?? null}
+            value={themeSetting ?? 'system'}
+            placeholder=""
             onValueChange={value => {
               onThemeChange(value as ThemeType);
             }}
-            fallbackToFirstOption
             options={[
               {
                 label: i18n('icu:themeSystem'),
@@ -1181,10 +1400,10 @@ export function Preferences({
               },
             ]}
           />
-          <ClickableItem
+          <AxoClickableItem.Root
             symbol="palette"
-            title={i18n('icu:showChatColorEditor')}
-            arrow={false}
+            label={i18n('icu:showChatColorEditor')}
+            arrow="next"
             onClick={() => {
               setSettingsLocation({ page: SettingsPage.ChatColor });
             }}
@@ -1199,11 +1418,12 @@ export function Preferences({
               />
             }
           />
-          <SelectItem
+          <AxoSelectItem.Root
             symbol="zoom-in"
-            title={i18n('icu:Preferences--zoom')}
+            label={i18n('icu:Preferences--zoom')}
             disabled={zoomFactor === undefined}
-            value={zoomFactor != null ? String(zoomFactor) : null}
+            value={String(zoomFactor ?? 1.0)}
+            placeholder=""
             onValueChange={onZoomSelectChange}
             options={
               zoomFactors?.map(item => {
@@ -1215,14 +1435,17 @@ export function Preferences({
             }
           />
         </List>
-      </ListGroup>
+      </AxoList.Group>
     );
     content = (
-      <PreferencesContent
-        contents={pageContents}
-        contentsRef={settingsPaneRef}
-        title={i18n('icu:Preferences__button--appearance')}
-      />
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Label>
+            {i18n('icu:Preferences__button--appearance')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
     );
   } else if (settingsLocation.page === SettingsPage.Chats) {
     let spellCheckDirtyText: string | undefined;
@@ -1238,18 +1461,18 @@ export function Preferences({
     const lastSyncDate = new Date(lastSyncTime || 0);
 
     const pageContents = (
-      <ListGroup>
+      <AxoList.Group>
         <List accessibilityLabel={i18n('icu:Preferences__button--chats')}>
-          <SwitchItem
-            title={i18n('icu:Preferences__address-book-photos--title')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__address-book-photos--title')}
             description={i18n(
               'icu:Preferences__address-book-photos--description'
             )}
             checked={hasPreferContactAvatars}
             onCheckedChange={onPreferContactAvatarsChange}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences__keep-muted-chats-archived--title')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__keep-muted-chats-archived--title')}
             description={i18n(
               'icu:Preferences__keep-muted-chats-archived--description'
             )}
@@ -1257,29 +1480,29 @@ export function Preferences({
             onCheckedChange={onKeepMutedChatsArchivedChange}
           />
         </List>
-        <List title={i18n('icu:Preferences__Chats__TextInputSection__Title')}>
-          <SwitchItem
-            title={i18n('icu:spellCheckDescription')}
+        <List label={i18n('icu:Preferences__Chats__TextInputSection__Title')}>
+          <AxoSwitchItem.Root
+            label={i18n('icu:spellCheckDescription')}
             description={spellCheckDirtyText}
             disabled={hasSpellCheck === undefined}
             checked={hasSpellCheck ?? false}
             onCheckedChange={onSpellCheckChange}
           />
-          <SwitchItem
-            title={i18n('icu:textFormattingDescription')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:textFormattingDescription')}
             checked={hasTextFormatting}
             onCheckedChange={onTextFormattingChange}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences__link-previews--title')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__link-previews--title')}
             description={i18n(
               'icu:Preferences__link-previews--new-description'
             )}
             checked={hasLinkPreviews}
             onCheckedChange={onLinkPreviewsChange}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences__auto-convert-emoji--title')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__auto-convert-emoji--title')}
             description={
               <I18n
                 i18n={i18n}
@@ -1291,11 +1514,9 @@ export function Preferences({
           />
           <AxoItem.Root>
             <AxoItem.Content>
-              <AxoItem.Body>
-                <AxoItem.Title>
-                  {i18n('icu:Preferences__EmojiSkinToneDefaultSetting__Label')}
-                </AxoItem.Title>
-              </AxoItem.Body>
+              <AxoItem.Label>
+                {i18n('icu:Preferences__EmojiSkinToneDefaultSetting__Label')}
+              </AxoItem.Label>
               <AxoItem.Accessory>
                 <FunSkinTonesList
                   i18n={i18n}
@@ -1307,9 +1528,9 @@ export function Preferences({
             </AxoItem.Content>
           </AxoItem.Root>
         </List>
-        <List title={i18n('icu:Preferences__Chats__ChatFoldersSection__Title')}>
-          <ClickableItem
-            title={
+        <List label={i18n('icu:Preferences__Chats__ChatFoldersSection__Title')}>
+          <AxoClickableItem.Root
+            label={
               hasAnyCurrentCustomChatFolders
                 ? i18n(
                     'icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Title--WithChatFolders'
@@ -1329,7 +1550,7 @@ export function Preferences({
                   )
                 : null
             }
-            arrow
+            arrow="next"
             onClick={() => {
               setSettingsLocation({
                 page: SettingsPage.ChatFolders,
@@ -1341,7 +1562,7 @@ export function Preferences({
 
         <List>
           <ItemWithAction
-            title={i18n('icu:PlaintextExport--PreferencesRow--Header')}
+            label={i18n('icu:PlaintextExport--PreferencesRow--Header')}
             description={i18n(
               'icu:PlaintextExport--PreferencesRow--Description'
             )}
@@ -1359,7 +1580,7 @@ export function Preferences({
         {isSyncSupported && (
           <List>
             <ItemWithAction
-              title={i18n('icu:sync')}
+              label={i18n('icu:sync')}
               description={
                 <>
                   <div>
@@ -1388,6 +1609,7 @@ export function Preferences({
                       onLastSyncTimeChange(Date.now());
                     } catch (err) {
                       setShowSyncFailed(true);
+                      // oxlint-disable-next-line react/todo
                     } finally {
                       setNowSyncing(false);
                     }
@@ -1399,40 +1621,40 @@ export function Preferences({
             />
           </List>
         )}
-      </ListGroup>
+      </AxoList.Group>
     );
     content = (
-      <PreferencesContent
-        contents={pageContents}
-        contentsRef={settingsPaneRef}
-        title={i18n('icu:Preferences__button--chats')}
-      />
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Label>
+            {i18n('icu:Preferences__button--chats')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
     );
   } else if (settingsLocation.page === SettingsPage.Calls) {
     const pageContents = (
-      <ListGroup>
+      <AxoList.Group>
         <List accessibilityLabel={i18n('icu:calling')}>
-          <SwitchItem
-            title={i18n('icu:incomingCallNotificationDescription')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:incomingCallNotificationDescription')}
             checked={hasIncomingCallNotifications}
             onCheckedChange={onIncomingCallNotificationsChange}
           />
-          <SwitchItem
-            title={i18n('icu:callRingtoneNotificationDescription')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:callRingtoneNotificationDescription')}
             checked={hasCallRingtoneNotification}
             onCheckedChange={onCallRingtoneNotificationChange}
           />
         </List>
-        <List title={i18n('icu:Preferences__devices')}>
-          <SelectItem
-            title={i18n('icu:callingDeviceSelection__label--video')}
+        <List label={i18n('icu:Preferences__devices')}>
+          <AxoSelectItem.Root
+            label={i18n('icu:callingDeviceSelection__label--video')}
             disabled={!availableCameras.length}
-            emptyOptionsLabel={i18n(
-              'icu:callingDeviceSelection__select--no-device'
-            )}
-            value={selectedCamera ?? null}
+            value={selectedCamera ?? availableCameras.at(0)?.deviceId ?? null}
             onValueChange={onSelectedCameraChange}
-            fallbackToFirstOption
+            placeholder={i18n('icu:callingDeviceSelection__select--no-device')}
             options={availableCameras.map(device => {
               return {
                 label: localizeDefault(i18n, device.label),
@@ -1440,19 +1662,16 @@ export function Preferences({
               };
             })}
           />
-          <SelectItem
-            title={i18n('icu:callingDeviceSelection__label--audio-input')}
+          <AxoSelectItem.Root
+            label={i18n('icu:callingDeviceSelection__label--audio-input')}
             disabled={!availableMicrophones.length}
             value={
-              selectedMicrophone != null
-                ? String(selectedMicrophone.index)
-                : null
+              selectedMicrophone?.index.toString() ??
+              availableMicrophones.at(0)?.index.toString() ??
+              null
             }
             onValueChange={onAudioInputSelectChange}
-            fallbackToFirstOption
-            emptyOptionsLabel={i18n(
-              'icu:callingDeviceSelection__select--no-device'
-            )}
+            placeholder={i18n('icu:callingDeviceSelection__select--no-device')}
             options={availableMicrophones.map(device => {
               return {
                 label: localizeDefault(i18n, device.name),
@@ -1461,17 +1680,16 @@ export function Preferences({
             })}
           />
 
-          <SelectItem
-            title={i18n('icu:callingDeviceSelection__label--audio-output')}
+          <AxoSelectItem.Root
+            label={i18n('icu:callingDeviceSelection__label--audio-output')}
             disabled={!availableSpeakers.length}
             value={
-              selectedSpeaker != null ? String(selectedSpeaker.index) : null
+              selectedSpeaker?.index.toString() ??
+              availableSpeakers.at(0)?.index.toString() ??
+              null
             }
             onValueChange={onAudioOutputSelectChange}
-            fallbackToFirstOption
-            emptyOptionsLabel={i18n(
-              'icu:callingDeviceSelection__select--no-device'
-            )}
+            placeholder={i18n('icu:callingDeviceSelection__select--no-device')}
             options={availableSpeakers.map(device => {
               return {
                 label: localizeDefault(i18n, device.name),
@@ -1480,57 +1698,44 @@ export function Preferences({
             })}
           />
         </List>
-        <List title={i18n('icu:Preferences--advanced')}>
-          <SwitchItem
+        <List label={i18n('icu:Preferences--advanced')}>
+          <AxoSwitchItem.Root
             description={i18n('icu:alwaysRelayCallsDetail')}
-            title={i18n('icu:alwaysRelayCallsDescription')}
+            label={i18n('icu:alwaysRelayCallsDescription')}
             checked={hasRelayCalls ?? false}
             onCheckedChange={onRelayCallsChange}
           />
         </List>
-      </ListGroup>
+      </AxoList.Group>
     );
     content = (
-      <PreferencesContent
-        contents={pageContents}
-        contentsRef={settingsPaneRef}
-        title={i18n('icu:Preferences__button--calls')}
-      />
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Label>
+            {i18n('icu:Preferences__button--calls')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
     );
   } else if (settingsLocation.page === SettingsPage.Notifications) {
     const pageContents = (
-      <ListGroup>
+      <AxoList.Group>
         <List>
-          <SwitchItem
-            title={i18n('icu:Preferences__enable-notifications')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__enable-notifications')}
             checked={hasNotifications}
             onCheckedChange={onNotificationsChange}
           />
-          <SwitchItem
-            title={i18n('icu:callSystemNotificationDescription')}
-            checked={hasCallNotifications}
-            onCheckedChange={onCallNotificationsChange}
-          />
-          <SwitchItem
-            title={i18n('icu:Preferences__reaction-notifications-title')}
-            description={i18n(
-              'icu:Preferences__reaction-notifications-description'
-            )}
-            checked={hasReactionNotifications}
-            onCheckedChange={onReactionNotificationsChange}
-          />
-          {isNotificationAttentionSupported && (
-            <SwitchItem
-              title={i18n('icu:notificationDrawAttention')}
-              checked={hasNotificationAttention}
-              onCheckedChange={onNotificationAttentionChange}
-            />
-          )}
-          <SelectItem
-            title={i18n('icu:Preferences--notification-content')}
+          <AxoSelectItem.Root
+            label={i18n('icu:Preferences__Notifications__Show__Label')}
             disabled={!hasNotifications}
-            value={notificationContent}
-            onValueChange={onNotificationContentChange}
+            value={hasNotifications ? notificationContent : null}
+            onValueChange={value => {
+              onNotificationContentChange(value as NotificationSettingType);
+            }}
+            // Falls back to the first option while notifications are off
+            placeholder={i18n('icu:nameAndMessage')}
             options={[
               {
                 label: i18n('icu:nameAndMessage'),
@@ -1546,18 +1751,56 @@ export function Preferences({
               },
             ]}
           />
+          <AxoClickableItem.Root
+            label={i18n('icu:WhileMuted__title')}
+            value={getNotifyWhileMutedSummary(notifyWhileMuted, i18n)}
+            description={i18n('icu:Preferences__WhileMuted__description')}
+            arrow="next"
+            disabled={!hasNotifications}
+            onClick={() =>
+              setSettingsLocation({ page: SettingsPage.WhileMuted })
+            }
+          />
+        </List>
+
+        <List>
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__reaction-notifications-title')}
+            description={i18n(
+              'icu:Preferences__reaction-notifications-description'
+            )}
+            disabled={!hasNotifications}
+            checked={hasReactionNotifications}
+            onCheckedChange={onReactionNotificationsChange}
+          />
+          <AxoSwitchItem.Root
+            label={i18n('icu:UnreadReminders__title')}
+            description={i18n('icu:Preferences__UnreadReminders__description')}
+            disabled={!hasNotifications}
+            checked={hasUnreadReminders}
+            onCheckedChange={onUnreadRemindersChange}
+          />
+          {isNotificationAttentionSupported && (
+            <AxoSwitchItem.Root
+              label={i18n('icu:notificationDrawAttention')}
+              disabled={!hasNotifications}
+              checked={hasNotificationAttention}
+              onCheckedChange={onNotificationAttentionChange}
+            />
+          )}
         </List>
 
         <List
-          title={i18n('icu:Preferences__Notifications__SoundsSection__Title')}
+          label={i18n('icu:Preferences__Notifications__SoundsSection__Title')}
         >
-          <SwitchItem
-            title={i18n('icu:audioNotificationDescription')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:audioNotificationDescription')}
+            disabled={!hasNotifications}
             checked={hasAudioNotifications ?? false}
             onCheckedChange={onAudioNotificationsChange}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences__message-audio-title')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__message-audio-title')}
             description={i18n('icu:Preferences__message-audio-description')}
             checked={hasMessageAudio}
             onCheckedChange={onMessageAudioChange}
@@ -1565,20 +1808,54 @@ export function Preferences({
         </List>
 
         <List
-          title={i18n('icu:Preferences__Notifications__AppBadgeSection__Title')}
+          label={i18n(
+            'icu:Preferences__Notifications__AppBadgeSection__Title-v2'
+          )}
         >
-          <SwitchItem
-            title={i18n('icu:countMutedConversationsDescription')}
+          <AxoSelectItem.Root
+            label={i18n(
+              'icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Label'
+            )}
+            description={i18n(
+              'icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Description'
+            )}
+            value={unreadCountBadgeType}
+            onValueChange={value => {
+              onUnreadCountBadgeTypeChange(value as UnreadCountBadgeType);
+            }}
+            placeholder=""
+            options={[
+              {
+                label: i18n(
+                  'icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadMessages'
+                ),
+                value: 'unread-messages',
+              },
+              {
+                label: i18n(
+                  'icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadChats'
+                ),
+                value: 'unread-chats',
+              },
+            ]}
+          />
+          <AxoSwitchItem.Root
+            label={i18n(
+              'icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats'
+            )}
+            description={i18n(
+              'icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats__description'
+            )}
             checked={hasCountMutedConversations}
             onCheckedChange={onCountMutedConversationsChange}
           />
         </List>
 
         <List>
-          <ClickableItem
-            title={i18n('icu:NotificationProfiles--setting')}
+          <AxoClickableItem.Root
+            label={i18n('icu:NotificationProfiles--setting')}
             description={i18n('icu:NotificationProfiles--manage-description')}
-            arrow
+            arrow="next"
             onClick={() =>
               setSettingsLocation({
                 page: SettingsPage.NotificationProfilesHome,
@@ -1586,14 +1863,57 @@ export function Preferences({
             }
           />
         </List>
-      </ListGroup>
+
+        <List>
+          <ItemWithAction
+            label={i18n('icu:Preferences__Notifications__Reset__title')}
+            action={
+              <AxoItem.Action
+                variant="subtle-destructive"
+                onClick={() => setConfirmResetNotifications(true)}
+              >
+                {i18n('icu:Preferences__Notifications__Reset__button')}
+              </AxoItem.Action>
+            }
+          />
+          <AxoAlertDialog.Root
+            open={confirmResetNotifications}
+            onOpenChange={setConfirmResetNotifications}
+          >
+            <AxoAlertDialog.Content escape="cancel-is-noop">
+              <AxoAlertDialog.Title screenReaderOnly>
+                {i18n('icu:Preferences__Notifications__Reset__title')}
+              </AxoAlertDialog.Title>
+              <AxoAlertDialog.Body>
+                <AxoAlertDialog.Description>
+                  {i18n('icu:Preferences__Notifications__Reset__modal--body')}
+                </AxoAlertDialog.Description>
+              </AxoAlertDialog.Body>
+              <AxoAlertDialog.Footer>
+                <AxoAlertDialog.Cancel />
+                <AxoAlertDialog.Action
+                  variant="strong-destructive"
+                  onClick={onResetNotificationSettings}
+                >
+                  {i18n(
+                    'icu:Preferences__Notifications__Reset__modal--confirm'
+                  )}
+                </AxoAlertDialog.Action>
+              </AxoAlertDialog.Footer>
+            </AxoAlertDialog.Content>
+          </AxoAlertDialog.Root>
+        </List>
+      </AxoList.Group>
     );
     content = (
-      <PreferencesContent
-        contents={pageContents}
-        contentsRef={settingsPaneRef}
-        title={i18n('icu:Preferences__button--notifications')}
-      />
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Label>
+            {i18n('icu:Preferences__button--notifications')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
     );
   } else if (settingsLocation.page === SettingsPage.Privacy) {
     const isCustomDisappearingMessageValue =
@@ -1618,35 +1938,35 @@ export function Preferences({
     }
 
     const pageContents = (
-      <ListGroup>
+      <AxoList.Group>
         <List>
-          <ClickableItem
-            title={i18n('icu:Preferences__pnp__row--title')}
+          <AxoClickableItem.Root
+            label={i18n('icu:Preferences__pnp__row--title')}
             description={i18n('icu:Preferences__pnp__row--body')}
-            arrow
+            arrow="next"
             onClick={() => setSettingsLocation({ page: SettingsPage.PNP })}
           />
         </List>
         <List>
-          <ClickableItem
-            title={i18n('icu:Preferences--blocked')}
+          <AxoClickableItem.Root
+            label={i18n('icu:Preferences--blocked')}
             description={blockedDescription}
-            arrow
+            arrow="next"
             disabled={!blockedContacts.length && !blockedGroups.length}
             onClick={() => setSettingsLocation({ page: SettingsPage.Blocked })}
           />
         </List>
         <List
-          title={i18n('icu:Preferences--messaging')}
-          help={i18n('icu:Preferences--messaging-help')}
+          label={i18n('icu:Preferences--messaging')}
+          footerDescription={i18n('icu:Preferences--messaging-help')}
         >
-          <SwitchItem
-            title={i18n('icu:Preferences--read-receipts')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences--read-receipts')}
             checked={hasReadReceipts}
             onCheckedChange={onReadReceiptsChange}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences--typing-indicators')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences--typing-indicators')}
             checked={hasTypingIndicators}
             onCheckedChange={onTypingIndicatorsChange}
           />
@@ -1659,10 +1979,11 @@ export function Preferences({
             onSubmit={onUniversalExpireTimerChange}
           />
         )}
-        <List title={i18n('icu:disappearingMessages')}>
-          <SelectItem
-            title={i18n('icu:settings__DisappearingMessages__timer__label')}
+        <List label={i18n('icu:disappearingMessages')}>
+          <AxoSelectItem.Root
+            label={i18n('icu:settings__DisappearingMessages__timer__label')}
             description={i18n('icu:settings__DisappearingMessages__footer')}
+            placeholder=""
             value={String(universalExpireTimer)}
             onValueChange={value => {
               if (value === String(universalExpireTimer) || value === '-1') {
@@ -1693,12 +2014,12 @@ export function Preferences({
           />
         </List>
         {isContentProtectionSupported && (
-          <List title={i18n('icu:Preferences__Privacy__Application')}>
-            <SwitchItem
+          <List label={i18n('icu:Preferences__Privacy__Application')}>
+            <AxoSwitchItem.Root
               description={i18n(
                 'icu:Preferences__content-protection--description'
               )}
-              title={i18n('icu:Preferences__content-protection--label')}
+              label={i18n('icu:Preferences__content-protection--label')}
               disabled={hasContentProtection === undefined}
               checked={hasContentProtection ?? false}
               onCheckedChange={handleContentProtectionChange}
@@ -1723,9 +2044,9 @@ export function Preferences({
             </AxoConfirmDialog.Action>
           </AxoConfirmDialog.Root>
         ) : null}
-        <List title={i18n('icu:Stories__title')}>
+        <List label={i18n('icu:Stories__title')}>
           <ItemWithAction
-            title={i18n('icu:Stories__settings-toggle--title')}
+            label={i18n('icu:Stories__settings-toggle--title')}
             description={i18n('icu:Stories__settings-toggle--description')}
             action={
               hasStoriesDisabled ? (
@@ -1746,9 +2067,9 @@ export function Preferences({
             }
           />
         </List>
-        <List title={i18n('icu:Preferences--advanced')}>
-          <SwitchItem
-            title={
+        <List label={i18n('icu:Preferences--advanced')}>
+          <AxoSwitchItem.Root
+            label={
               <>
                 {i18n('icu:Preferences__PrivacyPage__ShowStatusIcon__Label')}
                 <div className="Preferences__Privacy__StatusIcon" />
@@ -1761,8 +2082,8 @@ export function Preferences({
             onCheckedChange={onSealedSenderIndicatorsChange}
           />
           {isKeyTransparencyAvailable && (
-            <SwitchItem
-              title={i18n(
+            <AxoSwitchItem.Root
+              label={i18n(
                 'icu:Preferences__PrivacyPage__KeyTransparency__Label'
               )}
               description={
@@ -1808,24 +2129,29 @@ export function Preferences({
             {i18n('icu:Preferences__turn-stories-off--action')}
           </AxoConfirmDialog.Action>
         </AxoConfirmDialog.Root>
-      </ListGroup>
+      </AxoList.Group>
     );
     content = (
-      <PreferencesContent
-        contents={pageContents}
-        contentsRef={settingsPaneRef}
-        title={i18n('icu:Preferences__button--privacy')}
-      />
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Label>
+            {i18n('icu:Preferences__button--privacy')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
     );
   } else if (settingsLocation.page === SettingsPage.DataUsage) {
     const pageContents = (
-      <ListGroup>
+      <AxoList.Group>
         <List
-          title={i18n('icu:Preferences__media-auto-download')}
-          help={i18n('icu:Preferences__media-auto-download__description')}
+          label={i18n('icu:Preferences__media-auto-download')}
+          footerDescription={i18n(
+            'icu:Preferences__media-auto-download__description'
+          )}
         >
-          <SwitchItem
-            title={i18n('icu:Preferences__media-auto-download__photos')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__media-auto-download__photos')}
             checked={autoDownloadAttachment.photos}
             onCheckedChange={(newValue: boolean) => {
               onAutoDownloadAttachmentChange({
@@ -1834,8 +2160,8 @@ export function Preferences({
               });
             }}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences__media-auto-download__videos')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__media-auto-download__videos')}
             checked={autoDownloadAttachment.videos}
             onCheckedChange={(newValue: boolean) => {
               onAutoDownloadAttachmentChange({
@@ -1844,8 +2170,8 @@ export function Preferences({
               });
             }}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences__media-auto-download__audio')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__media-auto-download__audio')}
             checked={autoDownloadAttachment.audio}
             onCheckedChange={(newValue: boolean) => {
               onAutoDownloadAttachmentChange({
@@ -1854,8 +2180,8 @@ export function Preferences({
               });
             }}
           />
-          <SwitchItem
-            title={i18n('icu:Preferences__media-auto-download__documents')}
+          <AxoSwitchItem.Root
+            label={i18n('icu:Preferences__media-auto-download__documents')}
             checked={autoDownloadAttachment.documents}
             onCheckedChange={(newValue: boolean) => {
               onAutoDownloadAttachmentChange({
@@ -1866,11 +2192,12 @@ export function Preferences({
           />
         </List>
         <List>
-          <SelectItem
-            title={i18n('icu:Preferences__sent-media-quality')}
+          <AxoSelectItem.Root
+            label={i18n('icu:Preferences__sent-media-quality')}
             description={i18n(
               'icu:Preferences__sent-media-quality__description'
             )}
+            placeholder=""
             value={sentMediaQualitySetting}
             onValueChange={value => {
               onSentMediaQualityChange(value as SentMediaQualityType);
@@ -1887,14 +2214,17 @@ export function Preferences({
             ]}
           />
         </List>
-      </ListGroup>
+      </AxoList.Group>
     );
     content = (
-      <PreferencesContent
-        contents={pageContents}
-        contentsRef={settingsPaneRef}
-        title={i18n('icu:Preferences__button--data-usage')}
-      />
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Label>
+            {i18n('icu:Preferences__button--data-usage')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
     );
   } else if (settingsLocation.page === SettingsPage.ChatColor) {
     const backButton = (
@@ -1933,12 +2263,14 @@ export function Preferences({
       />
     );
   } else if (settingsLocation.page === SettingsPage.ChatFolders) {
+    // oxlint-disable-next-line react/refs
     content = renderPreferencesChatFoldersPage({
       previousLocation: settingsLocation.previousLocation,
       onOpenEditChatFoldersPage: handleOpenEditChatFoldersPage,
       settingsPaneRef,
     });
   } else if (settingsLocation.page === SettingsPage.EditChatFolder) {
+    // oxlint-disable-next-line react/refs
     content = renderPreferencesEditChatFolderPage({
       previousLocation: settingsLocation.previousLocation,
       settingsPaneRef,
@@ -2236,7 +2568,61 @@ export function Preferences({
         title={pageTitle}
       />
     );
+  } else if (settingsLocation.page === SettingsPage.WhileMuted) {
+    const pageContents = (
+      <AxoList.Group>
+        <List>
+          <AxoSwitchItem.Root
+            symbol="phone"
+            label={i18n('icu:WhileMuted__calls__title')}
+            description={i18n(
+              'icu:Preferences__WhileMuted__calls__description'
+            )}
+            checked={notifyWhileMuted.calls}
+            onCheckedChange={checked =>
+              onNotifyWhileMutedChange('calls', checked)
+            }
+          />
+          <AxoSwitchItem.Root
+            symbol="at"
+            label={i18n('icu:WhileMuted__mentions__title')}
+            description={i18n(
+              'icu:Preferences__WhileMuted__mentions__description'
+            )}
+            checked={notifyWhileMuted.mentions}
+            onCheckedChange={checked =>
+              onNotifyWhileMutedChange('mentions', checked)
+            }
+          />
+          <AxoSwitchItem.Root
+            symbol="reply"
+            label={i18n('icu:WhileMuted__replies__title')}
+            description={i18n(
+              'icu:Preferences__WhileMuted__replies__description'
+            )}
+            checked={notifyWhileMuted.replies}
+            onCheckedChange={checked =>
+              onNotifyWhileMutedChange('replies', checked)
+            }
+          />
+        </List>
+      </AxoList.Group>
+    );
+    content = (
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Back
+            onClick={() =>
+              setSettingsLocation({ page: SettingsPage.Notifications })
+            }
+          />
+          <AxoPanel.Label>{i18n('icu:WhileMuted__title')}</AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
+    );
   } else if (settingsLocation.page === SettingsPage.NotificationProfilesHome) {
+    // oxlint-disable-next-line react/refs
     content = renderNotificationProfilesHome({
       setSettingsLocation,
       contentsRef: settingsPaneRef,
@@ -2244,10 +2630,118 @@ export function Preferences({
   } else if (
     settingsLocation.page === SettingsPage.NotificationProfilesCreateFlow
   ) {
+    // oxlint-disable-next-line react/refs
     content = renderNotificationProfilesCreateFlow({
       setSettingsLocation,
       contentsRef: settingsPaneRef,
     });
+  } else if (settingsLocation.page === SettingsPage.SignalPinAdvanced) {
+    let pageContents: JSX.Element;
+    if (hasSvrPin) {
+      pageContents = (
+        <AxoList.Group>
+          <List
+            footerDescription={i18n(
+              'icu:Preferences--disable-signal-pin--footer'
+            )}
+          >
+            <ItemWithAction
+              label={i18n('icu:Preferences--disable-signal-pin')}
+              action={
+                <AxoItem.Action
+                  variant="subtle-secondary"
+                  onClick={async () => {
+                    if (hasRegistrationLock) {
+                      setSignalPinAdvancedDisableError('reg-lock');
+                    } else if (backupTier != null) {
+                      setSignalPinAdvancedDisableError('backups');
+                    } else {
+                      await handleDisableSignalPin();
+                    }
+                  }}
+                  pending={isSignalPinDisablePending}
+                >
+                  {i18n('icu:Preferences--disable-signal-pin--button')}
+                </AxoItem.Action>
+              }
+            />
+            <AxoAlertDialog.Root
+              open={signalPinAdvancedDisableError != null}
+              onOpenChange={(open: boolean) => {
+                if (!open) {
+                  setSignalPinAdvancedDisableError(undefined);
+                }
+              }}
+            >
+              <AxoAlertDialog.Content escape="cancel-is-noop">
+                <AxoAlertDialog.Title screenReaderOnly>
+                  {signalPinAdvancedDisableError === 'reg-lock'
+                    ? i18n('icu:DisableSignalPinErrorDialog--reg-lock--title')
+                    : i18n('icu:DisableSignalPinErrorDialog--backups--title')}
+                </AxoAlertDialog.Title>
+                <AxoAlertDialog.Body>
+                  <AxoAlertDialog.Description>
+                    {signalPinAdvancedDisableError === 'reg-lock'
+                      ? i18n('icu:DisableSignalPinErrorDialog--reg-lock--body')
+                      : i18n('icu:DisableSignalPinErrorDialog--backups--body')}
+                  </AxoAlertDialog.Description>
+                </AxoAlertDialog.Body>
+                <AxoAlertDialog.Footer>
+                  <AxoAlertDialog.Action
+                    variant="strong-primary"
+                    onClick={() => setSignalPinAdvancedDisableError(undefined)}
+                  >
+                    {i18n('icu:DisableSignalPinErrorDialog--reg-lock--ok')}
+                  </AxoAlertDialog.Action>
+                </AxoAlertDialog.Footer>
+              </AxoAlertDialog.Content>
+            </AxoAlertDialog.Root>
+          </List>
+        </AxoList.Group>
+      );
+    } else {
+      pageContents = (
+        <AxoList.Group>
+          <List
+            footerDescription={
+              <I18n
+                id="icu:Preferences--signal-pin__footer"
+                i18n={i18n}
+                components={{
+                  learnMoreLink: PinLearnMoreLink,
+                }}
+              />
+            }
+          >
+            <ItemWithAction
+              label={i18n('icu:Preferences--enable-signal-pin')}
+              action={
+                <AxoItem.Action
+                  variant="subtle-secondary"
+                  onClick={showPinChangeModal}
+                  pending={isSvrPinPending}
+                >
+                  {i18n('icu:Preferences--enable-signal-pin--button')}
+                </AxoItem.Action>
+              }
+            />
+          </List>
+        </AxoList.Group>
+      );
+    }
+    content = (
+      <AxoPanel.Root>
+        <AxoPanel.Header>
+          <AxoPanel.Back
+            onClick={() => setSettingsLocation({ page: SettingsPage.General })}
+          />
+          <AxoPanel.Label>
+            {i18n('icu:Preferences--signal-pin-advanced-settings')}
+          </AxoPanel.Label>
+        </AxoPanel.Header>
+        <AxoPanel.Content>{pageContents}</AxoPanel.Content>
+      </AxoPanel.Root>
+    );
   } else if (settingsLocation.page === SettingsPage.Internal) {
     content = (
       <PreferencesContent
@@ -2303,7 +2797,7 @@ export function Preferences({
         <NavSidebar
           title={i18n('icu:Preferences--header')}
           i18n={i18n}
-          otherTabsUnreadStats={otherTabsUnreadStats}
+          otherTabsUnreadCount={otherTabsUnreadCount}
           hasFailedStorySends={hasFailedStorySends}
           hasPendingUpdate={false}
           navTabsCollapsed={navTabsCollapsed}
@@ -2348,9 +2842,11 @@ export function Preferences({
                   <div className="Preferences__profile-chip__name">
                     {me.title}
                   </div>
-                  <div className="Preferences__profile-chip__number">
-                    {me.phoneNumber}
-                  </div>
+                  {me.phoneNumber && (
+                    <div className="Preferences__profile-chip__number">
+                      {me.phoneNumber}
+                    </div>
+                  )}
                   {me.username && (
                     <div className="Preferences__profile-chip__username">
                       {me.username}
@@ -2388,152 +2884,114 @@ export function Preferences({
                   </button>
                 )}
               </div>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--general': true,
-                  'Preferences__button--selected':
-                    settingsLocation.page === SettingsPage.General,
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.General })
-                }
-              >
-                {i18n('icu:Preferences__button--general')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--appearance': true,
-                  'Preferences__button--selected':
-                    settingsLocation.page === SettingsPage.Appearance ||
-                    settingsLocation.page === SettingsPage.ChatColor,
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.Appearance })
-                }
-              >
-                {i18n('icu:Preferences__button--appearance')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--chats': true,
-                  'Preferences__button--selected':
-                    settingsLocation.page === SettingsPage.Chats,
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.Chats })
-                }
-              >
-                {i18n('icu:Preferences__button--chats')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--calls': true,
-                  'Preferences__button--selected':
-                    settingsLocation.page === SettingsPage.Calls,
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.Calls })
-                }
-              >
-                {i18n('icu:Preferences__button--calls')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--notifications': true,
-                  'Preferences__button--selected':
-                    settingsLocation.page === SettingsPage.Notifications,
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.Notifications })
-                }
-              >
-                {i18n('icu:Preferences__button--notifications')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--privacy': true,
-                  'Preferences__button--selected':
-                    settingsLocation.page === SettingsPage.Privacy ||
-                    settingsLocation.page === SettingsPage.PNP ||
-                    settingsLocation.page === SettingsPage.Blocked,
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.Privacy })
-                }
-              >
-                {i18n('icu:Preferences__button--privacy')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--data-usage': true,
-                  'Preferences__button--selected':
-                    settingsLocation.page === SettingsPage.DataUsage,
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.DataUsage })
-                }
-              >
-                {i18n('icu:Preferences__button--data-usage')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--backups': true,
-                  'Preferences__button--selected': isBackupPage(
-                    settingsLocation.page
-                  ),
-                })}
-                onClick={() =>
-                  setSettingsLocation({ page: SettingsPage.Backups })
-                }
-              >
-                {i18n('icu:Preferences__button--backups')}
-              </button>
-              <button
-                type="button"
-                className={classNames({
-                  Preferences__button: true,
-                  'Preferences__button--donations': true,
-                  'Preferences__button--selected': isDonationsPage(
-                    settingsLocation.page
-                  ),
-                })}
+              {(!weArePrimaryDevice || !phoneNumber) && (
+                <PreferencesButton
+                  symbol="person-circle"
+                  label={i18n('icu:Preferences__button--account')}
+                  current={
+                    settingsLocation.page === SettingsPage.Account ||
+                    settingsLocation.page === SettingsPage.AccountKeys
+                  }
+                  onClick={() =>
+                    setSettingsLocation({ page: SettingsPage.Account })
+                  }
+                />
+              )}
+              <PreferencesButton
+                symbol="heart"
+                label={i18n('icu:Preferences__button--donate')}
+                current={isDonationsPage(settingsLocation.page)}
                 onClick={() =>
                   setSettingsLocation({ page: SettingsPage.Donations })
                 }
-              >
-                {i18n('icu:Preferences__button--donate')}
-              </button>
+              />
+              <div className={tw('mx-3.5 my-2 border-be border-primary')} />
+              <PreferencesButton
+                symbol="settings"
+                label={i18n('icu:Preferences__button--general')}
+                current={
+                  settingsLocation.page === SettingsPage.General ||
+                  settingsLocation.page === SettingsPage.SignalPinAdvanced
+                }
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.General })
+                }
+              />
+              <PreferencesButton
+                symbol="appearance"
+                label={i18n('icu:Preferences__button--appearance')}
+                current={
+                  settingsLocation.page === SettingsPage.Appearance ||
+                  settingsLocation.page === SettingsPage.ChatColor
+                }
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.Appearance })
+                }
+              />
+              <PreferencesButton
+                symbol="message"
+                label={i18n('icu:Preferences__button--chats')}
+                current={settingsLocation.page === SettingsPage.Chats}
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.Chats })
+                }
+              />
+              <PreferencesButton
+                symbol="phone"
+                label={i18n('icu:Preferences__button--calls')}
+                current={settingsLocation.page === SettingsPage.Calls}
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.Calls })
+                }
+              />
+              <PreferencesButton
+                symbol="bell"
+                label={i18n('icu:Preferences__button--notifications')}
+                current={
+                  settingsLocation.page === SettingsPage.Notifications ||
+                  settingsLocation.page === SettingsPage.WhileMuted
+                }
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.Notifications })
+                }
+              />
+              <PreferencesButton
+                symbol="lock"
+                label={i18n('icu:Preferences__button--privacy')}
+                current={
+                  settingsLocation.page === SettingsPage.Privacy ||
+                  settingsLocation.page === SettingsPage.PNP ||
+                  settingsLocation.page === SettingsPage.Blocked
+                }
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.Privacy })
+                }
+              />
+              <PreferencesButton
+                symbol="piechart"
+                label={i18n('icu:Preferences__button--data-usage')}
+                current={settingsLocation.page === SettingsPage.DataUsage}
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.DataUsage })
+                }
+              />
+              <PreferencesButton
+                symbol="backup"
+                label={i18n('icu:Preferences__button--backups')}
+                current={isBackupPage(settingsLocation.page)}
+                onClick={() =>
+                  setSettingsLocation({ page: SettingsPage.Backups })
+                }
+              />
               {isInternalUser ? (
-                <button
-                  type="button"
-                  className={classNames({
-                    Preferences__button: true,
-                    'Preferences__button--internal': true,
-                    'Preferences__button--selected':
-                      settingsLocation.page === SettingsPage.Internal,
-                  })}
+                <PreferencesButton
+                  symbol="bolt"
+                  label={i18n('icu:Preferences__button--internal')}
+                  current={settingsLocation.page === SettingsPage.Internal}
                   onClick={() =>
                     setSettingsLocation({ page: SettingsPage.Internal })
                   }
-                >
-                  {i18n('icu:Preferences__button--internal')}
-                </button>
+                />
               ) : null}
             </div>
           </div>
@@ -2585,220 +3043,37 @@ export function PreferencesContent({
   );
 }
 
-type ListGroupProps = Readonly<{
-  children: ReactNode;
-}>;
-
-function ListGroup(props: ListGroupProps): ReactNode {
-  return (
-    <div className={tw('flex max-w-[750px] flex-col gap-4 px-4 pt-2 pb-4')}>
-      {props.children}
-    </div>
-  );
-}
-
 type ListProps = Readonly<{
   accessibilityLabel?: string;
-  title?: string;
-  help?: ReactNode;
+  label?: string;
+  footerDescription?: ReactNode;
   children: ReactNode;
 }>;
 
 function List(props: ListProps): ReactNode {
   return (
     <AxoList.Root accessibilityLabel={props.accessibilityLabel}>
-      {props.title != null && (
+      {props.label != null && (
         <AxoList.Header>
-          <AxoList.Title>{props.title}</AxoList.Title>
+          <AxoList.Label>{props.label}</AxoList.Label>
         </AxoList.Header>
       )}
       <AxoList.Body>
         <AxoItem.Group>{props.children}</AxoItem.Group>
       </AxoList.Body>
-      {props.help != null && (
+      {props.footerDescription != null && (
         <AxoList.Footer>
-          <AxoList.Help>{props.help}</AxoList.Help>
+          <AxoList.FooterDescription>
+            {props.footerDescription}
+          </AxoList.FooterDescription>
         </AxoList.Footer>
       )}
     </AxoList.Root>
   );
 }
 
-type SwitchItemProps = Readonly<{
-  title: ReactNode;
-  description?: ReactNode;
-  disabled?: boolean;
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}>;
-
-function SwitchItem(props: SwitchItemProps): ReactNode {
-  return (
-    <AxoItem.Root>
-      <AxoItem.Content>
-        <AxoItem.Body>
-          <AxoItem.Title>{props.title}</AxoItem.Title>
-          {props.description != null && (
-            <AxoItem.Description>{props.description}</AxoItem.Description>
-          )}
-        </AxoItem.Body>
-        <AxoItem.Accessory>
-          <AxoSwitch.Root
-            disabled={props.disabled}
-            checked={props.checked}
-            onCheckedChange={props.onCheckedChange}
-          />
-        </AxoItem.Accessory>
-      </AxoItem.Content>
-    </AxoItem.Root>
-  );
-}
-
-type SelectItemOption<T extends string> = Readonly<{
-  value: T;
-  label: string;
-  disabled?: boolean;
-}>;
-
-type SelectItemProps<T extends string> = Readonly<{
-  symbol?: AxoSymbol.Name;
-  title: ReactNode;
-  description?: ReactNode;
-  disabled?: boolean;
-  placeholder?: string;
-  value: T | null;
-  onValueChange: (value: T) => void;
-  options: ReadonlyArray<SelectItemOption<T>>;
-  fallbackToFirstOption?: boolean;
-  emptyOptionsLabel?: string;
-}>;
-
-function SelectItem<T extends string>(props: SelectItemProps<T>): ReactNode {
-  const {
-    onValueChange,
-    options,
-    placeholder,
-    fallbackToFirstOption,
-    emptyOptionsLabel,
-  } = props;
-
-  const handleValueChange = useCallback(
-    (value: string) => {
-      onValueChange(value as T);
-    },
-    [onValueChange]
-  );
-
-  const renderPlaceholder = useMemo(() => {
-    if (options.length === 0 && emptyOptionsLabel != null) {
-      return emptyOptionsLabel;
-    }
-
-    if (placeholder != null) {
-      return placeholder;
-    }
-
-    if (fallbackToFirstOption) {
-      return options.at(0)?.label ?? '';
-    }
-
-    return '';
-  }, [placeholder, options, emptyOptionsLabel, fallbackToFirstOption]);
-
-  return (
-    <AxoItem.Root>
-      {props.symbol != null && <AxoItem.Icon symbol={props.symbol} />}
-      <AxoItem.Content>
-        <AxoItem.Body>
-          <AxoItem.Title>{props.title}</AxoItem.Title>
-          {props.description != null && (
-            <AxoItem.Description>{props.description}</AxoItem.Description>
-          )}
-        </AxoItem.Body>
-        <AxoItem.Accessory>
-          <AxoSelect.Root
-            disabled={props.disabled}
-            value={props.value}
-            onValueChange={handleValueChange}
-          >
-            <AxoSelect.Trigger placeholder={renderPlaceholder} />
-            <AxoSelect.Content>
-              {options.map(item => {
-                return (
-                  <AxoSelect.Item
-                    key={item.value}
-                    value={item.value}
-                    disabled={item.disabled}
-                  >
-                    <AxoSelect.ItemText>{item.label}</AxoSelect.ItemText>
-                  </AxoSelect.Item>
-                );
-              })}
-            </AxoSelect.Content>
-          </AxoSelect.Root>
-        </AxoItem.Accessory>
-      </AxoItem.Content>
-    </AxoItem.Root>
-  );
-}
-
-type ValueItemProps = Readonly<{
-  title: ReactNode;
-  value: ReactNode;
-}>;
-
-function ValueItem(props: ValueItemProps): ReactNode {
-  const id = useId();
-  return (
-    <AxoItem.Root>
-      <AxoItem.Content>
-        <AxoItem.Body>
-          <AxoItem.Title id={id}>{props.title}</AxoItem.Title>
-          <AxoItem.Value>{props.value}</AxoItem.Value>
-        </AxoItem.Body>
-      </AxoItem.Content>
-    </AxoItem.Root>
-  );
-}
-
-type ClickableItemProps = Readonly<{
-  symbol?: AxoSymbol.Name;
-  title: ReactNode;
-  description?: ReactNode;
-  value?: ReactNode;
-  accessory?: ReactNode;
-  arrow: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-}>;
-
-function ClickableItem(props: ClickableItemProps): ReactNode {
-  const id = useId();
-  return (
-    <AxoItem.Root>
-      {props.symbol != null && <AxoItem.Icon symbol={props.symbol} />}
-      <AxoItem.Content>
-        <AxoItem.Body>
-          <AxoItem.Title id={id}>{props.title}</AxoItem.Title>
-          {props.value != null && <AxoItem.Value>{props.value}</AxoItem.Value>}
-          {props.description != null && (
-            <AxoItem.Description>{props.description}</AxoItem.Description>
-          )}
-          {!props.disabled && (
-            <AxoItem.HiddenTrigger labelledby={id} onClick={props.onClick} />
-          )}
-        </AxoItem.Body>
-        {props.accessory != null && (
-          <AxoItem.Accessory>{props.accessory}</AxoItem.Accessory>
-        )}
-      </AxoItem.Content>
-      {props.arrow && !props.disabled && <AxoItem.Arrow />}
-    </AxoItem.Root>
-  );
-}
-
 type ItemWithActionProps = Readonly<{
-  title: ReactNode;
+  label: ReactNode;
   description?: ReactNode;
   action: ReactNode;
 }>;
@@ -2808,14 +3083,52 @@ function ItemWithAction(props: ItemWithActionProps): ReactNode {
   return (
     <AxoItem.Root>
       <AxoItem.Content>
-        <AxoItem.Body>
-          <AxoItem.Title id={id}>{props.title}</AxoItem.Title>
-          {props.description != null && (
-            <AxoItem.Description>{props.description}</AxoItem.Description>
-          )}
-        </AxoItem.Body>
+        <AxoItem.Label id={id}>{props.label}</AxoItem.Label>
+        {props.description != null && (
+          <AxoItem.Description>{props.description}</AxoItem.Description>
+        )}
         <AxoItem.Accessory>{props.action}</AxoItem.Accessory>
       </AxoItem.Content>
     </AxoItem.Root>
+  );
+}
+
+type PreferencesButtonProps = Readonly<{
+  label: ReactNode;
+  symbol: AxoSymbol.Name;
+  current: boolean;
+  onClick: () => void;
+}>;
+
+function PreferencesButton({
+  label,
+  symbol,
+  current,
+  onClick,
+}: PreferencesButtonProps): ReactNode {
+  return (
+    <button
+      type="button"
+      aria-current={current ? 'page' : undefined}
+      className={tw(
+        'flex items-center gap-3',
+        'my-0.5 w-full px-4.5 py-2.5',
+        'rounded-xl',
+        'hover:bg-primary active:bg-primary-pressed',
+        'aria-[current=page]:bg-primary-pressed',
+        'focus-visible:axo-focus-ring',
+        'forced-colors:border forced-colors:border-[ButtonBorder]',
+        'forced-colors:bg-[ButtonFace] forced-colors:text-[ButtonText]',
+        'forced-colors:aria-[current=page]:bg-[SelectedItem]',
+        'forced-colors:aria-[current=page]:text-[SelectedItemText]'
+      )}
+      onClick={onClick}
+    >
+      <AxoSymbol.Icon size={18} symbol={symbol} label={null} />
+      {/* Needed for forced-color mode with aria-current=page styles */}
+      <span className={tw('text-inherit forced-color-adjust-none')}>
+        {label}
+      </span>
+    </button>
   );
 }

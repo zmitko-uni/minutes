@@ -154,7 +154,7 @@ export function MessageContextMenu({
         )}
         {onForwardWithContext && (
           <AxoMenuBuilder.Item
-            symbol="message-arrow"
+            symbol="message-arrow-forward"
             onSelect={() => {
               shouldReturnFocusToTrigger.current = false;
               onForwardWithContext();
@@ -179,7 +179,7 @@ export function MessageContextMenu({
           </AxoMenuBuilder.Item>
         )}
         {onMoreInfo && (
-          <AxoMenuBuilder.Item symbol="info" onSelect={onMoreInfo}>
+          <AxoMenuBuilder.Item symbol="info-circle" onSelect={onMoreInfo}>
             {i18n('icu:MessageContextMenu__info')}
           </AxoMenuBuilder.Item>
         )}

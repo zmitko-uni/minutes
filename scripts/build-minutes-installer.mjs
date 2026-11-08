@@ -21,6 +21,11 @@ function run(label, command, env = {}) {
 console.log(`minutes ${isMac ? 'macOS' : 'Windows'} installer build`);
 console.log('This can take 15–30 minutes on first run.\n');
 
+run(
+  'Check Signal production trust parameters',
+  'pnpm run check:minutes:config'
+);
+
 if (process.env.MINUTES_SKIP_VERSION_BUMP !== '1') {
   run('Release version bump', 'pnpm run bump:minutes:release');
   const version = JSON.parse(
@@ -57,10 +62,12 @@ if (!existsSync(mainBundle)) {
   process.exit(1);
 }
 
+run('Check preload module initializers', 'pnpm run check:minutes:preload');
+
 run(
   isMac ? 'DMG (unsigned)' : 'NSIS installer (unsigned)',
   [
-    'npx electron-builder',
+    'pnpm exec electron-builder',
     isMac ? '--mac dmg' : '--win nsis',
     isMac ? '--arm64' : '--x64',
     '--publish never',

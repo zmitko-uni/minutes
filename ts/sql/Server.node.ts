@@ -213,24 +213,27 @@ import {
 } from './Interface.std.ts';
 import {
   _removeAllCallLinks,
-  beginDeleteAllCallLinks,
-  beginDeleteCallLink,
   callLinkExists,
-  defunctCallLinkExists,
   deleteCallHistoryByRoomId,
   deleteCallLinkAndHistory,
-  deleteCallLinkFromSync,
-  finalizeDeleteCallLink,
+  deleteCallLink,
+  deleteDefunctCallLink,
+  deleteExpiredCallLinks,
+  deleteExpiredDefunctCallLinks,
   getAllAdminCallLinks,
-  getAllCallLinkRecordsWithAdminKey,
+  getAllCallLinkRecordsForStorageService,
   getAllCallLinks,
-  getAllDefunctCallLinksWithAdminKey,
-  getAllMarkedDeletedCallLinkRoomIds,
+  getAllDefunctCallLinksForStorageService,
   getCallLinkByRoomId,
   getCallLinkRecordByRoomId,
+  getDefunctCallLinkByRoomId,
+  getTimestampOfOldestDefunctCallLink,
+  getTimestampOfOldestDeletedCallLink,
   insertCallLink,
   insertDefunctCallLink,
   insertOrUpdateCallLinkFromSync,
+  markAllCallLinksDeleted,
+  markCallLinkDeleted,
   updateCallLink,
   updateCallLinkState,
   updateDefunctCallLink,
@@ -264,6 +267,7 @@ import {
   updateChatFolderPositions,
   updateChatFolderDeletedAtTimestampMsFromSync,
   deleteExpiredChatFolders,
+  deleteChatFolderById,
 } from './server/chatFolders.std.ts';
 import {
   getAllPinnedMessages,
@@ -291,6 +295,10 @@ import {
   setKTAccountData,
   removeAllKTAccountData,
 } from './server/keyTransparency.std.ts';
+import {
+  getUnremindedUnreadMessageTimeRanges,
+  getUnreadReminderSummaryData,
+} from './server/unreadReminders.std.ts';
 import { INITIAL_EXPIRE_TIMER_VERSION } from '../util/expirationTimer.std.ts';
 import type { GifType } from '../components/fun/panels/FunPanelGifs.dom.tsx';
 import type { NotificationProfileType } from '../types/NotificationProfile.std.ts';
@@ -486,13 +494,15 @@ export const DataReader: ServerReadableInterface = {
   getOldestUnreadMentionOfMeForConversation,
   getTotalUnreadForConversation,
   getTotalUnreadMentionsOfMeForConversation,
+  getUnremindedUnreadMessageTimeRanges,
+  getUnreadReminderSummaryData,
   getMessageMetricsForConversation,
   getConversationRangeCenteredOnMessage,
   getConversationMessageStats,
   getLastConversationMessage,
   getAllCallHistory,
   getCallHistoryUnreadCallConversationIds,
-  getCallHistoryUnreadCount,
+  getCallHistoryUnreadCountsByConversationId,
   getCallHistoryMessageByCallId,
   getCallHistory,
   getCallHistoryGroupsCount,
@@ -529,14 +539,16 @@ export const DataReader: ServerReadableInterface = {
   getNextExpiringPinnedMessageAcrossConversations,
 
   callLinkExists,
-  defunctCallLinkExists,
   getAllCallLinks,
   getCallLinkByRoomId,
   getCallLinkRecordByRoomId,
+  getDefunctCallLinkByRoomId,
   getAllAdminCallLinks,
-  getAllCallLinkRecordsWithAdminKey,
-  getAllDefunctCallLinksWithAdminKey,
-  getAllMarkedDeletedCallLinkRoomIds,
+  getAllCallLinkRecordsForStorageService,
+  getAllDefunctCallLinksForStorageService,
+  getTimestampOfOldestDefunctCallLink,
+  getTimestampOfOldestDeletedCallLink,
+
   getMessagesBetween,
   getNearbyMessageFromDeletedSet,
   getMostRecentAddressableMessages,
@@ -686,15 +698,22 @@ export const DataWriter: ServerWritableInterface = {
   insertOrUpdateCallLinkFromSync,
   updateCallLink,
   updateCallLinkState,
-  beginDeleteAllCallLinks,
-  beginDeleteCallLink,
+  markAllCallLinksDeleted,
+  markCallLinkDeleted,
+  deleteCallLink,
+  deleteDefunctCallLink,
+
   deleteCallHistoryByRoomId,
   deleteCallLinkAndHistory,
-  finalizeDeleteCallLink,
+
   _removeAllCallLinks,
-  deleteCallLinkFromSync,
+
   insertDefunctCallLink,
   updateDefunctCallLink,
+
+  deleteExpiredCallLinks,
+  deleteExpiredDefunctCallLinks,
+
   migrateConversationMessages,
   saveEditedMessage,
   saveEditedMessages,
@@ -792,6 +811,7 @@ export const DataWriter: ServerWritableInterface = {
   updateChatFolderDeletedAtTimestampMsFromSync,
   markChatFolderDeleted,
   deleteExpiredChatFolders,
+  deleteChatFolderById,
 
   createMegaphone,
   updateMegaphone,
@@ -2019,6 +2039,7 @@ function updateConversation(db: WritableDB, data: ConversationType): void {
     profileLastFetchedAt,
     e164,
     serviceId,
+    groupId,
     expireTimerVersion,
   } = data;
 
@@ -2031,6 +2052,7 @@ function updateConversation(db: WritableDB, data: ConversationType): void {
 
       e164 = $e164,
       serviceId = $serviceId,
+      groupId = $groupId,
 
       active_at = $active_at,
       type = $type,
@@ -2049,6 +2071,7 @@ function updateConversation(db: WritableDB, data: ConversationType): void {
 
     e164: e164 || null,
     serviceId: serviceId || null,
+    groupId: groupId || null,
 
     active_at: active_at || null,
     type,
@@ -2137,11 +2160,13 @@ function searchMessages(
     options,
     conversationId,
     contactServiceIdsMatchingQuery,
+    filterByUnread,
   }: {
     query: string;
     options?: { limit?: number };
     conversationId?: string;
     contactServiceIdsMatchingQuery?: Array<ServiceIdString>;
+    filterByUnread: boolean;
   }
 ): Array<ServerSearchResultMessageType> {
   const { limit = conversationId ? 100 : 500 } = options ?? {};
@@ -2191,41 +2216,31 @@ function searchMessages(
       )
       .run({ query: normalizedQuery });
 
-    if (conversationId === undefined) {
-      writable
-        .prepare(
-          `
-          INSERT INTO tmp_filtered_results (rowid)
-          SELECT
-            tmp_results.rowid
-          FROM
-            tmp_results
-          INNER JOIN
-            messages ON messages.rowid = tmp_results.rowid
-          ORDER BY messages.received_at DESC, messages.sent_at DESC
-          LIMIT $limit;
-        `
-        )
-        .run({ limit });
-    } else {
-      writable
-        .prepare(
-          `
-          INSERT INTO tmp_filtered_results (rowid)
-          SELECT
-            tmp_results.rowid
-          FROM
-            tmp_results
-          INNER JOIN
-            messages ON messages.rowid = tmp_results.rowid
-          WHERE
-            messages.conversationId = $conversationId
-          ORDER BY messages.received_at DESC, messages.sent_at DESC
-          LIMIT $limit;
-        `
-        )
-        .run({ conversationId, limit });
-    }
+    const conversationFilter =
+      conversationId != null
+        ? sqlFragment`messages.conversationId = ${conversationId}`
+        : sqlFragment`TRUE`;
+
+    const unreadFilter = filterByUnread
+      ? sqlFragment`messages.readStatus = ${sqlConstant(ReadStatus.Unread)}`
+      : sqlFragment`TRUE`;
+
+    const [insertTempQuery, insertTempParams] = sql`
+      INSERT INTO tmp_filtered_results (rowid)
+      SELECT
+        tmp_results.rowid
+      FROM
+        tmp_results
+      INNER JOIN
+        messages ON messages.rowid = tmp_results.rowid
+      WHERE
+        ${conversationFilter} AND
+        ${unreadFilter}
+      ORDER BY messages.received_at DESC, messages.sent_at DESC
+      LIMIT ${limit};
+    `;
+
+    writable.prepare(insertTempQuery).run(insertTempParams);
 
     // The `MATCH` is necessary in order to for `snippet()` helper function to
     // give us the right results. We can't call `snippet()` in the query above
@@ -2894,6 +2909,10 @@ function saveMessageAttachment({
         : undefined,
     version: attachment.version,
     pending: convertOptionalBooleanToInteger(attachment.pending),
+    audioWaveform:
+      attachment.audioWaveform == null
+        ? undefined
+        : new Uint8Array(attachment.audioWaveform),
   };
 
   try {
@@ -3727,7 +3746,9 @@ function getUnreadByConversationAndMarkRead(
     return rows.map(msg => {
       return {
         originalReadStatus:
-          msg.readStatus == null ? undefined : (msg.readStatus as ReadStatus),
+          msg.readStatus == null
+            ? undefined
+            : (msg.readStatus satisfies ReadStatus),
         readStatus: ReadStatus.Read,
         seenStatus: SeenStatus.Seen,
         id: msg.id,
@@ -4942,20 +4963,27 @@ function getCallHistoryUnreadCallConversationIds(
   return db.prepare(query, { pluck: true }).all<string>(params);
 }
 
-function getCallHistoryUnreadCount(db: ReadableDB): number {
+function getCallHistoryUnreadCountsByConversationId(
+  db: ReadableDB
+): Record<string, number> {
   const [query, params] = sql`
-    SELECT count(*) FROM messages
+    SELECT messages.conversationId, count(*) AS unreadCount FROM messages
     INNER JOIN callsHistory ON callsHistory.callId = messages.callId
     WHERE messages.type IS 'call-history'
       AND messages.seenStatus IS ${SEEN_STATUS_UNSEEN}
       AND callsHistory.direction IS ${CALL_STATUS_INCOMING}
+    GROUP BY messages.conversationId
   `;
-  const row = db
-    .prepare(query, {
-      pluck: true,
-    })
-    .get<number>(params);
-  return row ?? 0;
+  const rows = db.prepare(query).all<{
+    conversationId: string;
+    unreadCount: number;
+  }>(params);
+
+  const result: Record<string, number> = {};
+  for (const { conversationId, unreadCount } of rows) {
+    result[conversationId] = unreadCount;
+  }
+  return result;
 }
 
 function getCallHistoryForCallLogEventTarget(
@@ -6611,6 +6639,7 @@ function _getAttachmentDownloadJob(
     return undefined;
   }
   const { attachmentJson, ...fields } = row;
+  // oxlint-disable-next-line typescript/no-unnecessary-type-assertion
   return parseUnknown(attachmentDownloadJobSchema, {
     ...fields,
     active: Boolean(row.active),
@@ -6730,6 +6759,7 @@ function getNextAttachmentDownloadJobs(
   try {
     return allJobs.map(row => {
       try {
+        // oxlint-disable-next-line typescript/no-unnecessary-type-assertion
         return parseUnknown(attachmentDownloadJobSchema, {
           ...row,
           active: Boolean(row.active),
@@ -6969,6 +6999,7 @@ function getNextAttachmentBackupJobs(
   }>(params);
   return rows
     .map(row => {
+      // oxlint-disable-next-line typescript/no-unnecessary-type-assertion
       const parseResult = safeParseUnknown(attachmentBackupJobSchema, {
         ...row,
         active: Boolean(row.active),
@@ -8658,6 +8689,14 @@ function markNotificationProfileDeleted(
 ): number | undefined {
   const now = new Date().getTime();
 
+  const existing = getNotificationProfileById(db, id);
+  if (existing && existing.deletedAtTimestampMs) {
+    logger.warn(
+      `markNotificationProfileDeleted: Notification profile ${id} already had deletedAtTimestampMs set`
+    );
+    return existing.deletedAtTimestampMs;
+  }
+
   const [query, parameters] = sql`
       UPDATE notificationProfiles
       SET
@@ -9232,7 +9271,8 @@ function pageBackupMessages(
       ${MESSAGE_COLUMNS_FRAGMENT}
     FROM messages
     WHERE
-      rowid >= ${cursor?.nextRowid ?? 0}
+      rowid > ${cursor?.lastRowId ?? 0}
+    ORDER BY rowid ASC
     LIMIT ${LIMIT}
   `;
   const rows: Array<MessageTypeUnhydrated & { rowid: number }> = db
@@ -9240,7 +9280,7 @@ function pageBackupMessages(
     .all(params);
   return {
     cursor: {
-      nextRowid: rows.at(-1)?.rowid ?? 0,
+      lastRowId: rows.at(-1)?.rowid ?? 0,
       done: rows.length < LIMIT,
     } as PageBackupMessagesCursorType,
     messages: hydrateMessages(db, rows),

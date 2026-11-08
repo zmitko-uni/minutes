@@ -205,6 +205,37 @@ describe('RingRtcAudioTimeline', () => {
     assert.equal(timeline.skippedSamples, 0);
   });
 
+  it('keeps a source audible when its clock runs ahead of the other source', () => {
+    const TimelineWithLimits = RingRtcAudioTimeline as new (
+      prerollSamples: number,
+      stallToleranceSamples: number,
+      maxQueueSamples: number,
+      maxLagSamples: number
+    ) => InstanceType<typeof RingRtcAudioTimeline>;
+    const timeline = new TimelineWithLimits(4, 4, 8, 6);
+    let local = 0;
+    let remote = 0;
+    const lateRenders: Array<number> = [];
+
+    // The microphone delivers five samples for every four of playout.
+    for (let step = 0; step < 40; step += 1) {
+      timeline.enqueue('local', local, new Float32Array(5).fill(0.25));
+      local += 5;
+      timeline.enqueue('remote', remote, new Float32Array(4).fill(0.5));
+      remote += 4;
+      const rendered = timeline.render(4);
+      if (step >= 20) {
+        lateRenders.push(...rendered);
+      }
+    }
+
+    // Only the samples dropped while pulling the local source back are lost.
+    const mixed = lateRenders.filter(sample => sample === 0.75).length;
+    assert.isAtLeast(mixed / lateRenders.length, 0.8);
+    assert.isAbove(timeline.realignedSamples, 0);
+    assert.equal(timeline.skippedSamples, 0);
+  });
+
   it('rejects a lag limit outside the preroll and queue bounds', () => {
     const TimelineWithLimits = RingRtcAudioTimeline as new (
       prerollSamples: number,

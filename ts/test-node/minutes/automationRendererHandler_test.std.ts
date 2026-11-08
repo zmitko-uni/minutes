@@ -37,6 +37,11 @@ function createCapabilities(
     }),
     downloadAttachment: async () => ({ path: '/safe/downloads/file' }),
     sendMessage: async () => ({ messageId: 'message-1' }),
+    editMessage: async () => ({ queued: true }),
+    deleteMessage: async () => ({ deleted: true }),
+    createPoll: async () => ({ messageId: 'poll-message-1' }),
+    getPollResults: async () => ({ messageId: 'poll-message-1' }),
+    votePoll: async () => ({ queued: true }),
     setMessageReaction: async () => ({ changed: true }),
     getActiveCall: async () => ({ call: null }),
     startCall: async () => ({ started: true }),
@@ -164,6 +169,51 @@ describe('AutomationRendererHandler', () => {
     assert.strictEqual(sendCount, 1);
   });
 
+  it('reuses a completed poll creation for the same idempotency key', async () => {
+    let createCount = 0;
+    const capabilities = createCapabilities({
+      createPoll: async () => {
+        createCount += 1;
+        return { messageId: 'poll-message-1' };
+      },
+    });
+    const firstHandler = new AutomationRendererHandler(capabilities);
+    const secondHandler = new AutomationRendererHandler(capabilities);
+    const params = {
+      conversationId: 'conversation-1',
+      question: 'Kam na oběd?',
+      options: ['Pizza', 'Sushi'],
+      allowMultiple: false,
+      idempotencyKey: 'lunch-2026-09-25',
+    };
+
+    assert.deepEqual(
+      await firstHandler.handle({
+        id: 'first-poll',
+        method: 'createPoll',
+        params,
+      }),
+      {
+        id: 'first-poll',
+        ok: true,
+        result: { messageId: 'poll-message-1' },
+      }
+    );
+    assert.deepEqual(
+      await secondHandler.handle({
+        id: 'retried-poll',
+        method: 'createPoll',
+        params,
+      }),
+      {
+        id: 'retried-poll',
+        ok: true,
+        result: { messageId: 'poll-message-1' },
+      }
+    );
+    assert.strictEqual(createCount, 1);
+  });
+
   it('rejects reuse of an idempotency key for different message content', async () => {
     const handler = new AutomationRendererHandler(createCapabilities());
     await handler.handle({
@@ -189,6 +239,77 @@ describe('AutomationRendererHandler', () => {
     assert.deepInclude(conflict, { id: 'second-send', ok: false });
     if (!conflict.ok) {
       assert.strictEqual(conflict.error.code, 'IDEMPOTENCY_CONFLICT');
+    }
+  });
+
+  for (const method of ['editMessage', 'deleteMessage'] as const) {
+    it(`deduplicates ${method} and rejects changing its target with the same key`, async () => {
+      let calls = 0;
+      const handler = new AutomationRendererHandler(
+        createCapabilities({
+          [method]: async () => {
+            calls += 1;
+            return { changed: true };
+          },
+        })
+      );
+      const params = {
+        conversationId: 'group',
+        messageId: 'one',
+        text: 'new',
+        scope: 'for_me',
+        idempotencyKey: `dedupe-${method}`,
+      };
+      const first = await handler.handle({
+        id: `${method}-first`,
+        method,
+        params,
+      });
+      assert.isTrue(first.ok);
+      const retry = await handler.handle({
+        id: `${method}-retry`,
+        method,
+        params,
+      });
+      assert.isTrue(retry.ok);
+      assert.equal(calls, 1);
+      const conflict = await handler.handle({
+        id: `${method}-conflict`,
+        method,
+        params: { ...params, messageId: 'two' },
+      });
+      assert.isFalse(conflict.ok);
+      if (!conflict.ok) {
+        assert.equal(conflict.error.code, 'IDEMPOTENCY_CONFLICT');
+      }
+      assert.equal(calls, 1);
+    });
+  }
+
+  it('rejects reuse of an idempotency key for a different mentioned contact', async () => {
+    const handler = new AutomationRendererHandler(createCapabilities());
+    const params = {
+      conversationId: 'group-1',
+      text: 'Hi @Alex',
+      idempotencyKey: 'reused-mention-key',
+      mentions: [{ contactId: 'alex-1', start: 3, length: 5 }],
+    };
+    await handler.handle({
+      id: 'mention-first',
+      method: 'sendMessage',
+      params,
+    });
+    const result = await handler.handle({
+      id: 'mention-second',
+      method: 'sendMessage',
+      params: {
+        ...params,
+        mentions: [{ contactId: 'alex-2', start: 3, length: 5 }],
+      },
+    });
+    assert.isFalse(result.ok);
+    if (!result.ok) {
+      assert.equal(result.error.code, 'IDEMPOTENCY_CONFLICT');
     }
   });
 

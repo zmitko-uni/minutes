@@ -51,6 +51,8 @@ export type SentMediaQualitySettingType = 'standard' | 'high';
 
 export type NotificationSettingType = 'message' | 'name' | 'count' | 'off';
 
+export type UnreadCountBadgeType = 'unread-messages' | 'unread-chats';
+
 export type IdentityKeyMap = Record<
   ServiceIdString,
   {
@@ -82,7 +84,6 @@ export type StorageAccessType = {
   'blocked-groups': ReadonlyArray<BlockedGroup>;
   'blocked-uuids': ReadonlyArray<BlockedServiceId>;
   'call-ringtone-notification': boolean;
-  'call-system-notification': boolean;
   lastCallQualitySurveyTime: number;
   lastCallQualityFailureSurveyTime: number;
   cqsTestMode: boolean;
@@ -194,6 +195,7 @@ export type StorageAccessType = {
   preferredReactionEmoji: ReadonlyArray<Emoji.Variant>;
   emojiSkinToneDefault: Emoji.SkinTone;
   unreadCount: number;
+  unreadCountBadgeType: UnreadCountBadgeType;
   'challenge:conversations': ReadonlyArray<RegisteredChallengeType>;
 
   deviceNameEncrypted: boolean;
@@ -215,6 +217,12 @@ export type StorageAccessType = {
   backupsSubscriberOriginalTransactionId: string;
   displayBadgesOnProfile: boolean;
   keepMutedChatsArchived: boolean;
+  notifyForCallsIfMuted: boolean | undefined;
+  notifyForMentionsIfMuted: boolean | undefined;
+  notifyForRepliesIfMuted: boolean | undefined;
+  notifyWhenContactJoins: boolean | undefined;
+  showUnreadReminders: boolean | undefined;
+  unreadRemindersEnabledAt: number;
   usernameLastIntegrityCheck: number;
   usernameCorrupted: boolean;
   usernameLinkCorrupted: boolean;
@@ -276,10 +284,12 @@ export type StorageAccessType = {
   restoredBackupFirstAppVersion: string;
 
   // When Desktop is standalone, we use these. Otherwise, only used for backup.
-  svrPin: string;
+  svrPin: string | undefined;
+  isSvrPinStored: boolean;
   pinReminders: boolean | undefined;
   pinReminderLastCompleted: number | undefined;
   pinReminderNextInterval: number | undefined;
+  registrationLock: boolean | undefined;
 
   // Stored solely for persistence during import/export sequence
   optimizeOnDeviceStorage: boolean;
@@ -362,6 +372,7 @@ export type StorageAccessType = {
   backupKeyViewed: never;
   isDirectVp9Enabled: never;
   isGroupVp9Enabled: never;
+  'call-system-notification': never;
 };
 
 export const STORAGE_KEYS_TO_PRESERVE_AFTER_UNLINK = [
@@ -373,7 +384,6 @@ export const STORAGE_KEYS_TO_PRESERVE_AFTER_UNLINK = [
   'autoConvertEmoji',
   'badge-count-muted-conversations',
   'call-ringtone-notification',
-  'call-system-notification',
   'customColors',
   'defaultConversationColor',
   'existingOnboardingStoryMessageIds',
@@ -396,6 +406,7 @@ export const STORAGE_KEYS_TO_PRESERVE_AFTER_UNLINK = [
   'showStickersIntroduction',
   'emojiSkinToneDefault',
   'textFormatting',
+  'unreadCountBadgeType',
   'zoomFactor',
 
   // Bookkeeping keys
@@ -429,6 +440,11 @@ export const STORAGE_KEYS_TO_PRESERVE_AFTER_UNLINK = [
   'universalExpireTimer',
   'displayBadgesOnProfile',
   'keepMutedChatsArchived',
+  'notifyForCallsIfMuted',
+  'notifyForMentionsIfMuted',
+  'notifyForRepliesIfMuted',
+  'notifyWhenContactJoins',
+  'showUnreadReminders',
   'hasSetMyStoriesPrivacy',
   'hasViewedOnboardingStory',
   'hasKeyTransparencyDisabled',
@@ -473,9 +489,15 @@ export const STORAGE_KEYS_TO_PRESERVE_WHEN_PRIMARY = [
   'sendEditWarningShown',
   'formattingWarningShown',
   'localDeleteWarningShown',
+  'masterKey',
+  'linkPreviews',
+  'typingIndicators',
+  'manifestRecordIkm',
+  'unidentifiedDeliveryIndicators',
 ] as const satisfies ReadonlyArray<keyof StorageAccessType>;
 
 const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
+  'unreadRemindersEnabledAt',
   'lastCallQualitySurveyTime',
   'lastCallQualityFailureSurveyTime',
   'cqsTestMode',
@@ -486,7 +508,6 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'lastAttemptedToRefreshProfilesAt',
   'lastResortKeyUpdateTime',
   'lastResortKeyUpdateTimePNI',
-  'masterKey',
   'accountEntropyPoolLastRequestTime',
   'maxPreKeyId',
   'maxPreKeyIdPNI',
@@ -495,6 +516,7 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'password',
   'regionCode',
   'registrationIdMap',
+  'registrationLock',
   'remoteBuildExpiration',
   'sessionResets',
   'signedKeyId',
@@ -505,15 +527,12 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'synced_at',
   'userAgent',
   'useRingrtcAdm',
-  'linkPreviews',
   'retryPlaceholders',
   'donationPermits',
   'donationWorkflow',
   'chromiumRegistrationDone',
-  'typingIndicators',
   'storageFetchComplete',
   'manifestVersion',
-  'manifestRecordIkm',
   'storageCredentials',
   'storage-service-error-records',
   'storage-service-unknown-records',
@@ -521,7 +540,6 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'remoteConfig',
   'remoteConfigHash',
   'serverTimeSkew',
-  'unidentifiedDeliveryIndicators',
   'groupCredentials',
   'callLinkAuthCredentials',
   'backupCombinedCredentials',
@@ -597,10 +615,12 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'isGroupVp9Enabled',
   'sfuUrl',
   'svrPin',
+  'isSvrPinStored',
   'pinReminderLastCompleted',
   'pinReminderNextInterval',
   'backupKeyViewed',
   'payments',
+  'call-system-notification',
 ] as const satisfies ReadonlyArray<keyof StorageAccessType>;
 
 // Ensure every storage key is explicitly marked to be preserved or removed on unlink.
@@ -641,3 +661,17 @@ export type AssertStorageUnlinkKeysAreExhaustive = AssertTrue<
     keyof StorageAccessType
   >
 >;
+
+export const STORAGE_KEY_DEFAULTS = {
+  'audio-notification': false,
+  'badge-count-muted-conversations': false,
+  'notification-draw-attention': false,
+  'notification-setting': 'message',
+  'reaction-notification': true,
+  audioMessage: false,
+  notifyForCallsIfMuted: undefined,
+  notifyForMentionsIfMuted: undefined,
+  notifyForRepliesIfMuted: undefined,
+  showUnreadReminders: undefined,
+  unreadCountBadgeType: 'unread-messages',
+} as const satisfies Partial<StorageAccessType>;

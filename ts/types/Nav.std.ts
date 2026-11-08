@@ -70,6 +70,7 @@ export enum NavTab {
 export enum SettingsPage {
   // Accessible through left nav
   Profile = 'Profile',
+  Account = 'Account',
   General = 'General',
   Donations = 'Donations',
   Appearance = 'Appearance',
@@ -82,6 +83,7 @@ export enum SettingsPage {
   Internal = 'Internal',
 
   // Sub pages
+  AccountKeys = 'AccountKeys',
   Blocked = 'Blocked',
   ChatColor = 'ChatColor',
   ChatFolders = 'ChatFolders',
@@ -90,12 +92,14 @@ export enum SettingsPage {
   EditChatFolder = 'EditChatFolder',
   NotificationProfilesHome = 'NotificationProfilesHome',
   NotificationProfilesCreateFlow = 'NotificationProfilesCreateFlow',
+  WhileMuted = 'WhileMuted',
   PNP = 'PNP',
   BackupsDetails = 'BackupsDetails',
   LocalBackups = 'LocalBackups',
   LocalBackupsSetupFolder = 'LocalBackupsSetupFolder',
   LocalBackupsSetupKey = 'LocalBackupsSetupKey',
   LocalBackupsKeyReference = 'LocalBackupsKeyReference',
+  SignalPinAdvanced = 'SignalPINAdvanced',
 }
 
 export enum ProfileEditorPage {

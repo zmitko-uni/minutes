@@ -17,8 +17,10 @@
 | `app/SystemTrayService.main.ts` | tray ikona + tooltip minutes | 2 volání |
 | `app/menu.std.ts` | submenu Minutes + Příručka/MCP | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
-| `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes). Signal 8.26 `GroupCallSvcConfig` se nepředává — Minutes RingRTC je `2.70.2-minutes.3` (nahrávací tapy), ne stock 2.71.0. Až to bude potřeba: [`FORK-MAINTENANCE.md`](./FORK-MAINTENANCE.md) → *Minutes RingRTC vs Signal 2.71.0* | 3 volání |
+| `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes). Od Signal 8.32 se předává `GroupCallSvcConfig`. Nahrávací tapy zůstávají ve Minutes RingRTC `2.71.0-minutes.1`, ne ve stock `2.72.1` | 3 volání |
+| `ts/util/callLinksRingrtc.node.ts` | `installMinutesRingrtcCompat()` — Signal 8.32 volá `CallLinkRootKey.toUnredactedString()`, Minutes RingRTC 2.71 má stejný formátovaný klíč v `toString()` | 1 volání |
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
+| `ts/util/isFeatureEnabled.dom.ts` | semver příznaky remote configu (štítek člena, ankety 1:1, …) se porovnávají se Signal bází z verze Minutes, ne s celým `8.32.0-m…` | 1 volání na začátku `_isFeatureEnabledInner` |
 | `ts/background.preload.ts` | init Minutes služeb, automation rendereru, IPC sumarizace, build expiration a ochrana aktivního hovoru při zamknutí obrazovky | bootstrap |
 | `ts/messages/saveAndNotify.preload.ts` | publikuje `message.received` do explicitně povolených webhooků | webhook hook |
 | `ts/components/CallScreen.dom.tsx` | `<MinutesCallRecordingControls />` | 1 komponenta |
@@ -95,6 +97,8 @@
 | `scripts/minutes-after-pack.mjs` | wrapper nad Signal `after-pack.mjs` — po přehození fuses ad-hoc podepíše `.app` (`codesign --force --deep --sign -`), jinak macOS zabije nepodepsaný build při startu (Code Signature Invalid) |
 | `scripts/install-minutes-ringrtc.mjs` + `scripts/utils/minutesRingRtcInstall.mjs` | ověří přesný Minutes RingRTC package/version/API a teprve potom stáhne prebuild s kontrolou SHA-256 |
 | `scripts/build-minutes-installer.mjs` | build instalátoru — Windows NSIS (`.exe`), macOS DMG arm64 (`.dmg`) podle `process.platform` |
+| `scripts/check-minutes-preload.mjs`, `scripts/minutes-bundle-check.oxlintrc.json` | kontrola neexistujících generovaných module initializerů v produkčním preloadu; CI i balení instalátorů selže před publikací nefunkčního buildu |
+| `config/minutes.json`, `config/minutes-beta.json`, `scripts/utils/minutesServerParams_test.mjs` | oba Minutes profily se připojují k Signal production a musí držet shodné `serverPublicParams`, `genericServerPublicParams`, `backupServerPublicParams` a `serverTrustRoots` s `config/production.json`; `check:minutes:config` to ověřuje při generování i balení, včetně buildů s přeskočeným generováním |
 | `config/minutes_ffmpeg_artifacts.json`, `ts/minutes/videoMp4Support.*` | systémový FFmpeg s kontrolou kodeků nebo volitelně stažená a SHA-256/nonfree ověřená GPL podpora pro macOS ARM64 / Windows x64 / Linux x64 |
 | `ts/minutes/videoMp4Export.*` | bezpečný, zrušitelný a atomický export kanonického WebM do H.264/AAC MP4 s průběhem; FFmpeg není součástí instalátoru |
 | `scripts/patch-electron-icon.mjs` | ikona electron.exe pro dev na Windows |
@@ -110,6 +114,8 @@
 | `ts/minutes/components/MinutesDraggableSurface.dom.tsx`, `draggableSurface.std.ts` | přesouvání Minutes dialogů myší i klávesnicí |
 | `ts/minutes/components/MinutesAutomationSettings*.dom.tsx`, `stylesheets/components/MinutesAutomationSettings.scss` | nastavení MCP URL, tokenu, úrovní oprávnění nástrojů a roztahovatelného dialogu |
 | `ts/minutes/automation/toolCatalog.std.ts` | katalog MCP nástrojů včetně úrovně čtení / běžný zápis / destruktivní zápis |
+| `ts/minutes/automation/messageMentionAutomation.std.ts` | validace MCP zmínek podle ID členů skupiny, převod UTF-16 úseků textu na nativní Signal mention body ranges; popis API v `docs/MCP-MENTIONS.md` |
+| `ts/minutes/automation/messageMutationAutomation.dom.ts` | validace cílů MCP úprav/mazání; editace používá pravidla a odesílání Signalu, mazání má explicitní rozsah a samostatné destruktivní oprávnění; API v `docs/MCP-MESSAGE-MUTATIONS.md` |
 | `ts/minutes/screenLockCallPolicy.std.ts` | zachování aktivního hovoru při zamknutí obrazovky |
 | `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external); `asarUnpack` + `sleep-promise/build`; FileSet pro `build/*.json` |
 | `ts/minutes/perplexitySummary.main.ts` | Perplexity API (bez web search) |

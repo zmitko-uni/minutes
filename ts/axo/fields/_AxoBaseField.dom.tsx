@@ -1,10 +1,20 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 import { memo, useCallback, useId, useMemo, useRef } from 'react';
-import type { FC, InputEvent, MouseEvent, ReactNode, RefObject } from 'react';
-import { mergeRefs } from '@react-aria/utils';
+import type {
+  FC,
+  FocusEvent,
+  InputEvent,
+  MouseEvent,
+  ReactNode,
+  Ref,
+  RefObject,
+  SyntheticEvent,
+  JSX,
+  CSSProperties,
+} from 'react';
+import { mergeProps } from '@react-aria/utils';
 import { AxoSymbol } from '../AxoSymbol.dom.tsx';
-import { tw } from '../tw.dom.tsx';
 import { assert } from '../_internal/assert.std.tsx';
 import { utf8 } from '../_internal/utf8.std.ts';
 import {
@@ -14,8 +24,60 @@ import {
 } from '../_internal/StrictContext.dom.tsx';
 import { useAxoIntl } from '../_internal/AxoIntl.dom.tsx';
 import { variants } from '../_internal/variants.dom.tsx';
+import { css } from '../_internal/css.dom.tsx';
+import { forwardExtraPropsForRadix } from '../_internal/props.dom.tsx';
+import { tw, type TailwindStyles } from '../tw.dom.tsx';
+import { AxoLoadingIndicator } from '../status/AxoLoadingIndicator.dom.tsx';
+import type { Simplify } from 'type-fest';
 
 export namespace AxoBaseField {
+  /**
+   * Visual style of the field.
+   */
+  export type Variant = 'text' | 'search' | 'listitem';
+
+  const Variants = variants<Variant>('AxoBaseField.Variant', {
+    text: css('axo-field-container-text'),
+    search: css('axo-field-container-search'),
+    listitem: css('axo-field-container-listitem'),
+  });
+
+  function getContainerClassName(variant: Variant = 'text'): TailwindStyles {
+    return css('axo-field-container', Variants.get(variant));
+  }
+
+  /** Placement of the action button, either 'leading' or 'trailing' (default). */
+  export type Slot = 'leading' | 'trailing';
+
+  const Slots = variants<Slot>('AxoBaseField.Slot', {
+    leading: css('axo-field-leading'),
+    trailing: css('axo-field-trailing'),
+  });
+
+  /**
+   * <AxoBaseField.VariantOverride>
+   * --------------------------------------------------------------------------
+   */
+
+  const VariantOverrideContext = createStrictContext<Variant>(
+    'AxoBaseField.VariantProvider'
+  );
+
+  export type VariantOverrideProps = Readonly<{
+    variant: Variant;
+    children: ReactNode;
+  }>;
+
+  export const VariantOverride: FC<VariantOverrideProps> = memo(props => {
+    return (
+      <VariantOverrideContext value={props.variant}>
+        {props.children}
+      </VariantOverrideContext>
+    );
+  });
+
+  VariantOverride.displayName = 'AxoBaseField.VariantOverride';
+
   /**
    * The type of input control to render.
    * Note: Only include `type`'s relevant to text inputs.
@@ -31,7 +93,7 @@ export namespace AxoBaseField {
 
   /**
    * Specifies what type of virtual keyboard to use.
-   * Note: Only include `inputMode`'s relevant to text inputs.
+   * Note: Only include `inputMode`'s relevant to text fields.
    */
   export type InputMode =
     | 'none'
@@ -54,7 +116,7 @@ export namespace AxoBaseField {
   export type AutoCorrect = 'on' | 'off';
 
   /**
-   * Toggle whether inputted text is automatically captialized, and if so, in what manner.
+   * Toggle whether inputted text is automatically capitalized, and if so, in what manner.
    */
   export type AutoCapitalize =
     | 'on'
@@ -76,14 +138,36 @@ export namespace AxoBaseField {
     | 'search'
     | 'send';
 
-  export type KeyboardInputAttrs = Readonly<{
+  export type BaseTextboxAttrs<T extends HTMLElement> = Readonly<{
+    /** Ref to the underlying `<input>` element. */
+    ref?: RefObject<T | null>;
+    /** Form field name for native form submissions. */
+    name?: string;
+    /** Placeholder text shown when the textbox is empty. */
+    placeholder: string;
+    /** Marks the textbox as required for form validation. */
+    required?: boolean;
+    /** Focuses the textbox on mount. */
+    autoFocus?: boolean;
+    /** Called when the textbox receives focus. */
+    onFocus?: (event: FocusEvent<T>) => void;
+    /** Called when the textbox loses focus. */
+    onBlur?: (event: FocusEvent<T>) => void;
+  }>;
+
+  export type BaseTextboxVariantProps = Readonly<{
+    /** Override font settings to give numbers uniform/tabular widths. */
+    tabularNums?: boolean;
+  }>;
+
+  export type KeyboardTextboxAttrs = Readonly<{
     /** Specifies what type of virtual keyboard to use. */
     inputMode?: InputMode;
     /** Hint for form autofill feature. */
     autoComplete?: AutoComplete;
     /** Toggle auto-correction of spelling and punctuation errors. */
     autoCorrect?: AutoCorrect;
-    /** Toggle whether inputted text is automatically captialized, and if so, in what manner. */
+    /** Toggle whether inputted text is automatically capitalized, and if so, in what manner. */
     autoCapitalize?: AutoCapitalize;
     /** Define what action label (or icon) to present for the enter key on virtual keyboards. */
     enterKeyHint?: EnterKeyHint;
@@ -91,7 +175,7 @@ export namespace AxoBaseField {
     spellCheck?: boolean;
   }>;
 
-  export type TextValidationInputAttrs = Readonly<{
+  export type TextValidationTextboxAttrs = Readonly<{
     /** Min string length (in UTF-16 code units) that the user can input. */
     minLength?: number;
     /** Max string length (in UTF-16 code units) that the user can input. */
@@ -128,16 +212,20 @@ export namespace AxoBaseField {
     createStrictContext<GroupContextType>('AxoBaseField.Group');
 
   export type GroupProps = Readonly<{
-    /** Disables all inputs and actions within the field. */
+    variant?: Variant;
+    /** Disables all textboxes and actions within the field. */
     disabled?: boolean;
-    /** Makes all inputs within the field read-only. */
+    /** Makes all textboxes within the field read-only. */
     readOnly?: boolean;
     /** Should be `Segment`, `Action`, and/or `Separator` elements. */
     children: ReactNode;
   }>;
 
   export const Group: FC<GroupProps> = memo(props => {
-    const { disabled, readOnly } = props;
+    const { variant: propsVariant, disabled, readOnly, children } = props;
+    const variantOverride = useStrictContextNullable(VariantOverrideContext);
+
+    const variant = variantOverride ?? propsVariant;
 
     const context = useMemo((): GroupContextType => {
       return { disabled, readOnly };
@@ -145,7 +233,12 @@ export namespace AxoBaseField {
 
     return (
       <GroupContext.Provider value={context}>
-        {props.children}
+        <div
+          role="group"
+          className={css('axo-field-group', getContainerClassName(variant))}
+        >
+          {children}
+        </div>
       </GroupContext.Provider>
     );
   });
@@ -153,131 +246,13 @@ export namespace AxoBaseField {
   Group.displayName = 'AxoBaseField.Group';
 
   /**
-   * <AxoBaseField.Container>
+   * <AxoBaseField.Root>
    * --------------------------------------------------------------------------
    */
 
-  /**
-   * Visual style of the field.
-   */
-  export type Variant = 'text' | 'search' | 'listitem';
-
-  const ContainerVariants = variants<Variant>('AxoBaseField.Variant', {
-    text: tw(
-      'curved-lg bg-control',
-      'border-[0.5px] border-primary',
-      'shadow-elevation-0 shadow-no-outline'
-    ),
-    search: tw('rounded-full bg-primary'),
-    listitem: tw('curved-lg'),
-  });
-
-  /**
-   * The preferred width of the text field.
-   *
-   * TODO(jamie): Get real sizes from design
-   *
-   * - `xs` – 200px
-   * - `sm` – 300px
-   * - `md` – 400px
-   * - `lg` – 500px
-   * - `xl` – 600px
-   * - `full` – stretches to fill the container (default)
-   *
-   * All sizes shrink to fit the container if it is narrower than the minimum.
-   */
-  export type Width = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
-
-  export const ContainerWidths = variants<Width>('AxoBaseField.Width', {
-    xs: tw('w-[calc-size(fit-content,min(max(200px,size),100%))]'),
-    sm: tw('w-[calc-size(fit-content,min(max(300px,size),100%))]'),
-    md: tw('w-[calc-size(fit-content,min(max(400px,size),100%))]'),
-    lg: tw('w-[calc-size(fit-content,min(max(500px,size),100%))]'),
-    xl: tw('w-[calc-size(fit-content,min(max(600px,size),100%))]'),
-    full: tw('w-full'),
-  });
-
-  type ContainerContextType = Readonly<{
-    variant: Variant;
-  }>;
-
-  const ContainerContext = createStrictContext<ContainerContextType>(
-    'AxoBaseField.Container'
-  );
-
-  export type ContainerProps = Readonly<{
-    /** Visual style of the field. */
-    variant: Variant;
-    /** Controls the width of the entire field. Defaults to `full`. */
-    width?: Width;
-    /** Should be `Group`, `Icon`, `Segment`, `Separator`, and/or `Action` elements. */
-    children: ReactNode;
-  }>;
-
-  export const Container: FC<ContainerProps> = memo(props => {
-    const { variant } = props;
-    const width = props.width ?? 'full';
-
-    const context = useMemo((): ContainerContextType => {
-      return { variant };
-    }, [variant]);
-
-    return (
-      <ContainerContext value={context}>
-        <div
-          role="group"
-          className={tw(
-            'group flex items-stretch',
-            'overflow-hidden',
-            ContainerWidths.get(width),
-            ContainerVariants.get(variant),
-            'placeholder:text-placeholder',
-            '-outline-offset-1 has-[input:focus]:axo-focus-ring',
-            'forced-colors:border forced-colors:border-[ButtonBorder]',
-            'forced-colors:bg-[ButtonFace] forced-colors:text-[ButtonText]',
-            'forced-colors:has-user-invalid:border-[LinkText]'
-          )}
-        >
-          {props.children}
-        </div>
-      </ContainerContext>
-    );
-  });
-
-  Container.displayName = 'AxoBaseField.Container';
-
-  /**
-   * <AxoBaseField.Icon>
-   * --------------------------------------------------------------------------
-   */
-
-  export type IconProps = Readonly<{
-    symbol: AxoSymbol.Name;
-  }>;
-
-  export const Icon: FC<IconProps> = memo(props => {
-    return (
-      <span
-        className={tw(
-          'pointer-events-none z-10 flex items-center justify-center text-secondary',
-          'px-1 first:ps-2.5 last:pe-2.5'
-        )}
-      >
-        <AxoSymbol.Icon size={16} symbol={props.symbol} label={null} />
-      </span>
-    );
-  });
-
-  Icon.displayName = 'AxoBaseField.Icon';
-
-  /**
-   * <AxoBaseField.InputProvider>
-   * --------------------------------------------------------------------------
-   */
-
-  type SegmentContextType = Readonly<{
-    ref: RefObject<HTMLInputElement | null>;
-    id: string;
+  type RootContextType = Readonly<{
+    textFieldRef: RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
+    textFieldId: string;
     value: string;
     onValueChange: (value: string) => void;
     maxGraphemes: number;
@@ -286,11 +261,11 @@ export namespace AxoBaseField {
     readOnly: boolean;
   }>;
 
-  const SegmentContext = createStrictContext<SegmentContextType>(
-    'AxoBaseField.Segment'
-  );
+  const RootContext = createStrictContext<RootContextType>('AxoBaseField.Root');
 
-  export type SegmentProps = Readonly<{
+  export type RootProps = Readonly<{
+    /** Visual style of the field. */
+    variant?: Variant;
     /** Provide your own id for the `<input>` to target with a `<label>`. Auto-generated if omitted. */
     id?: string;
     /** Controlled value of the input. */
@@ -305,25 +280,39 @@ export namespace AxoBaseField {
     disabled?: boolean;
     /** Makes this input read-only. Also read-only if `Root` has `readOnly` set. */
     readOnly?: boolean;
-    /** Should be `Input` and `Clear` elements */
-    children?: ReactNode;
+    /** Should be `Icon`, `Separator`, and/or `Action` elements. */
+    children: ReactNode;
   }>;
 
-  export const Segment: FC<SegmentProps> = memo(props => {
-    const { value, onValueChange, maxGraphemes, maxBytes } = props;
-    const groupContext = useStrictContextNullable(GroupContext);
+  export const Root: FC<RootProps> = memo(props => {
+    const {
+      variant: propsVariant,
+      id: propsId,
+      value,
+      onValueChange,
+      maxGraphemes,
+      maxBytes,
+      disabled: fieldDisabled,
+      readOnly: fieldReadOnly,
+      children,
+    } = props;
 
-    const disabled = groupContext?.disabled === true || props.disabled === true;
-    const readOnly = groupContext?.readOnly === true || props.readOnly === true;
-
-    const ref = useRef<HTMLInputElement>(null);
+    const textFieldRef = useRef<HTMLInputElement>(null);
     const fallbackId = useId();
-    const id = props.id ?? fallbackId;
+    const textFieldId = propsId ?? fallbackId;
 
-    const inputContext = useMemo((): SegmentContextType => {
+    const variantOverride = useStrictContextNullable(VariantOverrideContext);
+    const group = useStrictContextNullable(GroupContext);
+
+    const variant = variantOverride ?? propsVariant;
+
+    const disabled = group?.disabled === true || fieldDisabled === true;
+    const readOnly = group?.readOnly === true || fieldReadOnly === true;
+
+    const context = useMemo((): RootContextType => {
       return {
-        ref,
-        id,
+        textFieldRef,
+        textFieldId,
         value,
         onValueChange,
         maxGraphemes,
@@ -332,8 +321,8 @@ export namespace AxoBaseField {
         readOnly,
       };
     }, [
-      ref,
-      id,
+      textFieldRef,
+      textFieldId,
       value,
       onValueChange,
       maxGraphemes,
@@ -343,56 +332,75 @@ export namespace AxoBaseField {
     ]);
 
     return (
-      <SegmentContext value={inputContext}>{props.children}</SegmentContext>
+      <RootContext value={context}>
+        <div
+          className={css(
+            'axo-field-root',
+            group == null && getContainerClassName(variant)
+          )}
+        >
+          {children}
+        </div>
+      </RootContext>
     );
   });
 
-  Segment.displayName = 'AxoBaseField.Segment';
+  Root.displayName = 'AxoBaseField.Root';
 
   /**
-   * <AxoBaseField.Input>
+   * <AxoBaseField.Icon>
    * --------------------------------------------------------------------------
    */
 
+  export type IconProps = Readonly<{
+    symbol: AxoSymbol.Name;
+  }>;
+
+  export const Icon: FC<IconProps> = memo(props => {
+    return (
+      <span className={css(Slots.get('leading'), 'axo-field-icon')}>
+        <AxoSymbol.Icon size={16} symbol={props.symbol} label={null} />
+      </span>
+    );
+  });
+
+  Icon.displayName = 'AxoBaseField.Icon';
+
   /**
-   * How an `Input` sizes itself within the field group.
-   * - `fixed`: Takes up all remaining space (default).
-   * - `grow`: Expands with typed content, up to available space.
-   * - `fit`: Shrinks to fit typed content, useful for segmented fields.
+   * useTextField()
+   * --------------------------------------------------------------------------
    */
-  export type InputSizing = 'fixed' | 'grow' | 'fit';
 
-  export type InputProps = Readonly<
-    {
-      /** Ref to the underlying `<input>` element. */
-      ref?: RefObject<HTMLInputElement | null>;
-      /** The type of the input */
-      type: Type;
-      /** Form field name for native form submissions. */
-      name?: string;
-      /** Placeholder text shown when the input is empty. */
-      placeholder: string;
-      /** How the input sizes itself within the field group. Defaults to `fixed`. */
-      sizing?: InputSizing;
-      /** Marks the input as required for form validation. */
-      required?: boolean;
-      /** Focuses the input on mount. */
-      autoFocus?: boolean;
-    } & KeyboardInputAttrs &
-      TextValidationInputAttrs &
-      NumberValidationInputAttrs
-  >;
+  /** @internal */
+  type TextFieldTypes = Pick<JSX.IntrinsicElements, 'input' | 'textarea'>;
 
-  /** The text input field. Must be placed inside `Root`. */
-  export const Input: FC<InputProps> = memo(props => {
-    const segmentContext = useStrictContext(SegmentContext);
-    const sizing = props.sizing ?? 'fixed';
-    const mergedRef = mergeRefs(segmentContext.ref, props.ref);
+  /** @internal */
+  function useTextField<T extends keyof TextFieldTypes>(
+    props: TextFieldTypes[T],
+    innerProps: TextFieldTypes[T]
+  ): TextFieldTypes[T] {
+    const context = useStrictContext(RootContext);
 
-    const { maxGraphemes, maxBytes, onValueChange } = segmentContext;
+    const {
+      textFieldRef,
+      textFieldId,
+      value,
+      disabled,
+      readOnly,
+      maxGraphemes,
+      maxBytes,
+      onValueChange,
+    } = context;
 
-    const handleBeforeInput = useCallback(
-      (event: InputEvent<HTMLInputElement>) => {
+    const onBeforeInput = useCallback(
+      (event: InputEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        event.stopPropagation();
+
+        if (disabled || readOnly) {
+          event.preventDefault();
+          return;
+        }
+
         const input = event.currentTarget;
         const current = input.value;
 
@@ -443,11 +451,18 @@ export namespace AxoBaseField {
           }
         });
       },
-      [maxGraphemes, maxBytes]
+      [disabled, readOnly, maxGraphemes, maxBytes]
     );
 
-    const handleInput = useCallback(
-      (event: InputEvent<HTMLInputElement>) => {
+    const onInput = useCallback(
+      (event: InputEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        event.stopPropagation();
+
+        if (disabled || readOnly) {
+          event.preventDefault();
+          return;
+        }
+
         const input = event.currentTarget;
         const current = input.value;
 
@@ -459,66 +474,79 @@ export namespace AxoBaseField {
 
         onValueChange(truncated);
       },
-      [maxGraphemes, maxBytes, onValueChange]
+      [disabled, readOnly, maxGraphemes, maxBytes, onValueChange]
     );
 
+    const onInvalid = useCallback((event: SyntheticEvent) => {
+      // Prevent the native browser validation UI from appearing
+      event.preventDefault();
+    }, []);
+
+    return mergeProps(
+      {
+        ref: textFieldRef,
+        id: textFieldId,
+        value,
+        disabled,
+        readOnly,
+        onBeforeInput,
+        onInput,
+        onInvalid,
+      },
+      props,
+      innerProps
+    ) as TextFieldTypes[T];
+  }
+
+  /**
+   * <AxoBaseField.Input>
+   * --------------------------------------------------------------------------
+   */
+
+  export type InputSizing = 'fill' | 'fit';
+
+  type InputStylingProps = Readonly<{
+    /** How the field sizes itself horizontally. */
+    sizing?: InputSizing;
+    /** Override font settings to give numbers uniform/tabular widths. */
+    tabularNums?: boolean;
+  }>;
+
+  type BaseInputProps = BaseTextboxAttrs<HTMLInputElement> &
+    KeyboardTextboxAttrs &
+    TextValidationTextboxAttrs &
+    NumberValidationInputAttrs &
+    InputStylingProps;
+
+  export type PublicInputProps = Simplify<
+    BaseInputProps &
+      Readonly<{
+        /** Prefer using the specific axo component for the input type (See: <AxoPasswordField> or <AxoSearchField>) */
+        type?: never;
+      }>
+  >;
+
+  export type InternalInputProps = BaseInputProps &
+    Readonly<{
+      /** The HTML input type. */
+      type?: Type;
+    }>;
+
+  /** The text input field. Must be placed inside `Root`. */
+  export const Input: FC<InternalInputProps> = memo(props => {
+    const { tabularNums, sizing, ...rest } = props;
+
+    const inputAttrs = useTextField<'input'>(rest, {
+      className: css(
+        'axo-field-textbox',
+        sizing === 'fit' && 'axo-field-textbox-fit',
+        tabularNums && tw('tabular-nums')
+      ),
+    });
+
     return (
-      <div
-        className={tw(
-          'peer z-0 flex min-w-0 first:ps-2.5 last:pe-2.5',
-          sizing !== 'fit' && 'grow',
-          // prevent overlapping text-selection
-          'peer-has-[input]:overflow-hidden'
-        )}
-      >
-        {/* FIXME */}
-        {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label */}
-        <input
-          ref={mergedRef}
-          id={segmentContext.id}
-          type={props.type}
-          value={segmentContext.value}
-          placeholder={props.placeholder}
-          required={props.required}
-          disabled={segmentContext.disabled}
-          readOnly={segmentContext.readOnly}
-          onInput={handleInput}
-          onBeforeInput={handleBeforeInput}
-          autoFocus={props.autoFocus}
-          className={tw(
-            'min-w-0 grow',
-            sizing === 'grow' && 'field-sizing-content',
-            sizing === 'fit' && 'field-sizing-content shrink',
-
-            // allow text selection in full box
-            '-ms-20 ps-20',
-            '-mx-20 pe-20',
-
-            'py-1.5',
-            'indent-1',
-            'text-primary',
-            'outline-none',
-            'disabled:text-disabled',
-
-            '[&::-webkit-search-cancel-button]:appearance-none'
-          )}
-          // KeyboardInputAttrs
-          inputMode={props.inputMode}
-          autoComplete={props.autoComplete}
-          autoCorrect={props.autoCorrect}
-          autoCapitalize={props.autoCapitalize}
-          enterKeyHint={props.enterKeyHint}
-          spellCheck={props.spellCheck}
-          // TextValidationInputAttrs
-          minLength={props.minLength}
-          maxLength={props.maxLength}
-          pattern={props.pattern}
-          size={props.size}
-          // NumberValidationInputAttrs
-          min={props.min}
-          max={props.max}
-          step={props.step}
-        />
+      <div className="axo-field-textbox-wrapper">
+        <input {...inputAttrs} />
       </div>
     );
   });
@@ -526,26 +554,72 @@ export namespace AxoBaseField {
   Input.displayName = 'AxoBaseField.Input';
 
   /**
-   * <AxoBaseField.RemainingCount>
+   * <AxoBaseField.TextArea>
+   * --------------------------------------------------------------------------
+   */
+
+  export type MinLines = 1 | 2;
+  // oxlint-disable-next-line typescript/ban-types
+  export type MaxLines = 1 | 2 | 3 | 4 | 5 | (number & {});
+
+  type TextAreaStylingProps = Readonly<{
+    /** Minimum number of lines to display for the text area. */
+    minLines?: MinLines;
+    /** Maximum number of lines to display for the text area. */
+    maxLines?: MaxLines;
+    /** Override font settings to give numbers uniform/tabular widths. */
+    tabularNums?: boolean;
+  }>;
+
+  export type TextAreaProps = BaseTextboxAttrs<HTMLTextAreaElement> &
+    KeyboardTextboxAttrs &
+    TextValidationTextboxAttrs &
+    TextAreaStylingProps;
+
+  export const TextArea: FC<TextAreaProps> = memo(props => {
+    const { minLines = 1, maxLines = 5, tabularNums, ...rest } = props;
+
+    assert(
+      minLines <= maxLines,
+      `minLines (${minLines}) must be <= than maxLines (${maxLines})`
+    );
+
+    const style = useMemo((): CSSProperties => {
+      return {
+        minHeight: `${minLines}lh`,
+        maxHeight: `${maxLines}lh`,
+      };
+    }, [minLines, maxLines]);
+
+    const textAreaAttrs = useTextField<'textarea'>(rest, {
+      className: css('axo-field-textbox', tabularNums && tw('tabular-nums')),
+      style,
+    });
+
+    return (
+      <div className="axo-field-textbox-wrapper">
+        <textarea {...textAreaAttrs} />
+      </div>
+    );
+  });
+
+  TextArea.displayName = 'AxoBaseField.TextArea';
+
+  /**
+   * <AxoBaseField.Count>
    * --------------------------------------------------------------------------
    */
 
   const SHOW_REMAINING_COUNT_THRESHOLD = 0.5;
   const WARN_REMAINING_COUNT_THRESHOLD = 0.25;
 
-  export type RemainingCountProps = Readonly<{
-    maxGraphemes: number;
-    maxBytes: number;
-  }>;
+  export const Count: FC = memo(() => {
+    const { value, maxBytes, maxGraphemes, disabled, readOnly } =
+      useStrictContext(RootContext);
 
-  export const RemainingCount: FC<RemainingCountProps> = memo(props => {
-    const { maxBytes, maxGraphemes } = props;
-    const segmentContext = useStrictContext(SegmentContext);
-    const { value } = segmentContext;
-
-    const remainingCount = useMemo(() => {
+    const [remainingCount, maxCountForRemaining] = useMemo(() => {
       if (value.length === 0) {
-        return maxGraphemes;
+        return [maxGraphemes, maxGraphemes];
       }
 
       const totalBytes = utf8.getByteLength(value);
@@ -555,31 +629,29 @@ export namespace AxoBaseField {
       const remainingChars = maxGraphemes - totalGraphemes;
 
       if (remainingBytes > remainingChars) {
-        return remainingChars;
+        return [remainingChars, maxGraphemes];
       }
 
-      return remainingBytes;
+      return [remainingBytes, maxBytes];
     }, [value, maxBytes, maxGraphemes]);
 
     const showRemainingCount = useMemo(() => {
-      return remainingCount <= maxGraphemes * SHOW_REMAINING_COUNT_THRESHOLD;
-    }, [maxGraphemes, remainingCount]);
+      const threshold = maxCountForRemaining * SHOW_REMAINING_COUNT_THRESHOLD;
+      return remainingCount <= threshold;
+    }, [maxCountForRemaining, remainingCount]);
 
     const warnRemainingCount = useMemo(() => {
-      return remainingCount <= maxGraphemes * WARN_REMAINING_COUNT_THRESHOLD;
-    }, [maxGraphemes, remainingCount]);
-
-    if (!showRemainingCount) {
-      return null;
-    }
+      const threshold = maxCountForRemaining * WARN_REMAINING_COUNT_THRESHOLD;
+      return remainingCount <= threshold;
+    }, [maxCountForRemaining, remainingCount]);
 
     return (
       <span
-        className={tw(
-          'pointer-events-none z-10 flex items-center',
-          'px-1 first:ps-2.5 last:pe-2.5',
-          'type-body-small tabular-nums',
-          warnRemainingCount ? 'text-destructive' : 'text-secondary'
+        className={css(
+          'axo-field-count',
+          !showRemainingCount && 'axo-field-count-invisible',
+          warnRemainingCount && 'axo-field-count-warn',
+          (disabled || readOnly) && 'axo-field-count-disabled'
         )}
       >
         {remainingCount}
@@ -587,63 +659,64 @@ export namespace AxoBaseField {
     );
   });
 
-  RemainingCount.displayName = 'AxoBaseField.RemainingCount';
+  Count.displayName = 'AxoBaseField.Count';
 
   /**
    * <AxoBaseField.Clear>
    * --------------------------------------------------------------------------
    */
 
-  const ClearVariants = variants<Variant>('AxoBaseField.Variant', {
-    text: tw('group-enabled/clear:group-hover/clear:bg-surface-secondary'),
-    search: tw('group-enabled/clear:group-hover/clear:bg-primary'),
-    listitem: tw('group-enabled/clear:group-hover/clear:bg-surface-secondary'),
-  });
+  export type ClearProps = Readonly<{
+    forceShow?: boolean;
+  }>;
 
-  export const Clear: FC = memo(() => {
-    const segmentContext = useStrictContext(SegmentContext);
-    const containerContext = useStrictContext(ContainerContext);
-    const { ref, value, onValueChange } = segmentContext;
+  export const Clear: FC<ClearProps> = memo(props => {
+    const { forceShow } = props;
+    const {
+      textFieldRef: inputRef,
+      textFieldId: inputId,
+      value,
+      onValueChange,
+      disabled,
+      readOnly,
+    } = useStrictContext(RootContext);
     const intl = useAxoIntl();
 
     const handleClear = useCallback(
       (event: MouseEvent) => {
         event.stopPropagation();
+
+        if (disabled || readOnly) {
+          event.preventDefault();
+          return;
+        }
+
+        const input = assert(inputRef.current);
         onValueChange('');
-        assert(ref.current).focus();
+        input.focus();
       },
-      [ref, onValueChange]
+      [disabled, readOnly, inputRef, onValueChange]
     );
 
-    if (value === '') {
-      return null;
-    }
+    const invisible = useMemo(() => {
+      const isEmpty = value === '';
+      return isEmpty && !forceShow;
+    }, [value, forceShow]);
 
     return (
       <button
         type="button"
         aria-label={intl.get('AxoTextField.Clear')}
-        aria-controls={segmentContext.id}
-        className={tw(
-          'z-10',
-          'px-0.5 first:ps-1.5 last:pe-1.5',
-          'group/clear group-has-[input:placeholder-shown]:hidden',
-          'outline-none'
+        aria-controls={inputId}
+        className={css(
+          Slots.get('trailing'),
+          'axo-field-clear',
+          invisible && 'axo-field-clear-invisible'
         )}
         onClick={handleClear}
-        disabled={segmentContext.disabled}
+        disabled={disabled || readOnly}
       >
-        <span
-          className={tw(
-            'flex items-center justify-center',
-            'p-0.5',
-            'rounded-full',
-            'text-secondary',
-            'group-enabled/clear:group-hover/clear:text-primary',
-            ClearVariants.get(containerContext.variant),
-            'group-focus-visible/clear:axo-focus-ring'
-          )}
-        >
+        <span className="axo-field-clear-inner">
           <AxoSymbol.Icon size={16} symbol="x" label={null} />
         </span>
       </button>
@@ -653,54 +726,43 @@ export namespace AxoBaseField {
   Clear.displayName = 'AxoBaseField.Clear';
 
   /**
-   * <AxoBaseField.Action>
+   * <AxoBaseField.BaseAction>
    * --------------------------------------------------------------------------
    */
 
-  const ActionVariants = variants<Variant>('AxoBaseField.Variant', {
-    text: tw(
-      'group-not-aria-disabled/action:group-hover/action:bg-surface-secondary'
-    ),
-    search: tw('group-not-aria-disabled/action:group-hover/action:bg-primary'),
-    listitem: tw(
-      'group-not-aria-disabled/action:group-hover/action:bg-surface-secondary'
-    ),
-  });
-
-  export type ActionProps = Readonly<{
+  /** @internal */
+  type BaseActionProps = Readonly<{
+    /** Ref to the underlying button element. */
+    ref?: Ref<HTMLButtonElement>;
+    /** Placement of the action button, either 'leading' or 'trailing' (default). */
+    slot?: Slot;
     /** Accessible label for the button describing the action to be taken, not the icon. */
     label: string;
-    /** Icon to display inside the button. */
-    symbol: AxoSymbol.Name;
     /** Called when the button is clicked. */
     onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
     /** Overrides the `disabled` state from `Root` for this button only. */
     disabled?: boolean;
     /** When set, the button behaves as a toggle with `aria-pressed` semantics. */
     pressed?: boolean;
+    /** The content to be rendered inside the action button, typically an icon. */
+    children: ReactNode;
   }>;
 
-  /**
-   * An icon button placed inside a `Root`, typically used for supplementary
-   * actions like inserting an emoji or opening a menu.
-   *
-   * @example
-   * ```tsx
-   * <AxoTextField.Root>
-   *   <AxoTextField.Input ... />
-   *   <AxoTextField.Action label="Insert emoji" symbol="emoji" onClick={openEmojiPicker} />
-   * </AxoTextField.Root>
-   * ```
-   */
-  export const Action: FC<ActionProps> = memo(props => {
-    const { onClick } = props;
-    const groupContext = useStrictContextNullable(GroupContext);
-    const containerContext = useStrictContext(ContainerContext);
+  /** @internal */
+  const BaseAction: FC<BaseActionProps> = memo(props => {
+    const {
+      ref,
+      slot = 'trailing',
+      label,
+      onClick,
+      disabled: propsDisabled,
+      pressed,
+      children,
+      ...rest
+    } = props;
+    const { disabled: contextDisabled } = useStrictContext(RootContext);
 
-    const disabled =
-      groupContext?.disabled === true ||
-      groupContext?.readOnly === true ||
-      props.disabled === true;
+    const disabled = propsDisabled ?? contextDisabled;
 
     const handleClick = useCallback(
       (event: MouseEvent<HTMLButtonElement>) => {
@@ -716,29 +778,51 @@ export namespace AxoBaseField {
 
     return (
       <button
+        ref={ref}
+        className={css(Slots.get(slot), 'axo-field-action')}
         type="button"
-        aria-label={props.label}
+        aria-label={label}
         aria-disabled={disabled}
-        aria-pressed={props.pressed}
-        className={tw(
-          'group/action z-10 outline-none',
-          'first:ps-1 last:pe-1',
-          'aria-disabled:cursor-default'
-        )}
+        aria-pressed={pressed}
         onClick={handleClick}
+        {...forwardExtraPropsForRadix(rest)}
       >
-        <span
-          className={tw(
-            'flex items-center justify-center rounded-full p-1',
-            'text-secondary',
-            'group-not-aria-disabled/action:group-hover/action:text-primary',
-            ActionVariants.get(containerContext.variant),
-            'group-focus-visible/action:axo-focus-ring'
-          )}
-        >
-          <AxoSymbol.Icon size={18} symbol={props.symbol} label={null} />
-        </span>
+        <span className="axo-field-action-inner">{children}</span>
       </button>
+    );
+  });
+
+  BaseAction.displayName = 'AxoBaseField.BaseAction';
+
+  /**
+   * <AxoBaseField.Action>
+   * --------------------------------------------------------------------------
+   */
+
+  export type ActionProps = Omit<BaseActionProps, 'children'> &
+    Readonly<{
+      /** Icon to display inside the button. */
+      symbol: AxoSymbol.Name;
+    }>;
+
+  /**
+   * An icon button placed inside a `Root`, typically used for supplementary
+   * actions like inserting an emoji or opening a menu.
+   *
+   * @example
+   * ```tsx
+   * <AxoTextField.Root>
+   *   <AxoTextField.Input ... />
+   *   <AxoTextField.Action label="Insert emoji" symbol="emoji" onClick={openEmojiPicker} />
+   * </AxoTextField.Root>
+   * ```
+   */
+  export const Action: FC<ActionProps> = memo(props => {
+    const { symbol, ...rest } = props;
+    return (
+      <BaseAction {...rest}>
+        <AxoSymbol.Icon size={18} symbol={symbol} label={null} />
+      </BaseAction>
     );
   });
 
@@ -751,45 +835,108 @@ export namespace AxoBaseField {
 
   export const Separator: FC = memo(() => {
     return (
-      <span className={tw('flex py-2 ps-3 pe-2')}>
-        <span
-          role="separator"
-          aria-orientation="vertical"
-          className={tw('rounded-xs border-l border-secondary')}
-        />
-      </span>
+      <span
+        role="separator"
+        aria-orientation="vertical"
+        className="axo-field-separator"
+      />
     );
   });
 
   Separator.displayName = 'AxoBaseField.Separator';
 
   /**
-   * <AxoBaseField.Reveal>
+   * <AxoBaseField.LoadingIndicator>
    * --------------------------------------------------------------------------
    */
 
-  export type RevealProps = Readonly<{
-    label: string;
-    revealed: boolean;
-    onRevealedChange: (revealed: boolean) => void;
+  export type LoadingIndicatorProps = Readonly<{
+    pending: boolean;
   }>;
 
-  export const Reveal: FC<RevealProps> = memo(props => {
-    const { revealed, onRevealedChange } = props;
-
-    const handleClick = useCallback(() => {
-      onRevealedChange(!revealed);
-    }, [revealed, onRevealedChange]);
-
+  export const LoadingIndicator: FC<LoadingIndicatorProps> = memo(props => {
     return (
-      <Action
-        label={props.label}
-        symbol={props.revealed ? 'visible-slash' : 'visible'}
-        pressed={revealed}
-        onClick={handleClick}
-      />
+      <span
+        className={css(
+          Slots.get('trailing'),
+          'axo-field-loading',
+          !props.pending && 'axo-field-loading-invisible'
+        )}
+      >
+        {props.pending && <AxoLoadingIndicator.Root size="sm" />}
+      </span>
     );
   });
 
-  Reveal.displayName = 'AxoBaseField.Reveal';
+  LoadingIndicator.displayName = 'AxoBaseField.LoadingIndicator';
+
+  /**
+   * <AxoBaseField.ValidationError>
+   * --------------------------------------------------------------------------
+   */
+
+  export type ValidationErrorProps = Readonly<{
+    children: ReactNode;
+  }>;
+
+  export const ValidationError: FC<ValidationErrorProps> = memo(props => {
+    return <div className="axo-field-error">{props.children}</div>;
+  });
+
+  ValidationError.displayName = 'AxoBaseField.ValidationError';
+
+  /**
+   * <AxoBaseField.CustomLeadingSlot>
+   * --------------------------------------------------------------------------
+   */
+
+  export type CustomLeadingSlotProps = Readonly<{
+    children: ReactNode;
+  }>;
+
+  export const CustomLeadingSlot: FC<CustomLeadingSlotProps> = memo(props => {
+    return (
+      <div
+        className={css(Slots.get('leading'), 'axo-field-custom-leading-slot')}
+      >
+        {props.children}
+      </div>
+    );
+  });
+
+  CustomLeadingSlot.displayName = 'AxoBaseField.CustomLeadingSlot';
+
+  /**
+   * <AxoBaseField.CustomTrailingSlot>
+   * --------------------------------------------------------------------------
+   */
+
+  export type CustomTrailingSlotProps = Readonly<{
+    children: ReactNode;
+  }>;
+
+  export const CustomTrailingSlot: FC<CustomTrailingSlotProps> = memo(props => {
+    return (
+      <div
+        className={css(Slots.get('trailing'), 'axo-field-custom-trailing-slot')}
+      >
+        {props.children}
+      </div>
+    );
+  });
+
+  CustomTrailingSlot.displayName = 'AxoBaseField.CustomTrailingSlot';
+
+  /**
+   * <AxoBaseField.CustomAction>
+   * --------------------------------------------------------------------------
+   */
+
+  export type CustomActionProps = BaseActionProps;
+
+  export const CustomAction: FC<CustomActionProps> = memo(props => {
+    return <BaseAction {...props} />;
+  });
+
+  CustomAction.displayName = 'AxoBaseField.CustomAction';
 }

@@ -349,6 +349,15 @@ CREATE INDEX callLinks_deleted ON callLinks (deleted, roomId)
 </details>
 
 <details>
+<summary>Index: callLinks → callLinks_expiring</summary>
+
+```sql
+CREATE INDEX callLinks_expiring ON callLinks (deletedAt)
+```
+
+</details>
+
+<details>
 <summary>Index: callLinks → sqlite_autoindex_callLinks_1</summary>
 
 ```text
@@ -462,51 +471,6 @@ CREATE INDEX callsHistory_order ON callsHistory (
 </details>
 
 <details>
-<summary>Table: chatFolders</summary>
-
-```sql
-CREATE TABLE chatFolders (
-  id TEXT NOT NULL PRIMARY KEY,
-  folderType INTEGER NOT NULL,
-  name TEXT NOT NULL,
-  position INTEGER NOT NULL,
-  showOnlyUnread INTEGER NOT NULL,
-  showMutedChats INTEGER NOT NULL,
-  includeAllIndividualChats INTEGER NOT NULL,
-  includeAllGroupChats INTEGER NOT NULL,
-  includedConversationIds TEXT NOT NULL,
-  excludedConversationIds TEXT NOT NULL,
-  deletedAtTimestampMs INTEGER NOT NULL,
-  storageID TEXT,
-  storageVersion INTEGER,
-  storageUnknownFields BLOB,
-  storageNeedsSync INTEGER NOT NULL
-) STRICT
-```
-
-<details>
-<summary>Index: chatFolders → chatFolders_by_position</summary>
-
-```sql
-CREATE INDEX chatFolders_by_position on chatFolders (position)
-```
-
-</details>
-
-<details>
-<summary>Index: chatFolders → sqlite_autoindex_chatFolders_1</summary>
-
-```text
-(404: SQL Not Found)
-```
-
-</details>
-
----
-
-</details>
-
-<details>
 <summary>Table: conversations</summary>
 
 ```sql
@@ -601,9 +565,19 @@ CREATE TABLE defunctCallLinks (
   storageID TEXT,
   storageVersion INTEGER,
   storageUnknownFields BLOB,
-  storageNeedsSync INTEGER NOT NULL DEFAULT 0
+  storageNeedsSync INTEGER NOT NULL DEFAULT 0,
+  addedAt INTEGER NOT NULL
 ) STRICT
 ```
+
+<details>
+<summary>Index: defunctCallLinks → defunctCallLinks_expiring</summary>
+
+```sql
+CREATE INDEX defunctCallLinks_expiring ON defunctCallLinks (addedAt)
+```
+
+</details>
 
 <details>
 <summary>Index: defunctCallLinks → sqlite_autoindex_defunctCallLinks_1</summary>
@@ -751,6 +725,51 @@ CREATE TABLE groupSendMemberEndorsement (
 
 <details>
 <summary>Index: groupSendMemberEndorsement → sqlite_autoindex_groupSendMemberEndorsement_1</summary>
+
+```text
+(404: SQL Not Found)
+```
+
+</details>
+
+---
+
+</details>
+
+<details>
+<summary>Table: chatFolders</summary>
+
+```sql
+CREATE TABLE chatFolders (
+  id TEXT NOT NULL PRIMARY KEY,
+  folderType INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  showOnlyUnread INTEGER NOT NULL,
+  showMutedChats INTEGER NOT NULL,
+  includeAllIndividualChats INTEGER NOT NULL,
+  includeAllGroupChats INTEGER NOT NULL,
+  includedConversationIds TEXT NOT NULL,
+  excludedConversationIds TEXT NOT NULL,
+  deletedAtTimestampMs INTEGER NOT NULL,
+  storageID TEXT,
+  storageVersion INTEGER,
+  storageUnknownFields BLOB,
+  storageNeedsSync INTEGER NOT NULL
+) STRICT
+```
+
+<details>
+<summary>Index: chatFolders → chatFolders_by_position</summary>
+
+```sql
+CREATE INDEX chatFolders_by_position on chatFolders (position)
+```
+
+</details>
+
+<details>
+<summary>Index: chatFolders → sqlite_autoindex_chatFolders_1</summary>
 
 ```text
 (404: SQL Not Found)
@@ -1072,6 +1091,7 @@ CREATE TABLE message_attachments (
   receivedAtMs INTEGER,
   isViewOnce INTEGER,
   duration REAL,
+  audioWaveform BLOB,
   PRIMARY KEY (
     messageId,
     editHistoryIndex,
@@ -1733,15 +1753,6 @@ CREATE INDEX messages_receipt ON messages (sent_at)
 </details>
 
 <details>
-<summary>Index: messages → messages_schemaVersion</summary>
-
-```sql
-CREATE INDEX messages_schemaVersion ON messages (schemaVersion)
-```
-
-</details>
-
-<details>
 <summary>Index: messages → messages_searchOrder</summary>
 
 ```sql
@@ -1749,6 +1760,15 @@ CREATE INDEX messages_searchOrder on messages (
   received_at,
   sent_at
 )
+```
+
+</details>
+
+<details>
+<summary>Index: messages → messages_schemaVersion</summary>
+
+```sql
+CREATE INDEX messages_schemaVersion ON messages (schemaVersion)
 ```
 
 </details>

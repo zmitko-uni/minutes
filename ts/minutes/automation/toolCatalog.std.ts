@@ -89,6 +89,36 @@ export const AUTOMATION_TOOL_CATALOG = [
     access: 'write',
   },
   {
+    name: 'edit_message',
+    label: 'Upravit zprávu',
+    group: 'messages',
+    access: 'destructive',
+  },
+  {
+    name: 'delete_message',
+    label: 'Smazat zprávu',
+    group: 'messages',
+    access: 'destructive',
+  },
+  {
+    name: 'create_poll',
+    label: 'Vytvořit hlasování',
+    group: 'messages',
+    access: 'write',
+  },
+  {
+    name: 'get_poll_results',
+    label: 'Načíst výsledky hlasování',
+    group: 'messages',
+    access: 'read',
+  },
+  {
+    name: 'vote_poll',
+    label: 'Hlasovat v hlasování',
+    group: 'messages',
+    access: 'destructive',
+  },
+  {
     name: 'set_message_reaction',
     label: 'Nastavit reakci na zprávu',
     group: 'messages',

@@ -1,7 +1,8 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { clipboard } from 'electron';
+import { ClipboardItem, clipboard } from 'electron';
+import { drop } from '../util/drop.std.ts';
 
 /** Shrnutí a jeho editor. Mimo ně necháváme kopírování Signálu. */
 const RICH_TEXT_ROOT_SELECTOR =
@@ -123,15 +124,26 @@ function selectionToClipboardHtml(selection: Selection): string {
   return container.innerHTML.trim();
 }
 
+function writeRichClipboard(plain: string, html: string): void {
+  drop(
+    clipboard.write([
+      new ClipboardItem({
+        'text/plain': plain,
+        'text/html': html,
+      }),
+    ])
+  );
+}
+
 export function copyFormattedHtml(html: string, plain: string): void {
   const fragment = html.trim();
   if (fragment.length === 0) {
     throw new Error('Není co kopírovat.');
   }
-  clipboard.write({
-    text: plain.trim().length > 0 ? plain : fragment,
-    html: fragment,
-  });
+  writeRichClipboard(
+    plain.trim().length > 0 ? plain : fragment,
+    fragment
+  );
 }
 
 /**
@@ -158,10 +170,7 @@ export function initializeMinutesRichClipboard(): void {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')}</p>`;
-      clipboard.write({
-        text: plain,
-        html: html.length > 0 ? html : fallbackHtml,
-      });
+      writeRichClipboard(plain, html.length > 0 ? html : fallbackHtml);
       event.preventDefault();
       event.stopPropagation();
     },

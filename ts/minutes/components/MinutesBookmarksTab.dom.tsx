@@ -15,7 +15,7 @@ import {
   getNavTabsCollapsed,
   getPreferredLeftPaneWidth,
 } from '../../state/selectors/items.dom.ts';
-import { getOtherTabsUnreadStats } from '../../state/selectors/conversations.dom.ts';
+import { getOtherTabsUnreadCount } from '../../state/selectors/conversations.dom.ts';
 import { getHasPendingUpdate } from '../../state/selectors/updates.std.ts';
 import { getHasAnyFailedStorySends } from '../../state/selectors/stories.preload.ts';
 import { useItemsActions } from '../../state/ducks/items.preload.ts';
@@ -148,7 +148,7 @@ export function MinutesBookmarksTab(): JSX.Element {
   const i18n = useSelector(getIntl);
   const navTabsCollapsed = useSelector(getNavTabsCollapsed);
   const preferredLeftPaneWidth = useSelector(getPreferredLeftPaneWidth);
-  const otherTabsUnreadStats = useSelector(getOtherTabsUnreadStats);
+  const otherTabsUnreadCount = useSelector(getOtherTabsUnreadCount);
   const hasPendingUpdate = useSelector(getHasPendingUpdate);
   const hasFailedStorySends = useSelector(getHasAnyFailedStorySends);
   const { savePreferredLeftPaneWidth, toggleNavTabsCollapse } =
@@ -229,7 +229,7 @@ export function MinutesBookmarksTab(): JSX.Element {
         hasPendingUpdate={hasPendingUpdate}
         navTabsCollapsed={navTabsCollapsed}
         onToggleNavTabsCollapse={toggleNavTabsCollapse}
-        otherTabsUnreadStats={otherTabsUnreadStats}
+        otherTabsUnreadCount={otherTabsUnreadCount}
         preferredLeftPaneWidth={preferredLeftPaneWidth}
         requiresFullWidth={false}
         savePreferredLeftPaneWidth={savePreferredLeftPaneWidth}

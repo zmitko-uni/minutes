@@ -65,6 +65,21 @@
   "icu:Preferences__DonateTitle": {
     "messageformat": "Egin dohaintza Signal-i"
   },
+  "icu:LinkedDevicesOnboardingDialog__description": {
+    "messageformat": "<bold>Lotutako gailuekin</bold>, modu seguruan atzitu ahalko dituzu Signal-eko kontua eta mezuak gailu gehigarrietan."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--1": {
+    "messageformat": "Ordenagailu, tableta edo telefono gehigarri bat lot dezakezu."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--2": {
+    "messageformat": "Gailu nagusiarekin, zer lotzen den kudeatzen da; gehienez, 5 gailu lot ditzakezu."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--1": {
+    "messageformat": "Kontuaren ezarpenak eta babeskopiak soilik gailu nagusitik kudea daitezke."
+  },
+  "icu:LinkedDevicesOnboardingDialog__bullet--3--2": {
+    "messageformat": "Kontuaren ezarpenak eta Babeskopia seguruak gailu nagusitik soilik kudea daitezke."
+  },
   "icu:sentMediaQualityStandard": {
     "messageformat": "Estandarra"
   },
@@ -365,9 +380,6 @@
   "icu:NavTabs__ItemIconLabel--UnreadCount": {
     "messageformat": "{count,number} irakurri gabe"
   },
-  "icu:NavTabs__ItemIconLabel--MarkedUnread": {
-    "messageformat": "Irakurri gabeko gisa markatu da"
-  },
   "icu:NavTabs__ItemLabel--Chats": {
     "messageformat": "Txatak"
   },
@@ -635,20 +647,23 @@
   "icu:SafetyNumberNotReady__learn-more": {
     "messageformat": "Gehiago jakin"
   },
-  "icu:KeyTransparencyErrorDialog__Title": {
-    "messageformat": "Une honetan, gako-egiaztapen automatikoa ez dago erabilgarri zure gailuan. Arazketa-erregistroa bidali nahi duzu?"
+  "icu:KeyTransparencyErrorDialog__Title-v2": {
+    "messageformat": "Une honetan, gako-egiaztapen automatikoa ez dago erabilgarri zure gailuan. Txosten bat bidali nahi duzu, hobetzen laguntzeko?"
   },
-  "icu:KeyTransparencyErrorDialog__Description": {
-    "messageformat": "Arazketa-erregistroak arazoa diagnostikatzen eta konpontzen laguntzen digu, eta ez dute identifikazio-informaziorik."
+  "icu:KeyTransparencyErrorDialog__Description-v2": {
+    "messageformat": "Arazketa-erregistroak eransten badituzu, arazoa diagnostikatu eta konpondu ahalko dugu. Erregistro horiek ez dute zu identifikatzeko balio duen informaziorik. Haiek partekatzea aukerakoa da."
   },
-  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label": {
-    "messageformat": "Partekatu arazketa-erregistroa"
+  "icu:KeyTransparencyErrorDialog__ShareDebugLog__Label-v2": {
+    "messageformat": "Erantsi arazketa-erregistroa"
   },
   "icu:KeyTransparencyErrorDialog__ShareDebugLog__ViewButton": {
     "messageformat": "Ikusi"
   },
   "icu:KeyTransparencyErrorDialog__Submit": {
     "messageformat": "Bidali"
+  },
+  "icu:KeyTransparencyErrorDialog__Cancel": {
+    "messageformat": "Ez eskerrik asko"
   },
   "icu:KeyTransparencyOnboardingDialog__Title": {
     "messageformat": "Orain, Signal-ek automatikoki egiazta dezake enkriptatzea"
@@ -745,12 +760,6 @@
   },
   "icu:maximumAttachments": {
     "messageformat": "Ezin duzu eranskin gehiago gehitu mezu honetara."
-  },
-  "icu:fileSizeWarning": {
-    "messageformat": "Barkatu, aukeratutako fitxategiak ezarri den tamaina muga gainditzen du. {limit,number} {units}"
-  },
-  "icu:videoFileSizeWarning": {
-    "messageformat": "Barkatu, hautatutako bideo-fitxategiak mezuen tamaina-murriztapenak gainditzen ditu. {limit,number} {units}"
   },
   "icu:fileTooLargeWarning": {
     "messageformat": "Ezin da bidali fitxategi hau, handiegia baita. Bidal daitezkeen fitxategien gehieneko tamaina: {limit,number} {units}."
@@ -1003,6 +1012,9 @@
   },
   "icu:mute": {
     "messageformat": "Desaktibatu jakinarazpenak"
+  },
+  "icu:muted": {
+    "messageformat": "Jakinarazpenak desaktibatuta"
   },
   "icu:cannotUpdateDetail-v2": {
     "messageformat": "Ezin izan da eguneratu Signal. <retryUpdateButton>Saiatu berriro</retryUpdateButton> edo, eskuz instalatzeko, joan {url} helbidera. Ondoren, jakinarazi arazo hau <contactSupportLink>laguntza-zerbitzuari</contactSupportLink>"
@@ -1466,6 +1478,9 @@
   "icu:ConversationMerge--learn-more": {
     "messageformat": "Informazio gehiago"
   },
+  "icu:ConversationMerge--explainer-dialog--label": {
+    "messageformat": "Mezu-historia bateratu egin da"
+  },
   "icu:ConversationMerge--explainer-dialog--line-1": {
     "messageformat": "{obsoleteConversationTitle} erabiltzailearekin mezuak trukatu ondoren, zenbaki hau {conversationTitle} erabiltzailearena dela jakin duzu. Haren telefono-zenbakia pribatua da."
   },
@@ -1622,9 +1637,6 @@
   "icu:Preferences__EmojiSkinToneDefaultSetting__Label": {
     "messageformat": "Emojiaren azal-tonua"
   },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__Title": {
-    "messageformat": "Txat-karpetak"
-  },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Title": {
     "messageformat": "Gehitu txat-karpeta bat"
   },
@@ -1636,12 +1648,6 @@
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Description--WithChatFolders": {
     "messageformat": "{chatFoldersCount, plural, one {{chatFoldersCount,number} karpeta} other {{chatFoldersCount,number} karpeta}}"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button": {
-    "messageformat": "Konfiguratu"
-  },
-  "icu:Preferences__ChatsPage__ChatFoldersSection__AddChatFolderItem__Button--WithChatFolders": {
-    "messageformat": "Kudeatu"
   },
   "icu:Preferences__ChatsPage__ChatFoldersSection__ChatFolderItem__ContextMenu__EditFolder": {
     "messageformat": "Editatu karpeta"
@@ -3881,18 +3887,6 @@
   "icu:calling__preview--minimize": {
     "messageformat": "Minimizatu aurrebista"
   },
-  "icu:calling__change-view": {
-    "messageformat": "Aldatu ikuspegia"
-  },
-  "icu:calling__view_mode--paginated": {
-    "messageformat": "Sareta ikuspegia"
-  },
-  "icu:calling__view_mode--overflow": {
-    "messageformat": "Alboko barrako ikuspegia"
-  },
-  "icu:calling__view_mode--speaker": {
-    "messageformat": "Hizlariaren ikuspegia"
-  },
   "icu:calling__view_mode--updated": {
     "messageformat": "Eguneratu da ikuspegia"
   },
@@ -3971,29 +3965,11 @@
   "icu:notMuted": {
     "messageformat": "Jakinarazpenak ez daude desaktibatuta"
   },
-  "icu:muteHour": {
-    "messageformat": "Desaktibatu jakinarazpenak ordubetez"
-  },
-  "icu:muteEightHours": {
-    "messageformat": "Desaktibatu jakinarazpenak zortzi orduz"
-  },
-  "icu:muteDay": {
-    "messageformat": "Desaktibatu jakinarazpenak egun batez"
-  },
-  "icu:muteWeek": {
-    "messageformat": "Desaktibatu jakinarazpenak astebetez"
-  },
-  "icu:muteAlways": {
-    "messageformat": "Desaktibatu jakinarazpenak betiko"
-  },
   "icu:unmute": {
     "messageformat": "Aktibatu jakinarazpenak"
   },
   "icu:MuteMenu__label": {
     "messageformat": "Desaktibatu txat honen jakinarazpenak…"
-  },
-  "icu:MuteMenu__labelChatFolder": {
-    "messageformat": "Desaktibatu txat hauen jakinarazpenak epe honeterako…"
   },
   "icu:MuteMenu__hour": {
     "messageformat": "ordubete"
@@ -4937,9 +4913,6 @@
   "icu:showConversationDetails--direct": {
     "messageformat": "Txataren ezarpenak"
   },
-  "icu:ConversationDetails__unmute--title": {
-    "messageformat": "Berriro aktibatu nahi dituzu txat honen jakinarazpenak?"
-  },
   "icu:ConversationDetails--group-link": {
     "messageformat": "Talderako esteka"
   },
@@ -5174,17 +5147,110 @@
   "icu:EditNicknameAndNoteModal__Note__Placeholder": {
     "messageformat": "Oharra"
   },
-  "icu:ConversationNotificationsSettings__mentions__label": {
+  "icu:WhileMuted__title": {
+    "messageformat": "Jakinarazpenak desaktibatuta daudenean"
+  },
+  "icu:WhileMuted__description": {
+    "messageformat": "Aukeratu txataren jakinarazpenak desaktibatuta dauden bitartean jakinarazpenak erakustea."
+  },
+  "icu:WhileMuted__calls__title": {
+    "messageformat": "Deiak"
+  },
+  "icu:WhileMuted__calls__description": {
+    "messageformat": "Jo edo jakinarazi dei bat hasten denean txata isilarazita dagoemn bitartean"
+  },
+  "icu:WhileMuted__mentions__title": {
     "messageformat": "Aipamenak"
   },
-  "icu:ConversationNotificationsSettings__mentions__info": {
-    "messageformat": "Jakinarazpenak desaktibatuta dauzkaten txatetan aipatzen zaituztenean, jaso jakinarazpenak"
+  "icu:WhileMuted__mentions__description": {
+    "messageformat": "Jakinarazi @aipatzen zaituztenean txataren jakinarazpenak desaktibatuta dauden bitartean."
   },
-  "icu:ConversationNotificationsSettings__mentions__select__always-notify": {
-    "messageformat": "Jakinarazi beti"
+  "icu:WhileMuted__replies__title": {
+    "messageformat": "Erantzunak"
   },
-  "icu:ConversationNotificationsSettings__mentions__select__dont-notify-for-mentions-if-muted": {
-    "messageformat": "Jakinarazpenak desaktibatuta badaude, ez jakinarazi"
+  "icu:WhileMuted__replies__description": {
+    "messageformat": "Jakinarazi norbaitek zure mezua erantzuten duenean txata isilarazita dagoen bitartean."
+  },
+  "icu:WhileMuted__value--none": {
+    "messageformat": "Bat ere ez"
+  },
+  "icu:WhileMuted__value--calls": {
+    "messageformat": "Deiak"
+  },
+  "icu:WhileMuted__value--mentions": {
+    "messageformat": "Aipamenak"
+  },
+  "icu:WhileMuted__value--replies": {
+    "messageformat": "Erantzunak"
+  },
+  "icu:WhileMuted__value--calls-mentions": {
+    "messageformat": "Deiak, aipamenak"
+  },
+  "icu:WhileMuted__value--calls-replies": {
+    "messageformat": "Deiak, erantzunak"
+  },
+  "icu:WhileMuted__value--mentions-replies": {
+    "messageformat": "Aipamenak, erantzunak"
+  },
+  "icu:WhileMuted__value--calls-mentions-replies": {
+    "messageformat": "Deiak, aipamenak, erantzunak"
+  },
+  "icu:Preferences__WhileMuted__description": {
+    "messageformat": "Aukeratu jakinarazpenak desaktibatuta dauzkaten txaten jakinarazpenak erakustea."
+  },
+  "icu:Preferences__WhileMuted__calls__description": {
+    "messageformat": "Jo edo jakinarazi dei bat hasten denean isilarazitako txatetan."
+  },
+  "icu:Preferences__WhileMuted__mentions__description": {
+    "messageformat": "Jakinarazi isilarazitako txatetan aipatzen zaituztenean."
+  },
+  "icu:Preferences__WhileMuted__replies__description": {
+    "messageformat": "Jakinarazi norbaitek zure mezuei erantzuten dienean isilarazitako txatetan."
+  },
+  "icu:UnreadReminders__title": {
+    "messageformat": "Irakurri gabeko gogorarazpenak"
+  },
+  "icu:UnreadReminders__description": {
+    "messageformat": "Txat honen jakinarazpenak desaktibatuta daudenean, jakinarazi irakurri gabeko mezuak daudela noizean behin."
+  },
+  "icu:Preferences__UnreadReminders__description": {
+    "messageformat": "Jakinarazi noizean behin irakurri gabeko mezuak daudenean jakinarazpenak desaktibatuta dauzkaten txatetan."
+  },
+  "icu:UnreadReminders__notification--messages--1": {
+    "messageformat": "{messageCount, plural, one {{person1}(r)en irakurri gabeko {messageCount,number} mezu duzu.} other {{person1}(r)en irakurri gabeko {messageCount,number} mezu dituzu.}}"
+  },
+  "icu:UnreadReminders__notification--messages--2": {
+    "messageformat": "{messageCount, plural, one {{person1} eta {person2}(r)en irakurri gabeko {messageCount,number} mezu duzu.} other {{person1} eta {person2}(r)en irakurri gabeko {messageCount,number} mezu dituzu.}}"
+  },
+  "icu:UnreadReminders__notification--messages--many": {
+    "messageformat": "{messageCount, plural, one {{person1}, {person2} eta beste batzuen irakurri gabeko {messageCount,number} mezu duzu.} other {{person1}, {person2} eta beste batzuen irakurri gabeko {messageCount,number} mezu dituzu.}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-mentions": {
+    "messageformat": "{messageCount, plural, one {Irakurri gabeko {messageCount,number} mezu duzu, {mentionSummary} barne.} other {Irakurri gabeko {messageCount,number} mezu dituzu, {mentionSummary} barne.}}"
+  },
+  "icu:UnreadReminders__notification--messages-including-replies": {
+    "messageformat": "{messageCount, plural, one {Irakurri gabeko {messageCount,number} mezu duzu, {replySummary} barne.} other {Irakurri gabeko {messageCount,number} mezu dituzu, {replySummary} barne.}}"
+  },
+  "icu:UnreadReminders__notification--counts--messages": {
+    "messageformat": "{messageCount, plural, one {Irakurri gabeko {messageCount,number} mezu duzu.} other {Irakurri gabeko {messageCount,number} mezu dituzu.}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--1": {
+    "messageformat": "{mentionCount, plural, one {{person1}(r)en aipamen bat} other {{person1}(r)en {mentionCount,number} aipamen}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--2": {
+    "messageformat": "{mentionCount, plural, one {{person1}(r)en eta {person2}(r)en {mentionCount,number} aipamen} other {{person1}(r)en eta {person2}(r)en {mentionCount,number} aipamen}}"
+  },
+  "icu:UnreadReminders__notification__mentionSummary--many": {
+    "messageformat": "{mentionCount, plural, one {{person1}(r)en eta beste batzuen {mentionCount,number} aipamen} other {{person1}(r)en eta beste batzuen {mentionCount,number} aipamen}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--1": {
+    "messageformat": "{replyCount, plural, one {{person1}(r)en erantzun bat} other {{person1}(r)en {replyCount,number} erantzun}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--2": {
+    "messageformat": "{replyCount, plural, one {{person1}(r)en eta {person2}(r)en {replyCount,number} erantzun} other {{person1}(r)en eta {person2}(r)en {replyCount,number} erantzun}}"
+  },
+  "icu:UnreadReminders__notification__replySummary--many": {
+    "messageformat": "{replyCount, plural, one {{person1}(r)en eta beste batzuen {replyCount,number} erantzun} other {{person1}(r)en eta beste batzuen {replyCount,number} erantzun}}"
   },
   "icu:GroupLinkManagement--clipboard": {
     "messageformat": "Talde esteka kopiatuta"
@@ -5242,9 +5308,6 @@
   },
   "icu:GroupMembersSearchDialog__SearchResults__Title": {
     "messageformat": "Bilaketa-emaitzak"
-  },
-  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
-    "messageformat": "Partaidea gehitu"
   },
   "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
     "messageformat": "Gehitu kideak"
@@ -5537,6 +5600,9 @@
   },
   "icu:CaptchaDialog__second-paragraph": {
     "messageformat": "Egiaztatu ondoren, mzuak bidaltzen jarrai dezakezu. Etendako mezuak automatikoki bidaliko dira."
+  },
+  "icu:CaptchaDialog__continue": {
+    "messageformat": "Jarraitu"
   },
   "icu:CaptchaDialog--can-close__title": {
     "messageformat": "Egiaztatu gabe jarraitu?"
@@ -6010,6 +6076,9 @@
   "icu:Preferences__reaction-notifications-description": {
     "messageformat": "Jakinarazi norbaitek zure mezuaren aurrean errakzionatzen duenean"
   },
+  "icu:Preferences__button--account": {
+    "messageformat": "Kontua"
+  },
   "icu:Preferences__button--general": {
     "messageformat": "Orokorra"
   },
@@ -6079,6 +6148,42 @@
   "icu:Preferences--system": {
     "messageformat": "Sistema"
   },
+  "icu:Preferences--signal-login": {
+    "messageformat": "Signal Login"
+  },
+  "icu:Preferences--signal-login-description": {
+    "messageformat": "Signal Login kontua berreskuratzeko eta leheneratzeko erabiltzen da. Mantendu gako hauek seguru gordeta pasahitz-kudeatzaile fidagarri batean. <learnMoreLink>Lortu informazio gehiago</learnMoreLink>."
+  },
+  "icu:Preferences--signal-login-description--learn-more": {
+    "messageformat": "Informazio gehiago"
+  },
+  "icu:Preferences__SignalAccount__label": {
+    "messageformat": "Kontua eta berreskuratzea"
+  },
+  "icu:Preferences__SignalAccount__description": {
+    "messageformat": "2 gako"
+  },
+  "icu:Preferences__SignalAccountKeys__Title": {
+    "messageformat": "Signal Login"
+  },
+  "icu:Preferences__SignalAccountKeys__Description": {
+    "messageformat": "Gorde hau leku seguru batean, zure kontua eta datuak berreskuratzeko behar da saioa hasteko informazioa. Ez partekatu inorekin."
+  },
+  "icu:Preferences__SignalAccountKeys__AccountID": {
+    "messageformat": "Kontu-identifikatzailea"
+  },
+  "icu:Preferences__SignalAccountKeys__RecoveryKey": {
+    "messageformat": "Berreskuratze-gakoa"
+  },
+  "icu:Preferences__SignalAccountKeys__Save": {
+    "messageformat": "Gorde"
+  },
+  "icu:Preferences__Account__LinkedDevice__label": {
+    "messageformat": "Hau lotutako gailu bat da"
+  },
+  "icu:Preferences__Account__LinkedDevice__description": {
+    "messageformat": "Kontuaren ezarpenak kudeatzeko, ireki Signal gailu nagusian."
+  },
   "icu:Preferences--zoom": {
     "messageformat": "Zoom maila"
   },
@@ -6109,8 +6214,56 @@
   "icu:Preferences--advanced": {
     "messageformat": "Aurreratua"
   },
+  "icu:Preferences--change-signal-pin": {
+    "messageformat": "Aldatu zure PINa"
+  },
+  "icu:Preferences--change-signal-pin-button": {
+    "messageformat": "Aldatu"
+  },
+  "icu:Preferences--create-signal-pin": {
+    "messageformat": "Sortu PIN-a"
+  },
+  "icu:Preferences--create-signal-pin-button": {
+    "messageformat": "Sortu"
+  },
   "icu:Preferences--signal-pin": {
     "messageformat": "Signal PIN"
+  },
+  "icu:Preferences--signal-pin__footer": {
+    "messageformat": "PINekin, Signal-en gordetako informazioa enkriptatzen da, zuk bakarrik atzitu ahal izan dezazun. Ezin da berreskuratu PINa. Signal berriro instalatzean, profila, ezarpenak eta kontaktuak leheneratu egingo dira. <learnMoreLink>Informazio gehiago</learnMoreLink>"
+  },
+  "icu:Preferences--signal-pin-advanced-settings": {
+    "messageformat": "PINarekin loturiko ezarpen aurreratuak"
+  },
+  "icu:Preferences--disable-signal-pin": {
+    "messageformat": "Desaktibatu PINa"
+  },
+  "icu:Preferences--disable-signal-pin--button": {
+    "messageformat": "Desaktibatu"
+  },
+  "icu:Preferences--disable-signal-pin--footer": {
+    "messageformat": "Ez baduzu modu manualean segurtasun kopiak egiten, PINa desaktibatzen baduzu, datu guztiak galduko dituzu signal berriro erregistratzen duzunean. Ezin duzu erregistratzeko blokeoa aktibatu PINa desaktibatuta dagoen bitartean."
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--title": {
+    "messageformat": "Erregistro-blokeoa dela eta, ezin izan da desgaitu PINa"
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--body": {
+    "messageformat": "PINa desgaitzeko, erregistro-blokeoa desgaitu behar duzu lehenik."
+  },
+  "icu:DisableSignalPinErrorDialog--reg-lock--ok": {
+    "messageformat": "Ados"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--title": {
+    "messageformat": "Babeskopiak direla eta, ezin izan da desgaitu PINa"
+  },
+  "icu:DisableSignalPinErrorDialog--backups--body": {
+    "messageformat": "PINa desgaitzeko, babeskopiak desgaitu behar dituzu lehenik."
+  },
+  "icu:Preferences--enable-signal-pin": {
+    "messageformat": "Aktibatu PINa"
+  },
+  "icu:Preferences--enable-signal-pin--button": {
+    "messageformat": "Gaitu"
   },
   "icu:Preferences--pin-reminders--header": {
     "messageformat": "PIN gogorarazleak"
@@ -6118,8 +6271,11 @@
   "icu:Preferences--pin-reminders--description": {
     "messageformat": "Gero eta gutxiago galdetuko dizute denbora joan ahala"
   },
-  "icu:Preferences--notification-content": {
-    "messageformat": "Jakinarazpenen edukia"
+  "icu:Preferences--registration-lock__label": {
+    "messageformat": "Erregistratze-blokeoa"
+  },
+  "icu:Preferences--registration-lock__footer": {
+    "messageformat": "Telefono-zenbakia Signal-en berriro erregistratzeko, eskatu Signal-eko PINa."
   },
   "icu:Preferences__Chats__TextInputSection__Title": {
     "messageformat": "Idazketa"
@@ -6127,11 +6283,47 @@
   "icu:Preferences__Chats__ChatFoldersSection__Title": {
     "messageformat": "Txat-karpetak"
   },
+  "icu:Preferences__Notifications__Show__Label": {
+    "messageformat": "Erakutsi"
+  },
   "icu:Preferences__Notifications__SoundsSection__Title": {
     "messageformat": "Soinuak"
   },
   "icu:Preferences__Notifications__AppBadgeSection__Title": {
     "messageformat": "Aplikazioaren bereizgarria"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__Title-v2": {
+    "messageformat": "Irakurri gabeko mezuen bereizgarriak"
+  },
+  "icu:Preferences__Notifications__Reset__title": {
+    "messageformat": "Berrezarri jakinarazpenen ezarpen lehenetsiak, txaten ezarpen pertsonalizatuak barne."
+  },
+  "icu:Preferences__Notifications__Reset__button": {
+    "messageformat": "Berrabiarazi"
+  },
+  "icu:Preferences__Notifications__Reset__modal--body": {
+    "messageformat": "Jakinarazpenen ezarpen guztiak lehenetsi gisa ezarri nahi dituzu txat guztietan?"
+  },
+  "icu:Preferences__Notifications__Reset__modal--confirm": {
+    "messageformat": "Berrabiarazi"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Label": {
+    "messageformat": "Bereizgarri kopurua"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__Description": {
+    "messageformat": "Hautatu bereizgarri kopuruak irakurri gabeko mezuen kopurua ala irakurri gabeko txaten kopurua erakutsi behar duten"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadMessages": {
+    "messageformat": "Irakurri gabeko mezuak"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__UnreadChats": {
+    "messageformat": "Irakurri gabeko txatak"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats": {
+    "messageformat": "Aplikazioaren bereizgarrian, hartu barnean jakinarazpenak desaktibatuta dauzkaten txatak"
+  },
+  "icu:Preferences__Notifications__AppBadgeSection__BadgeCount__MutedChats__description": {
+    "messageformat": "Txat-karpeten bereizgarriek beti hartuko dituzte barnean jakinarazpenak desaktibatuta dauzkaten txatak"
   },
   "icu:PlaintextExport--PreferencesRow--Header": {
     "messageformat": "Esportatu txat-historia"
@@ -6283,9 +6475,6 @@
   "icu:NotificationProfiles--setting": {
     "messageformat": "Jakinarazpen profilak"
   },
-  "icu:NotificationProfiles--setup": {
-    "messageformat": "Konfiguratu"
-  },
   "icu:NotificationProfiles--title": {
     "messageformat": "Jakinarazpen profilak"
   },
@@ -6297,9 +6486,6 @@
   },
   "icu:NotificationProfiles--manage-description": {
     "messageformat": "Gehitu edo editatu jakinarazpen-profilak"
-  },
-  "icu:NotificationProfiles--manage-profiles": {
-    "messageformat": "{profileCount, plural, one {Profil bat} other {{profileCount,number} profil}}"
   },
   "icu:NotificationProfiles--create": {
     "messageformat": "Sortu profila"
@@ -6700,9 +6886,6 @@
   "icu:Preferences__pnp__row--body": {
     "messageformat": "Aukeratu nork ikus dezakeen zure telefono-zenbakia eta nor jar daitekeen zurekin harremanetan Signal-en."
   },
-  "icu:Preferences__pnp__row--button": {
-    "messageformat": "Aldatu…"
-  },
   "icu:Preferences__pnp__sharing--title": {
     "messageformat": "Nork ikus dezake nire zenbakia?"
   },
@@ -6751,14 +6934,8 @@
   "icu:Preferences--read-receipts": {
     "messageformat": "Irakurketaren hartu-agiriak"
   },
-  "icu:Preferences--read-receipts--description": {
-    "messageformat": "Desgaituta badago, ez dituzu ikusiko besteen irakurragiriak."
-  },
   "icu:Preferences--typing-indicators": {
     "messageformat": "Idazketa jakinarazleak"
-  },
-  "icu:Preferences--typing-indicators--description": {
-    "messageformat": "Desgaituta badago, ez dituzu ikusiko besteen idazketa-adierazleak."
   },
   "icu:Preferences--messaging-help": {
     "messageformat": "Ikusi eta partekatu mezuak irakurri eta idazten direnean. Desgaituta badago, ez dituzu ikusiko besteen irakurragiriak edo idazketa-adierazleak."
@@ -6865,11 +7042,23 @@
   "icu:InstallScreenUpdateDialog--update-required__title": {
     "messageformat": "Eguneratu behar da"
   },
+  "icu:InstallScreenUpdateDialog--checking-for-updates": {
+    "messageformat": "Egiaztatu eguneraketarik dagoen"
+  },
+  "icu:InstallScreenUpdateDialog--updating-signal": {
+    "messageformat": "Signal eguneratzen"
+  },
+  "icu:InstallScreenUpdateDialog--download-progress": {
+    "messageformat": "{currentBytes}/{totalBytes} deskargatzen ({percentage,number,percent})..."
+  },
   "icu:InstallScreenUpdateDialog--update-required__body": {
-    "messageformat": "Mezuak sinkronizatzen amaitzeko, eguneratu Signal Desktop."
+    "messageformat": "Jarraitzeko, eguneratu Signal Desktop."
   },
   "icu:InstallScreenUpdateDialog--update-required__action-update": {
     "messageformat": "Eguneratu"
+  },
+  "icu:InstallScreenUpdateDialog--update-required__action-update__mas": {
+    "messageformat": "Joan App Store-ra"
   },
   "icu:InstallScreenUpdateDialog--unsupported-os__title": {
     "messageformat": "Eguneratu behar da"
@@ -6903,6 +7092,9 @@
   },
   "icu:StandaloneRegistration--PhoneNumber--waiting": {
     "messageformat": "Saiatu berriro {duration} barru"
+  },
+  "icu:StandaloneRegistration--PhoneNumber--RegionCodeSelector--Label": {
+    "messageformat": "Herrialdearen kodea aukeratu"
   },
   "icu:StandaloneRegistration--PhoneNumber--placeholder": {
     "messageformat": "Telefono-zenbakia"
@@ -7425,6 +7617,12 @@
   },
   "icu:MediaPermissionsModal__step-2": {
     "messageformat": "Aktibatu \"Signal\""
+  },
+  "icu:MediaPermissionsModal__step-2--windows--microphone": {
+    "messageformat": "Eman mikrofonorako sarbidea Signal-i"
+  },
+  "icu:MediaPermissionsModal__step-2--windows--camera": {
+    "messageformat": "Eman kamerarako sarbidea Signal-i"
   },
   "icu:MediaPermissionsModal__open": {
     "messageformat": "Joan ezarpenetara"
@@ -7966,11 +8164,17 @@
   "icu:ContextMenu--button": {
     "messageformat": "Laster-menua"
   },
+  "icu:EditUsernameModalBody__username-label": {
+    "messageformat": "Erabiltzaile-izena"
+  },
   "icu:EditUsernameModalBody__username-placeholder": {
     "messageformat": "Erabiltzaile-izena"
   },
   "icu:EditUsernameModalBody__username-helper": {
     "messageformat": "Erabiltzaile-izen bakoitza zenbaki-multzo batekin parekatzen da."
+  },
+  "icu:EditUsernameModalBody__discriminator-label": {
+    "messageformat": "Erabiltzaile-izeneko digituak"
   },
   "icu:EditUsernameModalBody__learn-more": {
     "messageformat": "Informazio gehiago"
@@ -8093,11 +8297,50 @@
   "icu:PinReminderModal__pin-input-error": {
     "messageformat": "PIN okerra. Saiatu berriro"
   },
+  "icu:PinReminderModal__forgot": {
+    "messageformat": "PIN-a ahaztu dut"
+  },
   "icu:PinReminderModal__confirm": {
     "messageformat": "Onartu"
   },
   "icu:PinReminderCompletedToast": {
     "messageformat": "PIN zuzena. Geroago gogoraraziko dizugu berriro."
+  },
+  "icu:PinChangeModal__title--create": {
+    "messageformat": "Aldatu Signal PIN-a"
+  },
+  "icu:PinChangeModal__title--create--without-pin": {
+    "messageformat": "Sortu Signal-eko PINa"
+  },
+  "icu:PinChangeModal__body--create": {
+    "messageformat": "Zure PIN-a alda dezakezu gailua erregistratuta dagoen bitartean. <learnMoreLink>Informazio gehiago</learnMoreLink>"
+  },
+  "icu:PinChangeModal__body--create--without-pin": {
+    "messageformat": "PINekin, Signal-en gordetako informazioa enkriptatzen da, zuk bakarrik atzitu ahal izan dezazun. Aplikazioa berriro instalatzean, profila, ezarpenak eta kontaktuak leheneratu egingo dira. Aplikazioa irekitzeko, ez duzu PINa beharko. <learnMoreLink>Informazio gehiago</learnMoreLink>"
+  },
+  "icu:PinChangeModal__title--confirm": {
+    "messageformat": "Berretsi zure Signal PIN-a"
+  },
+  "icu:PinChangeModal__body--confirm": {
+    "messageformat": "Idatzi sortu berri duzun PIN-a"
+  },
+  "icu:PinChangeModal__pin-input-placeholder--create": {
+    "messageformat": "Idatzi PIN berri bat"
+  },
+  "icu:PinChangeModal__pin-input-placeholder--confirm": {
+    "messageformat": "Berretsi PINa"
+  },
+  "icu:PinChangeModal__cancel": {
+    "messageformat": "Utzi"
+  },
+  "icu:PinChangeModal__continue": {
+    "messageformat": "Jarraitu"
+  },
+  "icu:PinChangeModal__confirm": {
+    "messageformat": "Onartu"
+  },
+  "icu:PinChangeCompletedToast": {
+    "messageformat": "Sortu da PIN berria."
   },
   "icu:UnsupportedOSWarningDialog__body": {
     "messageformat": "Ordenagailurako Signal aplikazioak laster ez du onartuko ordenagailuaren bertsioa ({OS}). Signal erabiltzen jarraitzeko, eguneratu ordenagailuaren sistema eragilea {expirationDate} aurretik. <learnMoreLink>Informazio gehiago</learnMoreLink>"
@@ -8315,12 +8558,6 @@
   "icu:CallLinkPendingParticipantModal__DenyButtonLabel": {
     "messageformat": "Ez utzi sartzen"
   },
-  "icu:CallLinkRestrictionsSelect__Option--Off": {
-    "messageformat": "Desaktibatuta"
-  },
-  "icu:CallLinkRestrictionsSelect__Option--On": {
-    "messageformat": "Aktibatuta"
-  },
   "icu:CallLinkAddNameModal__Title": {
     "messageformat": "Gehitu deiaren izena"
   },
@@ -8368,6 +8605,39 @@
   },
   "icu:SaveMultiDialog__title": {
     "messageformat": "Gorde eranskinak"
+  },
+  "icu:EmbeddedContact__message": {
+    "messageformat": "Mezua"
+  },
+  "icu:ContactDetail__message": {
+    "messageformat": "Mezua"
+  },
+  "icu:ContactDetail__add-to-group": {
+    "messageformat": "Gehitu taldera"
+  },
+  "icu:ContactDetail__nickname": {
+    "messageformat": "Ezizena"
+  },
+  "icu:ContactDetail__note": {
+    "messageformat": "Oharrak"
+  },
+  "icu:email-v2": {
+    "messageformat": "Emaila"
+  },
+  "icu:home-v2": {
+    "messageformat": "Hasiera"
+  },
+  "icu:mobile-v2": {
+    "messageformat": "Telefono mugikorra"
+  },
+  "icu:work-v2": {
+    "messageformat": "Lana"
+  },
+  "icu:phone-v2": {
+    "messageformat": "telefonoa"
+  },
+  "icu:address-v2": {
+    "messageformat": "Helbidea"
   },
   "icu:WhatsNew__modal-title": {
     "messageformat": "Zer berri"
@@ -8533,6 +8803,9 @@
   },
   "icu:DonationReceipt__footer-text-v2": {
     "messageformat": "Eskerrik asko Signal-i laguntzeagatik. Zure ekarpenarekin, kode irekiko pribatutasun-teknologiaren bidez adierazpen-askatasuna babesteko eta mundu osoko milioika pertsonarentzako komunikazio segurua ahalbidetzeko dugun misioa bultzatuko duzu. Ameriketako Estatu Batuetan bizi bazara, gorde ordainagiri hau, zerga-aitorpenetarako. Signal Technology Foundation zergak ordaintzetik salbuetsita dagoen AEBko erakunde bat da, Internal Revenue Code-ko 501c3 sekzioari jarraikiz. Gure IFZa federala 82-4506840 da. Signal-ek ez du inolako ondasun edo zerbitzurik eman dohaintza honen truke."
+  },
+  "icu:MessageCta__Donate": {
+    "messageformat": "Egin dohaintza orain"
   },
   "icu:Donations__OfflineTooltip": {
     "messageformat": "Lineaz kanpo zaude. Konketatu Internetera dohaintza osatzeko."
@@ -8841,13 +9114,19 @@
     "messageformat": "Doikuntza txikiak, akats-konponketak eta errendimendu-hobekuntzak. Eskerrik asko Signal erabiltzeagatik!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.24--1": {
-    "messageformat": "Taldeen ezarpenen orrian taldeko kideak bilatzeko aukera erraztu dugu."
+  "icu:WhatsNew__8.30--0": {
+    "messageformat": "Bideodeien errendimendua hobetu da."
   },
-  "icu:WhatsNew__8.25--0": {
-    "messageformat": "Bi zoom-maila berri gehitu ditugu itxuraren ezarpenetan (% 110 eta % 90)."
+  "icu:WhatsNew__8.30--1": {
+    "messageformat": "Halaber, Windows-en sistemaren ezarpenak irekitzeko lasterbide eroso bat gehitu dugu, bideodei batean sartzen saiatu baina Signal-ek kamerarako sarbidea ez duenerako."
   },
-  "icu:WhatsNew__8.26--0": {
-    "messageformat": "Hobekuntzak egin dira taldeko kideak bilatzeko prozesuan."
+  "icu:WhatsNew__8.32--0": {
+    "messageformat": "Irakurri gabekoen iragazkia mezu-karpetetan eta bilaketa-interfazean ere erabil daiteke orain."
+  },
+  "icu:WhatsNew__8.32--1": {
+    "messageformat": "Konexio txarretako kargen egonkortasuna hobetu da. Aupa zu, <GH3mmmbulus></GH3mmmbulus>!"
+  },
+  "icu:WhatsNew__8.32--2": {
+    "messageformat": "&quot;(N)&quot; lasterbideak beheranzko erpuruaren emojia erakusten du. Erpurua gora zuri, <lnicola></lnicola>, akatsa konpontzen laguntzeagatik."
   }
 }

@@ -27,6 +27,10 @@ export type RingRtcAudioWorkletEvent =
       skippedSamples: number;
     }>
   | Readonly<{
+      type: 'timeline-realigned';
+      realignedSamples: number;
+    }>
+  | Readonly<{
       type: 'stopped';
       generation: number;
     }>;
@@ -58,6 +62,25 @@ export function readRingRtcAudioSkippedEvent(
     return undefined;
   }
   return event.skippedSamples;
+}
+
+/** Samples a leading source was pulled back by, if this is that event. */
+export function readRingRtcAudioRealignedEvent(
+  event: unknown
+): number | undefined {
+  if (
+    typeof event !== 'object' ||
+    event == null ||
+    !('type' in event) ||
+    event.type !== 'timeline-realigned' ||
+    !('realignedSamples' in event) ||
+    typeof event.realignedSamples !== 'number' ||
+    !Number.isSafeInteger(event.realignedSamples) ||
+    event.realignedSamples <= 0
+  ) {
+    return undefined;
+  }
+  return event.realignedSamples;
 }
 
 export function readRenderedPcmProgressEvent(

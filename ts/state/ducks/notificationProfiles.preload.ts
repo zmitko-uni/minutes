@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { debounce, difference } from 'lodash';
-
 import type { ReadonlyDeep } from 'type-fest';
-import type { ThunkAction } from 'redux-thunk';
-
 import { createLogger } from '../../logging/log.std.ts';
 import {
   update as updateProfileService,
@@ -37,8 +34,8 @@ import type {
   NotificationProfileOverride,
   NotificationProfileType,
 } from '../../types/NotificationProfile.std.ts';
-import type { StateType } from '../reducer.preload.ts';
 import { itemStorage } from '../../textsecure/Storage.preload.ts';
+import type { AsyncStateThunk } from '../types.std.ts';
 
 const log = createLogger('ducks/notificationProfiles');
 
@@ -152,7 +149,10 @@ export const useNotificationProfilesActions = (): BoundActionCreatorsMapObject<
 const updateStorageService = debounce(
   (reason: string, options: { force?: boolean } = {}) => {
     const disabled = itemStorage.get('notificationProfileSyncDisabled');
-    if (disabled && !options.force) {
+    const areWePrimaryDevice =
+      window.ConversationController.areWePrimaryDevice();
+
+    if (disabled && !areWePrimaryDevice && !options.force) {
       return;
     }
 
@@ -165,7 +165,7 @@ const updateStorageService = debounce(
 
 function createProfile(
   profile: Omit<NotificationProfileType, 'id'>
-): ThunkAction<void, unknown, unknown, CreateProfile> {
+): AsyncStateThunk<CreateProfile> {
   return async dispatch => {
     // We must generate this id here, because we need crypto to generate random bytes, and
     // don't want to load that in our UI components.
@@ -182,9 +182,7 @@ function createProfile(
   };
 }
 
-function markProfileDeleted(
-  id: string
-): ThunkAction<void, unknown, unknown, MarkProfileDeleted> {
+function markProfileDeleted(id: string): AsyncStateThunk<MarkProfileDeleted> {
   return async dispatch => {
     // Here we just set deletedAtTimestampMs, which removes it from the UI but keeps
     // it around for agreement between devices in storage service.
@@ -210,11 +208,11 @@ function markProfileDeleted(
 // If called based on a local change, this function is run before the storage service
 // upload. If called based on a storage service update, it is called at the end of
 // processing, as the AccountRecord is processed. All profiles have been processed at
-// that point, and the override from AccountRecord has been processed as well.
+// that point, and the override from AccountRecord is just about to be processed.
 function setIsSyncEnabled(
   enabled: boolean,
   { fromStorageService }: { fromStorageService: boolean }
-): ThunkAction<void, StateType, unknown, GlobalUpdate | UpdateLoading> {
+): AsyncStateThunk<GlobalUpdate | UpdateLoading> {
   return async (dispatch, getState) => {
     const logId = `setIsSyncEnabled/enabled=${enabled}`;
     const items = getItems(getState());
@@ -222,6 +220,22 @@ function setIsSyncEnabled(
 
     if (items.notificationProfileSyncDisabled === disabled) {
       log.warn('No change to current sync state, returning early');
+      return;
+    }
+
+    const areWePrimaryDevice =
+      window.ConversationController.areWePrimaryDevice();
+
+    // In the primary case, nothing much needs to change when this option changes
+    if (areWePrimaryDevice) {
+      await itemStorage.put('notificationProfileSyncDisabled', disabled);
+
+      if (!fromStorageService) {
+        const me = window.ConversationController.getOurConversationOrThrow();
+        me.captureChange(logId);
+        updateStorageService(logId);
+      }
+
       return;
     }
 
@@ -310,14 +324,23 @@ function setProfileOverride(
   id: NotificationProfileIdString,
   enabled: boolean,
   endsAtMs?: number
-): ThunkAction<void, StateType, unknown, UpdateOverride | UpdateLoading> {
+): AsyncStateThunk<UpdateOverride | UpdateLoading> {
   return async (dispatch, getState) => {
     const logId = `setProfileOverride/${redactNotificationProfileId(id)}/enabled=${enabled}`;
     const state = getState();
     const currentOverride = getOverride(state);
 
+    const isNotificationProfileSyncEnabled = !itemStorage.get(
+      'notificationProfileSyncDisabled',
+      false
+    );
+    const areWePrimaryDevice =
+      window.ConversationController.areWePrimaryDevice();
+
     const me = window.ConversationController.getOurConversationOrThrow();
-    me.captureChange(logId);
+    if (isNotificationProfileSyncEnabled || areWePrimaryDevice) {
+      me.captureChange(logId);
+    }
 
     if (enabled) {
       if (
@@ -344,7 +367,9 @@ function setProfileOverride(
         payload: newOverride,
       });
       fastUpdateProfileService();
-      updateStorageService(logId);
+      if (isNotificationProfileSyncEnabled || areWePrimaryDevice) {
+        updateStorageService(logId);
+      }
 
       return;
     }
@@ -359,13 +384,16 @@ function setProfileOverride(
       payload: newOverride,
     });
     fastUpdateProfileService();
-    updateStorageService(logId);
+
+    if (isNotificationProfileSyncEnabled || areWePrimaryDevice) {
+      updateStorageService(logId);
+    }
   };
 }
 
 function updateProfile(
   payload: NotificationProfileType
-): ThunkAction<void, unknown, unknown, UpdateProfile> {
+): AsyncStateThunk<UpdateProfile> {
   return async dispatch => {
     const newProfile = {
       ...payload,
@@ -386,7 +414,7 @@ function updateProfile(
 function updateOverride(
   payload: NotificationProfileOverride | undefined,
   { fromStorageService }: { fromStorageService: boolean }
-): ThunkAction<void, unknown, unknown, UpdateOverride> {
+): AsyncStateThunk<UpdateOverride> {
   return async dispatch => {
     const id = payload?.enabled?.profileId;
     const enabled = payload?.enabled;
@@ -400,7 +428,17 @@ function updateOverride(
       payload,
     });
 
-    if (!fromStorageService) {
+    const isNotificationProfileSyncEnabled = !itemStorage.get(
+      'notificationProfileSyncDisabled',
+      false
+    );
+    const areWePrimaryDevice =
+      window.ConversationController.areWePrimaryDevice();
+
+    if (
+      !fromStorageService &&
+      (isNotificationProfileSyncEnabled || areWePrimaryDevice)
+    ) {
       const me = window.ConversationController.getOurConversationOrThrow();
       me.captureChange(logId);
       updateStorageService(logId);

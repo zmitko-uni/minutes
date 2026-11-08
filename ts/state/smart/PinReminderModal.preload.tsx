@@ -13,7 +13,7 @@ import { PinReminderModal } from '../../components/PinReminderModal.dom.tsx';
 export const SmartPinReminderModal = memo(function SmartPinReminderModal() {
   const i18n = useSelector(getIntl);
   const pinReminderState = useSelector(getPinReminderModalProps);
-  const { togglePinReminder } = useGlobalModalActions();
+  const { showPinChangeModal, togglePinReminder } = useGlobalModalActions();
 
   const handleCancel = useCallback(() => {
     togglePinReminder(PinReminderState.Megaphone);
@@ -35,6 +35,7 @@ export const SmartPinReminderModal = memo(function SmartPinReminderModal() {
       i18n={i18n}
       open
       onCancel={handleCancel}
+      onForgotPin={showPinChangeModal}
       onPinEntry={handlePinEntry}
     />
   );

@@ -168,15 +168,6 @@ function renderToast({
       </Toast>
     );
   }
-
-  if (toastType === ToastType.CannotAddMemberLabel) {
-    return (
-      <Toast onClose={hideToast}>
-        {i18n('icu:ToastManager__CannotAddMemberLabel')}
-      </Toast>
-    );
-  }
-
   if (toastType === ToastType.CannotEditMessage) {
     return (
       <Toast onClose={hideToast}>
@@ -795,6 +786,12 @@ function renderToast({
           components={{ maxPinnedConversations: toast.maxPinnedConversations }}
         />
       </Toast>
+    );
+  }
+
+  if (toastType === ToastType.PinChangeCompleted) {
+    return (
+      <Toast onClose={hideToast}>{i18n('icu:PinChangeCompletedToast')}</Toast>
     );
   }
 

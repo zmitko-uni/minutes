@@ -89,7 +89,7 @@ export const SmartCompositionRecordingDraft = memo(
 
     const handleSend = useCallback(() => {
       if (selectedConversationId) {
-        sendMultiMediaMessage(selectedConversationId, {
+        void sendMultiMediaMessage(selectedConversationId, {
           draftAttachments: [voiceNoteAttachment],
         });
       }
@@ -98,7 +98,7 @@ export const SmartCompositionRecordingDraft = memo(
     const handleCancel = useCallback(() => {
       unloadMessageAudio();
       if (selectedConversationId) {
-        removeAttachment(selectedConversationId, voiceNoteAttachment);
+        void removeAttachment(selectedConversationId, voiceNoteAttachment);
       }
     }, [
       removeAttachment,
@@ -140,11 +140,19 @@ export const SmartCompositionRecordingDraft = memo(
       ]
     );
 
+    const waveform = voiceNoteAttachment.pending
+      ? undefined
+      : voiceNoteAttachment.audioWaveform;
+
     return (
       <CompositionRecordingDraft
         i18n={i18n}
         audioUrl={audioUrl}
         active={draftActive}
+        waveform={waveform}
+        duration={
+          voiceNoteAttachment.pending ? undefined : voiceNoteAttachment.duration
+        }
         onCancel={handleCancel}
         onSend={handleSend}
         onPlay={handlePlay}

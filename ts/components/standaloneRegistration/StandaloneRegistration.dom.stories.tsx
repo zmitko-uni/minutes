@@ -26,12 +26,25 @@ import { getDefaultAvatars } from '../../types/Avatar.std.ts';
 import { MINUTE, SECOND } from '../../util/durations/constants.std.ts';
 import { VerificationTransport } from '../../types/VerificationTransport.std.ts';
 import { PhoneNumberDiscoverability } from '../../util/phoneNumberDiscoverability.std.ts';
+import { DialogType } from '../../types/Dialogs.std.ts';
 
 const i18n = setupI18n('en', messages);
 
 const meta = {
   component: StandaloneRegistration,
   title: 'Components/StandaloneRegistration',
+  parameters: {
+    layout: 'fullscreen',
+  },
+  decorators: [
+    Story => {
+      return (
+        <div style={{ width: '100vw', height: '100vh' }}>
+          <Story />
+        </div>
+      );
+    },
+  ],
 } satisfies Meta<typeof StandaloneRegistration>;
 
 const phoneNumber = '+14155551111';
@@ -86,6 +99,19 @@ export const StartingScreen: Story = {
       status: {
         type: 'ready',
       },
+    },
+
+    // Updates
+    currentVersion: 'v1.0.0',
+    forceCheck: action('forceCheck'),
+    kickOffForcedUpgrade: action('kickOffForcedUpgrade'),
+    OS: 'windows',
+    startUpdate: action('startUpdate'),
+    updates: {
+      dialogType: DialogType.None,
+      didSnooze: false,
+      showEventsCount: 0,
+      isCheckingForUpdates: false,
     },
 
     // AvatarEditor support
@@ -775,6 +801,21 @@ export const AccountLocked: Story = {
     ...StartingScreen.args,
     workflow: {
       stage: RegistrationStage.ACCOUNT_LOCKED,
+    },
+  },
+};
+
+export const UpdateRequiredWithDownloadingState: Story = {
+  args: {
+    ...StartingScreen.args,
+    workflow: {
+      stage: RegistrationStage.UPDATE_REQUIRED,
+    },
+    updates: {
+      ...StartingScreen.args.updates,
+      dialogType: DialogType.Downloading,
+      downloadedSize: 50_000_000,
+      downloadSize: 60_000_000,
     },
   },
 };

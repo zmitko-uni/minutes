@@ -100,6 +100,10 @@ export const SmartAboutContactModal = memo(function SmartAboutContactModal() {
     toggleNotePreviewModal({ conversationId: contactId });
   }, [toggleNotePreviewModal, contactId]);
 
+  const handleClose = useCallback(() => {
+    toggleAboutContactModal(null);
+  }, [toggleAboutContactModal]);
+
   if (contact == null) {
     return null;
   }
@@ -115,34 +119,34 @@ export const SmartAboutContactModal = memo(function SmartAboutContactModal() {
       fromOrAddedByTrustedContact={isFromOrAddedByTrustedContact(contact)}
       isEditMemberLabelEnabled={isEditMemberLabelEnabled}
       isSignalConnection={isSignalConnection(contact)}
-      onClose={toggleAboutContactModal}
+      onClose={handleClose}
       onOpenNotePreviewModal={handleOpenNotePreviewModal}
       pendingAvatarDownload={
         conversationId ? isPendingAvatarDownload(conversationId) : false
       }
       sharedGroupNames={sharedGroupNames}
       showProfileEditor={() => {
-        changeLocation({
+        void changeLocation({
           tab: NavTab.Settings,
           details: {
             page: SettingsPage.Profile,
             state: ProfileEditorPage.ProfileName,
           },
         });
-        toggleAboutContactModal(undefined);
+        toggleAboutContactModal(null);
       }}
       showQRCodeScreen={() => {
-        changeLocation({
+        void changeLocation({
           tab: NavTab.Settings,
           details: {
             page: SettingsPage.Profile,
             state: ProfileEditorPage.UsernameLink,
           },
         });
-        toggleAboutContactModal(undefined);
+        toggleAboutContactModal(null);
       }}
       showEditMemberLabelScreen={() => {
-        changeLocation({
+        void changeLocation({
           tab: NavTab.Chats,
           details: {
             conversationId,
@@ -159,7 +163,7 @@ export const SmartAboutContactModal = memo(function SmartAboutContactModal() {
             },
           },
         });
-        toggleAboutContactModal(undefined);
+        toggleAboutContactModal(null);
       }}
       startAvatarDownload={
         conversationId ? () => startAvatarDownload(conversationId) : undefined

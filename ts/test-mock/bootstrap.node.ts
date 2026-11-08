@@ -7,26 +7,27 @@ import crypto from 'node:crypto';
 import path, { join } from 'node:path';
 import os from 'node:os';
 import { PassThrough } from 'node:stream';
+import electronPath from 'electron';
 import createDebug from 'debug';
 import pTimeout from 'p-timeout';
 import normalizePath from 'normalize-path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
-import type { Page } from 'playwright';
 import { v4 as uuid } from 'uuid';
-
-import type { Device, PrimaryDevice, Proto } from '@signalapp/mock-server';
+import { expect } from 'playwright/test';
 import {
   Server,
   ServiceIdKind,
   loadCertificates,
 } from '@signalapp/mock-server';
+
+import type { Page } from 'playwright';
+import type { Device, PrimaryDevice, Proto } from '@signalapp/mock-server';
+
 import { MAX_READ_KEYS as MAX_STORAGE_READ_KEYS } from '../services/storageConstants.std.ts';
 import { SECOND, MINUTE, WEEK, MONTH } from '../util/durations/index.std.ts';
 import { drop } from '../util/drop.std.ts';
 import { regress } from '../test-helpers/benchmarkStats.std.ts';
-import type { RendererConfigType } from '../types/RendererConfig.std.ts';
-import type { MIMEType } from '../types/MIME.std.ts';
 import { App } from './playwright.node.ts';
 import { CONTACT_COUNT } from './benchmarks/fixtures.node.ts';
 import { strictAssert } from '../util/assert.std.ts';
@@ -35,19 +36,18 @@ import {
   generateAttachmentKeys,
 } from '../AttachmentCrypto.node.ts';
 import { isVideoTypeSupported } from '../util/GoogleChrome.std.ts';
+import { typeIntoInput, typeVerificationCode } from './helpers.node.ts';
+
+import type { RendererConfigType } from '../types/RendererConfig.std.ts';
+import type { MIMEType } from '../types/MIME.std.ts';
+import type { AciString } from '../types/ServiceId.std.ts';
 
 export { App };
 
 const debug = createDebug('mock:bootstrap');
 
-const ELECTRON = path.join(
-  __dirname,
-  '..',
-  '..',
-  'node_modules',
-  '.bin',
-  'electron'
-);
+// When imported in node, the default export of `electron` is the path to its binary
+const ELECTRON_BINARY_PATH = electronPath as unknown as string;
 const CI_SCRIPT = path.join(__dirname, '..', '..', 'ci.js');
 
 const CLOSE_TIMEOUT = 10 * 1000;
@@ -172,6 +172,14 @@ export type RegressionSample = Readonly<{
   metrics?: Record<string, number>;
 }>;
 
+export type StandaloneLinkData = Readonly<{
+  aci: AciString;
+  profileKey: Buffer<ArrayBuffer>;
+  recordIkm: Buffer<ArrayBuffer> | undefined;
+  startingStorageServiceVersion: bigint;
+  storageKey: Buffer<ArrayBuffer>;
+}>;
+
 function sanitizePathComponent(component: string): string {
   return normalizePath(component.replace(/[^a-z]+/gi, '-'));
 }
@@ -199,6 +207,23 @@ const DEFAULT_REMOTE_CONFIG = [
   [
     'desktop.libsignalNet.grpc.BackupsAnonymousGetUploadForm',
     { enabled: true },
+  ],
+  // TODO: move to gRPC
+  [
+    'desktop.libsignalNet.grpc.AccountsAnonymousCheckAccountExistence.2',
+    { enabled: true, value: 'ws' },
+  ],
+  [
+    'desktop.libsignalNet.grpc.KeyTransparencyQueryServiceSearchV2',
+    { enabled: true, value: 'ws' },
+  ],
+  [
+    'desktop.libsignalNet.grpc.MessagesAnonymousSendSingleRecipientMessage',
+    { enabled: true, value: 'ws' },
+  ],
+  [
+    'desktop.libsignalNet.grpc.MessagesSendMessage',
+    { enabled: true, value: 'ws' },
   ],
 ] as const;
 
@@ -387,6 +412,20 @@ export class Bootstrap {
     return this.#resetAppStorage();
   }
 
+  async #saveFailedStartupLogs(attempt: number): Promise<void> {
+    const outDir = await this.#getArtifactsDir(`app-start-attempt-${attempt}`);
+    if (outDir == null) {
+      return;
+    }
+
+    try {
+      await fs.rename(this.logsDir, path.join(outDir, 'logs'));
+      debug(`Saved logs of failed app start to ${outDir}`);
+    } catch (error) {
+      debug('Failed to save logs of failed app start', error);
+    }
+  }
+
   async #resetAppStorage(): Promise<void> {
     assert(
       this.#storagePath !== undefined,
@@ -432,6 +471,117 @@ export class Bootstrap {
     await window.evaluate('window.SignalCI.startStandaloneRegistration();');
 
     return app;
+  }
+
+  public async doStandaloneRegistration({
+    aci: providedAci,
+    app,
+    e164,
+    pin,
+    verificationCode,
+  }: {
+    aci?: AciString;
+    app: App;
+    e164: string;
+    pin: string;
+    verificationCode: string;
+  }): Promise<StandaloneLinkData> {
+    const window = await app.getWindow();
+
+    let aci = providedAci;
+
+    if (aci) {
+      debug('doStandaloneRegistration: aci was provided');
+      this.server.setNextAci(aci);
+    } else {
+      debug('doStandaloneRegistration: aci was provided');
+      this.server.setNextAci(undefined);
+      aci = await this.server.generateAci();
+      this.server.setNextAci(aci);
+    }
+
+    {
+      debug('doStandaloneRegistration: PHONE_NUMBER');
+      const phoneInput = window.getByPlaceholder('Phone number');
+      await typeIntoInput(phoneInput, e164, '');
+      await window.getByRole('button', { name: 'Continue' }).click();
+
+      const dialogText = window.getByText(
+        'Is your phone number above correct?'
+      );
+      await expect(dialogText).toBeVisible();
+
+      await window.getByRole('button', { name: 'Yes' }).click();
+    }
+
+    {
+      debug('doStandaloneRegistration: CAPTCHA');
+
+      await window.getByRole('button', { name: 'Verify in Browser' }).click();
+
+      const { seq, reason } = await app.waitForChallenge();
+      assert.strictEqual(reason, 'standalone registration');
+
+      await app.solveChallenge({ seq, data: { captcha: 'unused' } });
+    }
+
+    {
+      debug('doStandaloneRegistration: VERIFICATION_CODE');
+      await typeVerificationCode(window, verificationCode);
+
+      await window.getByRole('button', { name: 'Continue' }).click();
+    }
+
+    {
+      debug('doStandaloneRegistration: PROFILE_ENTRY');
+
+      const firstNameInput = window.getByPlaceholder('First name (required)');
+      await typeIntoInput(firstNameInput, 'John', '');
+
+      await window.getByRole('button', { name: 'Continue' }).click();
+    }
+
+    {
+      debug('doStandaloneRegistration: CREATE_PIN');
+
+      const phoneInput = window.getByPlaceholder('Create your PIN');
+      await typeIntoInput(phoneInput, pin, '');
+
+      await window.getByRole('button', { name: 'Continue' }).click();
+    }
+
+    {
+      debug('doStandaloneRegistration: CREATE_PIN_CONFIRM');
+
+      const phoneInput = window.getByPlaceholder('Enter your PIN');
+      await typeIntoInput(phoneInput, pin, '');
+
+      await window.getByRole('button', { name: 'Continue' }).click();
+    }
+
+    {
+      debug('doStandaloneRegistration: COMPLETE');
+
+      await expect(window.getByText('Welcome to Signal')).toBeVisible();
+    }
+
+    const { version, storageKey, recordIkm } =
+      await app.waitForUploadManifest();
+    const { profileKey, reason } = await app.waitForSetProfileKey();
+
+    assert.strictEqual(
+      reason,
+      'AccountManager.doCreateAccount',
+      'Expect to get profileKey from account create'
+    );
+
+    return {
+      aci,
+      profileKey,
+      recordIkm: recordIkm ? Buffer.from(recordIkm) : undefined,
+      startingStorageServiceVersion: BigInt(version),
+      storageKey: Buffer.from(storageKey),
+    };
   }
 
   public async link({
@@ -565,7 +715,7 @@ export class Bootstrap {
       const config = await this.#generateConfig(port, extraConfig);
 
       const startedApp = new App({
-        main: ELECTRON,
+        main: ELECTRON_BINARY_PATH,
         args: [CI_SCRIPT],
         config,
       });
@@ -579,6 +729,9 @@ export class Bootstrap {
           `Failed to start the app, attempt ${startAttempts}, retrying`,
           error
         );
+
+        // oxlint-disable-next-line no-await-in-loop
+        await this.#saveFailedStartupLogs(startAttempts);
 
         // oxlint-disable-next-line no-await-in-loop
         await this.#resetAppStorage();
@@ -693,7 +846,7 @@ export class Bootstrap {
       debug('creating screenshot');
       snapshots.push({
         name,
-        data: await window.screenshot(),
+        data: await window.screenshot({ animations: 'disabled' }),
       });
     });
 
@@ -708,7 +861,9 @@ export class Bootstrap {
         assert(before != null, 'No previous snapshot');
         assert.strictEqual(before.name, name, 'Wrong snapshot order');
         await anotherWindow.setViewportSize(viewportSize);
-        const after = await anotherWindow.screenshot();
+        const after = await anotherWindow.screenshot({
+          animations: 'disabled',
+        });
 
         const beforePng = PNG.sync.read(before.data);
         const afterPng = PNG.sync.read(after);

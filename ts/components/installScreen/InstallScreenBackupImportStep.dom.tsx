@@ -6,7 +6,6 @@ import { useState, useCallback, type JSX } from 'react';
 import type { LocalizerType } from '../../types/Util.std.ts';
 import type { UpdatesStateType } from '../../state/ducks/updates.preload.ts';
 import {
-  InstallScreenStep,
   InstallScreenBackupStep,
   InstallScreenBackupError,
 } from '../../types/InstallScreen.std.ts';
@@ -37,7 +36,7 @@ export type PropsType = Readonly<
     currentVersion: string;
     OS: string;
     startUpdate: () => void;
-    forceUpdate: () => void;
+    forceCheck: () => void;
   } & (
     | {
         backupStep: InstallScreenBackupStep.WaitForBackup;
@@ -63,7 +62,7 @@ export function InstallScreenBackupImportStep(props: PropsType): JSX.Element {
     currentVersion,
     OS,
     startUpdate,
-    forceUpdate,
+    forceCheck,
   } = props;
 
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
@@ -92,13 +91,12 @@ export function InstallScreenBackupImportStep(props: PropsType): JSX.Element {
   if (error == null || error === InstallScreenBackupError.Canceled) {
     // no-op
   } else if (error === InstallScreenBackupError.UnsupportedVersion) {
-    errorElem = (
+    return (
       <InstallScreenUpdateDialog
         i18n={i18n}
         {...updates}
-        step={InstallScreenStep.BackupImport}
         startUpdate={startUpdate}
-        forceUpdate={forceUpdate}
+        forceCheck={forceCheck}
         currentVersion={currentVersion}
         onClose={confirmCancel}
         OS={OS}

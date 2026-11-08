@@ -27,7 +27,17 @@ describe('live Signal MCP capabilities', () => {
     assert.strictEqual(response.status, 200);
     return response.json() as Promise<{
       result?: {
-        tools?: Array<{ name: string }>;
+        tools?: Array<{
+          name: string;
+          description?: string;
+          inputSchema?: {
+            properties?: Record<
+              string,
+              { description?: string; examples?: unknown; properties?: unknown }
+            >;
+          };
+          annotations?: { destructiveHint?: boolean };
+        }>;
         content?: Array<{ text?: string }>;
         contents?: Array<{ text?: string }>;
       };
@@ -98,6 +108,27 @@ describe('live Signal MCP capabilities', () => {
         queued: true,
         ...options,
       }),
+      editMessage: async (options: Readonly<Record<string, unknown>>) => ({
+        queued: true,
+        ...options,
+      }),
+      deleteMessage: async (options: Readonly<Record<string, unknown>>) => ({
+        deleted: true,
+        ...options,
+      }),
+      createPoll: async (options: Readonly<Record<string, unknown>>) => ({
+        messageId: 'poll-message-1',
+        ...options,
+      }),
+      getPollResults: async (options: Readonly<Record<string, unknown>>) => ({
+        messageId: options.messageId,
+        question: 'Kam na oběd?',
+        totalVotes: 3,
+      }),
+      votePoll: async (options: Readonly<Record<string, unknown>>) => ({
+        queued: true,
+        ...options,
+      }),
       setMessageReaction: async (options: Readonly<Record<string, unknown>>) =>
         options,
       getActiveCall: async () => ({ call: null }),
@@ -154,6 +185,11 @@ describe('live Signal MCP capabilities', () => {
       'get_attachment_directories',
       'download_attachment',
       'send_message',
+      'edit_message',
+      'delete_message',
+      'create_poll',
+      'get_poll_results',
+      'vote_poll',
       'set_message_reaction',
       'get_active_call',
       'start_call',
@@ -177,6 +213,70 @@ describe('live Signal MCP capabilities', () => {
     ]);
   });
 
+  it('advertises mention guidance in the send schema', async () => {
+    const listed = await request(2, 'tools/list', {});
+    const tool = listed.result?.tools?.find(
+      item => item.name === 'send_message'
+    );
+    assert.match(tool?.description?.split('.')[0] ?? '', /@mentions/);
+    assert.isNotEmpty(tool?.inputSchema?.properties?.mentions?.description);
+    assert.isNotEmpty(tool?.inputSchema?.properties?.text?.description);
+  });
+
+  it('edits a message by exact conversation/message IDs with mentions', async () => {
+    const result = await request(3, 'tools/call', {
+      name: 'edit_message',
+      arguments: {
+        conversationId: 'group-1',
+        messageId: 'message-1',
+        text: 'Hi @Tomáš',
+        mentions: [{ contactId: 'tomas', start: 3, length: 6 }],
+        idempotencyKey: 'edit-message-1',
+      },
+    });
+    assert.deepInclude(JSON.parse(result.result?.content?.[0]?.text ?? '{}'), {
+      conversationId: 'group-1',
+      messageId: 'message-1',
+      text: 'Hi @Tomáš',
+      mentions: [{ contactId: 'tomas', start: 3, length: 6 }],
+      idempotencyKey: 'edit-message-1',
+    });
+  });
+
+  it('requires an explicit delete scope and marks message mutations destructive', async () => {
+    const listed = await request(2, 'tools/list', {});
+    for (const name of ['edit_message', 'delete_message']) {
+      assert.isTrue(
+        listed.result?.tools?.find(item => item.name === name)?.annotations
+          ?.destructiveHint
+      );
+    }
+    const invalid = await request(3, 'tools/call', {
+      name: 'delete_message',
+      arguments: { conversationId: 'group-1', messageId: 'message-1' },
+    });
+    assert.notInclude(
+      invalid.result?.content?.[0]?.text ?? '',
+      '"deleted":true'
+    );
+    await Promise.all(
+      ['for_me', 'for_everyone'].map(async (scope, index) => {
+        const result = await request(4 + index, 'tools/call', {
+          name: 'delete_message',
+          arguments: {
+            conversationId: 'group-1',
+            messageId: 'message-1',
+            scope,
+          },
+        });
+        assert.deepInclude(
+          JSON.parse(result.result?.content?.[0]?.text ?? '{}'),
+          { scope, deleted: true }
+        );
+      })
+    );
+  });
+
   it('adds a Signal contact by an exact phone number', async () => {
     const added = await request(3, 'tools/call', {
       name: 'add_contact',
@@ -191,6 +291,90 @@ describe('live Signal MCP capabilities', () => {
       added.result?.content?.[0]?.text ?? '',
       '"phoneNumber":"+420123456789"'
     );
+  });
+
+  it('creates a poll and reads its current results', async () => {
+    const created = await request(11, 'tools/call', {
+      name: 'create_poll',
+      arguments: {
+        conversationId: 'conversation-1',
+        question: 'Kam na oběd?',
+        options: ['Pizza', 'Sushi'],
+        allowMultiple: false,
+        idempotencyKey: 'lunch-2026-09-25',
+      },
+    });
+    const createdText = created.result?.content?.[0]?.text ?? '';
+    assert.include(createdText, '"messageId":"poll-message-1"');
+    assert.include(createdText, '"options":["Pizza","Sushi"]');
+    assert.include(createdText, '"idempotencyKey":"lunch-2026-09-25"');
+
+    const results = await request(12, 'tools/call', {
+      name: 'get_poll_results',
+      arguments: { messageId: 'poll-message-1' },
+    });
+    const resultsText = results.result?.content?.[0]?.text ?? '';
+    assert.include(resultsText, '"question":"Kam na oběd?"');
+    assert.include(resultsText, '"totalVotes":3');
+  });
+
+  it('accepts poll text at the Signal grapheme limit', async () => {
+    const question = '👍'.repeat(100);
+    const created = await request(13, 'tools/call', {
+      name: 'create_poll',
+      arguments: {
+        conversationId: 'conversation-1',
+        question,
+        options: ['Ano', 'Ne'],
+      },
+    });
+
+    assert.include(
+      created.result?.content?.[0]?.text ?? '',
+      '"messageId":"poll-message-1"'
+    );
+  });
+
+  it('casts and clears a poll vote through Signal', async () => {
+    const voted = await request(14, 'tools/call', {
+      name: 'vote_poll',
+      arguments: {
+        messageId: 'poll-message-1',
+        optionIndexes: [0, 1],
+      },
+    });
+    assert.include(voted.result?.content?.[0]?.text ?? '', '"queued":true');
+    assert.include(
+      voted.result?.content?.[0]?.text ?? '',
+      '"optionIndexes":[0,1]'
+    );
+
+    const cleared = await request(15, 'tools/call', {
+      name: 'vote_poll',
+      arguments: {
+        messageId: 'poll-message-1',
+        optionIndexes: [],
+      },
+    });
+    assert.include(cleared.result?.content?.[0]?.text ?? '', '"queued":true');
+    assert.include(
+      cleared.result?.content?.[0]?.text ?? '',
+      '"optionIndexes":[]'
+    );
+  });
+
+  it('accepts mention identities and ranges in send_message', async () => {
+    const sent = await request(4, 'tools/call', {
+      name: 'send_message',
+      arguments: {
+        conversationId: 'group-1',
+        text: 'Hi @Tomáš',
+        mentions: [{ contactId: 'tomas', start: 3, length: 6 }],
+      },
+    });
+    assert.deepInclude(JSON.parse(sent.result?.content?.[0]?.text ?? '{}'), {
+      mentions: [{ contactId: 'tomas', start: 3, length: 6 }],
+    });
   });
 
   it('reads canonical conversation resources and invokes mutations', async () => {
