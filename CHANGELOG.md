@@ -19,7 +19,24 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [8.32.0-m1.6.4] - 2026-11-08
 
 ### Changed
-- vratit poznamky k vydani do Unreleased
+
+- **Základ aplikace**: Minutes vychází ze Signal Desktop 8.32.0
+- **Volání a nahrávání**: produkce používá Minutes RingRTC `2.71.0-minutes.1`, založené na Signal RingRTC 2.71.0, se zachovanými audio a video tapy pro nahrávání
+
+### Added
+
+- **MCP zprávy**: nové destruktivní nástroje `edit_message` a `delete_message` s nativními pravidly Signalu, podporou zmínek při úpravě a povinným rozsahem mazání pro sebe / pro všechny
+- **MCP metadata**: zmínky jsou uvedené hned v popisu `send_message` a vysvětlené u parametrů; server hlásí skutečnou verzi aplikace a zprávy vracejí stav smazání i čas poslední úpravy
+- **MCP zmínky**: `send_message` podporuje skutečné označení členů skupiny pomocí `mentions` (ID kontaktu a úsek textu); kontroluje členství a zachovává ochranu proti duplicitnímu odeslání
+- **MCP hlasování**: nástroj `create_poll` vytvoří Signal anketu se 2–10 možnostmi a volitelným vícenásobným výběrem; `vote_poll` odešle, změní nebo odebere vlastní hlas a `get_poll_results` průběžně vrací počty hlasů, procenta, hlasující a stav ukončení. Výsledky ankety jsou také součástí `get_message`
+
+### Fixed
+
+- **Zakládání skupin v 8.32**: konfigurace Minutes používá aktuální veřejné parametry Signalu pro ověřování zkgroup a záloh. Kontrola při generování a balení aplikace zastaví build, pokud se parametry po upgradu upstreamu znovu rozejdou
+- **Štítek člena ve skupině**: v nastavení skupiny jde znovu nastavit vlastní štítek (viditelný jen v té skupině). Stejně se znovu zapnou ostatní funkce Signalu, které se řídí vzdálenou konfigurací podle verze
+- **Nahrávání hovoru**: z nahrávky už nemizí vlastní mikrofon. Když hodiny mikrofonu utekly vůči přehrávání o víc než sekundu, nahrávka od té chvíle obsahovala jen ostatní účastníky; zdroj, který předbíhá, se teď vrací zpět do synchronu
+- **Start aplikace**: opraven pád preloadu při inicializaci MCP zmínek
+- **MCP zprávy**: `get_messages`, `get_message` a `search_messages` vracejí textové zmínky jako čitelná jména kontaktů místo prázdných zástupných znaků
 
 ## [8.32.0-m1.6.3-beta.10] - 2026-11-02
 
