@@ -16,6 +16,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.32.0-m1.6.4] - 2026-11-08
+
+### Changed
+- vratit poznamky k vydani do Unreleased
+
 ## [8.32.0-m1.6.3-beta.10] - 2026-11-02
 
 ### Fixed
