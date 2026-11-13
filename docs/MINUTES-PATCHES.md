@@ -117,7 +117,7 @@
 | `ts/minutes/automation/messageMentionAutomation.std.ts` | validace MCP zmínek podle ID členů skupiny, převod UTF-16 úseků textu na nativní Signal mention body ranges; popis API v `docs/MCP-MENTIONS.md` |
 | `ts/minutes/automation/messageMutationAutomation.dom.ts` | validace cílů MCP úprav/mazání; editace používá pravidla a odesílání Signalu, mazání má explicitní rozsah a samostatné destruktivní oprávnění; API v `docs/MCP-MESSAGE-MUTATIONS.md` |
 | `ts/minutes/screenLockCallPolicy.std.ts` | zachování aktivního hovoru při zamknutí obrazovky |
-| `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external); `asarUnpack` + `sleep-promise/build`; FileSet pro `build/*.json` |
+| `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external); `asarUnpack` binárek; FileSet `from: "."` s filtrem `sleep-promise/build` (kladný řetězcový glob electron-builder při sběru `node_modules` ignoruje, takže by v asar chybělo `build/cjs.js`); FileSet pro `build/*.json` |
 | `ts/minutes/perplexitySummary.main.ts` | Perplexity API (bez web search) |
 | `ts/minutes/anthropicSummary.main.ts` | Anthropic Claude API |
 | `ts/minutes/aiSettingsService.preload.ts` | preload IPC wrapper |

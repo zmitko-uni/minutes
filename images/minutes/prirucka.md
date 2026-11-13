@@ -419,8 +419,10 @@ V tabu **Přepisy** je u nahrávky v seznamu jen krátké **Přepis selhal** / *
 
 ### Runtime „Chybí node-llama-cpp“ / chyba `sleep-promise`
 
-- Aktualizujte Minutes na nejnovější verzi (starší instalátory vynechávaly závislost potřebnou pro lokální model)
-- Po aktualizaci znovu otevřete **Nastavení AI** a použijte **Stáhnout a aktivovat**
+Hláška **Runtime: Chybí node-llama-cpp** a text `Cannot find package …/sleep-promise/build/cjs.js` po **Stáhnout a aktivovat** znamenají, že instalátor nemá soubory lokálního modelu. Týká se Windows i macOS.
+
+- Nainstalujte novější Minutes (verze s touto opravou)
+- Znovu otevřete **Nastavení AI**, zvolte **Lokální LLM (Gemma)** a použijte **Stáhnout a aktivovat**
 
 ### Přepis běží na pomalé integrované grafice
 
@@ -504,4 +506,4 @@ Minutes je fork Signal Desktop (AGPL-3.0-only).
 
 **Skupina:** [Připojit se do skupiny](https://signal.group/#CjQKIBP9zkSQgKhZKU8a8CmyyetVnaN2JVJtiFXWLtNOF_WlEhDj2Yr4HQMlB-P5tAEy2sQn) — veřejná Signal skupina pro uživatele Minutes
 
-*Poslední aktualizace příručky: 2026-10-05*
+*Poslední aktualizace příručky: 2026-11-13*

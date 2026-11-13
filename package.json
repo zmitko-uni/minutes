@@ -676,7 +676,12 @@
           "icons/minutes/png/**"
         ]
       },
-      "**/node_modules/sleep-promise/build/**",
+      {
+        "from": ".",
+        "filter": [
+          "**/node_modules/sleep-promise/build/**"
+        ]
+      },
       "!node_modules/node-llama-cpp/bins/**/*",
       "node_modules/node-llama-cpp/bins/${os}-${arch}*/**/*",
       "!node_modules/node-llama-cpp/llama/localBuilds/**/*",
