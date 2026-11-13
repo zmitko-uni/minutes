@@ -13,6 +13,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ## [Unreleased]
 
+### Added
+- (doplňte před příštím release)
+
+## [8.32.0-m1.6.4-beta.1] - 2026-11-13
+
 ### Fixed
 
 - **Lokální AI (Gemma)**: v nainstalované aplikaci (Windows i macOS) jde znovu stáhnout a zapnout model. Instalátor vynechával soubory balíčku `sleep-promise`, takže v Nastavení AI bylo **Runtime: Chybí node-llama-cpp** a **Stáhnout a aktivovat** skončilo chybou.
