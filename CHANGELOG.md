@@ -20,6 +20,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Fixed
 
 - **Nahrávky hovoru**: příchozí sdílení se nahrává nezávisle na viditelnosti okna hovoru; minimalizace už neukončuje odběr obrazu pro rekordér.
+- **Nahrávky hovoru**: nové WebM mají uloženou skutečnou délku a index, aby bylo možné spolehlivě přeskakovat v přehrávači bez exportu do MP4.
 
 ## [8.32.0-m1.6.4-beta.1] - 2026-11-13
 

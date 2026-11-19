@@ -17,6 +17,14 @@ import { tmpdir } from 'node:os';
 import { EventEmitter } from 'node:events';
 
 import { assert } from 'chai';
+// oxlint-disable-next-line signal-desktop/enforce-file-suffix -- Uses Mediabunny's Node file source.
+import {
+  BufferSource,
+  EncodedPacketSink,
+  FilePathSource,
+  Input,
+  WEBM,
+} from 'mediabunny';
 
 import {
   initializeMinutesVideoRecordingChannel,
@@ -92,6 +100,58 @@ describe('VideoRecordingFileWriter', () => {
     });
 
     assert.deepEqual([...(await readFile(result.filePath))], [1, 2, 3, 4]);
+  });
+
+  it('saves a live WebM with a fixed duration and seeks to its original video packets', async () => {
+    // Two seconds of VP8 at 2 fps with a keyframe at every second, muxed in
+    // live mode so the input has no duration or cues (like MediaRecorder).
+    const fixture = Uint8Array.from(
+      Buffer.from(
+        'GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChYECGFOAZwH/////////EU2bdKtNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHNTbuMU6uEElTDZ1OsggEa7AEAAAAAAABoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmpyrXsYMPQkBNgI1MYXZmNjIuMTIuMTAxV0GNTGF2ZjYyLjEyLjEwMRZUrmvIrgEAAAAAAAA/14EBc8WI4oUIwSQ+5ZacgQAitZyDdW5kiIEAhoVWX1ZQOIOBASPjg4QdzWUA4JCwgRC6gRCagQJVsIRVuYEBElTDZ9hzc6BjwIBnyJpFo4dFTkNPREVSRIeNTGF2ZjYyLjEyLjEwMXNzsmPAi2PFiOKFCMEkPuWWZ8ihRaOHRU5DT0RFUkSHlExhdmM2Mi4yOC4xMDEgbGlidnB4H0O2dUCY54EAo72BAACA8AIAnQEqEAAQAABHCIWFiIWEiAICAnWqA/gD+gINTRgA/v1u8//jmTcwxP+Obf/xYTwOKMj/8VEAo5WBAfQAsQEABRCsABgAGFgv9AAIAACjvYED6IDwAgCdASoQABAAAEcIhYWIhYSIAgICdaoD+AP6Ag1NGAD+/W7z/+OZNzDE/45t//FhPA4oyP/xUQAfQ7Z1m+eCBdyjlYEAAACxAQAFEKwAGAAYWC/0AAgAAA==',
+        'base64'
+      )
+    );
+    const startedAt = Date.UTC(2026, 6, 22, 10);
+    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: 'Direct',
+      startedAt,
+      codec: 'video/webm;codecs=vp8,opus',
+      width: 16,
+      height: 16,
+      frameRate: 2,
+    });
+    await writer.append(7, session.sessionId, fixture);
+
+    const { filePath } = await writer.finalize(7, session.sessionId, {
+      endedAt: startedAt + 2_000,
+      recordedDurationMs: 2_000,
+      speakerActivityLog: createTestSpeakerActivityLog(startedAt, 2_000),
+    });
+    using input = new Input({
+      formats: [WEBM],
+      source: new FilePathSource(filePath),
+    });
+
+    assert.strictEqual(await input.getDurationFromMetadata(), 2);
+    const video = await input.getPrimaryVideoTrack();
+    assert.exists(video);
+    const packet = await new EncodedPacketSink(video).getKeyPacket(1.25);
+    assert.strictEqual(packet?.timestamp, 1);
+
+    using liveInput = new Input({
+      formats: [WEBM],
+      source: new BufferSource(fixture),
+    });
+    const originalVideo = await liveInput.getPrimaryVideoTrack();
+    assert.exists(originalVideo);
+    const originalPacket = await new EncodedPacketSink(
+      originalVideo
+    ).getKeyPacket(1.25);
+    assert.exists(originalPacket);
+    assert.deepEqual(packet?.data, originalPacket.data);
   });
 
   it('rejects a chunk when the bounded write queue is full', async () => {

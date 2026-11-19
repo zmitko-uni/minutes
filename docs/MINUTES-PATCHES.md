@@ -134,6 +134,7 @@
 | `ts/minutes/ringRtcVideoTapApi.std.ts`, `ringRtcOutgoingVideoSource.preload.ts`, `ringRtcScreenShareCompositor.preload.ts` | validace API a čtení odchozího RingRTC screen-share videa |
 | `ts/minutes/videoRecording*.ts` | video lifecycle, MediaRecorder, streamovaný WebM/PCM IPC writer, automatický přepis, stav UI a speaker-activity logger |
 | `app/minutes_video_recording_channel.main.ts` | sekvenční `.webm.partial` + `.pcm.f32.partial` writer a atomická finalizace videa, PCM, metadat a `.speaker-activity.json` |
+| `ts/minutes/indexRecordingWebm.node.ts` | po ukončení doplní délku a seek index WebM přebalením bez překódování; při chybě uchová původní záznam |
 | `ts/minutes/recordingArtifacts.std.ts` | společné odvozování PCM, přepisu a shrnutí pro MP3 i WebM |
 | `ts/minutes/recordingPcmReader.node.ts` | blokové čtení a převzorkování dlouhých PCM sidecarů pro Whisper |
 | `ts/minutes/macCallVoiceProcessing.preload.ts` | macOS: zapne RingRTC VoiceProcessingIO, aby šly během hovoru měnit Mic Modes |

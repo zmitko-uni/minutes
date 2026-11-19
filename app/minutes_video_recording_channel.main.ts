@@ -16,6 +16,7 @@ import {
 } from '../ts/minutes/videoRecordingFile.std.ts';
 import { SPEAKER_ACTIVITY_FILE_SUFFIX } from '../ts/minutes/constants.std.ts';
 import { isSpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
+import { indexRecordingWebm } from '../ts/minutes/indexRecordingWebm.node.ts';
 import {
   createRecordingPartialFileError,
   formatTimestampForRecordingFilename,
@@ -250,6 +251,9 @@ export class VideoRecordingFileWriter {
       await session.writes;
       await session.handle.sync();
       await session.pcmHandle.sync();
+      await session.handle.close();
+      await session.pcmHandle.close();
+      await indexRecordingWebm(session.partialPath);
       await writeFile(
         metadataPartialPath,
         JSON.stringify(
@@ -280,8 +284,6 @@ export class VideoRecordingFileWriter {
         JSON.stringify(options.speakerActivityLog, null, 2),
         { encoding: 'utf8', flag: 'wx' }
       );
-      await session.handle.close();
-      await session.pcmHandle.close();
       await this.#renameFile(session.pcmPartialPath, session.pcmPath);
       pcmRenamed = true;
       await this.#renameFile(speakerActivityPartialPath, speakerActivityPath);

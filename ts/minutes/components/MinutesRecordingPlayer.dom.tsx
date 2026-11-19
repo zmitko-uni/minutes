@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { useState, type JSX } from 'react';
@@ -10,7 +10,7 @@ import {
 import type { RecordingListItem } from '../recordingsListModel.std.ts';
 
 /**
- * WebM z MediaRecorderu nemá cue body, takže se v něm skoro nedá přetáčet.
+ * Starší WebM z MediaRecorderu nemají index pro přetáčení.
  * Když existuje MP4 export, přehráváme radši ten.
  */
 function resolveSourcePath(item: RecordingListItem): Readonly<{
@@ -69,8 +69,8 @@ export function MinutesRecordingPlayer({
 
       {isSeekingLimited && (
         <p className="MinutesTranscriptsTab__note">
-          Ve WebM záznamu nejde spolehlivě přetáčet. Vytvořte MP4 přes nabídku
-          Soubory a přehrávač pak umožní posun v čase.
+          Pokud u starší WebM nahrávky časová osa skáče, vytvořte MP4 přes
+          nabídku Soubory.
         </p>
       )}
     </div>
