@@ -7,6 +7,7 @@ import { createLogger } from '../logging/log.std.ts';
 import { minutesCaptureCoordinator } from './captureCoordinator.std.ts';
 import { RingRtcAudioTrack } from './ringRtcAudioTrack.preload.ts';
 import { RingRtcScreenShareCompositor } from './ringRtcScreenShareCompositor.preload.ts';
+import { readRecordingVideoSnapshot } from './recordingVideoSnapshot.preload.ts';
 import { videoRecordingFileService } from './videoRecordingFileService.preload.ts';
 import {
   VideoRecordingServiceCore,
@@ -52,6 +53,11 @@ const core = new VideoRecordingServiceCore({
   createCompositor: (options, onFatalError) =>
     RingRtcScreenShareCompositor.create({
       conversationId: options.conversationId,
+      readSnapshot: () =>
+        readRecordingVideoSnapshot(
+          options.conversationId,
+          options.callMode as CallMode.Direct | CallMode.Group
+        ),
       onFatalError,
     }),
   combineStreams: (videoStream, audioStream) =>

@@ -8,6 +8,7 @@ import type { RefObject } from 'react';
 import { createLogger } from '../logging/log.std.ts';
 import { toLogFormat } from '../types/errors.std.ts';
 import { presentationSourceController } from '../minutes/presentationSourceControllerGlobal.std.ts';
+import { recordingVideoBridge } from '../minutes/recordingVideoBridge.std.ts';
 
 const log = createLogger('VideoSupport');
 
@@ -376,6 +377,9 @@ export class GumVideoCapturer {
             }
 
             sender.sendVideoFrame(width, height, format, buffer);
+            if (source === 'camera') {
+              recordingVideoBridge.onSentCameraFrame(sender, frame);
+            }
           } catch (e) {
             log.error(`sendVideoFrame(): ${e}`);
           } finally {

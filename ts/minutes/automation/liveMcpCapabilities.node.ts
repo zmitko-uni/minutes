@@ -695,7 +695,7 @@ export function registerLiveMcpCapabilities(
     ],
     [
       'start_video_recording',
-      'Starts shared-video stream recording with call audio.',
+      'Starts recording call audio and the shared screen, or participant tiles with enabled cameras and active-speaker indicators when no screen is shared. Inform all participants before starting.',
       () => live.startVideoRecording(),
     ],
     [

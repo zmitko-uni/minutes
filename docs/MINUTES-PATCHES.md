@@ -17,7 +17,7 @@
 | `app/SystemTrayService.main.ts` | tray ikona + tooltip minutes | 2 volání |
 | `app/menu.std.ts` | submenu Minutes + Příručka/MCP | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
-| `ts/services/calling.preload.ts` | `onCallEnded` při konci hovoru; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes). Od Signal 8.32 se předává `GroupCallSvcConfig`. Nahrávací tapy zůstávají ve Minutes RingRTC `2.71.0-minutes.1`, ne ve stock `2.72.1` | 3 volání |
+| `ts/services/calling.preload.ts`, `ts/calling/VideoSupport.preload.ts` | lifecycle nahrávání; most k RingRTC zdrojům, požadavkům na video a již odeslaným snímkům vlastní kamery; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes). Od Signal 8.32 se předává `GroupCallSvcConfig`. Nahrávací tapy zůstávají ve Minutes RingRTC `2.71.0-minutes.1`, ne ve stock `2.72.1` | volání do modulů Minutes |
 | `ts/util/callLinksRingrtc.node.ts` | `installMinutesRingrtcCompat()` — Signal 8.32 volá `CallLinkRootKey.toUnredactedString()`, Minutes RingRTC 2.71 má stejný formátovaný klíč v `toString()` | 1 volání |
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
 | `ts/util/isFeatureEnabled.dom.ts` | semver příznaky remote configu (štítek člena, ankety 1:1, …) se porovnávají se Signal bází z verze Minutes, ne s celým `8.32.0-m…` | 1 volání na začátku `_isFeatureEnabledInner` |
@@ -126,8 +126,9 @@
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
 | `ts/minutes/callRecordingService.preload.ts`, `callRecordingServiceCore.std.ts` | MP3 lifecycle nad jediným RingRTC audio trackem; žádný samostatný mikrofon ani systémový loopback |
 | `ts/minutes/captureCoordinator.std.ts` | vzájemné vyloučení audio/video nahrávání a společná finalizace |
-| `ts/minutes/presentationSource*.ts`, `presentationAuthority.std.ts`, `usePresentationAuthority.std.ts` | bezpečný výběr pouze Signal prezentace; lokální autorita používá výhradně RingRTC tap canvas |
-| `ts/minutes/screenShareCompositor.dom.ts` | černý 1920×1080/15 fps compositor s aspect-fit prezentací |
+| `ts/minutes/recordingVideo*.ts`, `recordingIncomingVideo.dom.ts` | výběr obrazu ze stavu hovoru, odběr jen po dobu nahrávání a sdílení příchozích RingRTC snímků s UI (RingRTC čtením snímek odebere); hodnota 0×0 ze skrytého UI neodpojí zdroj potřebný pro nahrávání |
+| `ts/minutes/presentationSource*.ts` | lokální prezentace používá výhradně RingRTC tap canvas a vlastní registr pro danou nahrávku |
+| `ts/minutes/screenShareCompositor.dom.ts` | 1920×1080/15 fps compositor s aspect-fit prezentací, jinak galerie účastníků podle kamer a aktivity řeči |
 | `ts/minutes/ringRtcAudio*.ts`, `ringRtcPcmChunker.std.ts`, `ringRtcRenderedPcmProgress.std.ts` | čtení lokálního/remote RingRTC PCM, timeline, mix, AudioWorklet track a streamované PCM bloky pro speaker activity i přepis videa |
 | `ts/minutes/recordingsDirectory.node.ts` | centrální `~/Documents/Minutes` cesta a bezpečná migrace legacy nahrávek bez přepisování |
 | `ts/minutes/ringRtcVideoTapApi.std.ts`, `ringRtcOutgoingVideoSource.preload.ts`, `ringRtcScreenShareCompositor.preload.ts` | validace API a čtení odchozího RingRTC screen-share videa |

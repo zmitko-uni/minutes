@@ -13,6 +13,7 @@ import {
 
 type DrawOperation =
   | Readonly<{ kind: 'fill'; color: string; args: ReadonlyArray<number> }>
+  | Readonly<{ kind: 'text'; text: string; color: string }>
   | Readonly<{
       kind: 'draw';
       source: CanvasImageSource;
@@ -49,6 +50,9 @@ function createHarness(): CompositorHarness {
     fillStyle: '',
     fillRect(this: { fillStyle: string }, ...args: Array<number>) {
       operations.push({ kind: 'fill', color: this.fillStyle, args });
+    },
+    fillText(this: { fillStyle: string }, text: string) {
+      operations.push({ kind: 'text', text, color: this.fillStyle });
     },
     drawImage(source: CanvasImageSource, ...args: Array<number>) {
       operations.push({ kind: 'draw', source, args });
@@ -89,6 +93,83 @@ function createHarness(): CompositorHarness {
 }
 
 describe('ScreenShareCompositor', () => {
+  it('renders the connected participants and highlights speaking without sharing', () => {
+    const harness = createHarness();
+    const getActiveSource = () => undefined;
+    const getGallery = () => [
+      { id: 'alice', name: 'Alice Novak', speaking: true },
+      { id: 'bob', name: 'Bob', speaking: false },
+    ];
+    const compositor = new ScreenShareCompositor(
+      { getActiveSource, getGallery },
+      harness.dependencies
+    );
+
+    compositor.start();
+
+    assert.deepEqual(
+      harness.operations.flatMap(op => (op.kind === 'text' ? [op.text] : [])),
+      ['AN', 'Alice Novak', 'B', 'Bob']
+    );
+    assert.include(
+      harness.operations.flatMap(op => (op.kind === 'fill' ? [op.color] : [])),
+      '#42d392'
+    );
+  });
+
+  it('switches from a camera tile to a presentation and back to initials when the camera is off', () => {
+    const harness = createHarness();
+    const camera = { width: 320, height: 180 } as HTMLCanvasElement;
+    const share = { width: 1280, height: 720 } as HTMLCanvasElement;
+    let cameraOn = true;
+    let showingShare = false;
+    const getActiveSource = () =>
+      showingShare
+        ? {
+            identity: 'alice',
+            presentationGeneration: 1,
+            sourceGeneration: 1,
+            source: share,
+          }
+        : undefined;
+    const getGallery = () => [
+      {
+        id: 'alice',
+        name: 'Alice Novak',
+        speaking: false,
+        camera: cameraOn ? camera : undefined,
+      },
+    ];
+    const compositor = new ScreenShareCompositor(
+      { getActiveSource, getGallery },
+      harness.dependencies
+    );
+
+    compositor.start();
+    assert.deepEqual(
+      harness.operations.flatMap(op => (op.kind === 'draw' ? [op.source] : [])),
+      [camera]
+    );
+
+    showingShare = true;
+    harness.operations.length = 0;
+    harness.scheduled[0]?.();
+    assert.deepEqual(
+      harness.operations.flatMap(op => (op.kind === 'draw' ? [op.source] : [])),
+      [share]
+    );
+    assert.isFalse(harness.operations.some(op => op.kind === 'text'));
+
+    showingShare = false;
+    cameraOn = false;
+    harness.operations.length = 0;
+    harness.scheduled[0]?.();
+    assert.isFalse(harness.operations.some(op => op.kind === 'draw'));
+    assert.isTrue(
+      harness.operations.some(op => op.kind === 'text' && op.text === 'AN')
+    );
+  });
+
   it('uses browser canvas and timer dependencies by default', () => {
     const registry = new PresentationSourceRegistry<PresentationCanvasSource>();
     const harness = createHarness();

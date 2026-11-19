@@ -145,7 +145,7 @@ Export proběhne vždy — uloží se přepis zpráv. Lišta upozorní, že AI s
 V obrazovce hovoru (vedle mute) jsou dvě samostatné akce:
 
 - **Nahrávání zvuku** — po potvrzení začne ukládat MP3 (funguje i bez Whisperu)
-- **Nahrávání sdíleného videa** — WebM obsahující pouze obraz, který někdo sdílí přes Signal, a zvuk hovoru přímo z RingRTC; vaše vlastní sdílení se zapisuje z odchozího RingRTC video streamu, nikoli novým snímáním obrazovky
+- **Nahrávání videa hovoru** — WebM obsahuje zvuk hovoru přímo z RingRTC a sdílený obraz ze Signalu nezávisle na tom, zda je okno hovoru viditelné. Když nikdo nesdílí, nahrávka ukáže dlaždice se jmény, zvýrazní mluvčí a zobrazí zapnuté kamery (nejvýš 12 vzdálených kamer najednou, s předností pro mluvčí). Vaše vlastní sdílení se zapisuje z odchozího RingRTC video streamu, nikoli novým snímáním obrazovky.
 - **Pause / Resume** — pozastaví / obnoví aktivní nahrávku i log řečníků; při obnovení se potvrzení nezobrazuje
 - **Stop** — ukončí a uloží aktivní nahrávku
 

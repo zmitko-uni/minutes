@@ -1,7 +1,12 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { presentationSourceController } from './presentationSourceControllerGlobal.std.ts';
+import { PresentationSourceController } from './presentationSourceController.std.ts';
+import { recordingVideoBridge } from './recordingVideoBridge.std.ts';
+import {
+  RecordingVideoScene,
+  type RecordingCallVideoSnapshot,
+} from './recordingVideoScene.dom.ts';
 import { RingRtcOutgoingVideoSource } from './ringRtcOutgoingVideoSource.preload.ts';
 import { ScreenShareCompositor } from './screenShareCompositor.dom.ts';
 
@@ -36,11 +41,45 @@ export class RingRtcScreenShareCompositor {
 
   static create(options: {
     conversationId: string;
+    readSnapshot(): RecordingCallVideoSnapshot | undefined;
     onFatalError: (error: Error) => void;
   }): RingRtcScreenShareCompositor {
+    const localPresentation =
+      new PresentationSourceController<HTMLCanvasElement>();
+    const outgoing = RingRtcOutgoingVideoSource.create({
+      ...options,
+      controller: localPresentation,
+    });
+    const scene = new RecordingVideoScene({
+      conversationId: options.conversationId,
+      bridge: recordingVideoBridge,
+      localPresentation,
+      readSnapshot: options.readSnapshot,
+    });
+    const activate = (startOutgoing: () => void) => {
+      scene.start();
+      try {
+        startOutgoing();
+      } catch (error) {
+        scene.stop();
+        throw error;
+      }
+    };
+    const deactivate = (stopOutgoing: () => void) => {
+      try {
+        stopOutgoing();
+      } finally {
+        scene.stop();
+      }
+    };
     return new RingRtcScreenShareCompositor(
-      RingRtcOutgoingVideoSource.create(options),
-      new ScreenShareCompositor(presentationSourceController)
+      {
+        start: () => activate(() => outgoing.start()),
+        pause: () => deactivate(() => outgoing.pause()),
+        resume: () => activate(() => outgoing.resume()),
+        stop: () => deactivate(() => outgoing.stop()),
+      },
+      new ScreenShareCompositor(scene)
     );
   }
 

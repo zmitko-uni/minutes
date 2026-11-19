@@ -221,13 +221,14 @@ export function MinutesCallRecordingControls({
         />
         <MinutesCallControlButton
           className="MinutesCallRecordingControls__button MinutesCallRecordingControls__button--record MinutesCallRecordingControls__button--record-video"
-          label={formatMenuActionLabel('Spustit nahrávání sdíleného videa')}
+          label={formatMenuActionLabel('Spustit nahrávání videa hovoru')}
           onClick={requestStartVideo}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
         />
         <MinutesRecordingStartConfirmModal
           open={pendingStart != null}
+          includesVideo={pendingStart === 'video'}
           onOpenChange={handleConfirmOpenChange}
           onConfirm={confirmStart}
         />

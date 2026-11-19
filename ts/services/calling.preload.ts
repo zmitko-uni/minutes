@@ -99,6 +99,7 @@ import { uuidToBytes, bytesToUuid } from '../util/uuidToBytes.std.ts';
 import { drop } from '../util/drop.std.ts';
 import { enableMacCallVoiceProcessing } from '../minutes/macCallVoiceProcessing.preload.ts';
 import { callCaptureService } from '../minutes/callCaptureService.preload.ts';
+import { recordingVideoBridge } from '../minutes/recordingVideoBridge.std.ts';
 import { dropNull } from '../util/dropNull.std.ts';
 import { getOwn } from '../util/getOwn.std.ts';
 import * as durations from '../util/durations/index.std.ts';
@@ -612,6 +613,19 @@ class CallingClass {
 
     this.#callsLookup = {};
     this.#sendProfileKeysForAdhocCallCache = new Set();
+    recordingVideoBridge.bind({
+      getIncomingSource: (conversationId, key) =>
+        key === undefined
+          ? this.#getDirectCall(conversationId)
+          : this.#getGroupCall(conversationId)?.getVideoSource(key),
+      requestGroupVideo: (conversationId, requests, speakerHeight) =>
+        this.#getGroupCall(conversationId)?.requestVideo(
+          requests,
+          speakerHeight
+        ),
+      isOutgoingSender: (conversationId, sender) =>
+        getOwn(this.#callsLookup, conversationId) === sender,
+    });
   }
 
   initialize(reduxInterface: CallingReduxInterface, sfuUrl: string): void {
@@ -1868,6 +1882,7 @@ class CallingClass {
           endedReason,
         });
 
+        recordingVideoBridge.forgetCall(conversationId);
         drop(
           callCaptureService.onCallEnded({
             conversationId,
@@ -2056,10 +2071,13 @@ class CallingClass {
     resolutions: Array<VideoRequest>,
     speakerHeight: number
   ): void {
-    this.#getGroupCall(conversationId)?.requestVideo(
-      resolutions,
-      speakerHeight
-    );
+    if (this.#getGroupCall(conversationId)) {
+      recordingVideoBridge.requestFromUi(
+        conversationId,
+        resolutions,
+        speakerHeight
+      );
+    }
   }
 
   public groupMembersChanged(conversationId: string): void {
@@ -2352,7 +2370,11 @@ class CallingClass {
     if (!groupCall) {
       throw new Error('Could not find matching call');
     }
-    return groupCall.getVideoSource(demuxId);
+    return recordingVideoBridge.wrapDisplaySource(
+      conversationId,
+      demuxId,
+      groupCall.getVideoSource(demuxId)
+    );
   }
 
   public resendGroupCallMediaKeys(conversationId: string): void {
@@ -3807,6 +3829,11 @@ class CallingClass {
     log.info(logId);
 
     let acceptedTime: number | null = null;
+    const displayVideoSource = recordingVideoBridge.wrapDisplaySource(
+      conversationId,
+      undefined,
+      call
+    );
 
     // oxlint-disable-next-line no-param-reassign
     call.handleStateChanged = async () => {
@@ -3814,7 +3841,7 @@ class CallingClass {
         acceptedTime ??= Date.now();
 
         // Start rendering received video frames.
-        this.videoRenderer.enable(call);
+        this.videoRenderer.enable(displayVideoSource);
         if (this.#cameraEnabled) {
           // Start sending video from the camera (if not already).
           drop(this.enableCaptureAndSend(call));

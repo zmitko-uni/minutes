@@ -4,6 +4,7 @@
 import type { ActivePresentationSource } from './presentationSourceRegistry.std.ts';
 
 import {
+  calculateAspectFit,
   decidePresentationFrame,
   VIDEO_OUTPUT_SIZE,
   type VideoSize,
@@ -13,10 +14,17 @@ export const SCREEN_SHARE_FRAME_RATE = 15;
 
 export type PresentationCanvasSource = HTMLCanvasElement | HTMLVideoElement;
 
+export type RecordingGalleryTile = Readonly<{
+  name: string;
+  speaking: boolean;
+  camera?: PresentationCanvasSource;
+}>;
+
 export type PresentationSourceProvider = Readonly<{
   getActiveSource():
     | ActivePresentationSource<PresentationCanvasSource>
     | undefined;
+  getGallery?(): ReadonlyArray<RecordingGalleryTile>;
 }>;
 
 export type ScreenShareCompositorDependencies = Readonly<{
@@ -137,6 +145,7 @@ export class ScreenShareCompositor {
 
     const activeSource = this.#registry.getActiveSource();
     if (!activeSource) {
+      this.#renderGallery();
       return;
     }
 
@@ -147,11 +156,87 @@ export class ScreenShareCompositor {
       size: getSourceSize(activeSource.source),
     });
     if (decision.kind === 'black') {
+      this.#renderGallery();
       return;
     }
 
     const { x, y, width, height } = decision.destination;
     this.#context.drawImage(activeSource.source, x, y, width, height);
+  }
+
+  #renderGallery(): void {
+    const tiles = this.#registry.getGallery?.();
+    if (!tiles?.length) {
+      return;
+    }
+
+    const context = this.#context;
+    const gap = 12;
+    const columns = Math.ceil(Math.sqrt(tiles.length));
+    const rows = Math.ceil(tiles.length / columns);
+    const { width, height } = VIDEO_OUTPUT_SIZE;
+    const tileWidth = (width - (columns + 1) * gap) / columns;
+    const tileHeight = (height - (rows + 1) * gap) / rows;
+    const labelHeight = Math.min(50, Math.round(tileHeight * 0.27));
+    const cameraHeight = tileHeight - labelHeight;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+
+    tiles.forEach(({ camera, name, speaking }, index) => {
+      const row = Math.floor(index / columns);
+      const tilesInRow = Math.min(columns, tiles.length - row * columns);
+      const rowWidth = tilesInRow * (tileWidth + gap) - gap;
+      const x = (width - rowWidth) / 2 + (index % columns) * (tileWidth + gap);
+      const y = gap + row * (tileHeight + gap);
+      const middle = x + tileWidth / 2;
+
+      context.fillStyle = speaking ? '#42d392' : '#303440';
+      context.fillRect(x, y, tileWidth, tileHeight);
+      context.fillStyle = speaking ? '#203b34' : '#222631';
+      context.fillRect(x + 4, y + 4, tileWidth - 8, tileHeight - 8);
+
+      const cameraRect =
+        camera &&
+        calculateAspectFit(getSourceSize(camera), {
+          width: tileWidth - 8,
+          height: cameraHeight - 4,
+        });
+      if (camera && cameraRect) {
+        context.drawImage(
+          camera,
+          x + 4 + cameraRect.x,
+          y + 4 + cameraRect.y,
+          cameraRect.width,
+          cameraRect.height
+        );
+      } else {
+        const initials =
+          name
+            .trim()
+            .split(/\s+/u)
+            .slice(0, 2)
+            .map(word => Array.from(word)[0] ?? '')
+            .join('')
+            .toUpperCase() || '?';
+        context.fillStyle = '#e3e7ef';
+        context.font = `600 ${Math.min(86, cameraHeight / 3)}px sans-serif`;
+        context.fillText(
+          initials,
+          middle,
+          y + cameraHeight / 2,
+          tileWidth - 16
+        );
+      }
+
+      context.fillStyle = '#f6f8fd';
+      context.font = `500 ${Math.min(25, labelHeight * 0.6)}px sans-serif`;
+      context.fillText(
+        name,
+        middle,
+        y + cameraHeight + labelHeight / 2,
+        tileWidth - 16
+      );
+    });
   }
 }
 

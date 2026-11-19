@@ -14,7 +14,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+
+- **Nahrávky hovoru**: bez sdílení se do videa ukládají dlaždice účastníků s označením mluvčího, se zapnutou kamerou nebo iniciály.
+
+### Fixed
+
+- **Nahrávky hovoru**: příchozí sdílení se nahrává nezávisle na viditelnosti okna hovoru; minimalizace už neukončuje odběr obrazu pro rekordér.
 
 ## [8.32.0-m1.6.4-beta.1] - 2026-11-13
 

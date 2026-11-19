@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { JSX } from 'react';
@@ -7,12 +7,14 @@ import { AxoAlertDialog } from '../../axo/AxoAlertDialog.dom.tsx';
 
 type Props = Readonly<{
   open: boolean;
+  includesVideo: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 }>;
 
 export function MinutesRecordingStartConfirmModal({
   open,
+  includesVideo,
   onOpenChange,
   onConfirm,
 }: Props): JSX.Element {
@@ -24,7 +26,9 @@ export function MinutesRecordingStartConfirmModal({
             Nahrávání se chystá spustit
           </AxoAlertDialog.Title>
           <AxoAlertDialog.Description>
-            Informujte všechny účastníky, že se tento hovor nahrává.
+            {includesVideo
+              ? 'Informujte všechny účastníky, že se nahrává zvuk a sdílený obraz. Když nikdo nesdílí, nahrávka zahrne i zapnuté kamery.'
+              : 'Informujte všechny účastníky, že se tento hovor nahrává.'}
           </AxoAlertDialog.Description>
         </AxoAlertDialog.Body>
         <AxoAlertDialog.Footer>

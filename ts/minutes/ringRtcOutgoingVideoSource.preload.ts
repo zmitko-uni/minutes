@@ -4,10 +4,7 @@
 // The native RingRTC singleton is intentionally consumed from Signal's preload.
 import { RingRTC } from '@signalapp/ringrtc';
 
-import {
-  localPresentationIdentity,
-  presentationSourceController,
-} from './presentationSourceControllerGlobal.std.ts';
+import { localPresentationIdentity } from './presentationSourceController.std.ts';
 import {
   readRingRtcVideoTapSequence,
   resolveRingRtcVideoTapApi,
@@ -88,6 +85,7 @@ export class RingRtcOutgoingVideoSource {
 
   static create(options: {
     conversationId: string;
+    controller: LocalPresentationController;
     onFatalError: (error: Error) => void;
   }): RingRtcOutgoingVideoSource {
     const api = resolveRingRtcVideoTapApi(RingRTC);
@@ -99,7 +97,7 @@ export class RingRtcOutgoingVideoSource {
     return new RingRtcOutgoingVideoSource({
       api,
       conversationId: options.conversationId,
-      controller: presentationSourceController,
+      controller: options.controller,
       onFatalError: options.onFatalError,
     });
   }
