@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.32.0-m1.6.4-beta.2] - 2026-11-19
+
+### Added
 
 - **Nahrávky hovoru**: bez sdílení se do videa ukládají dlaždice účastníků s označením mluvčího, se zapnutou kamerou nebo iniciály.
 
