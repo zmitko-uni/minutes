@@ -380,6 +380,14 @@ Beta stahuje aktualizace jen z beta kanálu — **neporovnává** verzi s prod a
 
 Minutes se snaží u chyb rovnou napsat, co se stalo a co udělat — třeba *Vyčerpaný kredit u poskytovatele AI* nebo *Neplatný API klíč*. Původní technický text zůstává dostupný pod odkazem **Technické podrobnosti** u dané chyby a v **Menu → Minutes → Zobrazit log**.
 
+### Minutes hlásí aktualizaci Signalu nebo chce připojit nové zařízení
+
+Týká se jen bety `8.36.0-m1.6.4-beta.3`. Minutes se nikdy neaktualizuje přes Signal.
+
+- Na hlášku **K dispozici je aktualizace – Kliknutím restartujete aplikaci Signal** neklikejte. Zavřete Minutes a nainstalujte novější betu z [Releases](https://github.com/zmitko-uni/minutes/releases).
+- Pokud se mezitím nainstaloval oficiální **Signal**, můžete ho odinstalovat v nastavení Windows (Aplikace) nebo na Macu smazat z Aplikací. Jeho data Minutes nepotřebuje.
+- Pokud jste připojili nové zařízení, odeberte ho v telefonu: **Signal → Nastavení → Propojená zařízení**. Vaše původní data jsou dál v `%APPDATA%\Minutes-Beta` (macOS `~/Library/Application Support/Minutes-Beta`). Navíc vytvořenou složku `Minutes Beta` (s mezerou) lze po zavření aplikace smazat.
+
 ### Restartovat a nainstalovat nic nespustí
 
 - Po kliknutí se má otevřít průvodce instalace (u nepodepsaného buildu nejdřív SmartScreen: *Více informací* → *Přesto spustit*)

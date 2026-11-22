@@ -166,6 +166,14 @@ jobs:
       - name: Typecheck
         run: pnpm run check:types
 
+      # Packaged builds must load config/minutes.json (Signal updater off,
+      # Minutes data dir). Signal 8.36 broke this by clearing NODE_CONFIG_ENV.
+      - name: Minutes config guard
+        run: pnpm exec mocha --timeout 30000 --extension ts --file ts/test-node/setup.preload.ts ts/test-node/minutes/configEnv_test.std.ts
+        env:
+          NODE_ENV: test
+          NODE_OPTIONS: --import=tsx
+
       - name: Build installer
         run: pnpm run build:minutes:installer
         env:

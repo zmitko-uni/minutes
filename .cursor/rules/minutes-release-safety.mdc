@@ -1,0 +1,32 @@
+---
+description: Bezpečnost releasu Minutes a kontrola konfigurace po merge Signalu
+alwaysApply: true
+---
+
+# Release a merge Signalu — bezpečnost
+
+## Souhlas uživatele
+
+- Push na `beta` nebo `main` a spuštění *Release Minutes* jen po **výslovném souhlasu v aktuální zprávě** uživatele.
+- **Nikdy** neřetězit push a spuštění release v jednom příkazu. Nejdřív push a ověření, pak samostatně release.
+- Když uživatel řekne „stop“ / „nic nespouštěj“, okamžitě zastavit běžící příkazy a zrušit zařazené workflow.
+- Push na `main` spouští prod build. Na `main` nic nepushovat bez souhlasu, ani dokumentaci.
+- Zrušený *Release Minutes* může smazat existující GitHub Release pro tag, protože workflow release maže a znovu vytváří. Před zrušením na to upozornit.
+
+## Po každém merge Signal upstream
+
+Minutes za běhu potřebuje `NODE_CONFIG_ENV=minutes`, tedy `config/minutes.json` s `updatesEnabled: false` a `storageProfile`. Upstream ho v `app/config.main.ts` maže (od Signalu 8.36). Bez něj balíček:
+
+- zapne **Signal updater**, který hlásí „K dispozici je aktualizace“, stáhne a nainstaluje oficiální Signal,
+- použije **nový datový adresář** `Minutes Beta` místo `Minutes-Beta`, takže Signal chce připojit nové zařízení.
+
+Kontrola:
+
+1. `applyMinutesConfigEnv()` je v `app/config.main.ts` **po** hardeningu a **před** `require('config')`.
+2. Test `ts/test-node/minutes/configEnv_test.std.ts` prochází (běží v CI i v *Release Minutes*).
+3. Po instalaci nového buildu v `main.log` ověřit `updater/start: Updates disabled` a `userData` končící na `Minutes-Beta` nebo `Minutes`.
+
+## Diagnostika hlášení uživatele
+
+- Před tvrzením „to není chyba Minutes“ zkontrolovat logy **všech** datových složek: `Minutes`, `Minutes-Beta` i `Minutes Beta` (Windows `%APPDATA%`, macOS `~/Library/Application Support`).
+- Hledat v nich `starting version` a `[updater]`.
