@@ -16,6 +16,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.36.0-m1.6.4-beta.4] - 2026-11-22
+
+### Added
+- (doplňte před příštím release)
+
 ### Fixed
 - **Aplikace po přechodu na Signal 8.36**: Minutes beta už nehlásí aktualizaci Signalu (Kliknutím restartujete aplikaci Signal) a nestahuje ani neinstaluje oficiální Signal. Aplikace zase používá svá původní data (`%APPDATA%\Minutes-Beta` / `Minutes`, na macOS `~/Library/Application Support/Minutes-Beta` / `Minutes`) místo nového prázdného profilu, takže nechce připojovat nové zařízení. Beta `8.36.0-m1.6.4-beta.3` tímto problémem trpěla.
 
