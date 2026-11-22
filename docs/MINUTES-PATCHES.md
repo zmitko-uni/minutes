@@ -18,7 +18,8 @@
 | `app/menu.std.ts` | submenu Minutes + Příručka/MCP | menu |
 | `ts/types/menu.std.ts` | typy menu akcí | menu |
 | `ts/services/calling.preload.ts`, `ts/calling/VideoSupport.preload.ts` | lifecycle nahrávání; most k RingRTC zdrojům, požadavkům na video a již odeslaným snímkům vlastní kamery; `enableMacCallVoiceProcessing()` po `RingRTC.setConfig` (macOS Mic Modes). Od Signal 8.32 se předává `GroupCallSvcConfig`. Nahrávací tapy zůstávají ve Minutes RingRTC `2.71.0-minutes.1`, ne ve stock `2.72.1` | volání do modulů Minutes |
-| `ts/util/callLinksRingrtc.node.ts` | `installMinutesRingrtcCompat()` — Signal 8.32 volá `CallLinkRootKey.toUnredactedString()`, Minutes RingRTC 2.71 má stejný formátovaný klíč v `toString()` | 1 volání |
+| `ts/util/callLinksRingrtc.node.ts` | `installMinutesRingrtcCompat()` - pojistka pro starší RingRTC (<= 2.71) bez `CallLinkRootKey.toUnredactedString()`; na RingRTC 2.74 je no-op | 1 volání
+| `ts/util/enqueuePollCreateForSend.dom.ts` | vrací vytvořenou zprávu (`MessageAttributesType`), aby ji automatizace mohla dohledat | návratová hodnota
 | `ts/conversations/isConversationTooBigToRing.dom.ts` | Minutes ignoruje Signal limit zvonění (≥16 členů) | import + early return |
 | `ts/util/isFeatureEnabled.dom.ts` | semver příznaky remote configu (štítek člena, ankety 1:1, …) se porovnávají se Signal bází z verze Minutes, ne s celým `8.32.0-m…` | 1 volání na začátku `_isFeatureEnabledInner` |
 | `ts/background.preload.ts` | init Minutes služeb, automation rendereru, IPC sumarizace, build expiration a ochrana aktivního hovoru při zamknutí obrazovky | bootstrap |

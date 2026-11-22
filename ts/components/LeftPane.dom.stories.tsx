@@ -252,7 +252,7 @@ const useProps = (overrideProps: OverridePropsType = {}): PropsType => {
       />
     ),
     renderNotificationProfilesMenu: () => (
-      <div className="fakeNotificationProfilesMenu" />
+      <div data-testid="fakeNotificationProfilesMenu" />
     ),
     renderRelinkDialog: props => (
       <DialogRelink
@@ -327,6 +327,7 @@ const useProps = (overrideProps: OverridePropsType = {}): PropsType => {
         containerWidthBreakpoint={containerWidthBreakpoint}
         expandNarrowLeftPane={action('expandNarrowLeftPane')}
         isInFullScreenCall={false}
+        systemPreferredLanguages={[]}
       />
     ),
     renderLeftPaneChatFolders: () => (

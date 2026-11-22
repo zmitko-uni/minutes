@@ -155,6 +155,27 @@ export async function clearVerificationCode(window: Page): Promise<void> {
   }
 }
 
+export async function selectAxoOption(
+  page: Page,
+  combobox: Locator,
+  options: { name: string; exact?: boolean }
+): Promise<void> {
+  // Read this before opening, while open everything outside of the listbox
+  // (including `combobox`) is `aria-hidden` and can't be resolved by role
+  const selectId = await combobox.getAttribute('data-axo-select-id');
+  strictAssert(selectId != null, 'Missing data-axo-select-id on combobox');
+
+  await combobox.click();
+
+  // Select options are rendered in a portal outside of the combobox, the
+  // listbox has a matching `data-axo-select-id`
+  await page
+    .getByRole('listbox')
+    .and(page.locator(`[data-axo-select-id="${selectId}"]`))
+    .getByRole('option', options)
+    .click();
+}
+
 export async function expectItemsWithText(
   items: Locator,
   expected: ReadonlyArray<string | RegExp>
@@ -459,9 +480,9 @@ export async function composerAttachFiles(
 ): Promise<void> {
   const AttachmentInput = page.getByTestId('attachfile-input');
 
-  const AttachmentsList = page.locator('.module-attachments');
+  const AttachmentsList = page.locator('.module-attachments__rail');
   const AttachmentsListImageLoaded = AttachmentsList.locator(
-    '.module-image--loaded'
+    '.module-image[data-loaded]'
   );
 
   debug('setting input files');
@@ -551,9 +572,7 @@ export async function sendMessageWithAttachments(
 }
 
 export async function waitForEnabledComposer(page: Page): Promise<Locator> {
-  const composeArea = page.locator(
-    '.composition-area-wrapper, .Inbox__conversation .ConversationView'
-  );
+  const composeArea = page.locator('.ConversationView__composition-area');
   const composeContainer = composeArea.locator(
     '[data-testid=CompositionInput][data-enabled=true]'
   );
@@ -609,11 +628,9 @@ export async function createCallLink(
   const doneBtn = editModal.getByText('Done');
   await doneBtn.click();
 
-  const callLinkTitle = page.locator('.CallsList__ItemTile').getByText(name);
-
-  const callLinkItem = page.locator('.CallsList__Item', {
-    has: callLinkTitle,
-  });
+  const callLinkItem = page
+    .locator('.CallsList__ItemTile', { hasText: name })
+    .locator('xpath=..');
   const testId = await callLinkItem.getAttribute('data-testid');
   return testId || undefined;
 }

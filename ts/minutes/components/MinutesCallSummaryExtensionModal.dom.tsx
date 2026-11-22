@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState, type JSX } from 'react';
 import { ipcRenderer } from 'electron';
 
 import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
-import { AxoSelect } from '../../axo/AxoSelect.dom.tsx';
+import { AxoSelect } from '../../axo/menus/AxoSelect.dom.tsx';
 import { AxoSwitch } from '../../axo/AxoSwitch.dom.tsx';
 import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';
@@ -522,14 +522,14 @@ export function MinutesCallSummaryExtensionModal({
         <AxoDialog.Footer>
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="strong-secondary"
+              variant="subtle-secondary"
               onClick={() => onOpenChange(false)}
             >
               Zavřít
             </AxoDialog.Action>
             {canReinstall && (
               <AxoDialog.Action
-                variant="strong-secondary"
+                variant="subtle-secondary"
                 disabled={isBusy}
                 onClick={() =>
                   runInstall({

@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { assert } from 'chai';
-import * as sinon from 'sinon';
 
 import { createLogger } from '../../logging/log.std.ts';
-import { IMAGE_PNG } from '../../types/MIME.std.ts';
-import type { MessageAttributesType } from '../../model-types.d.ts';
+import type { MessageAttributesType } from '../../model-types.std.ts';
 import type {
   Avatar,
   Email,
@@ -16,10 +14,11 @@ import type {
 import {
   _validate,
   ContactFormType,
-  parseAndWriteAvatar,
+  getContactInitials,
+  getFullName,
+  parseAndValidate,
   parsePhoneItem,
 } from '../../types/EmbeddedContact.std.ts';
-import { fakeAttachment } from '../../test-helpers/fakeAttachment.std.ts';
 
 const logger = createLogger('EmbeddedContact_test');
 
@@ -54,23 +53,13 @@ describe('Contact', () => {
     };
   };
 
-  describe('parseAndWriteAvatar', () => {
+  describe('parseAndValidate', () => {
     const defaultContext = {
       logger,
       getRegionCode: () => '1',
-      writeNewAttachmentData: sinon
-        .stub()
-        .throws(new Error("Shouldn't be called")),
-      getPlaintextHashForInMemoryAttachment: sinon.stub(),
-      getExistingAttachmentDataForReuse: sinon.stub(),
     };
 
     it('handles message with no avatar in contact', async () => {
-      const upgradeAttachment = sinon
-        .stub()
-        .throws(new Error("Shouldn't be called"));
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
       const message = {
         ...getDefaultMessageAttrs(),
         contact: [
@@ -88,7 +77,7 @@ describe('Contact', () => {
           },
         ],
       } as const;
-      const result = await upgradeVersion(
+      const result = await parseAndValidate(
         message.contact[0],
         defaultContext,
         message
@@ -97,11 +86,6 @@ describe('Contact', () => {
     });
 
     it('turns phone numbers to e164 format', async () => {
-      const upgradeAttachment = sinon
-        .stub()
-        .throws(new Error("Shouldn't be called"));
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
       const message = {
         ...getDefaultMessageAttrs(),
         contact: [
@@ -131,7 +115,7 @@ describe('Contact', () => {
           },
         ],
       };
-      const result = await upgradeVersion(
+      const result = await parseAndValidate(
         message.contact[0],
         {
           ...defaultContext,
@@ -143,11 +127,6 @@ describe('Contact', () => {
     });
 
     it('removes contact avatar if it has no sub-avatar', async () => {
-      const upgradeAttachment = sinon
-        .stub()
-        .throws(new Error("Shouldn't be called"));
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
       const message = {
         ...getDefaultMessageAttrs(),
         contact: [
@@ -180,93 +159,7 @@ describe('Contact', () => {
           },
         ],
       };
-      const result = await upgradeVersion(
-        message.contact[0],
-        defaultContext,
-        message
-      );
-      assert.deepEqual(result, expected);
-    });
-
-    it('writes avatar to disk', async () => {
-      const upgradeAttachment = async () => {
-        return fakeAttachment({
-          path: 'abc/abcdefg',
-          contentType: IMAGE_PNG,
-        });
-      };
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
-      const message = {
-        ...getDefaultMessageAttrs(),
-        contact: [
-          {
-            ...emptyContact,
-            name: {
-              nickname: 'Someone Somewhere',
-            },
-            number: [
-              {
-                type: 1,
-                value: NUMBER,
-              },
-            ],
-            email: [
-              {
-                type: 2,
-                value: 'someone@somewhere.com',
-              },
-            ],
-            address: [
-              {
-                type: 1,
-                street: '5 Somewhere Ave.',
-              },
-            ],
-            avatar: {
-              otherKey: 'otherValue',
-              avatar: {
-                contentType: 'image/png',
-                data: Buffer.from('It’s easy if you try'),
-              },
-            } as unknown as Avatar,
-          },
-        ],
-      } as const;
-      const expected = {
-        ...emptyContact,
-        name: {
-          nickname: 'Someone Somewhere',
-        },
-        number: [
-          {
-            type: 1,
-            value: NUMBER,
-          },
-        ],
-        email: [
-          {
-            type: 2,
-            value: 'someone@somewhere.com',
-          },
-        ],
-        address: [
-          {
-            type: 1,
-            street: '5 Somewhere Ave.',
-          },
-        ],
-        avatar: {
-          otherKey: 'otherValue',
-          isProfile: false,
-          avatar: fakeAttachment({
-            contentType: IMAGE_PNG,
-            path: 'abc/abcdefg',
-          }),
-        },
-      };
-
-      const result = await upgradeVersion(
+      const result = await parseAndValidate(
         message.contact[0],
         defaultContext,
         message
@@ -275,11 +168,6 @@ describe('Contact', () => {
     });
 
     it('removes number element if it ends up with no value', async () => {
-      const upgradeAttachment = sinon
-        .stub()
-        .throws(new Error("Shouldn't be called"));
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
       const message = {
         ...getDefaultMessageAttrs(),
         contact: [
@@ -314,7 +202,7 @@ describe('Contact', () => {
           },
         ],
       };
-      const result = await upgradeVersion(
+      const result = await parseAndValidate(
         message.contact[0],
         defaultContext,
         message
@@ -323,11 +211,6 @@ describe('Contact', () => {
     });
 
     it('drops address if it has no real values', async () => {
-      const upgradeAttachment = sinon
-        .stub()
-        .throws(new Error("Shouldn't be called"));
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
       const message = {
         ...getDefaultMessageAttrs(),
         contact: [
@@ -362,7 +245,7 @@ describe('Contact', () => {
           },
         ],
       };
-      const result = await upgradeVersion(
+      const result = await parseAndValidate(
         message.contact[0],
         defaultContext,
         message
@@ -371,11 +254,6 @@ describe('Contact', () => {
     });
 
     it('removes invalid elements if no values remain in contact', async () => {
-      const upgradeAttachment = sinon
-        .stub()
-        .throws(new Error("Shouldn't be called"));
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
       const message = {
         ...getDefaultMessageAttrs(),
         source: NUMBER,
@@ -406,7 +284,7 @@ describe('Contact', () => {
           nickname: 'Someone Somewhere',
         },
       };
-      const result = await upgradeVersion(
+      const result = await parseAndValidate(
         message.contact[0],
         defaultContext,
         message
@@ -415,11 +293,6 @@ describe('Contact', () => {
     });
 
     it('handles a contact with just organization', async () => {
-      const upgradeAttachment = sinon
-        .stub()
-        .throws(new Error("Shouldn't be called"));
-      const upgradeVersion = parseAndWriteAvatar(upgradeAttachment);
-
       const message = {
         ...getDefaultMessageAttrs(),
         contact: [
@@ -435,7 +308,7 @@ describe('Contact', () => {
           },
         ],
       } as const;
-      const result = await upgradeVersion(
+      const result = await parseAndValidate(
         message.contact[0],
         defaultContext,
         message
@@ -486,6 +359,89 @@ describe('Contact', () => {
     });
   });
 
+  describe('getFullName', () => {
+    it('returns undefined with no name', () => {
+      assert.isUndefined(getFullName({ name: undefined }));
+      assert.isUndefined(getFullName({ name: {} }));
+    });
+
+    it('combines given and family names', () => {
+      assert.strictEqual(
+        getFullName({ name: { givenName: 'Jane', familyName: 'Doe' } }),
+        'Jane Doe'
+      );
+    });
+
+    it('keeps CJK ordering with only given and family names', () => {
+      assert.strictEqual(
+        getFullName({ name: { givenName: '振宁', familyName: '杨' } }),
+        '杨振宁'
+      );
+    });
+
+    it('includes prefix, middle name, and suffix', () => {
+      assert.strictEqual(
+        getFullName({
+          name: {
+            prefix: 'Dr.',
+            givenName: 'Jane',
+            middleName: 'Q.',
+            familyName: 'Doe',
+            suffix: 'Jr.',
+          },
+        }),
+        'Dr. Jane Q. Doe Jr.'
+      );
+    });
+
+    it('skips missing parts', () => {
+      assert.strictEqual(
+        getFullName({ name: { givenName: 'Jane', suffix: 'PhD' } }),
+        'Jane PhD'
+      );
+      assert.strictEqual(
+        getFullName({ name: { prefix: 'Dr.', familyName: 'Doe' } }),
+        'Dr. Doe'
+      );
+      assert.strictEqual(
+        getFullName({ name: { middleName: 'Quinn' } }),
+        'Quinn'
+      );
+    });
+  });
+
+  describe('getContactInitials', () => {
+    it('ignores prefix, middle name, and suffix', () => {
+      assert.strictEqual(
+        getContactInitials({
+          name: {
+            prefix: 'Dr.',
+            givenName: 'Jane',
+            middleName: 'Quinn',
+            familyName: 'Doe',
+            suffix: 'Jr.',
+          },
+        }),
+        'JD'
+      );
+    });
+
+    it('falls back to the display name', () => {
+      assert.strictEqual(
+        getContactInitials({ name: { middleName: 'Quinn' } }),
+        'Q'
+      );
+      assert.strictEqual(
+        getContactInitials({ name: null, organization: 'Signal' }),
+        'S'
+      );
+    });
+
+    it('returns undefined with no name or organization', () => {
+      assert.isUndefined(getContactInitials({ name: null }));
+    });
+  });
+
   describe('_validate', () => {
     it('returns error if contact has no name.displayName or organization', () => {
       const messageId = 'the-message-id';
@@ -500,7 +456,7 @@ describe('Contact', () => {
         ],
       };
       const expected =
-        "Message the-message-id: Contact had neither 'displayName' nor 'organization'";
+        "Message the-message-id: Contact had neither 'name' nor 'organization'";
 
       const result = _validate(contact, { messageId });
       assert.deepEqual(result?.message, expected);

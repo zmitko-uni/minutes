@@ -40,7 +40,6 @@ import {
   GroupMasterKey,
   GroupSecretParams,
   ProfileKey,
-  ProfileKeyCommitment,
   ProfileKeyCredentialPresentation,
   ServerPublicParams,
 } from '@signalapp/libsignal-client/zkgroup';
@@ -57,6 +56,7 @@ import {
 } from '../types';
 import { Contact } from '../data/contacts';
 import { Group as GroupData } from '../data/group';
+import { VersionedProfile } from '../data/profile';
 import {
   deriveAccessKey,
   deriveMasterKey,
@@ -103,9 +103,9 @@ export type Config = Readonly<{
   getProfileKeyPresentation: (options: {
     aci: AciString;
     profileKey: ProfileKey;
-    profileKeyCommitment: ProfileKeyCommitment | undefined;
     groupParams: GroupSecretParams;
   }) => Promise<ProfileKeyCredentialPresentation>;
+  setProfile: (aci: AciString, profile: VersionedProfile) => void;
 
   getGroup: (
     publicParams: Uint8Array<ArrayBuffer>,
@@ -193,6 +193,8 @@ export type EncryptTextOptions = EncryptOptions &
 export type CreateGroupOptions = Readonly<{
   title: string;
   members: ReadonlyArray<PrimaryDevice>;
+  addFromInviteLink?: Proto.AccessControl.AccessRequired;
+  inviteLinkPassword?: Uint8Array<ArrayBuffer>;
 }>;
 
 export type SendUpdateToList = ReadonlyArray<
@@ -676,11 +678,6 @@ export class PrimaryDevice {
 
     this.profileKey = new ProfileKey(crypto.randomBytes(32));
     this.storageKey = deriveStorageKey(this.masterKey);
-
-    this.device.profileName = encryptProfileName(
-      this.profileKey.serialize(),
-      this.profileName,
-    );
   }
 
   public async init(): Promise<void> {
@@ -706,9 +703,16 @@ export class PrimaryDevice {
 
     this.privSenderCertificate = await this.config.getSenderCertificate();
 
-    this.device.profileKeyCommitment = this.profileKey.getCommitment(
-      Aci.parseFromServiceIdString(this.device.aci),
-    );
+    const aci = Aci.parseFromServiceIdString(this.device.aci);
+    this.config.setProfile(this.device.aci, {
+      version: this.profileKey.getProfileKeyVersion(aci).toString(),
+      commitment: this.profileKey.getCommitment(aci),
+      name: encryptProfileName(this.profileKey.serialize(), this.profileName),
+      about: undefined,
+      aboutEmoji: undefined,
+      paymentAddress: undefined,
+      phoneNumberSharing: undefined,
+    });
     this.device.accessKey = deriveAccessKey(this.profileKey.serialize());
 
     this.isInitialized = true;
@@ -725,8 +729,6 @@ export class PrimaryDevice {
   public addSecondaryDevice(device: Device): void {
     this.secondaryDevices.push(device);
 
-    device.profileName = this.device.profileName;
-    device.profileKeyCommitment = this.device.profileKeyCommitment;
     device.accessKey = this.device.accessKey;
   }
 
@@ -963,17 +965,18 @@ export class PrimaryDevice {
   public async createGroup({
     title,
     members: memberDevices,
+    addFromInviteLink,
+    inviteLinkPassword,
   }: CreateGroupOptions): Promise<Group> {
     const groupParams = GroupSecretParams.generate();
 
     const members = await Promise.all(
       memberDevices.map(async (member) => {
         const { profileKey } = member;
-        const { aci, profileKeyCommitment } = member.device;
+        const { aci } = member.device;
         const presentation = await this.config.getProfileKeyPresentation({
           aci,
           profileKey,
-          profileKeyCommitment,
           groupParams,
         });
 
@@ -991,6 +994,8 @@ export class PrimaryDevice {
 
       title,
       members,
+      addFromInviteLink,
+      inviteLinkPassword,
     });
 
     await this.config.createGroup(clientGroup.state);
@@ -1033,6 +1038,7 @@ export class PrimaryDevice {
       },
       aciCiphertext: group.encryptServiceId(this.device.aci),
       pniCiphertext: pni ? group.encryptServiceId(pni) : undefined,
+      inviteLinkPassword: null,
     });
 
     assert(!modifyResult.conflict, 'Group update conflict!');
@@ -1154,7 +1160,6 @@ export class PrimaryDevice {
     const presentation = await this.config.getProfileKeyPresentation({
       aci: this.device.aci,
       profileKey: this.profileKey,
-      profileKeyCommitment: this.device.profileKeyCommitment,
       groupParams: group.secretParams,
     });
 

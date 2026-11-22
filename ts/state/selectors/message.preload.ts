@@ -14,7 +14,7 @@ import type {
   MessageReactionType,
   QuotedAttachmentType,
   ShallowChallengeError,
-} from '../../model-types.d.ts';
+} from '../../model-types.std.ts';
 
 import type {
   Contact as SmartMessageDetailContact,
@@ -76,10 +76,7 @@ import {
   getValidMessageAttachments,
 } from '../../util/Attachment.std.ts';
 import type { MessageAttachmentType } from '../../types/AttachmentDownload.std.ts';
-import type {
-  ContactNameColorType,
-  DefaultConversationColorType,
-} from '../../types/Colors.std.ts';
+import type { ContactNameColorType } from '../../types/ContactNameColor.std.ts';
 import { ReadStatus } from '../../messages/MessageReadStatus.std.ts';
 
 import type { CallingNotificationType } from '../../util/callingNotification.std.ts';
@@ -103,7 +100,6 @@ import {
 import { isVoiceMessagePlayed } from '../../util/isVoiceMessagePlayed.std.ts';
 
 import {
-  getDefaultConversationColor,
   getHasMediaBackups,
   getHasUnidentifiedDeliveryIndicators,
 } from './items.dom.ts';
@@ -147,7 +143,6 @@ import {
   isMessageJustForMe,
 } from '../../messages/MessageSendState.std.ts';
 import { createLogger } from '../../logging/log.std.ts';
-import { getConversationColorAttributes } from '../../util/getConversationColorAttributes.std.ts';
 import { DurationInSeconds } from '../../util/durations/index.std.ts';
 import { getStoryReplyText } from '../../util/getStoryReplyText.std.ts';
 import type { MessageAttributesWithPaymentEvent } from '../../messages/payments.std.ts';
@@ -186,6 +181,13 @@ import type { TargetedMessageSource } from '../ducks/conversationsEnums.std.ts';
 import { formatEmbeddedContactForUI } from '../../util/sharedContact.std.ts';
 import type { ResolveSharedContactType } from './sharedContact.dom.ts';
 import { getResolveSharedContactSelector } from './sharedContact.dom.ts';
+import {
+  getBubbleColorResolver,
+  type BubbleColorResolver,
+} from './chatColors.std.ts';
+import type { StickerReferenceType } from '../../types/Stickers.preload.ts';
+import { getIsFavoriteStickerSelector } from './stickers.std.ts';
+import { isFavoriteStickersEnabled as getIsFavoriteStickersEnabled } from '../../util/stickers.preload.ts';
 
 const { groupBy, isEmpty, isNumber, isObject, map } = lodash;
 
@@ -225,8 +227,11 @@ export type GetPropsForBubbleOptions = Readonly<{
   callHistorySelector: CallHistorySelectorType;
   activeCall?: CallStateType;
   contactNameColors: Map<string, ContactNameColorType>;
-  defaultConversationColor: DefaultConversationColorType;
+  bubbleColorResolver: BubbleColorResolver;
   hasMediaBackups: boolean;
+  getIsFavoriteSticker: (
+    stickerRef: StickerReferenceType | undefined
+  ) => boolean;
   getStoryReplyAttachment: (
     storyMessageId: string
   ) => AttachmentType | undefined;
@@ -683,12 +688,12 @@ const getPropsForStoryReplyContext = (
   {
     conversationSelector,
     ourConversationId,
-    defaultConversationColor,
+    bubbleColorResolver,
     getStoryReplyAttachment,
   }: {
     conversationSelector: GetConversationByIdType;
     ourConversationId?: string;
-    defaultConversationColor: DefaultConversationColorType;
+    bubbleColorResolver: BubbleColorResolver;
     getStoryReplyAttachment: (
       storyMessageId: string
     ) => AttachmentType | undefined;
@@ -706,18 +711,15 @@ const getPropsForStoryReplyContext = (
 
   const conversation = getConversation(message, conversationSelector);
 
-  const { conversationColor, customColor } = getConversationColorAttributes(
-    conversation,
-    defaultConversationColor
-  );
+  const bubbleColor = bubbleColorResolver(conversation.bubbleColor);
+
   const storyAttachment = storyId
     ? getStoryReplyAttachment(storyId)
     : undefined;
 
   return {
     authorTitle,
-    conversationColor,
-    customColor,
+    bubbleColor,
     emoji: storyReaction?.emoji,
     isFromMe,
     rawAttachment: storyAttachment
@@ -736,12 +738,12 @@ export const getPropsForQuote = (
   {
     conversationSelector,
     ourConversationId,
-    defaultConversationColor,
+    bubbleColorResolver,
     isGroup,
   }: {
     conversationSelector: GetConversationByIdType;
     ourConversationId?: string;
-    defaultConversationColor: DefaultConversationColorType;
+    bubbleColorResolver: BubbleColorResolver;
     isGroup: boolean;
   }
 ): PropsData['quote'] => {
@@ -783,10 +785,7 @@ export const getPropsForQuote = (
         }
       : undefined;
 
-  const { conversationColor, customColor } = getConversationColorAttributes(
-    conversation,
-    defaultConversationColor
-  );
+  const bubbleColor = bubbleColorResolver(conversation.bubbleColor);
 
   return {
     authorId,
@@ -796,9 +795,8 @@ export const getPropsForQuote = (
     authorProfileName,
     authorTitle,
     bodyRanges: processBodyRanges(quote, isGroup, { conversationSelector }),
-    conversationColor,
+    bubbleColor,
     conversationTitle: conversation.title,
-    customColor,
     isFromMe,
     rawAttachment: firstAttachment
       ? processQuoteAttachment(firstAttachment)
@@ -827,8 +825,9 @@ export type GetPropsForMessageOptions = Pick<
   | 'pinnedMessagesMessageIds'
   | 'selectedMessageIds'
   | 'contactNameColors'
-  | 'defaultConversationColor'
+  | 'bubbleColorResolver'
   | 'hasMediaBackups'
+  | 'getIsFavoriteSticker'
   | 'getStoryReplyAttachment'
 >;
 
@@ -922,6 +921,7 @@ const getPropsForMessage = (
   const {
     activeCall,
     conversationSelector,
+    getIsFavoriteSticker,
     resolveSharedContact,
     ourConversationId,
     ourNumber,
@@ -932,7 +932,7 @@ const getPropsForMessage = (
     pinnedMessagesMessageIds,
     selectedMessageIds,
     contactNameColors,
-    defaultConversationColor,
+    bubbleColorResolver,
   } = options;
 
   const {
@@ -953,7 +953,14 @@ const getPropsForMessage = (
   const quote = getPropsForQuote(message, { ...options, isGroup });
 
   const isGroupTerminated = isGroup && conversation.terminated;
+
   const { sticker } = message;
+  const isFavoriteStickersEnabled = getIsFavoriteStickersEnabled();
+  const stickerRef: StickerReferenceType | undefined =
+    sticker && isFavoriteStickersEnabled
+      ? { packId: sticker.packId, stickerId: sticker.stickerId }
+      : undefined;
+  const isFavoriteSticker = getIsFavoriteSticker(stickerRef);
 
   const isMessageTapToView = isTapToView(message);
   const activeCallConversationId = activeCall?.conversationId;
@@ -985,10 +992,7 @@ const getPropsForMessage = (
       }
     : undefined;
 
-  const { conversationColor, customColor } = getConversationColorAttributes(
-    conversation,
-    defaultConversationColor
-  );
+  const bubbleColor = bubbleColorResolver(conversation.bubbleColor);
 
   return {
     attachments: attachments?.map(attachment =>
@@ -1034,11 +1038,10 @@ const getPropsForMessage = (
     contact: getPropsForEmbeddedContact(message, resolveSharedContact),
     contactLabel,
     contactNameColor,
-    conversationColor,
+    bubbleColor,
     conversationId,
     conversationTitle: conversation.title,
     conversationType: isGroup ? 'group' : 'direct',
-    customColor,
     deletedForEveryone: message.deletedForEveryone || false,
     deletedForEveryoneByAdmin: getDeletedForEveryoneByAdmin(message, {
       conversationSelector,
@@ -1060,6 +1063,7 @@ const getPropsForMessage = (
     id: message.id,
     isBlocked: conversation.isBlocked || false,
     isEditedMessage: Boolean(message.editHistory),
+    isFavoriteSticker,
     isMessageRequestAccepted: conversation?.acceptedMessageRequest ?? true,
     isPinned,
     isSelected,
@@ -1080,6 +1084,7 @@ const getPropsForMessage = (
     readStatus: message.readStatus ?? ReadStatus.Read,
     selectedReaction,
     status: getMessagePropStatus(message, ourConversationId),
+    stickerRef,
     text: message.body,
     textDirection: getTextDirection(message.body),
     timestamp: getMessageSentTimestamp(message, { includeEdits: false, log }),
@@ -1102,8 +1107,9 @@ export const getMessagePropsSelector = createSelector(
   getTargetedMessage,
   getPinnedMessagesMessageIds,
   getSelectedMessageIds,
-  getDefaultConversationColor,
+  getBubbleColorResolver,
   getHasMediaBackups,
+  getIsFavoriteStickerSelector,
   getStoryReplyAttachmentSelector,
   (
     conversationSelector,
@@ -1116,8 +1122,9 @@ export const getMessagePropsSelector = createSelector(
     targetedMessage,
     pinnedMessagesMessageIds,
     selectedMessageIds,
-    defaultConversationColor,
+    bubbleColorResolver,
     hasMediaBackups,
+    getIsFavoriteSticker,
     getStoryReplyAttachment
   ) =>
     (message: MessageWithUIFieldsType) => {
@@ -1137,8 +1144,9 @@ export const getMessagePropsSelector = createSelector(
         targetedMessageSource: targetedMessage?.source ?? null,
         pinnedMessagesMessageIds,
         selectedMessageIds,
-        defaultConversationColor,
+        bubbleColorResolver,
         hasMediaBackups,
+        getIsFavoriteSticker,
         getStoryReplyAttachment,
       });
     }
@@ -2924,9 +2932,10 @@ export const getMessageDetailsSelector = createSelector(
   getUserNumber,
   getPinnedMessagesMessageIds,
   getSelectedMessageIds,
-  getDefaultConversationColor,
+  getBubbleColorResolver,
   getHasUnidentifiedDeliveryIndicators,
   getHasMediaBackups,
+  getIsFavoriteStickerSelector,
   getStoryReplyAttachmentSelector,
   (
     cachedConversationMemberColorsSelector,
@@ -2940,9 +2949,10 @@ export const getMessageDetailsSelector = createSelector(
     ourNumber,
     pinnedMessagesMessageIds,
     selectedMessageIds,
-    defaultConversationColor,
+    bubbleColorResolver,
     hasUnidentifiedDeliveryIndicators,
     hasMediaBackups,
+    getIsFavoriteSticker,
     getStoryReplyAttachment
   ): ((messageId: string) => SmartMessageDetailPropsType | undefined) =>
     (messageId: string) => {
@@ -2997,8 +3007,9 @@ export const getMessageDetailsSelector = createSelector(
           targetedMessageId: null,
           targetedMessageCounter: null,
           targetedMessageSource: null,
-          defaultConversationColor,
+          bubbleColorResolver,
           hasMediaBackups,
+          getIsFavoriteSticker,
           getStoryReplyAttachment,
         }),
         receivedAt: message.received_at_ms ?? message.received_at ?? 0,

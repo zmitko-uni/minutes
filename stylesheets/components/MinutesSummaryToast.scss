@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 @use '../variables';
+$minutes-crimson: #cf163e; // z Signal 8.32 (odstraneno ve 8.36)
+$minutes-forest: #3b7845; // z Signal 8.32 (odstraneno ve 8.36)
 
 .MinutesActivityBanner {
   position: fixed;
@@ -24,11 +26,11 @@
   }
 
   &--error {
-    background-color: variables.$color-crimson;
+    background-color: $minutes-crimson;
   }
 
   &--saved {
-    background-color: variables.$color-forest;
+    background-color: $minutes-forest;
   }
 
   &__text {

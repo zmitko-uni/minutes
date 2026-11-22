@@ -3,6 +3,7 @@
 
 @use '../mixins';
 @use '../variables';
+$minutes-crimson: #cf163e; // z Signal 8.32 (odstraneno ve 8.36)
 
 .MinutesWelcomeSplash {
   display: flex;
@@ -397,7 +398,7 @@
   @include mixins.font-body-2;
 
   @include mixins.light-theme {
-    color: variables.$color-crimson;
+    color: $minutes-crimson;
   }
 
   @include mixins.dark-theme {

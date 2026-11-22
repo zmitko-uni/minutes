@@ -2029,7 +2029,44 @@ export class MessageSender {
         })
       ),
       type: 'attachmentBackfillRequestSync',
-      urgent: false,
+      urgent: true,
+    };
+  }
+
+  static getAttachmentBackfillResponseSyncMessage(
+    targetConversation: ConversationIdentifier,
+    targetMessage: AddressableMessage,
+    data: NonNullable<
+      Proto.SyncMessage.AttachmentBackfillResponse.Params['data']
+    >
+  ): SingleProtoJobData {
+    const myAci = itemStorage.user.getCheckedAci();
+
+    const syncMessage = this.padSyncMessage({
+      content: {
+        attachmentBackfillResponse: {
+          targetMessage: toAddressableMessage(targetMessage),
+          targetConversation: toConversationIdentifier(targetConversation),
+          data,
+        },
+      },
+    });
+
+    return {
+      contentHint: ContentHint.Resendable,
+      serviceId: myAci,
+      isSyncMessage: true,
+      protoBase64: Bytes.toBase64(
+        Proto.Content.encode({
+          content: {
+            syncMessage,
+          },
+          pniSignatureMessage: null,
+          senderKeyDistributionMessage: null,
+        })
+      ),
+      type: 'attachmentBackfillResponseSync',
+      urgent: true,
     };
   }
 

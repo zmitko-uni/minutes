@@ -3,8 +3,8 @@
 
 import type { JSX } from 'react';
 
-import { AxoDropdownMenu } from '../../axo/AxoDropdownMenu.dom.tsx';
-import { AxoContextMenu } from '../../axo/AxoContextMenu.dom.tsx';
+import { AxoDropdownMenu } from '../../axo/menus/AxoDropdownMenu.dom.tsx';
+import { AxoContextMenu } from '../../axo/menus/AxoContextMenu.dom.tsx';
 import { createLogger } from '../../logging/log.std.ts';
 import { drop } from '../../util/drop.std.ts';
 import { summarizeLastHours } from '../chatSummaryService.preload.ts';

@@ -6,7 +6,7 @@
   "description": "Signal Desktop fork with meeting minutes — call recording and chat summaries",
   "desktopName": "minutes.desktop",
   "repository": "https://github.com/zmitko-uni/minutes.git",
-  "version": "8.32.0-m1.6.4-beta.2",
+  "version": "8.36.0-m1.6.4-beta.2",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "Signal Messenger, LLC",
@@ -43,7 +43,7 @@
     "prepare-no-delay-release": "node scripts/prepare-no-delay-release.mjs",
     "prepare-linux-build": "node scripts/prepare_linux_build.mjs",
     "prepare-mas-build": "node scripts/prepare_mas_build.mjs",
-    "test": "run-s test-node test-electron test-lint-intl test-oxlint",
+    "test": "run-s test-node test:axo test-electron test-lint-intl test-oxlint",
     "test-electron": "node scripts/test-electron.mjs",
     "test-release": "node scripts/test-release.mjs",
     "test-node": "cross-env NODE_ENV=test NODE_OPTIONS='--import=tsx' LANG=en-us electron-mocha --timeout 10000  --extension ts,tsx,js,mjs --file ts/test-node/setup.preload.ts --recursive ts/test-node scripts/**/*_test.mjs",
@@ -51,6 +51,12 @@
     "test-mock-docker": "mocha --require ts/test-mock/setup-ci.node.ts ts/test-mock/**/*_test.docker.node.ts",
     "test-oxlint": "mocha --require .oxlint/test-setup.mjs .oxlint/rules/**/*.test.mjs",
     "test-lint-intl": "tsx ./build/intl-linter/linter.node.ts --test",
+    "test:axo": "vitest run --project axo-node --project axo-browser",
+    "test:axo:watch": "vitest --project axo-node --project axo-browser",
+    "test:axo:ui": "vitest --ui --browser.traceView --project axo-node --project axo-browser",
+    "test:axo:visual": "vitest run --project axo-visual",
+    "test:axo:bench": "vitest bench --run --reporter=default --project axo-browser",
+    "test:axo:coverage": "vitest run --coverage --project axo-node --project axo-browser",
     "oxlint": "oxlint --format=stylish",
     "oxlint:ci": "oxlint --format=github",
     "lint": "run-p --aggregate-output --print-label lint-prettier lint-css check:types oxlint lint-knip",
@@ -111,6 +117,8 @@
     "electron:install-app-deps": "node scripts/install-app-deps.mjs",
     "check-upgradeable-deps": "node scripts/check-upgradeable-deps.mjs",
     "check:unused-icons": "node scripts/check-unused-icons.mjs",
+    "check:unused-styles": "pnpm run build:styles:sass && pnpm run check:unused-styles:check",
+    "check:unused-styles:check": "node scripts/check-unused-styles.mjs",
     "update-signal-symbols": "node scripts/update-signal-symbols.mjs",
     "changeset:version": "changeset version && pnpm install --lockfile-only",
     "changeset:publish": "changeset publish",
@@ -144,9 +152,10 @@
   "dependencies": {
     "@indutny/mac-screen-share": "1.2.5",
     "@indutny/simple-windows-notifications": "2.0.21",
-    "@signalapp/libsignal-client": "0.105.0",
+    "@signalapp/clonefile": "workspace:*",
+    "@signalapp/libsignal-client": "0.106.2",
     "@signalapp/mute-state-change": "workspace:*",
-    "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.71.0-minutes.1/minutes-ringrtc-2.71.0-minutes.1.tgz",
+    "@signalapp/ringrtc": "https://github.com/zmitko-uni/minutes-ringrtc/releases/download/v2.74.0-minutes.1/minutes-ringrtc-2.74.0-minutes.1.tgz",
     "@signalapp/sqlcipher": "4.1.0",
     "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
@@ -204,7 +213,9 @@
     "@storybook/types": "8.6.14",
     "@tailwindcss/cli": "4.3.0",
     "@tailwindcss/postcss": "4.3.0",
+    "@tailwindcss/vite": "4.3.0",
     "@tanstack/react-virtual": "3.13.23",
+    "@types/audioworklet": "0.0.100",
     "@types/babel__core": "7.20.5",
     "@types/babel__helper-plugin-utils": "7.10.3",
     "@types/blueimp-load-image": "5.16.6",
@@ -240,8 +251,13 @@
     "@typescript-eslint/rule-tester": "8.59.3",
     "@typescript-eslint/utils": "8.59.3",
     "@typescript/native": "npm:typescript@7.0.2",
+    "@vitest/browser-playwright": "5.0.5",
+    "@vitest/coverage-v8": "5.0.5",
+    "@vitest/ui": "5.0.5",
+    "axe-core": "4.14.0",
     "babel-plugin-lodash": "3.3.4",
     "better-blockmap": "2.0.1",
+    "binary-search": "1.3.6",
     "blob-util": "2.0.2",
     "blueimp-load-image": "5.16.0",
     "blurhash": "2.0.5",
@@ -265,7 +281,7 @@
     "debug": "4.4.3",
     "direction": "2.0.1",
     "dom-accessibility-api": "0.7.1",
-    "electron": "44.9.1",
+    "electron": "45.4.1",
     "electron-builder": "26.11.1",
     "electron-mocha": "13.1.0",
     "emoji-regex-xs": "2.0.1",
@@ -295,7 +311,7 @@
     "lodash": "4.18.1",
     "log-symbols": "7.0.1",
     "lru-cache": "11.2.7",
-    "mediabunny": "1.61.3",
+    "mediabunny": "1.65.0",
     "memoizee": "0.4.17",
     "micromatch": "4.0.8",
     "mocha": "11.7.5",
@@ -306,8 +322,8 @@
     "normalize-path": "3.0.0",
     "npm-run-all2": "8.0.4",
     "oxc-transform": "0.131.0",
-    "oxlint": "1.80.0",
-    "oxlint-tsgolint": "7.0.2001",
+    "oxlint": "1.88.0",
+    "oxlint-tsgolint": "7.0.2004",
     "p-limit": "7.3.0",
     "p-map": "7.0.4",
     "p-queue": "9.1.0",
@@ -319,9 +335,12 @@
     "playwright": "1.60.0",
     "plist": "5.0.0",
     "pngjs": "7.0.0",
+    "postcss": "8.5.28",
     "postcss-loader": "8.2.1",
+    "postcss-selector-parser": "7.1.6",
     "prettier": "3.8.3",
     "prettier-plugin-tailwindcss": "0.8.0",
+    "purgecss": "8.0.0",
     "qrcode-generator": "2.0.4",
     "radix-ui": "1.5.0",
     "react": "19.3.0",
@@ -347,7 +366,7 @@
     "socks-proxy-agent": "8.0.5",
     "split2": "4.2.0",
     "sql-formatter": "15.7.4",
-    "storybook": "8.6.18",
+    "storybook": "8.6.19",
     "style-loader": "4.0.0",
     "stylelint": "17.11.1",
     "stylelint-config-css-modules": "4.6.0",
@@ -363,19 +382,22 @@
     "unicode-number": "1.1.0",
     "url": "0.11.4",
     "uuid": "13.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5",
+    "vitest-browser-react": "2.3.0",
     "wait-on": "9.0.5",
     "webpack": "5.111.1",
     "write-file-atomic": "7.0.1",
-    "zod": "4.3.6",
+    "zod": "4.6.6",
     "resedit": "3.1.0"
   },
   "engines": {
-    "node": "24.22.0"
+    "node": "24.22.3"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "24.22.0"
+      "version": "24.22.3"
     },
     "packageManager": {
       "name": "pnpm",
@@ -384,7 +406,6 @@
   },
   "build": {
     "appId": "org.whispersystems.signal-desktop",
-    "nativeRebuilder": "parallel",
     "mac": {
       "artifactName": "${name}-mac-${arch}-${version}.${ext}",
       "category": "public.app-category.social-networking",
@@ -652,6 +673,7 @@
       "node_modules/@signalapp/ringrtc/build/${platform}/*${arch}*.node",
       "node_modules/@signalapp/windows-ucv/build/Release/*.node",
       "node_modules/@signalapp/mute-state-change/build/Release/*.node",
+      "node_modules/@signalapp/clonefile/build/Release/*.node",
       "node_modules/@indutny/simple-windows-notifications/prebuilds/${platform}-${arch}/*.node",
       "node_modules/@indutny/mac-screen-share/prebuilds/${platform}-${arch}/*.node",
       "node_modules/fs-xattr/build/Release/*.node",
@@ -691,7 +713,7 @@
     ]
   },
   "volta": {
-    "node": "24.22.0"
+    "node": "24.22.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

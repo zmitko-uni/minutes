@@ -22,6 +22,7 @@ import { MinutesTranscriptionQueueHost } from '../minutes/components/MinutesTran
 type PropsType = {
   state: AppStateType;
   renderCallManager: () => JSX.Element;
+  renderEntryPoint: () => JSX.Element;
   renderGlobalModalContainer: () => JSX.Element;
   hasSelectedStoryData: boolean;
   renderStandaloneRegistration: () => JSX.Element;
@@ -45,6 +46,7 @@ export function App({
   isMaximized,
   osClassName,
   renderCallManager,
+  renderEntryPoint,
   renderGlobalModalContainer,
   renderInbox,
   renderInstallScreen,
@@ -58,6 +60,8 @@ export function App({
 
   if (state.appView === AppViewType.Installer) {
     contents = renderInstallScreen();
+  } else if (state.appView === AppViewType.EntryPoint) {
+    contents = renderEntryPoint();
   } else if (state.appView === AppViewType.Standalone) {
     contents = renderStandaloneRegistration();
   } else if (state.appView === AppViewType.Inbox) {
@@ -84,6 +88,7 @@ export function App({
   // This are here so that themes are properly applied to anything that is
   // created in a portal and exists outside of the <App /> container.
   useEffect(() => {
+    // oxlint-disable-next-line signal-desktop/enforce-class-name-has-styles
     document.body.classList.remove('light-theme');
     document.body.classList.remove('dark-theme');
 
@@ -91,6 +96,7 @@ export function App({
       document.body.classList.add('dark-theme');
     }
     if (theme === ThemeType.light) {
+      // oxlint-disable-next-line signal-desktop/enforce-class-name-has-styles
       document.body.classList.add('light-theme');
     }
   }, [theme]);
@@ -101,6 +107,7 @@ export function App({
 
   useEffect(() => {
     document.body.classList.toggle('full-screen', isFullScreen);
+    // oxlint-disable-next-line signal-desktop/enforce-class-name-has-styles
     document.body.classList.toggle('maximized', isMaximized);
   }, [isFullScreen, isMaximized]);
 

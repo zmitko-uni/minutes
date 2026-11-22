@@ -4,15 +4,18 @@
 import { ipcRenderer } from 'electron';
 import type {
   AudioDevice,
+  AudioDeviceList,
   CallId,
   CallSummary,
   DeviceId,
   GroupCallObserver,
   GroupCallSvcConfig,
+  NonWindowsDefaultAudioDevice,
   PeekInfo,
   UserId,
   VideoFrameSource,
   VideoRequest,
+  WindowsDefaultAudioDevices,
 } from '@signalapp/ringrtc';
 import {
   AnswerMessage,
@@ -42,6 +45,9 @@ import {
   RingUpdate,
   GroupCallKind,
   SpeechEvent,
+  cleanAudioDeviceForLogging,
+  cleanAudioDeviceListForLogging,
+  truncateForLogging,
 } from '@signalapp/ringrtc';
 import * as muteStateChange from '@signalapp/mute-state-change';
 import lodash from 'lodash';
@@ -78,16 +84,19 @@ import type {
   IceServerCacheType,
   MediaDeviceSettings,
   PresentedSource,
+  AudioDevicePref,
 } from '../types/Calling.std.ts';
 import {
   CallEndedReason,
   GroupCallConnectionState,
   GroupCallJoinState,
   ScreenShareStatus,
+  getDefaultAudioPreference,
+  getEmptyAudioDeviceList,
 } from '../types/Calling.std.ts';
 import { CallMode, LocalCallEvent } from '../types/CallDisposition.std.ts';
 import {
-  findBestMatchingAudioDeviceIndex,
+  findBestMatchingAudioDevice,
   findBestMatchingCameraId,
 } from '../calling/findBestMatchingDevice.std.ts';
 import { normalizeAci } from '../util/normalizeAci.std.ts';
@@ -182,8 +191,8 @@ import { getConversationIdForLogging } from '../util/idForLogging.preload.ts';
 import { sendCallLinkUpdateSync } from '../util/sendCallLinkUpdateSync.preload.ts';
 import { createIdenticon } from '../util/createIdenticon.preload.tsx';
 import { getColorForCallLink } from '../util/getColorForCallLink.std.ts';
-import OS from '../util/os/osMain.node.ts';
 import { sleep } from '../util/sleep.std.ts';
+import OS from '../util/os/osMain.node.ts';
 import { signalProtocolStore } from '../SignalProtocolStore.preload.ts';
 import { itemStorage } from '../textsecure/Storage.preload.ts';
 import { CallQualitySurvey } from '../types/CallQualitySurvey.std.ts';
@@ -281,36 +290,46 @@ function getAlwaysRelayCalls(): boolean {
   return itemStorage.get('always-relay-calls', false);
 }
 
-function getPreferredAudioInputDevice(): AudioDevice | undefined {
-  return itemStorage.get('preferred-audio-input-device');
+function getPreferredAudioInputDevice(): AudioDevicePref {
+  const stored = itemStorage.get('preferred-audio-input-device');
+  if (stored != null) {
+    return stored;
+  }
+  return getDefaultAudioPreference(OS.isWindows());
 }
+
 async function setPreferredAudioInputDevice(
-  device: AudioDevice
+  device: AudioDevicePref
 ): Promise<void> {
   await itemStorage.put('preferred-audio-input-device', device);
 }
 
-function getPreferredAudioOutputDevice(): AudioDevice | undefined {
-  return itemStorage.get('preferred-audio-output-device');
+function getPreferredAudioOutputDevice(): AudioDevicePref {
+  const stored = itemStorage.get('preferred-audio-output-device');
+  if (stored != null) {
+    return stored;
+  }
+  return getDefaultAudioPreference(OS.isWindows());
 }
+
 async function setPreferredAudioOutputDevice(
-  device: AudioDevice
+  device: AudioDevicePref
 ): Promise<void> {
   await itemStorage.put('preferred-audio-output-device', device);
 }
 
-function getPreferredVideoInputDevice(): string | undefined {
-  return itemStorage.get('preferred-video-input-device');
+function getPreferredVideoInputDevice(): string | null {
+  return itemStorage.get('preferred-video-input-device') ?? null;
 }
 async function setPreferredVideoInputDevice(device: string): Promise<void> {
   await itemStorage.put('preferred-video-input-device', device);
 }
 
-function truncateForLogging(name: string | undefined): string | undefined {
-  if (!name || name.length <= 4) {
-    return name;
+function cleanPrefForLogging(pref: AudioDevicePref): string {
+  if (pref.type === 'specificDevice') {
+    return truncateForLogging(pref.device.name);
   }
-  return `${name.slice(0, 2)}...${name.slice(-2)}`;
+  return pref.type;
 }
 
 function cleanForLogging(settings?: MediaDeviceSettings): unknown {
@@ -328,14 +347,14 @@ function cleanForLogging(settings?: MediaDeviceSettings): unknown {
         groupId,
       };
     }),
-    availableMicrophones: settings.availableMicrophones.map(device => {
-      return truncateForLogging(device.name);
-    }),
-    availableSpeakers: settings.availableSpeakers.map(device => {
-      return truncateForLogging(device.name);
-    }),
-    selectedMicrophone: truncateForLogging(settings.selectedMicrophone?.name),
-    selectedSpeaker: truncateForLogging(settings.selectedSpeaker?.name),
+    availableMicrophones: cleanAudioDeviceListForLogging(
+      settings.availableMicrophones
+    ),
+    availableSpeakers: cleanAudioDeviceListForLogging(
+      settings.availableSpeakers
+    ),
+    selectedMicrophone: cleanPrefForLogging(settings.selectedMicrophone),
+    selectedSpeaker: cleanPrefForLogging(settings.selectedSpeaker),
     selectedCamera: settings.selectedCamera,
   };
 }
@@ -595,7 +614,10 @@ class CallingClass {
   // A cache to limit requests for relay servers.
   #iceServersCache: IceServerCacheType | undefined;
 
-  #lastMediaDeviceSettings?: MediaDeviceSettings;
+  #mediaDeviceSettings?: MediaDeviceSettings;
+  #appliedCameraId: string | undefined;
+  #appliedMicrophoneId: string | undefined;
+  #appliedSpeakerId: string | undefined;
   #deviceReselectionTimer?: NodeJS.Timeout;
   #callsLookup: { [key: string]: Call | GroupCall };
 
@@ -648,6 +670,10 @@ class CallingClass {
       this.#handleOutputDeviceChanged.bind(this);
     RingRTC.handleInputDeviceChanged =
       this.#handleInputDeviceChanged.bind(this);
+    RingRTC.handleSettleStartPlayback =
+      this.#handleSettleStartPlayback.bind(this);
+    RingRTC.handleSettleStartRecording =
+      this.#handleSettleStartRecording.bind(this);
     RingRTC.handleRejectedIncomingCallRequest =
       this.#handleRejectedIncomingCallRequest.bind(this);
     RingRTC.handleLogMessage = this.#handleLogMessage.bind(this);
@@ -813,7 +839,16 @@ class CallingClass {
         );
         enableLocalCameraIfNecessary();
 
-        RingRTC.setMicrophoneWarmupEnabled(hasLocalAudio);
+        drop(
+          (async () => {
+            try {
+              await RingRTC.setMicrophoneWarmupEnabled(hasLocalAudio);
+            } catch {
+              // TODO: DESKTOP-10656: handle this error case
+              log.error('failed to start audio warmup');
+            }
+          })()
+        );
 
         log.info(`${logId}: Returning direct call`);
         return {
@@ -841,7 +876,16 @@ class CallingClass {
         groupCall.setOutgoingAudioMuted(!hasLocalAudio);
         groupCall.setOutgoingVideoMuted(!hasLocalVideo);
 
-        RingRTC.setMicrophoneWarmupEnabled(hasLocalAudio);
+        drop(
+          (async () => {
+            try {
+              await RingRTC.setMicrophoneWarmupEnabled(hasLocalAudio);
+            } catch {
+              // TODO: DESKTOP-10656: handle this error case
+              log.error('failed to start audio warmup');
+            }
+          })()
+        );
 
         enableLocalCameraIfNecessary();
 
@@ -865,9 +909,21 @@ class CallingClass {
 
     this.disableLocalVideo();
     this.#stopDeviceReselectionTimer();
-    this.#lastMediaDeviceSettings = undefined;
 
-    RingRTC.setMicrophoneWarmupEnabled(false);
+    drop(
+      (async () => {
+        try {
+          await RingRTC.setMicrophoneWarmupEnabled(false);
+        } catch {
+          // TODO: DESKTOP-10656: handle this error case
+          // RingRTC doesn't yet surface failures stopping a stream, but it
+          // might in future if that is useful
+          // (As of Oct 2026, we would only expect failures here in cases where,
+          //  for example, we had not actually started recording.)
+          log.error('failed to stop audio warmup');
+        }
+      })()
+    );
 
     if (conversationId) {
       this.#getGroupCall(conversationId)?.disconnect();
@@ -1161,8 +1217,16 @@ class CallingClass {
     groupCall.setOutgoingAudioMuted(!hasLocalAudio);
     groupCall.setOutgoingVideoMuted(!hasLocalVideo);
 
-    RingRTC.setMicrophoneWarmupEnabled(hasLocalAudio);
-
+    drop(
+      (async () => {
+        try {
+          await RingRTC.setMicrophoneWarmupEnabled(hasLocalAudio);
+        } catch {
+          // TODO: DESKTOP-10656: handle this error case
+          log.error('failed to start audio warmup');
+        }
+      })()
+    );
     if (hasLocalVideo) {
       drop(this.enableLocalCamera(CallMode.Group));
     }
@@ -1943,8 +2007,17 @@ class CallingClass {
     // If it's just us, warm up
     const call = this.#getGroupCall(peerId);
     if (call?.getRemoteDeviceStates()?.length === 0) {
-      RingRTC.setMicrophoneWarmupEnabled(
-        !call?.getLocalDeviceState()?.audioMuted
+      drop(
+        (async () => {
+          try {
+            await RingRTC.setMicrophoneWarmupEnabled(
+              !call?.getLocalDeviceState()?.audioMuted
+            );
+          } catch {
+            // TODO: DESKTOP-10656: handle this error case
+            log.error('failed to start audio warmup');
+          }
+        })()
       );
     }
   }
@@ -2581,7 +2654,20 @@ class CallingClass {
         this.videoRenderer.disable();
         call.setOutgoingAudioMuted(true);
         call.setOutgoingVideoMuted(true);
-        RingRTC.setMicrophoneWarmupEnabled(false);
+        drop(
+          (async () => {
+            try {
+              await RingRTC.setMicrophoneWarmupEnabled(false);
+            } catch {
+              // TODO: DESKTOP-10656: handle this error case
+              // RingRTC doesn't yet surface failures stopping a stream, but it
+              // might in future if that is useful
+              // (As of Oct 2026, we would only expect failures here in cases where,
+              //  for example, we had not actually started recording.)
+              log.error('failed to stop audio warmup');
+            }
+          })()
+        );
 
         if (
           excludeRinging &&
@@ -2596,7 +2682,20 @@ class CallingClass {
         // This ensures that we turn off our devices.
         call.setOutgoingAudioMuted(true);
         call.setOutgoingVideoMuted(true);
-        RingRTC.setMicrophoneWarmupEnabled(false);
+        drop(
+          (async () => {
+            try {
+              await RingRTC.setMicrophoneWarmupEnabled(false);
+            } catch {
+              // TODO: DESKTOP-10656: handle this error case
+              // RingRTC doesn't yet surface failures stopping a stream, but it
+              // might in future if that is useful
+              // (As of Oct 2026, we would only expect failures here in cases where,
+              //  for example, we had not actually started recording.)
+              log.error('failed to stop audio warmup');
+            }
+          })()
+        );
         call.disconnect();
       } else {
         throw missingCaseError(call);
@@ -2912,6 +3011,53 @@ class CallingClass {
     this.#deviceReselectionTimer = undefined;
   }
 
+  #defaultsEqual(
+    a: WindowsDefaultAudioDevices | NonWindowsDefaultAudioDevice,
+    b: WindowsDefaultAudioDevices | NonWindowsDefaultAudioDevice
+  ): boolean {
+    if (a.isWindows) {
+      if (!b.isWindows) {
+        return false;
+      }
+      const aComms = a.communicationsDevice;
+      const bComms = b.communicationsDevice;
+      if (aComms?.uniqueId !== bComms?.uniqueId) {
+        return false;
+      }
+
+      const aConsole = a.consoleDevice;
+      const bConsole = b.consoleDevice;
+      if (aConsole?.uniqueId !== bConsole?.uniqueId) {
+        return false;
+      }
+    }
+
+    if (!a.isWindows) {
+      if (b.isWindows) {
+        return false;
+      }
+      const aDefault = a.device;
+      const bDefault = b.device;
+      if (aDefault?.uniqueId !== bDefault?.uniqueId) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  #prefsEqual(a: AudioDevicePref, b: AudioDevicePref): boolean {
+    if (a.type === 'specificDevice') {
+      if (b.type !== 'specificDevice') {
+        return false;
+      }
+      // consider the name a cosmetic feature; user may change it.
+      return a.device.uniqueId === b.device.uniqueId;
+    }
+    // Both are defaults
+    return a.type === b.type;
+  }
+
   #mediaDeviceSettingsEqual(
     a?: MediaDeviceSettings,
     b?: MediaDeviceSettings
@@ -2924,17 +3070,17 @@ class CallingClass {
     }
     if (
       a.availableCameras.length !== b.availableCameras.length ||
-      a.availableMicrophones.length !== b.availableMicrophones.length ||
-      a.availableSpeakers.length !== b.availableSpeakers.length
+      a.availableMicrophones.devices.length !==
+        b.availableMicrophones.devices.length ||
+      a.availableSpeakers.devices.length !== b.availableSpeakers.devices.length
     ) {
       return false;
     }
-    // oxlint-disable-next-line typescript/prefer-for-of
     for (let i = 0; i < a.availableCameras.length; i += 1) {
       // oxlint-disable-next-line typescript/no-non-null-assertion
       const aCamera = a.availableCameras[i]!;
       // oxlint-disable-next-line typescript/no-non-null-assertion
-      const bCamera = a.availableCameras[i]!;
+      const bCamera = b.availableCameras[i]!;
       if (
         aCamera.deviceId !== bCamera.deviceId ||
         aCamera.groupId !== bCamera.groupId ||
@@ -2943,11 +3089,11 @@ class CallingClass {
         return false;
       }
     }
-    for (let i = 0; i < a.availableMicrophones.length; i += 1) {
+    for (let i = 0; i < a.availableMicrophones.devices.length; i += 1) {
       // oxlint-disable-next-line typescript/no-non-null-assertion
-      const aMicrophone = a.availableMicrophones[i]!;
+      const aMicrophone = a.availableMicrophones.devices[i]!;
       // oxlint-disable-next-line typescript/no-non-null-assertion
-      const bMicrophone = b.availableMicrophones[i]!;
+      const bMicrophone = b.availableMicrophones.devices[i]!;
       if (
         aMicrophone.name !== bMicrophone.name ||
         aMicrophone.uniqueId !== bMicrophone.uniqueId
@@ -2955,11 +3101,11 @@ class CallingClass {
         return false;
       }
     }
-    for (let i = 0; i < a.availableSpeakers.length; i += 1) {
+    for (let i = 0; i < a.availableSpeakers.devices.length; i += 1) {
       // oxlint-disable-next-line typescript/no-non-null-assertion
-      const aSpeaker = a.availableSpeakers[i]!;
+      const aSpeaker = a.availableSpeakers.devices[i]!;
       // oxlint-disable-next-line typescript/no-non-null-assertion
-      const bSpeaker = b.availableSpeakers[i]!;
+      const bSpeaker = b.availableSpeakers.devices[i]!;
       if (
         aSpeaker.name !== bSpeaker.name ||
         aSpeaker.uniqueId !== bSpeaker.uniqueId
@@ -2967,6 +3113,25 @@ class CallingClass {
         return false;
       }
     }
+
+    if (
+      !this.#defaultsEqual(
+        a.availableMicrophones.defaults,
+        b.availableMicrophones.defaults
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !this.#defaultsEqual(
+        a.availableSpeakers.defaults,
+        b.availableSpeakers.defaults
+      )
+    ) {
+      return false;
+    }
+
     if (
       (a.selectedCamera && !b.selectedCamera) ||
       (!a.selectedCamera && b.selectedCamera) ||
@@ -2984,18 +3149,10 @@ class CallingClass {
     ) {
       return false;
     }
-    if (
-      a.selectedMicrophone &&
-      b.selectedMicrophone &&
-      a.selectedMicrophone.index !== b.selectedMicrophone.index
-    ) {
+    if (!this.#prefsEqual(a.selectedMicrophone, b.selectedMicrophone)) {
       return false;
     }
-    if (
-      a.selectedSpeaker &&
-      b.selectedSpeaker &&
-      a.selectedSpeaker.index !== b.selectedSpeaker.index
-    ) {
+    if (!this.#prefsEqual(a.selectedSpeaker, b.selectedSpeaker)) {
       return false;
     }
     return true;
@@ -3003,20 +3160,17 @@ class CallingClass {
 
   async #maybeUpdateDevices(newSettings: MediaDeviceSettings): Promise<void> {
     if (
-      !this.#mediaDeviceSettingsEqual(
-        this.#lastMediaDeviceSettings,
-        newSettings
-      )
+      !this.#mediaDeviceSettingsEqual(this.#mediaDeviceSettings, newSettings)
     ) {
       log.info(
         'MediaDevice: available devices changed (from->to)',
-        cleanForLogging(this.#lastMediaDeviceSettings),
+        cleanForLogging(this.#mediaDeviceSettings),
         cleanForLogging(newSettings)
       );
 
-      await this.#selectPreferredDevices(newSettings);
-      this.#lastMediaDeviceSettings = newSettings;
+      this.#mediaDeviceSettings = newSettings;
       this.#reduxInterface?.refreshIODevices(newSettings);
+      await this.#selectPreferredDevices(newSettings);
     }
   }
 
@@ -3026,13 +3180,23 @@ class CallingClass {
   }
 
   async #getAvailableIODevicesWithPrefetchedDevices(
-    prefetchedMicrophones: Array<AudioDevice> | undefined,
-    prefetchedSpeakers: Array<AudioDevice> | undefined
+    prefetchedMicrophones: AudioDeviceList | undefined,
+    prefetchedSpeakers: AudioDeviceList | undefined
   ): Promise<AvailableIODevicesType> {
     const availableCameras = await this.#videoCapturer.enumerateDevices();
-    const availableMicrophones =
+    let availableMicrophones =
       prefetchedMicrophones || RingRTC.getAudioInputs();
-    const availableSpeakers = prefetchedSpeakers || RingRTC.getAudioOutputs();
+    let availableSpeakers = prefetchedSpeakers || RingRTC.getAudioOutputs();
+
+    if (availableMicrophones === undefined) {
+      availableMicrophones = getEmptyAudioDeviceList(OS.isWindows());
+      log.error('Failed to get microphones from RingRTC');
+    }
+
+    if (availableSpeakers === undefined) {
+      availableSpeakers = getEmptyAudioDeviceList(OS.isWindows());
+      log.error('Failed to get speakers from RingRTC');
+    }
 
     return {
       availableCameras,
@@ -3049,8 +3213,8 @@ class CallingClass {
   }
 
   async #getMediaDeviceSettingsWithPrefetchedDevices(
-    prefetchedMicrophones: Array<AudioDevice> | undefined,
-    prefetchedSpeakers: Array<AudioDevice> | undefined
+    prefetchedMicrophones: AudioDeviceList | undefined,
+    prefetchedSpeakers: AudioDeviceList | undefined
   ): Promise<MediaDeviceSettings> {
     const { availableCameras, availableMicrophones, availableSpeakers } =
       await this.#getAvailableIODevicesWithPrefetchedDevices(
@@ -3058,37 +3222,19 @@ class CallingClass {
         prefetchedSpeakers
       );
 
-    const preferredMicrophone = getPreferredAudioInputDevice();
-    const selectedMicIndex = findBestMatchingAudioDeviceIndex(
-      {
-        available: availableMicrophones,
-        preferred: preferredMicrophone,
-      },
-      OS.isWindows()
-    );
-    const selectedMicrophone =
-      selectedMicIndex !== undefined
-        ? availableMicrophones[selectedMicIndex]
-        : undefined;
-
-    const preferredSpeaker = getPreferredAudioOutputDevice();
-    const selectedSpeakerIndex = findBestMatchingAudioDeviceIndex(
-      {
-        available: availableSpeakers,
-        preferred: preferredSpeaker,
-      },
-      OS.isWindows()
-    );
-    const selectedSpeaker =
-      selectedSpeakerIndex !== undefined
-        ? availableSpeakers[selectedSpeakerIndex]
-        : undefined;
+    // don't put these through findBestMatchingAudioDevice; we want to keep this
+    // as the AudioDevicePref until we actually need to pass it to RingRTC, so
+    // that we can (for example) display in the UI that the user has selected the
+    // default device, rather than showing that they selected the specific
+    // device that happens to be default now.
+    const selectedMicrophone = getPreferredAudioInputDevice();
+    const selectedSpeaker = getPreferredAudioOutputDevice();
 
     const preferredCamera = getPreferredVideoInputDevice();
-    const selectedCamera = findBestMatchingCameraId(
-      availableCameras,
-      preferredCamera
-    );
+    const selectedCamera = findBestMatchingCameraId({
+      available: availableCameras,
+      preferred: preferredCamera,
+    });
 
     return {
       availableMicrophones,
@@ -3107,24 +3253,96 @@ class CallingClass {
     );
   }
 
-  setPreferredMicrophone(device: AudioDevice): void {
+  #setAudioInput(device: AudioDevice | null) {
+    if (device == null) {
+      log.error(
+        'MediaDevice: findBestMatchingAudioDevice found no microphones'
+      );
+      this.#appliedMicrophoneId = undefined;
+      return;
+    }
+    this.#appliedMicrophoneId = device.uniqueId;
+
     log.info(
       'MediaDevice: setPreferredMicrophone',
-      device.index,
-      truncateForLogging(device.name)
+      truncateForLogging(device.name),
+      truncateForLogging(device.uniqueId)
     );
-    drop(setPreferredAudioInputDevice(device));
-    RingRTC.setAudioInput(device.index);
+
+    drop(
+      (async () => {
+        try {
+          await RingRTC.setAudioInputById(device.uniqueId);
+        } catch {
+          if (this.#appliedMicrophoneId === device.uniqueId) {
+            this.#appliedMicrophoneId = undefined;
+          }
+          // TODO: DESKTOP-10656: handle this error case
+          log.error('MediaDevice: failed to set audio input');
+        }
+      })()
+    );
   }
 
-  setPreferredSpeaker(device: AudioDevice): void {
+  #setAudioOutput(device: AudioDevice | null) {
+    if (device == null) {
+      log.error('MediaDevice: findBestMatchingAudioDevice found no speakers');
+      this.#appliedSpeakerId = undefined;
+      return;
+    }
+    this.#appliedSpeakerId = device.uniqueId;
+
     log.info(
-      'MediaDevice: setPreferredSpeaker',
-      device.index,
-      truncateForLogging(device.name)
+      'MediaDevice: setSelectedSpeaker',
+      truncateForLogging(device.name),
+      truncateForLogging(device.uniqueId)
     );
-    drop(setPreferredAudioOutputDevice(device));
-    RingRTC.setAudioOutput(device.index);
+
+    drop(
+      (async () => {
+        try {
+          await RingRTC.setAudioOutputById(device.uniqueId);
+        } catch {
+          if (this.#appliedSpeakerId === device.uniqueId) {
+            this.#appliedSpeakerId = undefined;
+          }
+          // TODO: DESKTOP-10656: handle this error case
+          log.error('MediaDevice: failed to set audio output');
+        }
+      })()
+    );
+  }
+
+  setPreferredMicrophone(pref: AudioDevicePref): void {
+    if (this.#mediaDeviceSettings === undefined) {
+      log.error(
+        'MediaDevice: setPreferredMicrophone with missing #mediaDeviceSettings'
+      );
+      return;
+    }
+    drop(setPreferredAudioInputDevice(pref));
+    this.#setAudioInput(
+      findBestMatchingAudioDevice({
+        available: this.#mediaDeviceSettings.availableMicrophones,
+        preferred: pref,
+      })
+    );
+  }
+
+  setSelectedSpeaker(pref: AudioDevicePref): void {
+    if (this.#mediaDeviceSettings === undefined) {
+      log.error(
+        'MediaDevice: setSelectedSpeaker with missing #mediaDeviceSettings'
+      );
+      return;
+    }
+    drop(setPreferredAudioOutputDevice(pref));
+    this.#setAudioOutput(
+      findBestMatchingAudioDevice({
+        available: this.#mediaDeviceSettings.availableSpeakers,
+        preferred: pref,
+      })
+    );
   }
 
   async enableLocalCamera(mode: CallMode): Promise<void> {
@@ -3162,10 +3380,22 @@ class CallingClass {
     this.#videoCapturer.disable();
   }
 
-  async setPreferredCamera(device: string): Promise<void> {
-    log.info('MediaDevice: setPreferredCamera', device);
+  async setSelectedCamera(device: string): Promise<void> {
     drop(setPreferredVideoInputDevice(device));
-    await this.#videoCapturer.setPreferredDevice(device);
+    await this.#setCamera(device);
+  }
+
+  async #setCamera(deviceId: string): Promise<void> {
+    log.info('MediaDevice: selecting camera', deviceId);
+    this.#appliedCameraId = deviceId;
+    try {
+      await this.#videoCapturer.setPreferredDevice(deviceId);
+    } catch (error) {
+      if (this.#appliedCameraId === deviceId) {
+        this.#appliedCameraId = undefined;
+      }
+      log.error('MediaDevice: failed to set camera', Errors.toLogFormat(error));
+    }
   }
 
   async handleCallingMessage(
@@ -3305,35 +3535,31 @@ class CallingClass {
   }
 
   async #selectPreferredDevices(settings: MediaDeviceSettings): Promise<void> {
-    if (
-      (!this.#lastMediaDeviceSettings && settings.selectedCamera) ||
-      (this.#lastMediaDeviceSettings &&
-        settings.selectedCamera &&
-        this.#lastMediaDeviceSettings.selectedCamera !==
-          settings.selectedCamera)
-    ) {
-      log.info('MediaDevice: selecting camera', settings.selectedCamera);
-      await this.#videoCapturer.setPreferredDevice(settings.selectedCamera);
-    }
-
-    // Assume that the MediaDeviceSettings have been obtained very recently and
-    // the index is still valid (no devices have been plugged in in between).
     if (settings.selectedMicrophone) {
-      log.info(
-        'MediaDevice: selecting microphone',
-        settings.selectedMicrophone.index,
-        truncateForLogging(settings.selectedMicrophone.name)
-      );
-      RingRTC.setAudioInput(settings.selectedMicrophone.index);
+      const microphone = findBestMatchingAudioDevice({
+        available: settings.availableMicrophones,
+        preferred: settings.selectedMicrophone,
+      });
+      if (microphone?.uniqueId !== this.#appliedMicrophoneId) {
+        this.#setAudioInput(microphone);
+      }
     }
 
     if (settings.selectedSpeaker) {
-      log.info(
-        'MediaDevice: selecting speaker',
-        settings.selectedSpeaker.index,
-        truncateForLogging(settings.selectedSpeaker.name)
-      );
-      RingRTC.setAudioOutput(settings.selectedSpeaker.index);
+      const speaker = findBestMatchingAudioDevice({
+        available: settings.availableSpeakers,
+        preferred: settings.selectedSpeaker,
+      });
+      if (speaker?.uniqueId !== this.#appliedSpeakerId) {
+        this.#setAudioOutput(speaker);
+      }
+    }
+
+    const { selectedCamera } = settings;
+    if (!selectedCamera) {
+      this.#appliedCameraId = undefined;
+    } else if (selectedCamera !== this.#appliedCameraId) {
+      await this.#setCamera(selectedCamera);
     }
   }
 
@@ -3853,7 +4079,6 @@ class CallingClass {
         this.videoRenderer.disable();
 
         this.#stopDeviceReselectionTimer();
-        this.#lastMediaDeviceSettings = undefined;
         delete this.#callsLookup[conversationId];
 
         drop(
@@ -4257,7 +4482,7 @@ class CallingClass {
     return true;
   }
 
-  async #handleOutputDeviceChanged(devices: Array<AudioDevice>): Promise<void> {
+  async #handleOutputDeviceChanged(devices: AudioDeviceList): Promise<void> {
     const newSettings = await this.#getMediaDeviceSettingsWithPrefetchedDevices(
       undefined,
       devices
@@ -4265,12 +4490,36 @@ class CallingClass {
     return this.#maybeUpdateDevices(newSettings);
   }
 
-  async #handleInputDeviceChanged(devices: Array<AudioDevice>): Promise<void> {
+  async #handleInputDeviceChanged(devices: AudioDeviceList): Promise<void> {
     const newSettings = await this.#getMediaDeviceSettingsWithPrefetchedDevices(
       devices,
       undefined
     );
     return this.#maybeUpdateDevices(newSettings);
+  }
+
+  async #handleSettleStartPlayback(
+    success: boolean,
+    device: AudioDevice | undefined
+  ): Promise<void> {
+    if (!success) {
+      log.error(
+        'Failed to start playback with ',
+        cleanAudioDeviceForLogging(device)
+      );
+    }
+  }
+
+  async #handleSettleStartRecording(
+    success: boolean,
+    device: AudioDevice | undefined
+  ): Promise<void> {
+    if (!success) {
+      log.error(
+        'Failed to start recording with ',
+        cleanAudioDeviceForLogging(device)
+      );
+    }
   }
 
   public async updateCallHistoryForAdhocCall(

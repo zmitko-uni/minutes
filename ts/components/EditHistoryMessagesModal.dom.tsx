@@ -17,9 +17,9 @@ import { shouldNeverBeCalled } from '../util/shouldNeverBeCalled.std.ts';
 import { useTheme } from '../hooks/useTheme.dom.ts';
 import { isSameDay } from '../util/timestamp.std.ts';
 import { TimelineDateHeader } from './conversation/TimelineDateHeader.dom.tsx';
-import { AxoContextMenu } from '../axo/AxoContextMenu.dom.tsx';
+import { AxoContextMenu } from '../axo/menus/AxoContextMenu.dom.tsx';
 import { drop } from '../util/drop.std.ts';
-import type { AxoMenuBuilder } from '../axo/AxoMenuBuilder.dom.tsx';
+import type { AxoMenuBuilder } from '../axo/menus/AxoMenuBuilder.dom.tsx';
 import { strictAssert } from '../util/assert.std.ts';
 import { AxoDialog } from '../axo/AxoDialog.dom.tsx';
 
@@ -121,7 +121,11 @@ export function EditHistoryMessagesModal({
 
   return (
     <AxoDialog.Root open onOpenChange={closeEditHistoryModal}>
-      <AxoDialog.Content size="md" escape="cancel-is-noop">
+      <AxoDialog.Content
+        size="md"
+        escape="cancel-is-noop"
+        disableMissingAriaDescriptionWarning
+      >
         <AxoDialog.Header floating>
           <AxoDialog.Title>
             {i18n('icu:EditHistoryMessagesModal__title')}
@@ -131,6 +135,7 @@ export function EditHistoryMessagesModal({
         <AxoDialog.Body>
           <div ref={containerElementRef} className="EditHistoryMessagesModal">
             <TimelineDateHeader
+              noPaddingTop
               i18n={i18n}
               timestamp={currentMessage.timestamp}
             />

@@ -4,7 +4,11 @@ import { useCallback, useState, type JSX } from 'react';
 import { Button } from 'react-aria-components';
 import { action } from '@storybook/addon-actions';
 import { type ComponentMeta } from '../../storybook/types.std.ts';
-import { packs, recentStickers } from '../../test-helpers/stickersMocks.std.ts';
+import {
+  favoriteStickers,
+  packs,
+  recentStickers,
+} from '../../test-helpers/stickersMocks.std.ts';
 import type { FunPickerProps } from './FunPicker.dom.tsx';
 import { FunPicker } from './FunPicker.dom.tsx';
 import { FunProvider } from './FunProvider.dom.tsx';
@@ -38,11 +42,14 @@ function Template(props: TemplateProps) {
       onOpenCustomizePreferredReactionsModal={() => null}
       onSelectEmoji={() => null}
       // Stickers
+      favoriteStickers={favoriteStickers}
+      isFavoriteStickersEnabled
       isStickerReplySendEnabled
       installedStickerPacks={packs}
       showStickerPickerHint={false}
       onClearStickerPickerHint={() => null}
       onSelectSticker={() => null}
+      onMarkStickerAsFavorite={() => null}
       // Gifs
       fetchGiphySearch={() => Promise.resolve(MOCK_GIFS_PAGINATED_ONE_PAGE)}
       fetchGiphyTrending={() => Promise.resolve(MOCK_GIFS_PAGINATED_ONE_PAGE)}
@@ -61,13 +68,13 @@ export default {
   title: 'Components/Fun/FunPicker',
   component: Template,
   args: {
-    isReply: false,
     placement: 'bottom',
     theme: undefined,
     onSelectEmoji: action('onSelectEmoji'),
     onSelectSticker: action('onSelectSticker'),
     onSelectGif: action('onSelectGif'),
     onAddStickerPack: action('onAddStickerPack'),
+    onMarkStickerAsFavorite: action('onMarkStickerAsFavorite'),
   },
 } satisfies ComponentMeta<TemplateProps>;
 

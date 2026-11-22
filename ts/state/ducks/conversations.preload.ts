@@ -10,6 +10,7 @@ import { DataReader, DataWriter } from '../../sql/Client.preload.ts';
 import type { AttachmentType } from '../../types/Attachment.std.ts';
 import type { StateType as RootStateType } from '../reducer.preload.ts';
 import * as groups from '../../groups.preload.ts';
+import * as joinViaLink from '../../groups/joinViaLink.preload.ts';
 import { createLogger } from '../../logging/log.std.ts';
 import { calling } from '../../services/calling.preload.ts';
 import { retryPlaceholders } from '../../services/retryPlaceholders.std.ts';
@@ -23,13 +24,11 @@ import type { EmbeddedContactForUIType } from '../../types/EmbeddedContact.std.t
 import {
   deleteAvatar,
   writeNewAvatarData,
-  getUnusedFilename,
-  readAttachmentData,
-  saveAttachmentToDisk,
 } from '../../util/migrations.preload.ts';
 import type { DurationInSeconds } from '../../util/durations/index.std.ts';
 import * as universalExpireTimer from '../../util/universalExpireTimer.preload.ts';
 import * as Attachment from '../../util/Attachment.std.ts';
+import { saveAttachment as doSaveAttachment } from '../../util/attachments.preload.ts';
 import type { LocalizerType } from '../../types/I18N.std.ts';
 import { AttachmentDownloadUrgency } from '../../types/AttachmentDownload.std.ts';
 import { isFileDangerous } from '../../util/isFileDangerous.std.ts';
@@ -62,16 +61,19 @@ import type {
 
 import type {
   AvatarColorType,
-  ConversationColorType,
-  CustomColorType,
-} from '../../types/Colors.std.ts';
+  AvatarDataType,
+  AvatarUpdateOptionsType,
+  ContactAvatarType,
+} from '../../types/Avatar.std.ts';
+import type { ChatStyle } from '../../types/ChatStyle.std.ts';
+import { toConversationBubbleColorAttributes } from '../../util/conversationBubbleColor.std.ts';
 import type {
   ConversationAttributesType,
   DraftEditMessageType,
   LastMessageStatus,
   MessageAttributesType,
   ReadonlyMessageAttributesType,
-} from '../../model-types.d.ts';
+} from '../../model-types.std.ts';
 import type {
   DraftBodyRanges,
   HydratedBodyRangesType,
@@ -107,10 +109,6 @@ import {
   getAllConversations,
 } from '../selectors/conversations.dom.ts';
 import { getIntl } from '../selectors/user.std.ts';
-import type {
-  AvatarDataType,
-  AvatarUpdateOptionsType,
-} from '../../types/Avatar.std.ts';
 import { getDefaultAvatars } from '../../types/Avatar.std.ts';
 import { getAvatarData } from '../../util/getAvatarData.dom.ts';
 import { isSameAvatarData } from '../../util/isSameAvatarData.std.ts';
@@ -376,9 +374,7 @@ export type ConversationType = ReadonlyDeep<
     canEditGroupInfo?: boolean;
     canAddNewMembers?: boolean;
     color?: AvatarColorType;
-    conversationColor?: ConversationColorType;
-    customColor?: CustomColorType;
-    customColorId?: string;
+    bubbleColor?: ChatStyle['bubbleColor'];
     discoveredUnregisteredAt?: number;
     hideStory?: boolean;
     isArchived?: boolean;
@@ -569,6 +565,16 @@ export type PreJoinConversationType = ReadonlyDeep<{
   memberCount: number;
   title: string;
   approvalRequired: boolean;
+
+  // Needed to complete the join
+  groupId: string;
+  masterKey: string;
+  secretParams: string;
+  publicParams: string;
+  inviteLinkPassword: string;
+  revision: number | null;
+  remoteAvatarUrl: string | null;
+  localAvatar: ContactAvatarType | null;
 }>;
 
 type ComposerGroupCreationState = ReadonlyDeep<{
@@ -742,21 +748,11 @@ type CloseRecommendedGroupSizeModalActionType = ReadonlyDeep<{
 }>;
 type ColorsChangedActionType = ReadonlyDeep<{
   type: typeof COLORS_CHANGED;
-  payload: {
-    conversationColor?: ConversationColorType;
-    customColorData?: {
-      id: string;
-      value: CustomColorType;
-    };
-  };
+  payload: ChatStyle['bubbleColor'] | null;
 }>;
 type ColorSelectedPayloadType = ReadonlyDeep<{
   conversationId: string;
-  conversationColor?: ConversationColorType;
-  customColorData?: {
-    id: string;
-    value: CustomColorType;
-  };
+  bubbleColor: ChatStyle['bubbleColor'] | null;
 }>;
 export type ColorSelectedActionType = ReadonlyDeep<{
   type: typeof COLOR_SELECTED;
@@ -777,10 +773,10 @@ type ComposeSaveAvatarActionType = ReadonlyDeep<{
   type: typeof COMPOSE_ADD_AVATAR;
   payload: AvatarDataType;
 }>;
-type CustomColorRemovedActionType = ReadonlyDeep<{
+export type CustomColorRemovedActionType = ReadonlyDeep<{
   type: typeof CUSTOM_COLOR_REMOVED;
   payload: {
-    colorId: string;
+    colorId: ChatStyle.CustomChatColorId;
   };
 }>;
 type DiscardMessagesActionType = ReadonlyDeep<{
@@ -1172,6 +1168,7 @@ export const actions = {
   blockGroupLinkRequests,
   cancelAttachmentDownload,
   cancelConversationVerification,
+  cancelJoinViaLink,
   changeHasGroupLink,
   clearCanceledConversationVerification,
   clearGroupCreationError,
@@ -1182,6 +1179,7 @@ export const actions = {
   closeMaximumGroupSizeModal,
   closeRecommendedGroupSizeModal,
   colorSelected,
+  completeJoinViaLink,
   composeDeleteAvatarFromDisk,
   composeReplaceAvatar,
   composeSaveAvatarToDisk,
@@ -2354,24 +2352,19 @@ function myProfileChanged(
 }
 
 function removeCustomColorOnConversations(
-  colorId: string
+  colorId: ChatStyle.CustomChatColorId
 ): AsyncStateThunk<CustomColorRemovedActionType> {
   return async dispatch => {
-    const conversationsToUpdate: Array<ConversationAttributesType> = [];
+    // The database is updated by the `ON DELETE SET NULL` foreign key when the
+    // custom color is deleted, this only updates the models in memory.
+    // Use `chatColors.removeCustomColor()` instead.
     window.ConversationController.getAll().forEach(conversation => {
-      if (conversation.get('customColorId') === colorId) {
+      if (conversation.get('customChatColorId') === colorId) {
         conversation.set({
-          conversationColor: undefined,
-          customColor: undefined,
-          customColorId: undefined,
+          customChatColorId: undefined,
         });
-        conversationsToUpdate.push(conversation.attributes);
       }
     });
-
-    if (conversationsToUpdate.length) {
-      await DataWriter.updateConversations(conversationsToUpdate);
-    }
 
     dispatch({
       type: CUSTOM_COLOR_REMOVED,
@@ -2384,23 +2377,18 @@ function removeCustomColorOnConversations(
 
 function resetAllChatColors(): AsyncStateThunk<ColorsChangedActionType> {
   return async dispatch => {
-    // Calling this with no args unsets all the colors in the db
-    await DataWriter.updateAllConversationColors();
-
+    // Clear the models first, and flush any pending writes from before that,
+    // so that nothing writes the old colors back afterwards.
     window.ConversationController.getAll().forEach(conversation => {
-      conversation.set({
-        conversationColor: undefined,
-        customColor: undefined,
-        customColorId: undefined,
-      });
+      conversation.set(toConversationBubbleColorAttributes(null));
     });
+    await DataWriter.flushUpdateConversationBatcher();
+
+    await DataWriter.removeAllConversationColors();
 
     dispatch({
       type: COLORS_CHANGED,
-      payload: {
-        conversationColor: undefined,
-        customColorData: undefined,
-      },
+      payload: null,
     });
   };
 }
@@ -2733,32 +2721,12 @@ export function setVoiceNotePlaybackRate({
 
 function colorSelected({
   conversationId,
-  conversationColor,
-  customColorData,
+  bubbleColor,
 }: ColorSelectedPayloadType): AsyncStateThunk<ColorSelectedActionType> {
   return async dispatch => {
     const conversation = window.ConversationController.get(conversationId);
     if (conversation) {
-      if (conversationColor) {
-        conversation.set({ conversationColor });
-        if (customColorData) {
-          conversation.set({
-            customColor: customColorData.value,
-            customColorId: customColorData.id,
-          });
-        } else {
-          conversation.set({
-            customColor: undefined,
-            customColorId: undefined,
-          });
-        }
-      } else {
-        conversation.set({
-          conversationColor: undefined,
-          customColor: undefined,
-          customColorId: undefined,
-        });
-      }
+      conversation.set(toConversationBubbleColorAttributes(bubbleColor));
 
       await DataWriter.updateConversation(conversation.attributes);
     }
@@ -2767,8 +2735,7 @@ function colorSelected({
       type: COLOR_SELECTED,
       payload: {
         conversationId,
-        conversationColor,
-        customColorData,
+        bubbleColor,
       },
     });
   };
@@ -2931,6 +2898,18 @@ function setPreJoinConversation(
     payload: {
       data,
     },
+  };
+}
+
+function completeJoinViaLink(): AsyncStateThunk {
+  return async () => {
+    await joinViaLink.completeJoinViaLink();
+  };
+}
+
+function cancelJoinViaLink(): AsyncStateThunk {
+  return async () => {
+    await joinViaLink.cancelJoinViaLink();
   };
 }
 
@@ -3939,7 +3918,7 @@ function blockAndReportSpam(
         );
       } catch (error) {
         log.error(
-          `blockConversation/${idForLogging}: Failed to queue block sync message`,
+          `blockAndReportSpam/${idForLogging}: Failed to queue block sync message`,
           Errors.toLogFormat(error)
         );
       }
@@ -4158,12 +4137,9 @@ function saveAttachment(
       return;
     }
 
-    const fullPath = await Attachment.save({
+    const fullPath = await doSaveAttachment({
       attachment,
       index: index + 1,
-      getUnusedFilename,
-      readAttachmentData,
-      saveAttachmentToDisk,
       timestamp,
     });
 
@@ -4243,12 +4219,9 @@ function saveAttachments(
         index += 1;
 
         // oxlint-disable-next-line no-await-in-loop
-        const result = await Attachment.save({
+        const result = await doSaveAttachment({
           attachment,
           index,
-          getUnusedFilename,
-          readAttachmentData,
-          saveAttachmentToDisk,
           timestamp,
           baseDir: dirPath,
         });
@@ -7333,18 +7306,16 @@ export function reducer(
 
   if (action.type === COLORS_CHANGED) {
     const { conversationLookup } = state;
-    const { conversationColor, customColorData } = action.payload;
+    const bubbleColor = action.payload;
 
     const nextState = {
       ...state,
     };
 
     for (const [id, existing] of Object.entries(conversationLookup)) {
-      const added = {
+      const added: ConversationType = {
         ...existing,
-        conversationColor,
-        customColor: customColorData?.value,
-        customColorId: customColorData?.id,
+        bubbleColor: bubbleColor ?? undefined,
       };
 
       Object.assign(
@@ -7364,19 +7335,16 @@ export function reducer(
 
   if (action.type === COLOR_SELECTED) {
     const { conversationLookup } = state;
-    const { conversationId, conversationColor, customColorData } =
-      action.payload;
+    const { conversationId, bubbleColor } = action.payload;
 
     const existing = conversationLookup[conversationId];
     if (!existing) {
       return state;
     }
 
-    const changed = {
+    const changed: ConversationType = {
       ...existing,
-      conversationColor,
-      customColor: customColorData?.value,
-      customColorId: customColorData?.id,
+      bubbleColor: bubbleColor ?? undefined,
     };
 
     return {
@@ -7398,15 +7366,13 @@ export function reducer(
     };
 
     for (const [id, existing] of Object.entries(conversationLookup)) {
-      if (existing.customColorId !== colorId) {
+      if (existing.bubbleColor?.customChatColorId !== colorId) {
         continue;
       }
 
-      const changed = {
+      const changed: ConversationType = {
         ...existing,
-        conversationColor: undefined,
-        customColor: undefined,
-        customColorId: undefined,
+        bubbleColor: undefined,
       };
 
       Object.assign(

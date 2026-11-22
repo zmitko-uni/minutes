@@ -13,7 +13,6 @@ import { reducer as rootReducer } from '../../../state/reducer.preload.ts';
 import { noopAction } from '../../../state/ducks/noop.std.ts';
 import type {
   ActiveCallStateType,
-  CallingActionType,
   CallingStateType,
   DirectCallStateType,
   GroupCallReactionsReceivedActionType,
@@ -1612,19 +1611,15 @@ describe('calling duck', () => {
         });
       });
 
-      it('preserves adminKey', () => {
+      it('preserves adminKey', async () => {
         const { startCallLinkLobby } = actions;
         const { roomId, rootKey, adminKey } = FAKE_CALL_LINK_WITH_ADMIN_KEY;
         const dispatch = sinon.spy();
-        const result = reducer(
-          getStateWithAdminKey().calling,
-          startCallLinkLobby({
-            rootKey,
-          })(
-            dispatch,
-            getStateWithAdminKey
-          ) as unknown as Readonly<CallingActionType>
-        );
+        await startCallLinkLobby({ rootKey })(dispatch, getStateWithAdminKey);
+
+        const action = dispatch.lastCall.args[0];
+        assert.equal(action.type, 'calling/START_CALL_LINK_LOBBY');
+        const result = reducer(getStateWithAdminKey().calling, action);
         assert.equal(result.callLinks[roomId]?.adminKey, adminKey);
       });
     });
@@ -2740,37 +2735,6 @@ describe('calling duck', () => {
         })(dispatch, () => startState);
 
         sinon.assert.notCalled(dispatch);
-      });
-    });
-
-    describe('toggleSettings', () => {
-      const { toggleSettings } = actions;
-
-      it('toggles the settings dialog', () => {
-        const afterOneToggle = reducer(
-          stateWithActiveDirectCall,
-          toggleSettings()
-        );
-        const afterTwoToggles = reducer(afterOneToggle, toggleSettings());
-        const afterThreeToggles = reducer(afterTwoToggles, toggleSettings());
-
-        strictAssert(
-          afterOneToggle.activeCallState?.state === 'Active',
-          'state is active #1'
-        );
-        assert.isTrue(afterOneToggle.activeCallState?.settingsDialogOpen);
-
-        strictAssert(
-          afterTwoToggles.activeCallState?.state === 'Active',
-          'state is active #2'
-        );
-        assert.isFalse(afterTwoToggles.activeCallState?.settingsDialogOpen);
-
-        strictAssert(
-          afterThreeToggles.activeCallState?.state === 'Active',
-          'state is active #3'
-        );
-        assert.isTrue(afterThreeToggles.activeCallState?.settingsDialogOpen);
       });
     });
 

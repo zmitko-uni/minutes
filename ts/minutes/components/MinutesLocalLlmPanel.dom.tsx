@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState, type JSX } from 'react';
 
-import { AxoSelect } from '../../axo/AxoSelect.dom.tsx';
+import { AxoSelect } from '../../axo/menus/AxoSelect.dom.tsx';
 import { tw } from '../../axo/tw.dom.tsx';
 import { MinutesDownloadProgress } from './MinutesDownloadProgress.dom.tsx';
 import { MINUTES_FORM_FIELDSET_BORDER_CLASS } from './minutesFormControls.dom.ts';

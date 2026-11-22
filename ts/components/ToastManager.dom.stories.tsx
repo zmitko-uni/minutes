@@ -242,6 +242,12 @@ function getToast(toastType: ToastType): AnyToast {
       return { toastType: ToastType.ReportedSpamAndBlocked };
     case ToastType.SQLError:
       return { toastType: ToastType.SQLError };
+    case ToastType.StickerFavoriteAdded:
+      return { toastType: ToastType.StickerFavoriteAdded };
+    case ToastType.StickerFavoriteRemoved:
+      return { toastType: ToastType.StickerFavoriteRemoved };
+    case ToastType.StickerFavoritesTooMany:
+      return { toastType: ToastType.StickerFavoritesTooMany };
     case ToastType.StickerPackInstallFailed:
       return { toastType: ToastType.StickerPackInstallFailed };
     case ToastType.StoryMuted:
@@ -294,6 +300,11 @@ function getToast(toastType: ToastType): AnyToast {
       return {
         toastType: ToastType.VideoFileSize,
         parameters: { limit: 100, units: 'MB' },
+      };
+    case ToastType.VideoFileDuration:
+      return {
+        toastType: ToastType.VideoFileDuration,
+        parameters: { maxDuration: 300 },
       };
     case ToastType.ViewOnceDisabled:
       return { toastType: ToastType.ViewOnceDisabled };
@@ -373,6 +384,7 @@ export default {
     megaphoneType: MegaphoneType.UsernameOnboarding,
     OS: 'macOS',
     isInFullScreenCall: false,
+    systemPreferredLanguages: [],
   },
 } satisfies Meta<Args>;
 

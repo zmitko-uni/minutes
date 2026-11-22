@@ -44,8 +44,6 @@ const SemverKeys = [
   'desktop.groupTerminate.send.prod',
   'desktop.keyTransparency.beta',
   'desktop.keyTransparency.prod',
-  'desktop.localBackups.beta',
-  'desktop.localBackups.prod',
   'desktop.pollSend1to1.beta',
   'desktop.pollSend1to1.prod',
   'desktop.remoteMute.send.beta',
@@ -54,6 +52,10 @@ const SemverKeys = [
   'desktop.retireAccessKeyGroupSend.prod',
   'desktop.sendMessageViaLibsignal.beta',
   'desktop.sendMessageViaLibsignal.prod',
+  'desktop.shareContact.beta',
+  'desktop.shareContact.prod',
+  'desktop.stickerFavorites.beta',
+  'desktop.stickerFavorites.prod',
   'desktop.stickerReply.send.beta',
   'desktop.stickerReply.send.prod',
 ] as const;
@@ -62,6 +64,7 @@ export type SemverKeyType = ArrayValues<typeof SemverKeys>;
 
 const ScalarKeys = [
   'client.maxAllowedClockSkewSeconds',
+  'client.attachments.videoTranscodingConfiguration',
   'desktop.callQualitySurveyPPM',
   'desktop.calling.dredDuration.alpha',
   'desktop.calling.dredDuration.beta',

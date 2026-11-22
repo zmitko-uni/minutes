@@ -2,8 +2,20 @@
   "icu:AxoAlertDialog.Cancel": {
     "messageformat": "Peruuta"
   },
+  "icu:AxoAlertDialog.Ok": {
+    "messageformat": "OK"
+  },
   "icu:AxoButton.Pending": {
     "messageformat": "Käsiteltävänä"
+  },
+  "icu:AxoColorSlider.Hue": {
+    "messageformat": "Värisävy"
+  },
+  "icu:AxoColorSlider.Saturation": {
+    "messageformat": "Värikylläisyys"
+  },
+  "icu:AxoColorSlider.Lightness": {
+    "messageformat": "Kirkkaus"
   },
   "icu:AxoDialog.Back": {
     "messageformat": "Takaisin"
@@ -11,8 +23,44 @@
   "icu:AxoDialog.Close": {
     "messageformat": "Sulje"
   },
+  "icu:AxoLoadingIndicator.Loading": {
+    "messageformat": "Ladataan"
+  },
+  "icu:AxoMediaButton.Play": {
+    "messageformat": "Toista"
+  },
+  "icu:AxoMediaButton.Pause": {
+    "messageformat": "Pysäytä"
+  },
+  "icu:AxoMediaButton.Download": {
+    "messageformat": "Lataa"
+  },
+  "icu:AxoMediaButton.CancelDownload": {
+    "messageformat": "Peruuta lataus"
+  },
+  "icu:AxoOutgoingStatus.Sending": {
+    "messageformat": "Lähetetään"
+  },
+  "icu:AxoOutgoingStatus.Sent": {
+    "messageformat": "Lähetetty"
+  },
+  "icu:AxoOutgoingStatus.Delivered": {
+    "messageformat": "Toimitettu"
+  },
+  "icu:AxoOutgoingStatus.Read": {
+    "messageformat": "Luettu"
+  },
+  "icu:AxoOutgoingStatus.Paused": {
+    "messageformat": "Lähetys keskeytetty"
+  },
+  "icu:AxoOutgoingStatus.Error": {
+    "messageformat": "Lähetys epäonnistui"
+  },
   "icu:AxoPasswordField.Reveal": {
     "messageformat": "Näytä salasana"
+  },
+  "icu:AxoProgressIndicator.Loading": {
+    "messageformat": "Ladataan"
   },
   "icu:AxoTextField.Clear": {
     "messageformat": "Tyhjennä"
@@ -73,9 +121,6 @@
   },
   "icu:LinkedDevicesOnboardingDialog__bullet--2": {
     "messageformat": "Yhdistettyjä laitteita voi olla korkeintaan viisi, ja niitä hallinnoidaan ensisijaiselta laitteelta."
-  },
-  "icu:LinkedDevicesOnboardingDialog__bullet--3--1": {
-    "messageformat": "Tilin asetuksia ja varmuuskopioita voi hallinnoida vain ensisijaisella laitteella."
   },
   "icu:LinkedDevicesOnboardingDialog__bullet--3--2": {
     "messageformat": "Tilin asetuksia ja Signal Secure -varmuuskopioita voi hallinnoida vain ensisijaisella laitteella."
@@ -257,6 +302,12 @@
   "icu:messageContextMenuButton": {
     "messageformat": "Lisätoimintoja"
   },
+  "icu:messageContextMenu__sticker--addFavorite": {
+    "messageformat": "Lisää suosikkeihin"
+  },
+  "icu:messageContextMenu__sticker--removeFavorite": {
+    "messageformat": "Poista suosikeista"
+  },
   "icu:contextMenuCopyLink": {
     "messageformat": "Kopioi linkki"
   },
@@ -277,6 +328,9 @@
   },
   "icu:archivedConversations": {
     "messageformat": "Arkistoidut keskustelut"
+  },
+  "icu:LeftPane__MoreActionsLabel": {
+    "messageformat": "Lisätoimintoja"
   },
   "icu:LeftPane__MoreActionsMenu__AddChatFolder": {
     "messageformat": "Lisää keskustelukansio"
@@ -671,6 +725,9 @@
   "icu:KeyTransparencyOnboardingDialog__Description": {
     "messageformat": "Kun yhteys toiseen käyttäjään perustuu puhelinnumeroon, Signal voi vahvistaa yhteyden suojauksen automaattisesti avaimen läpinäkyvyydeksi kutsutulla prosessilla. Lisäturvan saamiseksi voit edelleen vahvistaa yhteydet manuaalisesti QR-koodilla tai vertaamalla turvanumeroita."
   },
+  "icu:KeyTransparencyOnboardingDialog__Description-v2": {
+    "messageformat": "<paragraph>Kun yhteys toiseen käyttäjään perustuu puhelinnumeroon, Signal voi vahvistaa yhteyden suojauksen automaattisesti avaimen läpinäkyvyydeksi kutsutulla prosessilla.</paragraph><paragraph>Lisäturvan saamiseksi voit edelleen vahvistaa yhteydet manuaalisesti QR-koodilla tai vertaamalla turvanumeroita.</paragraph>"
+  },
   "icu:KeyTransparencyOnboardingDialog__Continue": {
     "messageformat": "Jatka"
   },
@@ -766,6 +823,9 @@
   },
   "icu:videoFileTooLargeWarning": {
     "messageformat": "Videon lähettäminen ei onnistu, koska tiedosto on liian suuri. Suurin sallittu koko on {limit,number}{units}."
+  },
+  "icu:videoFileTooLongWarning": {
+    "messageformat": "Videota ei voi lähettää, koska sen pituus on yli {maxDuration}"
   },
   "icu:unableToLoadAttachment": {
     "messageformat": "Valittua liitettä ei voitu ladata."
@@ -1742,6 +1802,9 @@
   "icu:Preferences__EditChatFolderPage__SelectChatsDialog__Search__Placeholder": {
     "messageformat": "Hae"
   },
+  "icu:Preferences__EditChatFolderPage__SelectChatsDialog__NoChats": {
+    "messageformat": "Ei keskusteluja"
+  },
   "icu:Preferences__EditChatFolderPage__SelectChatsDialog__ChatTypesSection__Title": {
     "messageformat": "Keskustelutyypit"
   },
@@ -1804,6 +1867,15 @@
   },
   "icu:Preferences__EditChatFolderPage__CancelButton": {
     "messageformat": "Peruuta"
+  },
+  "icu:Preferences__PrivacyPage__SealedSender": {
+    "messageformat": "Lähettäjäsinetti"
+  },
+  "icu:Preferences__PrivacyPage__AllowFromAnyone__Label": {
+    "messageformat": "Hyväksy kaikilta"
+  },
+  "icu:Preferences__PrivacyPage__AllowFromAnyone__Description": {
+    "messageformat": "Ota lähettäjäsinetti käyttöön saapuville viesteille henkilöiltä, jotka eivät ole yhteystiedoissasi tai joille et ole jakanut profiiliasi. <learnMoreLink>Lue lisää</learnMoreLink>."
   },
   "icu:Preferences__PrivacyPage__ShowStatusIcon__Label": {
     "messageformat": "Näytä tilailmaisin"
@@ -2234,6 +2306,24 @@
   "icu:deleteAccountDialogBody": {
     "messageformat": "Tilin tiedot, profiili ja kaikki viestit poistetaan. Sinut poistetaan myös kaikista Signal-ryhmistä. Sovellus sulkeutuu, kun prosessi on valmis."
   },
+  "icu:DeleteAccountConfirmDialog--Title": {
+    "messageformat": "Poista tili"
+  },
+  "icu:DeleteAccountConfirmDialog--Description": {
+    "messageformat": "Tilin tiedot, profiili ja kaikki viestit poistetaan. Sinut poistetaan myös kaikista Signal-ryhmistä."
+  },
+  "icu:DeleteAccountConfirmDialog--ConfirmNumber": {
+    "messageformat": "Vahvista puhelinnumero"
+  },
+  "icu:DeleteAccountConfirmDialog--CountryCodePlaceholder": {
+    "messageformat": "Maatunnus"
+  },
+  "icu:DeleteAccountConfirmDialog--NumberPlaceholder": {
+    "messageformat": "Puhelinnumero"
+  },
+  "icu:DeleteAccountConfirmDialog--DeleteButton": {
+    "messageformat": "Poista"
+  },
   "icu:deleteOldIndexedDBData": {
     "messageformat": "Sinulla on vanhentuneita tietoja aiemmasta Signal Desktopin asennuksesta. Jos päätät jatkaa, tiedot poistetaan ja aloitat alusta."
   },
@@ -2386,9 +2476,6 @@
   },
   "icu:callRingtoneNotificationDescription": {
     "messageformat": "Käytä soittoääniä"
-  },
-  "icu:callSystemNotificationDescription": {
-    "messageformat": "Näytä ilmoitukset puheluista"
   },
   "icu:incomingCallNotificationDescription": {
     "messageformat": "Ota käyttöön saapuvat puhelut"
@@ -2876,8 +2963,29 @@
   "icu:stickers--StickerPreview--StickerNoEmojiAriaLabel": {
     "messageformat": "Tarra ilman emojia"
   },
+  "icu:stickers--StickerPreview--SeeStickerDetails": {
+    "messageformat": "Näytä tarran tiedot"
+  },
+  "icu:stickers--StickerPreview--StickerDetailsTitle": {
+    "messageformat": "Tarran tiedot"
+  },
+  "icu:stickers--StickerPreview--AddFavorite": {
+    "messageformat": "Lisää suosikkeihin"
+  },
+  "icu:stickers--StickerPreview--RemoveFavorite": {
+    "messageformat": "Poista suosikeista"
+  },
   "icu:stickers--StickerPackLinkPreviewDescription": {
     "messageformat": "Tarrapaketti, tekijä {author}"
+  },
+  "icu:stickers--Toast--StickerFavoriteAdded": {
+    "messageformat": "Tarra lisätty suosikkeihin"
+  },
+  "icu:stickers--Toast--StickerFavoriteRemoved": {
+    "messageformat": "Tarra poistettu suosikeista"
+  },
+  "icu:stickers--Toast--StickerFavoritesTooMany": {
+    "messageformat": "{count, plural, one {Voit lisätä suosikkeihin vain {count,number} tarran} other {Voit lisätä suosikkeihin vain {count,number} tarraa}}"
   },
   "icu:stickers--ViewPack": {
     "messageformat": "Näytä paketti"
@@ -2987,6 +3095,9 @@
   "icu:FunPanelSticker__SubNavLabel": {
     "messageformat": "Tarrapaketit"
   },
+  "icu:FunPanelStickers__SubNavCategoryLabel--Favorites": {
+    "messageformat": "Suosikit"
+  },
   "icu:FunPanelStickers__SubNavCategoryLabel--Recents": {
     "messageformat": "Äskettäin käytetyt"
   },
@@ -2999,11 +3110,20 @@
   "icu:FunPanelStickers__SectionTitle--Recents": {
     "messageformat": "Äskettäin käytetyt"
   },
+  "icu:FunPanelStickers__SectionTitle--Favorites": {
+    "messageformat": "Suosikit"
+  },
   "icu:FunPanelStickers__SectionTitle--Featured": {
     "messageformat": "Esittelyssä"
   },
   "icu:FunPanelStickers__SearchResults__EmptyHeading": {
     "messageformat": "Tarroja ei löytynyt"
+  },
+  "icu:FunPanelStickers__StickerContextMenu--AddFavorite": {
+    "messageformat": "Lisää suosikkeihin"
+  },
+  "icu:FunPanelStickers__StickerContextMenu--RemoveFavorite": {
+    "messageformat": "Poista suosikeista"
   },
   "icu:FunPanelStickers__LightboxDialog__Label": {
     "messageformat": "Tarran esikatselu"
@@ -3061,9 +3181,6 @@
   },
   "icu:FunPanelGifs__GiphyAttribution__AccessibilityLabel": {
     "messageformat": "Tuottajana GIPHY"
-  },
-  "icu:FunSearch__ClearButtonLabel": {
-    "messageformat": "Tyhjennä haku"
   },
   "icu:FunSkinTones__List": {
     "messageformat": "Ihonväri"
@@ -3512,6 +3629,9 @@
   "icu:MessageRequests--unblock-group-confirm-body": {
     "messageformat": "Ryhmän jäsenet voivat lisätä sinut takaisin tähän ryhmään."
   },
+  "icu:MessageRequests--unblock-signal-confirm-body": {
+    "messageformat": "Saat edelleen Signalin päivityksiä ja uutisia."
+  },
   "icu:MessageRequests--block-and-report-spam-success-toast": {
     "messageformat": "Ilmoitettu roskapostista ja estetty."
   },
@@ -3526,6 +3646,9 @@
   },
   "icu:MessageRequests--block-group-confirm-body": {
     "messageformat": "Et enää saa viestejä tai päivityksiä tältä ryhmältä, eivätkä ryhmän jäsenet voi lisätä sinua takaisin ryhmään."
+  },
+  "icu:MessageRequests--block-signal-confirm-body": {
+    "messageformat": "Et enää saa Signalin päivityksiä ja uutisia."
   },
   "icu:MessageRequests--reportAndMaybeBlock": {
     "messageformat": "Ilmoita…"
@@ -3854,6 +3977,9 @@
   "icu:callingDeviceSelection__settings": {
     "messageformat": "Asetukset"
   },
+  "icu:callingDeviceSelection__settings-v2": {
+    "messageformat": "Puheluasetukset"
+  },
   "icu:calling__participants--pluralized": {
     "messageformat": "{people, plural, one {puhelussa: {people,number}} other {puhelussa: {people,number}}}"
   },
@@ -3958,6 +4084,15 @@
   },
   "icu:callingDeviceSelection__select--default": {
     "messageformat": "Oletus"
+  },
+  "icu:callingDeviceSelection__select--default-nonwin": {
+    "messageformat": "Oletus: {deviceName}"
+  },
+  "icu:callingDeviceSelection__select--default_console": {
+    "messageformat": "Oletus: {deviceName}"
+  },
+  "icu:callingDeviceSelection__select--default_communications": {
+    "messageformat": "Oletusviestiväline: {deviceName}"
   },
   "icu:muteNotificationsTitle": {
     "messageformat": "Mykistä ilmoitukset"
@@ -4811,6 +4946,69 @@
   "icu:CompositionArea__AttachMenu__Poll": {
     "messageformat": "Kysely"
   },
+  "icu:CompositionArea__AttachMenu__Contact": {
+    "messageformat": "Yhteystieto"
+  },
+  "icu:ShareContactDialog__SelectContact__Title": {
+    "messageformat": "Valitse yhteystieto"
+  },
+  "icu:ShareContactDialog__SelectContact__SearchPlaceholder": {
+    "messageformat": "Hae"
+  },
+  "icu:ShareContactDialog__SelectContact__EmptyState": {
+    "messageformat": "Ei yhteystietoja"
+  },
+  "icu:ShareContactDialog__SelectContact__NoResults": {
+    "messageformat": "Ei tuloksia haulle \"{searchQuery}\""
+  },
+  "icu:ShareContactDialog__ShareContact__Title": {
+    "messageformat": "Jaa yhteystieto"
+  },
+  "icu:ShareContactDialog__ShareContact__Description": {
+    "messageformat": "Kuka tahansa, jolle jaat profiilin, voi lähettää viestin käyttäjälle {name}."
+  },
+  "icu:ShareContactDialog__ShareContact__Send": {
+    "messageformat": "Lähetä yhteystieto"
+  },
+  "icu:ShareContactDialog__ShareContact__EditName": {
+    "messageformat": "Muokkaa nimeä"
+  },
+  "icu:ShareContactDialog__EditName__Title": {
+    "messageformat": "Muokkaa nimeä"
+  },
+  "icu:ShareContactDialog__EditName__Prefix": {
+    "messageformat": "Etuliite"
+  },
+  "icu:ShareContactDialog__EditName__GivenName": {
+    "messageformat": "Etunimi"
+  },
+  "icu:ShareContactDialog__EditName__MiddleName": {
+    "messageformat": "Muut nimet"
+  },
+  "icu:ShareContactDialog__EditName__FamilyName": {
+    "messageformat": "Sukunimi"
+  },
+  "icu:ShareContactDialog__EditName__Suffix": {
+    "messageformat": "Jälkiliite"
+  },
+  "icu:ShareContactDialog__EditName__Organization": {
+    "messageformat": "Organisaatio"
+  },
+  "icu:ShareContactDialog__ShareContact__EditPhoto": {
+    "messageformat": "Muokkaa kuvaa"
+  },
+  "icu:ShareContactDialog__SelectPhoto__Title": {
+    "messageformat": "Valitse kuva"
+  },
+  "icu:ShareContactDialog__SelectPhoto__ContactPhoto": {
+    "messageformat": "Yhteystiedon kuva"
+  },
+  "icu:ShareContactDialog__SelectPhoto__ProfilePhoto": {
+    "messageformat": "Profiilikuva"
+  },
+  "icu:ShareContactDialog__SelectPhoto__DefaultAvatar": {
+    "messageformat": "Oletusavatar"
+  },
   "icu:CompositionArea--attach-plus": {
     "messageformat": "Lisää liite tai kysely"
   },
@@ -4849,9 +5047,6 @@
   },
   "icu:CompositionInput__editing-message": {
     "messageformat": "Muokkaa viestiä"
-  },
-  "icu:countMutedConversationsDescription": {
-    "messageformat": "Sisällytä mykistetyt keskustelut uusien viestien määrään"
   },
   "icu:ContactModal--nickname": {
     "messageformat": "Lempinimi"
@@ -6268,9 +6463,6 @@
   "icu:Preferences--pin-reminders--header": {
     "messageformat": "Tunnuslukumuistutukset"
   },
-  "icu:Preferences--pin-reminders--description": {
-    "messageformat": "Kysymme harvemmin ajan kuluessa"
-  },
   "icu:Preferences--registration-lock__label": {
     "messageformat": "Rekisteröintiesto"
   },
@@ -6288,9 +6480,6 @@
   },
   "icu:Preferences__Notifications__SoundsSection__Title": {
     "messageformat": "Äänet"
-  },
-  "icu:Preferences__Notifications__AppBadgeSection__Title": {
-    "messageformat": "Sovelluksen merkki"
   },
   "icu:Preferences__Notifications__AppBadgeSection__Title-v2": {
     "messageformat": "Lukemattomien viestien merkki"
@@ -6670,6 +6859,9 @@
   "icu:Preferences--blocked-users--description": {
     "messageformat": "Estetyt käyttäjät eivät voi soittaa sinulle tai lähettää sinulle viestejä"
   },
+  "icu:Preferences--add-blocked": {
+    "messageformat": "Lisää estetty käyttäjä tai ryhmä"
+  },
   "icu:Preferences--blocked-users": {
     "messageformat": "Estetyt käyttäjät"
   },
@@ -6678,6 +6870,12 @@
   },
   "icu:Preferences--blocked--blocked-on": {
     "messageformat": "Estetty {blockedAt}"
+  },
+  "icu:Preferences--BlockChooser--Done": {
+    "messageformat": "Valmis"
+  },
+  "icu:Preferences--BlockChooser--Search--Placeholder": {
+    "messageformat": "Hae"
   },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Secure -varmuuskopiointi"
@@ -7075,6 +7273,36 @@
   "icu:InstallScreenUpdateDialog--cannot-update__body": {
     "messageformat": "Signal Desktopin päivitys epäonnistui, mutta saatavilla on uusi versio. Siirry osoitteeseen {downloadUrl} ja asenna uusi versio manuaalisesti, ja ota sen jälkeen yhteys tukeen tai ilmoita tätä ongelmaa koskevasta virheestä."
   },
+  "icu:EntryPoint--signal-logo": {
+    "messageformat": "Signal-logo"
+  },
+  "icu:EntryPoint--Title--Line1": {
+    "messageformat": "Yksityisyys aina mukana."
+  },
+  "icu:EntryPoint--Title--Line2": {
+    "messageformat": "Ole itsesi joka viestissä."
+  },
+  "icu:EntryPoint--link-button": {
+    "messageformat": "Yhdistä tili"
+  },
+  "icu:EntryPoint--more-options-button": {
+    "messageformat": "Lisää valintoja"
+  },
+  "icu:EntryPoint--nonprofit": {
+    "messageformat": "Signal on voittoa tavoittelematon organisaatio."
+  },
+  "icu:EntryPoint--terms": {
+    "messageformat": "Käyttöehdot ja tietosuoja"
+  },
+  "icu:EntryPoint--MoreOptions--Title": {
+    "messageformat": "Lisää valintoja"
+  },
+  "icu:EntryPoint--MoreOptions--RegistrationButton--Title": {
+    "messageformat": "Luo uusi tili"
+  },
+  "icu:EntryPoint--MoreOptions--RegistrationButton--Description": {
+    "messageformat": "Luo uusi Signal-tili puhelinnumerolla."
+  },
   "icu:StandaloneRegistration--signal-logo": {
     "messageformat": "Signal-logo"
   },
@@ -7269,6 +7497,21 @@
   },
   "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--ok-button": {
     "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Title": {
+    "messageformat": "Onko sinulla ongelmia rekisteröitymisessä?"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet1": {
+    "messageformat": "Varmista, että puhelimesi on matkapuhelinverkossa, jotta tekstiviesti tai puhelu voidaan vastaanottaa."
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet2": {
+    "messageformat": "Vahvista, että voit vastaanottaa puhelun numeroon"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet3": {
+    "messageformat": "Tarkista, että olet antanut puhelinnumerosi oikein"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Footer": {
+    "messageformat": "Jos rekisteröinti ei vieläkään onnistu, seuraa näitä <troubleshootingLink>vianmääritysvaiheita</troubleshootingLink> tai <contactSupportLink>ota yhteyttä tukeen</contactSupportLink>."
   },
   "icu:StandaloneRegistration--ProfileEntry--header": {
     "messageformat": "Määritä profiilisi"
@@ -9005,6 +9248,9 @@
   "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__AccessibilityLabel": {
     "messageformat": "Kuvaus ongelmista"
   },
+  "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__Placeholder": {
+    "messageformat": "Kuvaile ongelmaa"
+  },
   "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__HelpText": {
     "messageformat": "Liitä mukaan kaikki asiaan liittyvät oleelliset tiedot. Kaikki täällä jakamasi tiedot pidetään yksityisinä ja niitä käytetään vain Signal-puheluiden parantamiseen."
   },
@@ -9114,12 +9360,6 @@
     "messageformat": "Pieniä säätöjä, virheenkorjauksia ja suorituskykyparannuksia. Kiitos, että käytät Signalia!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.30--0": {
-    "messageformat": "Videopuheluiden suorituskykyparannuksia."
-  },
-  "icu:WhatsNew__8.30--1": {
-    "messageformat": "Lisäsimme myös kätevän pikakuvakkeen, jolla voit avata Windowsin järjestelmäasetukset, jos yrität liittyä videopuheluun ja Signalilla ei ole lupaa käyttää kameraa."
-  },
   "icu:WhatsNew__8.32--0": {
     "messageformat": "Lukemattomien viestien suodatinta tuetaan nyt myös viestikansioissa ja haun käyttöliittymässä."
   },
@@ -9128,5 +9368,17 @@
   },
   "icu:WhatsNew__8.32--2": {
     "messageformat": "Oikotie (N) osoittaa peukalo alaspäin -emojiin. Peukku virheenkorjaamisesta, <lnicola>.</lnicola>"
+  },
+  "icu:WhatsNew__8.34--0": {
+    "messageformat": "Tuki yhteystietojen jakamiselle."
+  },
+  "icu:WhatsNew__8.34--1": {
+    "messageformat": "Yhdistettyjen audiolaitteiden parannettu käsittely ja suorituskyky."
+  },
+  "icu:WhatsNew__8.36--0": {
+    "messageformat": "Your top stickers now have a place to remain stuck. Add any sticker pack to your list of favorites so it's easy to stick with the ones you love."
+  },
+  "icu:WhatsNew__8.36--0--fix": {
+    "messageformat": "Nyt voit lisätä minkä tahansa tarran suosikkeihin, jotta se on helppo löytää."
   }
 }

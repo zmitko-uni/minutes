@@ -73,6 +73,7 @@ const config = {
         'buffer', // same name as builtin
         'url', // same name as builtin
         'danger', // turn into real workspace
+        '@types/audioworklet', // only referenced via triple-slash include
       ],
       ignoreFiles: [
         'ts/components/Profiler.dom.tsx',
@@ -116,6 +117,10 @@ const config = {
       ignoreBinaries: ['xcrun'],
       ignoreDependencies: ['node-addon-api'],
     },
+    'packages/clonefile': {
+      ignoreBinaries: ['xcrun'],
+      ignoreDependencies: ['node-addon-api'],
+    },
     'packages/windows-ucv': {
       ignoreDependencies: ['node-addon-api'],
     },
@@ -124,6 +129,7 @@ const config = {
         'src/index.ts!',
         'certs/generate-trust-root.js',
         'certs/generate-zk-params.js',
+        'scripts/**/*.mjs',
       ],
       ignoreFiles: ['src/**/*.ts', 'test/**/*.ts'],
       ignoreDependencies: ['.*'],

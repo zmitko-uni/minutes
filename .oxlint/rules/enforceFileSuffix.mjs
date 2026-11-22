@@ -82,6 +82,7 @@ const NODE_PACKAGES = new Set([
   '@modelcontextprotocol/sdk',
   '@signalapp/libsignal-client',
   '@signalapp/mute-state-change',
+  '@signalapp/clonefile',
   '@signalapp/ringrtc',
   '@signalapp/sqlcipher',
   '@signalapp/windows-ucv',
@@ -149,6 +150,7 @@ const NODE_PACKAGES = new Set([
   'tsdown',
   'tsx',
   'typescript',
+  '@vitest/browser-playwright',
   'wait-on',
   'webpack',
   'webpack-cli',
@@ -193,6 +195,7 @@ const DOM_PACKAGES = new Set([
   '@storybook/test-runner',
   '@storybook/types',
   'storybook',
+  'vitest-browser-react',
 ]);
 
 // Packages that can run in both browser/node
@@ -220,6 +223,7 @@ const STD_PACKAGES = new Set([
   'babel-core',
   'babel-loader',
   'babel-plugin-lodash',
+  'binary-search',
   'blurhash',
   'buffer',
   'card-validator',
@@ -280,8 +284,19 @@ const STD_PACKAGES = new Set([
   'unicode-number',
   'url',
   'uuid',
+  'vitest',
   'zod',
 ]);
+
+// Optional segments allowed between the suffix and the extension
+// ex: `Foo.dom.stories.tsx`, `Foo.dom.test.tsx`, `foo.std.bench.ts`
+const SUFFIX_MODIFIERS = '(?:\\.stories|\\.test|\\.visual\\.test|\\.bench)?';
+const LOCAL_DEP_REGEXP = new RegExp(
+  `\\.([^.\\/]+)${SUFFIX_MODIFIERS}\\.m?tsx?$`
+);
+const FILENAME_REGEXP = new RegExp(
+  `\\.([^.\\/]+)${SUFFIX_MODIFIERS}\\.(?:ts|tsx|mts|js|mjs)$`
+);
 
 export const enforceFileSuffix = ESLintUtils.RuleCreator.withoutDocs({
   name: 'enforce-file-suffix',
@@ -346,11 +361,11 @@ export const enforceFileSuffix = ESLintUtils.RuleCreator.withoutDocs({
      * @param {string} source
      */
     function trackLocalDep(node, source) {
-      if (!/\.tsx?/.test(source)) {
+      if (!/\.m?tsx?/.test(source)) {
         return;
       }
 
-      const match = source.match(/\.([^.\/]+)(?:\.stories)?\.tsx?$/);
+      const match = source.match(LOCAL_DEP_REGEXP);
       if (match == null) {
         context.report({
           node,
@@ -464,9 +479,12 @@ export const enforceFileSuffix = ESLintUtils.RuleCreator.withoutDocs({
         nodeUses.push(node);
       } else if (source === 'react-dom/server') {
         // no-op
+      } else if (source === 'vitest/node' || source === 'vitest/config') {
+        nodeUses.push(node);
       } else if (
         DOM_PACKAGES.has(moduleName) ||
-        source === 'react-dom/client'
+        source === 'react-dom/client' ||
+        source === 'vitest/browser'
       ) {
         domUses.push(node);
       } else if (!STD_PACKAGES.has(moduleName)) {
@@ -526,9 +544,7 @@ export const enforceFileSuffix = ESLintUtils.RuleCreator.withoutDocs({
           return;
         }
 
-        const match = filename.match(
-          /\.([^.\/]+)(?:\.stories)?\.(?:ts|tsx|js|mjs)$/
-        );
+        const match = filename.match(FILENAME_REGEXP);
         if (match == null) {
           context.report({
             node,

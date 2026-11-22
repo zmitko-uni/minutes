@@ -2,18 +2,32 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import loadImage from 'blueimp-load-image';
-import { Input, UrlSource, ALL_FORMATS, CanvasSink } from 'mediabunny';
+import {
+  Input,
+  UrlSource,
+  MP4,
+  WEBM,
+  OGG,
+  CanvasSink,
+  NullTarget,
+  Conversion,
+  Output,
+  Mp4OutputFormat,
+  Quality,
+} from 'mediabunny';
 import { blobToArrayBuffer } from 'blob-util';
 import { toLogFormat } from './errors.std.ts';
 import type { MIMEType } from './MIME.std.ts';
 import { IMAGE_JPEG, IMAGE_PNG } from './MIME.std.ts';
 import type { LoggerType } from './Logging.std.ts';
 import { strictAssert } from '../util/assert.std.ts';
-import { canvasToBlob } from '../util/canvasToBlob.std.ts';
+import { canvasToBlob } from '../util/canvasToBlob.dom.ts';
 import { KIBIBYTE } from './AttachmentSize.std.ts';
 import { createLogger } from '../logging/log.std.ts';
 
 const logging = createLogger('VisualAttachment');
+
+export const TRANSCODABLE_VIDEO_FORMATS = [MP4, WEBM, OGG];
 
 export { blobToArrayBuffer };
 
@@ -215,7 +229,10 @@ export type MakeVideoScreenshotOptionsType = Readonly<{
 
 export type MakeVideoScreenshotResultType = Readonly<{
   blob: Blob;
-  duration: number | undefined;
+  duration: number;
+  videoBitrateMbps: number;
+  width: number;
+  height: number;
 }>;
 
 export async function makeVideoScreenshot({
@@ -225,7 +242,7 @@ export async function makeVideoScreenshot({
   const source = new UrlSource(objectUrl);
 
   const input = new Input({
-    formats: ALL_FORMATS,
+    formats: TRANSCODABLE_VIDEO_FORMATS,
     source,
   });
 
@@ -236,9 +253,14 @@ export async function makeVideoScreenshot({
     throw new Error('No video track');
   }
 
+  // Compute rough bitrate over a second or so
+  const { averageBitrate: videoBitrate } = await track.computePacketStats(30);
+
   const sink = new CanvasSink(track);
 
-  const wrappedCanvas = await sink.getCanvas(0);
+  const wrappedCanvas = await sink.getCanvas(
+    Math.max(0, await track.getFirstTimestamp())
+  );
   if (wrappedCanvas == null) {
     throw new Error('No video frame');
   }
@@ -248,23 +270,95 @@ export async function makeVideoScreenshot({
 
   const blob = await canvasToBlob(canvas, contentType);
 
+  const [width, height] = await Promise.all([
+    track.getDisplayWidth(),
+    track.getDisplayHeight(),
+  ]);
+
   return {
     blob,
     duration,
+    videoBitrateMbps: videoBitrate / 1e6,
+    width,
+    height,
   };
 }
 
-export function makeObjectUrl(
-  data: Uint8Array<ArrayBuffer> | ArrayBuffer,
-  contentType: MIMEType
-): string {
-  const blob = new Blob([data], {
-    type: contentType,
+export async function estimateTranscodedVideoSize({
+  url,
+  duration,
+
+  targetResolution,
+  targetBitrate,
+}: {
+  url: string;
+  duration: number;
+
+  targetResolution: number;
+  targetBitrate: number;
+}): Promise<number> {
+  const source = new UrlSource(url);
+
+  const input = new Input({
+    formats: TRANSCODABLE_VIDEO_FORMATS,
+    source,
   });
 
-  return URL.createObjectURL(blob);
-}
+  const track = await input.getPrimaryVideoTrack();
+  if (track == null) {
+    throw new Error('No video track');
+  }
 
-export function revokeObjectUrl(objectUrl: string): void {
-  URL.revokeObjectURL(objectUrl);
+  const [width, height] = await Promise.all([
+    track.getDisplayWidth(),
+    track.getDisplayHeight(),
+  ]);
+
+  const target = new NullTarget();
+
+  const output = new Output({
+    target,
+    format: new Mp4OutputFormat(),
+  });
+
+  let outputSize = 0;
+  target.on('write', ({ end }) => {
+    outputSize = Math.max(outputSize, end);
+  });
+
+  const quality = new Quality({
+    bitrate: Math.floor(targetBitrate * 1e6),
+    bitrateMode: 'constant',
+  });
+
+  const conversion = await Conversion.init({
+    input,
+    output,
+    tracks: 'primary', // Keep only one track per type
+    video:
+      width > height
+        ? {
+            // Horizontal video
+            height: Math.min(height, targetResolution),
+            quality,
+          }
+        : {
+            // Vertical video
+            width: Math.min(width, targetResolution),
+            quality,
+          },
+    trim: {
+      // One second video should fit into memory and let us estimate the coded
+      // size
+      end: 1,
+    },
+  });
+
+  if (!conversion.isValid) {
+    throw new Error('Failed to transcode');
+  }
+
+  await conversion.execute();
+
+  return Math.ceil(outputSize * duration);
 }

@@ -4,7 +4,7 @@
 import type { AttachmentBackfillResponseSyncEvent } from '../../textsecure/messageReceiverEvents.std.ts';
 import { MessageSender } from '../../textsecure/SendMessage.preload.ts';
 import { createLogger } from '../../logging/log.std.ts';
-import type { ReadonlyMessageAttributesType } from '../../model-types.d.ts';
+import type { ReadonlyMessageAttributesType } from '../../model-types.std.ts';
 import type { AttachmentType } from '../../types/Attachment.std.ts';
 import {
   isDownloading,
@@ -20,9 +20,7 @@ import { APPLICATION_OCTET_STREAM } from '../../types/MIME.std.ts';
 import {
   getConversationIdentifier,
   getAddressableMessage,
-  getConversationFromTarget,
-  getMessageQueryFromTarget,
-  findMatchingMessage,
+  findMessageFromTarget,
 } from '../../util/syncIdentifiers.preload.ts';
 import { strictAssert } from '../../util/assert.std.ts';
 import { drop } from '../../util/drop.std.ts';
@@ -133,16 +131,7 @@ export class AttachmentBackfill {
       AttachmentData: { Status },
     } = Proto.SyncMessage.AttachmentBackfillResponse;
 
-    const { targetMessage, targetConversation } = response;
-
-    const convo = getConversationFromTarget(targetConversation);
-    if (convo == null) {
-      log.error(`${logId}: conversation not found`);
-      return;
-    }
-
-    const query = getMessageQueryFromTarget(targetMessage);
-    const attributes = await findMatchingMessage(convo.id, query);
+    const attributes = await findMessageFromTarget(response);
     if (attributes == null) {
       log.error(`${logId}: message not found`);
       return;
@@ -304,6 +293,7 @@ export class AttachmentBackfill {
 
           changeCount += 1;
           updatedAttachments[index] = markAttachmentAsErrored(
+            // @ts-expect-error - broken after renaming model-types
             existing,
             'backfill-terminal-error'
           );

@@ -208,21 +208,18 @@ const DEFAULT_REMOTE_CONFIG = [
     'desktop.libsignalNet.grpc.BackupsAnonymousGetUploadForm',
     { enabled: true },
   ],
-  // TODO: move to gRPC
   [
     'desktop.libsignalNet.grpc.AccountsAnonymousCheckAccountExistence.2',
-    { enabled: true, value: 'ws' },
-  ],
-  [
-    'desktop.libsignalNet.grpc.KeyTransparencyQueryServiceSearchV2',
-    { enabled: true, value: 'ws' },
+    { enabled: true },
   ],
   [
     'desktop.libsignalNet.grpc.MessagesAnonymousSendSingleRecipientMessage',
-    { enabled: true, value: 'ws' },
+    { enabled: true },
   ],
+  ['desktop.libsignalNet.grpc.MessagesSendMessage', { enabled: true }],
+  // TODO: move to gRPC
   [
-    'desktop.libsignalNet.grpc.MessagesSendMessage',
+    'desktop.libsignalNet.grpc.KeyTransparencyQueryServiceSearchV2',
     { enabled: true, value: 'ws' },
   ],
 ] as const;
@@ -609,10 +606,29 @@ export class Bootstrap {
           if (gotProvisionURL) {
             return;
           }
+          debug('clicking Relink button');
           await relinkButton.click();
           await window.getByRole('button', { name: "Don't transfer" }).click();
         } catch {
           // Ignore, provision will fail if QR code was never generated
+        }
+      })()
+    );
+
+    drop(
+      (async () => {
+        try {
+          const linkYourAccountButton = window.getByTestId(
+            'EntryPoint--link-button'
+          );
+          await linkYourAccountButton.waitFor();
+          if (gotProvisionURL) {
+            return;
+          }
+          debug('clicking Link your Account button');
+          await linkYourAccountButton.click();
+        } catch {
+          // Ignore; this is okay if we're attempting to relink
         }
       })()
     );

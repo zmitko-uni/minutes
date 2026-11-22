@@ -43,7 +43,8 @@ async function loadProcessorClass(): Promise<new () => AudioSourceProcessor> {
   if (processorClass) {
     return processorClass;
   }
-  const globals = globalThis as typeof globalThis & {
+  // Cast via `unknown`: newer lib typings declare these globals as required.
+  const globals = globalThis as unknown as {
     AudioWorkletProcessor?: unknown;
     registerProcessor?: (
       name: string,

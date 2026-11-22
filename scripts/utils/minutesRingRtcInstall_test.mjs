@@ -7,16 +7,16 @@ import { validateMinutesRingRtcPackage } from './minutesRingRtcInstall.mjs';
 
 const validManifest = {
   name: '@minutes/ringrtc',
-  version: '2.71.0-minutes.1',
+  version: '2.74.0-minutes.1',
   config: {
-    upstreamVersion: '2.71.0',
+    upstreamVersion: '2.74.0',
     tapApiVersion: 1,
   },
   scripts: { install: 'node scripts/fetch-minutes-prebuild.js' },
 };
 
 describe('validateMinutesRingRtcPackage', () => {
-  it('accepts the pinned Signal 8.26 Minutes package', () => {
+  it('accepts the pinned Signal 8.36 Minutes package', () => {
     assert.doesNotThrow(() => validateMinutesRingRtcPackage(validManifest));
   });
 

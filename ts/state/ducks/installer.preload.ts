@@ -84,7 +84,7 @@ export type InstallerStateType = ReadonlyDeep<
     ))
 >;
 
-export type RetryBackupImportValue = ReadonlyDeep<'retry' | 'cancel'>;
+export type ErrorDialogDecision = ReadonlyDeep<'retry' | 'cancel'>;
 
 export const START_INSTALLER = 'installer/START_INSTALLER';
 const CANCEL_INSTALLER = 'installer/CANCEL_INSTALLER';
@@ -350,7 +350,7 @@ function continueInstallWithDataDeletion(): SyncStateThunk<InstallerActionType> 
   };
 }
 
-export function cancelInstall(): SyncStateThunk<InstallerActionType> {
+export function cancelInstall(): SyncStateThunk<CancelInstallerActionType> {
   return (dispatch, getState) => {
     const state = getState();
     const { installer } = state;
@@ -478,7 +478,7 @@ function updateBackupImportProgress(
 function retryBackupImport(): SyncStateThunk<RetryBackupImportActionType> {
   return dispatch => {
     dispatch({ type: RETRY_BACKUP_IMPORT });
-    backupsService.retryDownload();
+    backupsService.retryBackupImport();
   };
 }
 

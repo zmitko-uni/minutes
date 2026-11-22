@@ -9,6 +9,7 @@ import { getIntl, getVersion } from '../selectors/user.std.ts';
 import { selectRecentEmojis } from '../selectors/emojis.std.ts';
 import type { FunGifSelection } from '../../components/fun/panels/FunPanelGifs.dom.tsx';
 import {
+  getInstalledFavoriteStickers,
   getInstalledStickerPacks,
   getRecentStickers,
 } from '../selectors/stickers.std.ts';
@@ -33,6 +34,8 @@ import type { FunEmojiSelection } from '../../components/fun/panels/FunPanelEmoj
 import { getRecentGifs } from '../selectors/gifs.std.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
 import { isFeaturedEnabledSelector } from '../../util/isFeatureEnabled.dom.ts';
+import { isFavoriteStickersEnabled as getIsFavoriteStickersEnabled } from '../../util/stickers.preload.ts';
+import { drop } from '../../util/drop.std.ts';
 
 export type SmartFunProviderProps = Readonly<{
   children: ReactNode;
@@ -53,7 +56,8 @@ export const SmartFunProvider = memo(function SmartFunProvider(
   const { openCustomizePreferredReactionsModal } =
     usePreferredReactionsActions();
   const { onUseEmoji } = useEmojisActions();
-  const { useSticker: onUseSticker } = useStickersActions();
+  const { markStickerAsFavorite, useSticker: onUseSticker } =
+    useStickersActions();
   const { onAddRecentGif, onRemoveRecentGif } = useGifsActions();
 
   const items = useSelector(getItems);
@@ -65,6 +69,9 @@ export const SmartFunProvider = memo(function SmartFunProvider(
     currentVersion: version,
     remoteConfig: items.remoteConfig,
   });
+
+  const favoriteStickers = useSelector(getInstalledFavoriteStickers);
+  const isFavoriteStickersEnabled = getIsFavoriteStickersEnabled();
 
   // Translate recent emojis to keys
   const recentEmojisKeys = useMemo(() => {
@@ -106,6 +113,21 @@ export const SmartFunProvider = memo(function SmartFunProvider(
     [onUseSticker]
   );
 
+  const handleMarkStickerAsFavorite = useCallback(
+    (stickerSelection: FunStickerSelection, markAsFavorite: boolean) => {
+      drop(
+        markStickerAsFavorite(
+          {
+            packId: stickerSelection.stickerPackId,
+            stickerId: stickerSelection.stickerId,
+          },
+          markAsFavorite
+        )
+      );
+    },
+    [markStickerAsFavorite]
+  );
+
   // GIFs
   const handleSelectGif = useCallback(
     (gifSelection: FunGifSelection) => {
@@ -129,11 +151,14 @@ export const SmartFunProvider = memo(function SmartFunProvider(
       }
       onSelectEmoji={handleSelectEmoji}
       // Stickers
+      favoriteStickers={favoriteStickers}
+      isFavoriteStickersEnabled={isFavoriteStickersEnabled}
       isStickerReplySendEnabled={isStickerReplySendEnabled}
       installedStickerPacks={installedStickerPacks}
       showStickerPickerHint={showStickerPickerHint}
       onClearStickerPickerHint={handleClearStickerPickerHint}
       onSelectSticker={handleSelectSticker}
+      onMarkStickerAsFavorite={handleMarkStickerAsFavorite}
       // Gifs
       fetchGiphySearch={fetchGiphySearch}
       fetchGiphyTrending={fetchGiphyTrending}

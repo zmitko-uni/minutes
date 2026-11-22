@@ -98,21 +98,21 @@ export function MinutesLogModal({
         <AxoDialog.Footer>
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="strong-secondary"
+              variant="subtle-secondary"
               disabled={isLoading}
               onClick={handleClearBuffer}
             >
               Clear buffer
             </AxoDialog.Action>
             <AxoDialog.Action
-              variant="strong-secondary"
+              variant="subtle-secondary"
               disabled={isLoading}
               onClick={refresh}
             >
               Refresh
             </AxoDialog.Action>
             <AxoDialog.Action
-              variant="strong-secondary"
+              variant="subtle-secondary"
               disabled={isLoading || logText.length === 0}
               onClick={() => drop(handleCopy())}
             >

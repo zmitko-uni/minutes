@@ -31,6 +31,7 @@ import {
   protocol as electronProtocol,
 } from 'electron';
 import type {
+  IpcMainEvent,
   MenuItemConstructorOptions,
   Settings,
   BrowserWindowConstructorOptions,
@@ -104,6 +105,7 @@ import {
   getDefaultSystemTraySetting,
   isSystemTraySupported,
   isContentProtectionEnabledByDefault,
+  isContentProtectionSupported,
 } from '../ts/types/Settings.std.ts';
 import * as ephemeralConfig from './ephemeral_config.main.ts';
 import * as mainProcessLogging from '../ts/logging/main_process_logging.main.ts';
@@ -587,6 +589,7 @@ async function handleCommonWindowEvents(window: BrowserWindow) {
   // by user in settings.
   if (
     !DISABLE_SCREEN_SECURITY &&
+    isContentProtectionSupported(OS) &&
     (contentProtection ?? isContentProtectionEnabledByDefault(OS, os.release()))
   ) {
     window.once('ready-to-show', async () => {
@@ -1736,6 +1739,8 @@ async function showCallDiagnosticWindow() {
 
 let permissionsPopupWindow: BrowserWindow | undefined;
 function showPermissionsPopupWindow(forCalling: boolean, forCamera: boolean) {
+  const PERMISSIONS_WINDOW_WIDTH = 400;
+
   // oxlint-disable-next-line no-async-promise-executor
   return new Promise<void>(async (resolveFn, reject) => {
     if (permissionsPopupWindow) {
@@ -1751,9 +1756,10 @@ function showPermissionsPopupWindow(forCalling: boolean, forCamera: boolean) {
     const size = mainWindow.getSize();
     const options = {
       // oxlint-disable-next-line typescript/no-non-null-assertion
-      width: Math.min(400, size[0]!),
+      width: Math.min(PERMISSIONS_WINDOW_WIDTH, size[0]!),
       // oxlint-disable-next-line typescript/no-non-null-assertion
-      height: Math.min(150, size[1]!),
+      height: Math.min(140, size[1]!),
+      useContentSize: true,
       resizable: false,
       title: getResolvedMessagesLocale().i18n('icu:allowAccess'),
       titleBarStyle: nonMainTitleBarStyle,
@@ -1777,18 +1783,33 @@ function showPermissionsPopupWindow(forCalling: boolean, forCamera: boolean) {
 
     await handleCommonWindowEvents(permissionsPopupWindow);
 
+    const onSetHeight = (event: IpcMainEvent, height: number) => {
+      if (
+        !permissionsPopupWindow ||
+        event.sender !== permissionsPopupWindow.webContents
+      ) {
+        return;
+      }
+
+      permissionsPopupWindow.setContentSize(
+        PERMISSIONS_WINDOW_WIDTH,
+        Math.min(height, 400)
+      );
+
+      // Wait for the computed height before showing the popup to avoid resize flash
+      if (!permissionsPopupWindow.isVisible()) {
+        addDarkOverlay();
+        permissionsPopupWindow.show();
+      }
+    };
+    ipc.on('permissions-popup:set-height', onSetHeight);
+
     permissionsPopupWindow.on('closed', () => {
+      ipc.removeListener('permissions-popup:set-height', onSetHeight);
       removeDarkOverlay();
       permissionsPopupWindow = undefined;
 
       resolveFn();
-    });
-
-    permissionsPopupWindow.once('ready-to-show', () => {
-      if (permissionsPopupWindow) {
-        addDarkOverlay();
-        permissionsPopupWindow.show();
-      }
     });
 
     await safeLoadURL(
@@ -3084,7 +3105,6 @@ ipc.on('get-config', async event => {
 
   const parsed = safeParseLoose(rendererConfigSchema, {
     name: packageJson.productName,
-    availableLocales: getResolvedMessagesLocale().availableLocales,
     resolvedTranslationsLocale: getResolvedMessagesLocale().name,
     resolvedTranslationsLocaleDirection: getResolvedMessagesLocale().direction,
     hourCyclePreference: getResolvedMessagesLocale().hourCyclePreference,
@@ -3162,12 +3182,6 @@ ipc.on('get-config', async event => {
 ipc.on('locale-data', event => {
   // oxlint-disable-next-line no-param-reassign
   event.returnValue = getResolvedMessagesLocale().messages;
-});
-
-// Ingested in preload.js via a sendSync call
-ipc.on('locale-display-names', event => {
-  // oxlint-disable-next-line no-param-reassign
-  event.returnValue = getResolvedMessagesLocale().localeDisplayNames;
 });
 
 // Ingested in preload.js via a sendSync call

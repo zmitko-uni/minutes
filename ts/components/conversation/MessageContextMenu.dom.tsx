@@ -3,7 +3,7 @@
 
 import { useRef, type ReactNode, type JSX } from 'react';
 import type { LocalizerType } from '../../types/I18N.std.ts';
-import { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
+import { AxoMenuBuilder } from '../../axo/menus/AxoMenuBuilder.dom.tsx';
 import {
   MINUTES_MENU_ADD_BOOKMARK,
   MINUTES_MENU_ASK_AI_OPINION,
@@ -31,6 +31,8 @@ type MessageContextMenuProps = Readonly<{
   onCopy: (() => void) | null;
   onForward: (() => void) | null;
   onDeleteMessage: (() => void) | null;
+  onFavoriteSticker: (() => void) | null;
+  onUnfavoriteSticker: (() => void) | null;
   onPinMessage: (() => void) | null;
   onUnpinMessage: (() => void) | null;
   onMoreInfo: (() => void) | null;
@@ -53,6 +55,8 @@ export function MessageContextMenu({
   onDebugMessage,
   onDownload,
   onEdit,
+  onFavoriteSticker,
+  onUnfavoriteSticker,
   onReplyToMessage,
   onReact,
   onEndPoll,
@@ -104,6 +108,19 @@ export function MessageContextMenu({
                 }}
               >
                 {i18n('icu:MessageContextMenu__reply')}
+              </AxoMenuBuilder.Item>
+            )}
+            {onFavoriteSticker && (
+              <AxoMenuBuilder.Item symbol="star" onSelect={onFavoriteSticker}>
+                {i18n('icu:messageContextMenu__sticker--addFavorite')}
+              </AxoMenuBuilder.Item>
+            )}
+            {onUnfavoriteSticker && (
+              <AxoMenuBuilder.Item
+                symbol="star-slash"
+                onSelect={onUnfavoriteSticker}
+              >
+                {i18n('icu:messageContextMenu__sticker--removeFavorite')}
               </AxoMenuBuilder.Item>
             )}
             {onReact && (

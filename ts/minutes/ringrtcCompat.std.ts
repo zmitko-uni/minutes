@@ -4,8 +4,10 @@
 import { CallLinkRootKey } from '@signalapp/ringrtc';
 
 /**
- * Signal 8.32 calls `CallLinkRootKey.toUnredactedString()`. Minutes stays on
- * RingRTC 2.71.0-minutes.1, where the formatted key is still `toString()`
+ * Signal calls `CallLinkRootKey.toUnredactedString()`. RingRTC 2.74 (the
+ * Minutes fork baseline since Signal 8.36) provides it natively, so this shim
+ * is a no-op there. It only matters when pinned to an older RingRTC (<= 2.71),
+ * where the formatted key is still `toString()`
  * (`CallLinkRootKey_toFormattedString`).
  */
 declare module '@signalapp/ringrtc' {

@@ -4,6 +4,7 @@
 import { memo, type JSX } from 'react';
 import { useSelector } from 'react-redux';
 import { getHeapSnapshot } from 'node:v8';
+import type { LanguageTag } from '@signalapp/types';
 
 import type { AnyActionableMegaphone } from '../../types/Megaphone.std.ts';
 import { MegaphoneType } from '../../types/Megaphone.std.ts';
@@ -65,7 +66,7 @@ async function saveHeapSnapshot() {
   const data = Bytes.concatenate(chunks);
 
   await saveAttachmentToDisk({
-    data,
+    data: { type: 'bytes', bytes: [data] },
     name: `signal-desktop-${Date.now()}.heapsnapshot`,
   });
 }
@@ -154,6 +155,9 @@ export const SmartToastManager = memo(function SmartToastManager({
   const isCompositionAreaVisible =
     selectedNavTab === NavTab.Chats && Boolean(selectedConversationId);
 
+  const systemPreferredLanguages =
+    window.SignalContext.getPreferredSystemLocales() as Array<LanguageTag>;
+
   return (
     <ToastManager
       changeLocation={changeLocation}
@@ -173,6 +177,7 @@ export const SmartToastManager = memo(function SmartToastManager({
       expandNarrowLeftPane={expandNarrowLeftPane}
       isCompositionAreaVisible={isCompositionAreaVisible}
       isInFullScreenCall={isInFullScreenCall}
+      systemPreferredLanguages={systemPreferredLanguages}
     />
   );
 });

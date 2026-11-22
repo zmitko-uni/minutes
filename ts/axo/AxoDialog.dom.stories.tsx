@@ -49,7 +49,11 @@ function Template(props: {
       <AxoDialog.Trigger asChild>
         <AxoDialog.StoryTrigger />
       </AxoDialog.Trigger>
-      <AxoDialog.Content size={props.contentSize} escape="cancel-is-noop">
+      <AxoDialog.Content
+        size={props.contentSize}
+        escape="cancel-is-noop"
+        disableMissingAriaDescriptionWarning
+      >
         <AxoDialog.Header>
           {props.back && <AxoDialog.Back onClick={action('onBack')} />}
           <AxoDialog.Title>Title</AxoDialog.Title>
@@ -75,7 +79,7 @@ function Template(props: {
             ) : (
               <>
                 <AxoDialog.Action
-                  variant="strong-secondary"
+                  variant="subtle-secondary"
                   onClick={action('onCancel')}
                 >
                   Cancel
@@ -201,11 +205,110 @@ export function FloatingHeader(): ReactNode {
         </AxoDialog.Body>
         <AxoDialog.Footer>
           <AxoDialog.Actions>
-            <AxoDialog.Action variant="strong-secondary" onClick={() => null}>
+            <AxoDialog.Action variant="subtle-secondary" onClick={() => null}>
               Cancel
             </AxoDialog.Action>
             <AxoDialog.Action variant="strong-primary" onClick={() => null}>
               OK
+            </AxoDialog.Action>
+          </AxoDialog.Actions>
+        </AxoDialog.Footer>
+      </AxoDialog.Content>
+    </AxoDialog.Root>
+  );
+}
+
+export function FullWidthActions(): ReactNode {
+  return (
+    <AxoDialog.Root>
+      <AxoDialog.Trigger asChild>
+        <AxoDialog.StoryTrigger />
+      </AxoDialog.Trigger>
+      <AxoDialog.Content size="sm" escape="cancel-is-noop">
+        <AxoDialog.Header>
+          <AxoDialog.Title>Full Width Actions</AxoDialog.Title>
+          <AxoDialog.Close />
+        </AxoDialog.Header>
+        <AxoDialog.Body>
+          <AxoDialog.Description>
+            <p>This dialog demonstrates full width actions.</p>
+          </AxoDialog.Description>
+        </AxoDialog.Body>
+        <AxoDialog.Footer>
+          <AxoDialog.Actions width="fill">
+            <AxoDialog.Action variant="subtle-secondary" onClick={() => null}>
+              Cancel
+            </AxoDialog.Action>
+            <AxoDialog.Action variant="strong-primary" onClick={() => null}>
+              OK
+            </AxoDialog.Action>
+          </AxoDialog.Actions>
+        </AxoDialog.Footer>
+      </AxoDialog.Content>
+    </AxoDialog.Root>
+  );
+}
+
+export function Tabs(): ReactNode {
+  const [tab, setTab] = useState('short');
+  return (
+    <AxoDialog.Root>
+      <AxoDialog.Trigger asChild>
+        <AxoDialog.StoryTrigger />
+      </AxoDialog.Trigger>
+      <AxoDialog.Content
+        size="md"
+        escape="cancel-is-noop"
+        disableMissingAriaDescriptionWarning
+      >
+        <AxoDialog.Header>
+          <AxoDialog.Title>Tabs</AxoDialog.Title>
+          <AxoDialog.Close />
+        </AxoDialog.Header>
+        <AxoDialog.Tabs value={tab} onValueChange={setTab}>
+          <AxoDialog.TabList>
+            <AxoDialog.Tab value="short">Short</AxoDialog.Tab>
+            <AxoDialog.Tab value="long">Long</AxoDialog.Tab>
+            <AxoDialog.Tab value="cards">Cards</AxoDialog.Tab>
+          </AxoDialog.TabList>
+          <AxoDialog.TabContent value="short">
+            <AxoDialog.Body>
+              <p>{TEXT_SHORT}</p>
+            </AxoDialog.Body>
+          </AxoDialog.TabContent>
+          <AxoDialog.TabContent value="long">
+            <AxoDialog.Body>
+              {Array.from({ length: 6 }, (_, index) => {
+                return (
+                  <p key={index} className={tw('mb-3')}>
+                    {TEXT_LONG}
+                  </p>
+                );
+              })}
+            </AxoDialog.Body>
+          </AxoDialog.TabContent>
+          <AxoDialog.TabContent value="cards">
+            <AxoDialog.Body padding="md">
+              <div className={tw('flex flex-col gap-3')}>
+                <Box>1</Box>
+                <Box>2</Box>
+              </div>
+            </AxoDialog.Body>
+          </AxoDialog.TabContent>
+        </AxoDialog.Tabs>
+        <AxoDialog.Footer>
+          <AxoDialog.Actions>
+            <AxoDialog.Action
+              variant="subtle-secondary"
+              onClick={action('onCancel')}
+            >
+              Cancel
+            </AxoDialog.Action>
+            <AxoDialog.Action
+              variant="strong-primary"
+              onClick={action('onSave')}
+            >
+              Save
             </AxoDialog.Action>
           </AxoDialog.Actions>
         </AxoDialog.Footer>
@@ -248,7 +351,11 @@ export function ExampleNicknameAndNoteDialog(): JSX.Element {
       <AxoDialog.Trigger asChild>
         <AxoDialog.StoryTrigger />
       </AxoDialog.Trigger>
-      <AxoDialog.Content size="sm" escape="cancel-is-destructive">
+      <AxoDialog.Content
+        size="sm"
+        escape="cancel-is-destructive"
+        disableMissingAriaDescriptionWarning
+      >
         <AxoDialog.Header>
           <AxoDialog.Title>Nickname</AxoDialog.Title>
           <AxoDialog.Close />
@@ -273,7 +380,7 @@ export function ExampleNicknameAndNoteDialog(): JSX.Element {
         <AxoDialog.Footer>
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="strong-secondary"
+              variant="subtle-secondary"
               onClick={action('onCancel')}
             >
               Cancel
@@ -319,7 +426,11 @@ export function ExampleMuteNotificationsDialog(): JSX.Element {
       <AxoDialog.Trigger asChild>
         <AxoDialog.StoryTrigger />
       </AxoDialog.Trigger>
-      <AxoDialog.Content size="sm" escape="cancel-is-noop">
+      <AxoDialog.Content
+        size="sm"
+        escape="cancel-is-noop"
+        disableMissingAriaDescriptionWarning
+      >
         <AxoDialog.Header>
           <AxoDialog.Title>Mute notifications</AxoDialog.Title>
           <AxoDialog.Close />
@@ -336,7 +447,7 @@ export function ExampleMuteNotificationsDialog(): JSX.Element {
         <AxoDialog.Footer>
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="strong-secondary"
+              variant="subtle-secondary"
               onClick={action('onCancel')}
             >
               Cancel
@@ -355,25 +466,19 @@ export function ExampleMuteNotificationsDialog(): JSX.Element {
 }
 
 function ExampleItem(props: { label: string; description: string }) {
-  const labelId = useId();
-  const descriptionId = useId();
-
+  // The option is named by all of its visible text (both lines), so that
+  // speech input users can say what they see.
   return (
     <div
       role="option"
       aria-selected={false}
-      aria-labelledby={labelId}
-      aria-describedby={descriptionId}
       tabIndex={0}
       className={tw('rounded-lg px-[13px] py-2.5 hover:bg-primary')}
     >
-      <div id={labelId} className={tw('truncate type-body-large text-primary')}>
+      <div className={tw('truncate type-body-large text-primary')}>
         {props.label}
       </div>
-      <div
-        id={descriptionId}
-        className={tw('truncate type-body-small text-secondary')}
-      >
+      <div className={tw('truncate type-body-small text-secondary')}>
         {props.description}
       </div>
     </div>
@@ -386,7 +491,11 @@ export function ExampleLanguageDialog(): JSX.Element {
       <AxoDialog.Trigger asChild>
         <AxoDialog.StoryTrigger />
       </AxoDialog.Trigger>
-      <AxoDialog.Content size="sm" escape="cancel-is-noop">
+      <AxoDialog.Content
+        size="sm"
+        escape="cancel-is-noop"
+        disableMissingAriaDescriptionWarning
+      >
         <AxoDialog.Header>
           <AxoDialog.Title>Language</AxoDialog.Title>
           <AxoDialog.Close />
@@ -405,6 +514,7 @@ export function ExampleLanguageDialog(): JSX.Element {
         <AxoDialog.Body padding="sm">
           <div
             role="listbox"
+            aria-label="Languages"
             style={{
               paddingInline:
                 'calc(11px - var(--axo-scrollbar-gutter-thin-vertical)',
@@ -424,7 +534,7 @@ export function ExampleLanguageDialog(): JSX.Element {
         <AxoDialog.Footer>
           <AxoDialog.Actions>
             <AxoDialog.Action
-              variant="strong-secondary"
+              variant="subtle-secondary"
               onClick={action('onCancel')}
             >
               Cancel

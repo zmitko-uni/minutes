@@ -27,7 +27,6 @@ import {
   asyncShouldNeverBeCalled,
 } from '../util/shouldNeverBeCalled.std.ts';
 import type { LinkPreviewForUIType } from '../types/message/LinkPreviews.std.ts';
-import { LinkPreviewSourceType } from '../types/LinkPreview.std.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
 import type { ShowToastAction } from '../state/ducks/toast.preload.ts';
 import type { HydratedBodyRangesType } from '../types/BodyRange.std.ts';
@@ -63,9 +62,7 @@ export type DataPropsType = {
   isInFullScreenCall: boolean;
   modalTitle?: string;
 
-  linkPreviewForSource: (
-    source: LinkPreviewSourceType
-  ) => LinkPreviewForUIType | void;
+  linkPreview: LinkPreviewForUIType | void;
   onClose: () => void;
   onChange: (
     updatedDrafts: ReadonlyArray<MessageForwardDraft>,
@@ -91,7 +88,7 @@ export function ForwardMessagesModal({
   drafts,
   candidateConversations,
   doForwardMessages,
-  linkPreviewForSource,
+  linkPreview,
   getPreferredBadge,
   i18n,
   isInFullScreenCall,
@@ -119,9 +116,7 @@ export function ForwardMessagesModal({
   const lonelyDraft = isLonelyDraft ? drafts[0] : null;
   const isLonelyDraftEditable =
     lonelyDraft != null && isDraftEditable(lonelyDraft);
-  const lonelyLinkPreview = isLonelyDraft
-    ? linkPreviewForSource(LinkPreviewSourceType.ForwardMessageModal)
-    : null;
+  const lonelyLinkPreview = isLonelyDraft ? linkPreview : null;
 
   const hasSelectedMaximumNumberOfContacts =
     selectedContacts.length >= MAX_FORWARD;
@@ -309,9 +304,7 @@ export function ForwardMessagesModal({
         title={null}
         description={i18n('icu:GroupV2--cannot-send')}
       >
-        <AxoConfirmDialog.Cancel>
-          {i18n('icu:Confirmation--confirm')}
-        </AxoConfirmDialog.Cancel>
+        <AxoConfirmDialog.Ok />
       </AxoConfirmDialog.Root>
       <Modal
         modalName="ForwardMessageModal"
@@ -319,7 +312,7 @@ export function ForwardMessagesModal({
         i18n={i18n}
         onClose={onClose}
         onBackButtonClick={isEditingMessage ? handleBackOrClose : undefined}
-        moduleClassName="module-ForwardMessageModal"
+        className="module-ForwardMessageModal"
         title={title}
         theme={modalTheme}
         padded={false}

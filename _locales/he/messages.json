@@ -2,8 +2,20 @@
   "icu:AxoAlertDialog.Cancel": {
     "messageformat": "ביטול"
   },
+  "icu:AxoAlertDialog.Ok": {
+    "messageformat": "אישור"
+  },
   "icu:AxoButton.Pending": {
     "messageformat": "ממתין"
+  },
+  "icu:AxoColorSlider.Hue": {
+    "messageformat": "גוון"
+  },
+  "icu:AxoColorSlider.Saturation": {
+    "messageformat": "רוויה"
+  },
+  "icu:AxoColorSlider.Lightness": {
+    "messageformat": "בהירות"
   },
   "icu:AxoDialog.Back": {
     "messageformat": "הקודם"
@@ -11,8 +23,44 @@
   "icu:AxoDialog.Close": {
     "messageformat": "סגירה"
   },
+  "icu:AxoLoadingIndicator.Loading": {
+    "messageformat": "טוען"
+  },
+  "icu:AxoMediaButton.Play": {
+    "messageformat": "נגן"
+  },
+  "icu:AxoMediaButton.Pause": {
+    "messageformat": "השהה"
+  },
+  "icu:AxoMediaButton.Download": {
+    "messageformat": "הורד"
+  },
+  "icu:AxoMediaButton.CancelDownload": {
+    "messageformat": "ביטול הורדה"
+  },
+  "icu:AxoOutgoingStatus.Sending": {
+    "messageformat": "שולח"
+  },
+  "icu:AxoOutgoingStatus.Sent": {
+    "messageformat": "נשלח"
+  },
+  "icu:AxoOutgoingStatus.Delivered": {
+    "messageformat": "נשלח"
+  },
+  "icu:AxoOutgoingStatus.Read": {
+    "messageformat": "נקרא"
+  },
+  "icu:AxoOutgoingStatus.Paused": {
+    "messageformat": "שליחה מושהית"
+  },
+  "icu:AxoOutgoingStatus.Error": {
+    "messageformat": "נכשל בשליחה"
+  },
   "icu:AxoPasswordField.Reveal": {
     "messageformat": "הצגת סיסמה"
+  },
+  "icu:AxoProgressIndicator.Loading": {
+    "messageformat": "טוען"
   },
   "icu:AxoTextField.Clear": {
     "messageformat": "נקה"
@@ -73,9 +121,6 @@
   },
   "icu:LinkedDevicesOnboardingDialog__bullet--2": {
     "messageformat": "המכשיר הראשי שלך מנהל את מה שמקושר, ואפשר לקשר עד 5 מכשירים."
-  },
-  "icu:LinkedDevicesOnboardingDialog__bullet--3--1": {
-    "messageformat": "ניתן לנהל את הגדרות החשבון והגיבויים רק דרך המכשיר הראשי שלך."
   },
   "icu:LinkedDevicesOnboardingDialog__bullet--3--2": {
     "messageformat": "ניתן לנהל את הגדרות החשבון ואת גיבויי Signal המאובטחים רק דרך המכשיר הראשי שלך."
@@ -257,6 +302,12 @@
   "icu:messageContextMenuButton": {
     "messageformat": "עוד פעולות"
   },
+  "icu:messageContextMenu__sticker--addFavorite": {
+    "messageformat": "הוספה למועדפים"
+  },
+  "icu:messageContextMenu__sticker--removeFavorite": {
+    "messageformat": "הסרה ממועדפים"
+  },
   "icu:contextMenuCopyLink": {
     "messageformat": "העתק קישור"
   },
@@ -277,6 +328,9 @@
   },
   "icu:archivedConversations": {
     "messageformat": "צ'אטים מאוחסנים בארכיון"
+  },
+  "icu:LeftPane__MoreActionsLabel": {
+    "messageformat": "פעולות נוספות"
   },
   "icu:LeftPane__MoreActionsMenu__AddChatFolder": {
     "messageformat": "הוספת תיקיית צ׳אט"
@@ -671,6 +725,9 @@
   "icu:KeyTransparencyOnboardingDialog__Description": {
     "messageformat": "עבור אנשי קשר שהחיבור איתם נוצר באמצעות מספר טלפון, Signal יכולה לאשר אוטומטית שהחיבור מאובטח באמצעות שימוש בתהליך הנקרא שקיפות מפתחות. לאבטחה נוספת, עדיין אפשר לאמת חיבורים ידנית באמצעות קוד QR או השוואת מספרי בטיחות."
   },
+  "icu:KeyTransparencyOnboardingDialog__Description-v2": {
+    "messageformat": "<paragraph>עבור אנשי קשר שהחיבור איתם נוצר באמצעות מספר טלפון, Signal יכולה לאשר אוטומטית שהחיבור מאובטח באמצעות שימוש בתהליך שנקרא שקיפות מפתחות.</paragraph><paragraph>לאבטחה משופרת, עדיין אפשר לאמת חיבורים ידנית באמצעות קוד QR או השוואת מספרי בטיחות.</paragraph>"
+  },
   "icu:KeyTransparencyOnboardingDialog__Continue": {
     "messageformat": "המשך"
   },
@@ -766,6 +823,9 @@
   },
   "icu:videoFileTooLargeWarning": {
     "messageformat": "לא ניתן לשלוח את קובץ הווידאו הזה כי הוא גדול מדי. אפשר לשלוח קובצי וידאו בגודל של עד {limit,number}{units}."
+  },
+  "icu:videoFileTooLongWarning": {
+    "messageformat": "לא ניתן לשלוח את הסרטון כי האורך שלו עולה על {maxDuration}"
   },
   "icu:unableToLoadAttachment": {
     "messageformat": "לא היה ניתן לטעון את הצרופה הנבחרת."
@@ -1742,6 +1802,9 @@
   "icu:Preferences__EditChatFolderPage__SelectChatsDialog__Search__Placeholder": {
     "messageformat": "חיפוש"
   },
+  "icu:Preferences__EditChatFolderPage__SelectChatsDialog__NoChats": {
+    "messageformat": "אין צ׳אטים"
+  },
   "icu:Preferences__EditChatFolderPage__SelectChatsDialog__ChatTypesSection__Title": {
     "messageformat": "סוגי צ׳אטים"
   },
@@ -1804,6 +1867,15 @@
   },
   "icu:Preferences__EditChatFolderPage__CancelButton": {
     "messageformat": "ביטול"
+  },
+  "icu:Preferences__PrivacyPage__SealedSender": {
+    "messageformat": "שולח אטום"
+  },
+  "icu:Preferences__PrivacyPage__AllowFromAnyone__Label": {
+    "messageformat": "התר מכל אחד"
+  },
+  "icu:Preferences__PrivacyPage__AllowFromAnyone__Description": {
+    "messageformat": "אפשר שולח אטום עבור הודעות נכנסות מאת אי־אנשי קשר ומאת אנשים איתם לא שיתפת את הפרופיל שלך. <learnMoreLink>למידע נוסף</learnMoreLink>."
   },
   "icu:Preferences__PrivacyPage__ShowStatusIcon__Label": {
     "messageformat": "הראה איקון מעמד"
@@ -2234,6 +2306,24 @@
   "icu:deleteAccountDialogBody": {
     "messageformat": "זה ימחק את מידע החשבון שלך, את הפרופיל שלך ואת כל ההודעות שלך. זה גם יסיר אתך מכל קבוצות Signal. האפליקציה תיסגר לאחר השלמת התהליך."
   },
+  "icu:DeleteAccountConfirmDialog--Title": {
+    "messageformat": "מחיקת חשבון"
+  },
+  "icu:DeleteAccountConfirmDialog--Description": {
+    "messageformat": "זה ימחק את מידע החשבון שלך, את הפרופיל שלך ואת כל ההודעות שלך. זה גם יסיר אותך מכל קבוצות Signal."
+  },
+  "icu:DeleteAccountConfirmDialog--ConfirmNumber": {
+    "messageformat": "יש לאמת את מספר הטלפון שלך"
+  },
+  "icu:DeleteAccountConfirmDialog--CountryCodePlaceholder": {
+    "messageformat": "קוד מדינה"
+  },
+  "icu:DeleteAccountConfirmDialog--NumberPlaceholder": {
+    "messageformat": "מספר טלפון"
+  },
+  "icu:DeleteAccountConfirmDialog--DeleteButton": {
+    "messageformat": "מחיקה"
+  },
   "icu:deleteOldIndexedDBData": {
     "messageformat": "יש לך נתונים מיושנים מהתקנה קודמת של Signal Desktop. אם בא לך להמשיך, הם יימחקו ו–Signal תתחיל מאפס."
   },
@@ -2386,9 +2476,6 @@
   },
   "icu:callRingtoneNotificationDescription": {
     "messageformat": "נגן צלצול שיחה"
-  },
-  "icu:callSystemNotificationDescription": {
-    "messageformat": "הראה התראות לגבי שיחות"
   },
   "icu:incomingCallNotificationDescription": {
     "messageformat": "אפשר שיחות נכנסות"
@@ -2876,8 +2963,29 @@
   "icu:stickers--StickerPreview--StickerNoEmojiAriaLabel": {
     "messageformat": "סטיקר בלי אימוג׳י"
   },
+  "icu:stickers--StickerPreview--SeeStickerDetails": {
+    "messageformat": "הצגת פרטי סטיקר"
+  },
+  "icu:stickers--StickerPreview--StickerDetailsTitle": {
+    "messageformat": "פרטי סטיקר"
+  },
+  "icu:stickers--StickerPreview--AddFavorite": {
+    "messageformat": "הוספה למועדפים"
+  },
+  "icu:stickers--StickerPreview--RemoveFavorite": {
+    "messageformat": "הסרה ממועדפים"
+  },
   "icu:stickers--StickerPackLinkPreviewDescription": {
     "messageformat": "חבילת סטיקרים מאת {author}"
+  },
+  "icu:stickers--Toast--StickerFavoriteAdded": {
+    "messageformat": "הסטיקר נוסף למועדפים"
+  },
+  "icu:stickers--Toast--StickerFavoriteRemoved": {
+    "messageformat": "הסטיקר הוסר מהמועדפים"
+  },
+  "icu:stickers--Toast--StickerFavoritesTooMany": {
+    "messageformat": "{count, plural, one {אפשר להוסיף רק סטיקר {count,number} למועדפים} two {אפשר להוסיף רק {count,number} סטיקרים למועדפים} many {אפשר להוסיף רק {count,number} סטיקרים למועדפים} other {אפשר להוסיף רק {count,number} סטיקרים למועדפים}}"
   },
   "icu:stickers--ViewPack": {
     "messageformat": "הצגת חבילה"
@@ -2987,6 +3095,9 @@
   "icu:FunPanelSticker__SubNavLabel": {
     "messageformat": "חבילות סטיקרים"
   },
+  "icu:FunPanelStickers__SubNavCategoryLabel--Favorites": {
+    "messageformat": "מועדפים"
+  },
   "icu:FunPanelStickers__SubNavCategoryLabel--Recents": {
     "messageformat": "בשימוש לאחרונה"
   },
@@ -2999,11 +3110,20 @@
   "icu:FunPanelStickers__SectionTitle--Recents": {
     "messageformat": "בשימוש לאחרונה"
   },
+  "icu:FunPanelStickers__SectionTitle--Favorites": {
+    "messageformat": "מועדפים"
+  },
   "icu:FunPanelStickers__SectionTitle--Featured": {
     "messageformat": "מומלצים"
   },
   "icu:FunPanelStickers__SearchResults__EmptyHeading": {
     "messageformat": "לא נמצאו מדבקות"
+  },
+  "icu:FunPanelStickers__StickerContextMenu--AddFavorite": {
+    "messageformat": "הוספה למועדפים"
+  },
+  "icu:FunPanelStickers__StickerContextMenu--RemoveFavorite": {
+    "messageformat": "הסרה ממועדפים"
   },
   "icu:FunPanelStickers__LightboxDialog__Label": {
     "messageformat": "תצוגה מקדימה של סטיקר"
@@ -3061,9 +3181,6 @@
   },
   "icu:FunPanelGifs__GiphyAttribution__AccessibilityLabel": {
     "messageformat": "מופעל באמצעות GIPHY"
-  },
-  "icu:FunSearch__ClearButtonLabel": {
-    "messageformat": "נקה חיפוש"
   },
   "icu:FunSkinTones__List": {
     "messageformat": "גוון עור"
@@ -3512,6 +3629,9 @@
   "icu:MessageRequests--unblock-group-confirm-body": {
     "messageformat": "חברי קבוצה יוכלו להוסיף אותך שוב אל קבוצה זו."
   },
+  "icu:MessageRequests--unblock-signal-confirm-body": {
+    "messageformat": "יישלחו אליך עדכונים וחדשות של Signal."
+  },
   "icu:MessageRequests--block-and-report-spam-success-toast": {
     "messageformat": "דווח/ה כדואר זבל ונחסם/ה."
   },
@@ -3526,6 +3646,9 @@
   },
   "icu:MessageRequests--block-group-confirm-body": {
     "messageformat": "לא תקבל יותר הודעות או עדכונים מקבוצה זו וחברי קבוצה לא יוכלו להוסיף אותך שוב אל קבוצה זו."
+  },
+  "icu:MessageRequests--block-signal-confirm-body": {
+    "messageformat": "לא יישלחו אליך יותר עדכונים וחדשות של Signal."
   },
   "icu:MessageRequests--reportAndMaybeBlock": {
     "messageformat": "דיווח…"
@@ -3854,6 +3977,9 @@
   "icu:callingDeviceSelection__settings": {
     "messageformat": "הגדרות"
   },
+  "icu:callingDeviceSelection__settings-v2": {
+    "messageformat": "הגדרות שיחה"
+  },
   "icu:calling__participants--pluralized": {
     "messageformat": "{people, plural, one {{people,number} בשיחה} two {{people,number} בשיחה} many {{people,number} בשיחה} other {{people,number} בשיחה}}"
   },
@@ -3958,6 +4084,15 @@
   },
   "icu:callingDeviceSelection__select--default": {
     "messageformat": "ברירת מחדל"
+  },
+  "icu:callingDeviceSelection__select--default-nonwin": {
+    "messageformat": "ברירת מחדל: {deviceName}"
+  },
+  "icu:callingDeviceSelection__select--default_console": {
+    "messageformat": "ברירת מחדל: {deviceName}"
+  },
+  "icu:callingDeviceSelection__select--default_communications": {
+    "messageformat": "ברירת מחדל לתקשורת: {deviceName}"
   },
   "icu:muteNotificationsTitle": {
     "messageformat": "השתקת התראות"
@@ -4811,6 +4946,69 @@
   "icu:CompositionArea__AttachMenu__Poll": {
     "messageformat": "סקר"
   },
+  "icu:CompositionArea__AttachMenu__Contact": {
+    "messageformat": "איש קשר"
+  },
+  "icu:ShareContactDialog__SelectContact__Title": {
+    "messageformat": "בחר איש קשר"
+  },
+  "icu:ShareContactDialog__SelectContact__SearchPlaceholder": {
+    "messageformat": "חיפוש"
+  },
+  "icu:ShareContactDialog__SelectContact__EmptyState": {
+    "messageformat": "אין אנשי קשר"
+  },
+  "icu:ShareContactDialog__SelectContact__NoResults": {
+    "messageformat": "אין תוצאות עבור ״{searchQuery}״"
+  },
+  "icu:ShareContactDialog__ShareContact__Title": {
+    "messageformat": "שיתוף איש קשר"
+  },
+  "icu:ShareContactDialog__ShareContact__Description": {
+    "messageformat": "כל מי שהפרופיל הזה ישותף איתו יוכל לשלוח הודעה אל {name}."
+  },
+  "icu:ShareContactDialog__ShareContact__Send": {
+    "messageformat": "שליחת איש קשר"
+  },
+  "icu:ShareContactDialog__ShareContact__EditName": {
+    "messageformat": "עריכת שם"
+  },
+  "icu:ShareContactDialog__EditName__Title": {
+    "messageformat": "עריכת שם"
+  },
+  "icu:ShareContactDialog__EditName__Prefix": {
+    "messageformat": "קידומת"
+  },
+  "icu:ShareContactDialog__EditName__GivenName": {
+    "messageformat": "שם פרטי"
+  },
+  "icu:ShareContactDialog__EditName__MiddleName": {
+    "messageformat": "שם אמצעי"
+  },
+  "icu:ShareContactDialog__EditName__FamilyName": {
+    "messageformat": "שם משפחה"
+  },
+  "icu:ShareContactDialog__EditName__Suffix": {
+    "messageformat": "סיומת"
+  },
+  "icu:ShareContactDialog__EditName__Organization": {
+    "messageformat": "ארגון"
+  },
+  "icu:ShareContactDialog__ShareContact__EditPhoto": {
+    "messageformat": "ערוך תמונה"
+  },
+  "icu:ShareContactDialog__SelectPhoto__Title": {
+    "messageformat": "בחירת תמונה"
+  },
+  "icu:ShareContactDialog__SelectPhoto__ContactPhoto": {
+    "messageformat": "תמונת איש קשר"
+  },
+  "icu:ShareContactDialog__SelectPhoto__ProfilePhoto": {
+    "messageformat": "תמונת פרופיל"
+  },
+  "icu:ShareContactDialog__SelectPhoto__DefaultAvatar": {
+    "messageformat": "אווטאר ברירת מחדל"
+  },
   "icu:CompositionArea--attach-plus": {
     "messageformat": "הוספת קובץ מצורף או סקר"
   },
@@ -4849,9 +5047,6 @@
   },
   "icu:CompositionInput__editing-message": {
     "messageformat": "עריכת הודעה"
-  },
-  "icu:countMutedConversationsDescription": {
-    "messageformat": "כלילת צ'אטים מושתקים בספירת התג"
   },
   "icu:ContactModal--nickname": {
     "messageformat": "כינוי"
@@ -6268,9 +6463,6 @@
   "icu:Preferences--pin-reminders--header": {
     "messageformat": "תזכורות PIN"
   },
-  "icu:Preferences--pin-reminders--description": {
-    "messageformat": "תישאל לעיתים פחות תכופות עם הזמן"
-  },
   "icu:Preferences--registration-lock__label": {
     "messageformat": "נעילת הרשמה"
   },
@@ -6288,9 +6480,6 @@
   },
   "icu:Preferences__Notifications__SoundsSection__Title": {
     "messageformat": "צלילים"
-  },
-  "icu:Preferences__Notifications__AppBadgeSection__Title": {
-    "messageformat": "הוספת תג"
   },
   "icu:Preferences__Notifications__AppBadgeSection__Title-v2": {
     "messageformat": "תגי הודעות שלא נקראו"
@@ -6670,6 +6859,9 @@
   "icu:Preferences--blocked-users--description": {
     "messageformat": "משתמשים חסומים לא יוכלו להתקשר או לשלוח לך הודעות."
   },
+  "icu:Preferences--add-blocked": {
+    "messageformat": "הוספה משתמשים או קבוצות לרשימת החסומים"
+  },
   "icu:Preferences--blocked-users": {
     "messageformat": "משתמשים חסומים"
   },
@@ -6678,6 +6870,12 @@
   },
   "icu:Preferences--blocked--blocked-on": {
     "messageformat": "נחסמ/ה ב–{blockedAt}"
+  },
+  "icu:Preferences--BlockChooser--Done": {
+    "messageformat": "סיים"
+  },
+  "icu:Preferences--BlockChooser--Search--Placeholder": {
+    "messageformat": "חיפוש"
   },
   "icu:Preferences--signal-backups": {
     "messageformat": "גיבויים מאובטחים של Signal"
@@ -7075,6 +7273,36 @@
   "icu:InstallScreenUpdateDialog--cannot-update__body": {
     "messageformat": "העדכון של Signal לשולחן עבודה נכשל, אבל יש גרסה חדשה יותר שזמינה. אפשר ללכת אל {downloadUrl} ולהתקין את הגרסה החדשה באופן ידני, ואז ליצור קשר עם התמיכה או להגיש דיווח על באג לגבי בעיה זו."
   },
+  "icu:EntryPoint--signal-logo": {
+    "messageformat": "לוגו Signal"
+  },
+  "icu:EntryPoint--Title--Line1": {
+    "messageformat": "פרטיות שהולכת איתך לכל מקום"
+  },
+  "icu:EntryPoint--Title--Line2": {
+    "messageformat": "להיות עצמך בכל הודעה."
+  },
+  "icu:EntryPoint--link-button": {
+    "messageformat": "קישור החשבון שלך"
+  },
+  "icu:EntryPoint--more-options-button": {
+    "messageformat": "עוד אפשרויות"
+  },
+  "icu:EntryPoint--nonprofit": {
+    "messageformat": "Signal היא עמותה ללא מטרות רווח."
+  },
+  "icu:EntryPoint--terms": {
+    "messageformat": "תנאים ומדיניות פרטיות"
+  },
+  "icu:EntryPoint--MoreOptions--Title": {
+    "messageformat": "עוד אפשרויות"
+  },
+  "icu:EntryPoint--MoreOptions--RegistrationButton--Title": {
+    "messageformat": "יצירת חשבון חדש"
+  },
+  "icu:EntryPoint--MoreOptions--RegistrationButton--Description": {
+    "messageformat": "יצירת חשבון Signal חדש באמצעות מספר הטלפון שלך."
+  },
   "icu:StandaloneRegistration--signal-logo": {
     "messageformat": "לוגו Signal"
   },
@@ -7269,6 +7497,21 @@
   },
   "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--ok-button": {
     "messageformat": "אישור"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Title": {
+    "messageformat": "נתקלת בבעיות בהרשמה?"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet1": {
+    "messageformat": "כדאי לוודא שלטלפון שלך יש קליטה כדי לקבל את הודעת ה–SMS או השיחה שלך"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet2": {
+    "messageformat": "כדאי לוודא שיש לך אפשרות לקבל שיחת טלפון אל המספר"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet3": {
+    "messageformat": "כדאי לוודא שהזנת נכון את מספר הטלפון שלך"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Footer": {
+    "messageformat": "אם עדיין אין לך אפשרות להירשם, יש לבצע את <troubleshootingLink>השלבים האלה לפתרון בעיות</troubleshootingLink> או <contactSupportLink>ליצור קשר עם התמיכה</contactSupportLink>."
   },
   "icu:StandaloneRegistration--ProfileEntry--header": {
     "messageformat": "הגדר את הפרופיל שלך"
@@ -9005,6 +9248,9 @@
   "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__AccessibilityLabel": {
     "messageformat": "תיאור הבעיות"
   },
+  "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__Placeholder": {
+    "messageformat": "תיאור הבעיה שלך"
+  },
   "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__HelpText": {
     "messageformat": "נא לכלול כל פרט רלוונטי לבעיה. כל דבר שתשתפ/י כאן יישאר פרטי וישמש רק כדי לעזור לשפר את השיחות ב–Signal."
   },
@@ -9114,12 +9360,6 @@
     "messageformat": "התאמות קטנות, תיקוני באגים ושיפורי ביצועים. תודה על השימוש ב-Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.30--0": {
-    "messageformat": "שיפורי ביצועים בשיחות וידאו."
-  },
-  "icu:WhatsNew__8.30--1": {
-    "messageformat": "הוספנו גם קיצור דרך נוח לפתיחת הגדרות המערכת שלך ב–Windows במקרה שניסית להצטרף לשיחת וידאו ול–Signal אין הרשאת גישה למצלמה."
-  },
   "icu:WhatsNew__8.32--0": {
     "messageformat": "עכשיו אפשר לסנן הודעות שלא נקראו גם בתיקיות ההודעות ובממשק החיפוש."
   },
@@ -9128,5 +9368,17 @@
   },
   "icu:WhatsNew__8.32--2": {
     "messageformat": "קיצור הדרך &quot;(N)&quot; מפנה עכשיו כראוי לאימוג׳י האגודל הפונה למטה. תודה על תיקון הבאג, <lnicola></lnicola>."
+  },
+  "icu:WhatsNew__8.34--0": {
+    "messageformat": "תמיכה בשיתוף אנשי קשר."
+  },
+  "icu:WhatsNew__8.34--1": {
+    "messageformat": "שיפורים בתמיכה ובביצועים עבור התקני שמע מחוברים."
+  },
+  "icu:WhatsNew__8.36--0": {
+    "messageformat": "Your top stickers now have a place to remain stuck. Add any sticker pack to your list of favorites so it's easy to stick with the ones you love."
+  },
+  "icu:WhatsNew__8.36--0--fix": {
+    "messageformat": "עכשיו אפשר להוסיף כל סטיקר לרשימת המועדפים שלך, ככה שיהיה קל למצוא אותו."
   }
 }

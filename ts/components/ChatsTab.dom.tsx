@@ -53,7 +53,6 @@ export function ChatsTab({
           <div
             // Use `key` to force the tree to fully re-mount
             key={selectedConversationId}
-            className="Inbox__conversation"
             id={`conversation-${selectedConversationId}`}
           >
             {renderConversationView({ selectedConversationId })}

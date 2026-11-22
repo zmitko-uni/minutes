@@ -27,11 +27,11 @@ export function SignalConnectionsModal(
           <AxoDialog.Close />
         </AxoDialog.Header>
         <AxoDialog.Body>
-          <div className={tw('mb-2.5 flex justify-center')}>
+          <div className={tw('mb-2.5 flex justify-center text-primary')}>
             <AxoSymbol.Icon label={null} symbol="connections" size={36} />
           </div>
           <AxoDialog.Description>
-            <p className={tw('mb-2.5')}>
+            <p className={tw('mb-2.5 text-primary')}>
               <I18n
                 components={{
                   connections: (
@@ -42,18 +42,20 @@ export function SignalConnectionsModal(
                 id="icu:SignalConnectionsModal__header"
               />
             </p>
-            <ul className={tw('mb-2.5 flex flex-col gap-2 ps-3')}>
-              <ListItem>
+            <ul className={tw('mb-2.5 flex flex-col gap-2 ps-3 text-primary')}>
+              <RectangleBulletListItem>
                 {i18n('icu:SignalConnectionsModal__bullet--1')}
-              </ListItem>
-              <ListItem>
+              </RectangleBulletListItem>
+              <RectangleBulletListItem>
                 {i18n('icu:SignalConnectionsModal__bullet--2')}
-              </ListItem>
-              <ListItem>
+              </RectangleBulletListItem>
+              <RectangleBulletListItem>
                 {i18n('icu:SignalConnectionsModal__bullet--3')}
-              </ListItem>
+              </RectangleBulletListItem>
             </ul>
-            <p>{i18n('icu:SignalConnectionsModal__footer')}</p>
+            <p className={tw('text-primary')}>
+              {i18n('icu:SignalConnectionsModal__footer')}
+            </p>
           </AxoDialog.Description>
         </AxoDialog.Body>
       </AxoDialog.Content>
@@ -65,7 +67,7 @@ type ListItemProps = Readonly<{
   children: ReactNode;
 }>;
 
-function ListItem(props: ListItemProps): ReactNode {
+export function RectangleBulletListItem(props: ListItemProps): ReactNode {
   return (
     <li className={tw('flex items-center')}>
       <span

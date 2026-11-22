@@ -30,11 +30,11 @@ import type {
   ActiveCallReactionsType,
   ChangeIODevicePayloadType,
   GroupCallVideoRequest,
-  MediaDeviceSettings,
   ObservedRemoteMuteType,
   PresentedSource,
   PresentableSource,
   RemoveClientType,
+  MediaDeviceSettings,
 } from '../../types/Calling.std.ts';
 import {
   isCallLinkAdmin,
@@ -51,6 +51,8 @@ import {
   CallState,
   GroupCallConnectionState,
   GroupCallJoinState,
+  getEmptyAudioDeviceList,
+  getDefaultAudioPreference,
 } from '../../types/Calling.std.ts';
 import { CallMode } from '../../types/CallDisposition.std.ts';
 import { callingTones } from '../../util/callingTones.preload.ts';
@@ -125,11 +127,11 @@ import { callLinkRefreshJobQueue } from '../../jobs/callLinkRefreshJobQueue.prel
 import {
   isOnline,
   submitCallQualitySurvey as submitCallQualitySurveyToServer,
+  type CallQualitySurveyType,
 } from '../../textsecure/WebAPI.preload.ts';
 import { itemStorage } from '../../textsecure/Storage.preload.ts';
 import type { SizeCallbackType } from '../../calling/VideoSupport.preload.ts';
 import { noopAction, type NoopActionType } from './noop.std.ts';
-import type { SignalService } from '../../protobuf/index.std.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
 import type { ErrorModalDataProps } from '../../components/ErrorModal.dom.tsx';
 import { callLinkCleanupService } from '../../services/expiring/callLinkCleanupService.preload.ts';
@@ -138,6 +140,7 @@ import type {
   StateDispatch,
   SyncStateThunk,
 } from '../types.std.ts';
+import OS from '../../util/os/osMain.node.ts';
 
 const { omit } = lodash;
 
@@ -262,14 +265,16 @@ export type CQSSubmissionStateType = ReadonlyDeep<{
 }>;
 
 // oxlint-disable-next-line signal-desktop/enforce-type-alias-readonlydeep
-export type CallingStateType = MediaDeviceSettings & {
-  callsByConversation: CallsByConversationType;
-  adhocCalls: AdhocCallsType;
-  callLinks: CallLinksByRoomIdType;
-  activeCallState?: ActiveCallStateType | WaitingCallStateType;
-  capturerBaton?: DesktopCapturerBaton;
-  callQualitySurveySubmission: CQSSubmissionStateType;
-};
+export type CallingStateType = Readonly<
+  MediaDeviceSettings & {
+    callsByConversation: CallsByConversationType;
+    adhocCalls: AdhocCallsType;
+    callLinks: CallLinksByRoomIdType;
+    activeCallState?: ActiveCallStateType | WaitingCallStateType;
+    capturerBaton?: DesktopCapturerBaton;
+    callQualitySurveySubmission: CQSSubmissionStateType;
+  }
+>;
 
 export type AcceptCallType = ReadonlyDeep<{
   conversationId: string;
@@ -1011,6 +1016,7 @@ type SuggestLowerHandActionType = ReadonlyDeep<{
 
 type ToggleNeedsScreenRecordingPermissionsActionType = ReadonlyDeep<{
   type: 'calling/TOGGLE_NEEDS_SCREEN_RECORDING_PERMISSIONS';
+  payload: boolean;
 }>;
 
 type ToggleParticipantsActionType = ReadonlyDeep<{
@@ -1025,6 +1031,7 @@ type ToggleSelfViewExpandedActionType = ReadonlyDeep<{
 }>;
 type ToggleSettingsActionType = ReadonlyDeep<{
   type: 'calling/TOGGLE_SETTINGS';
+  payload: boolean;
 }>;
 
 type ChangeCallViewActionType = ReadonlyDeep<{
@@ -1339,13 +1346,13 @@ function changeIODevice(
   payload: ChangeIODevicePayloadType
 ): AsyncStateThunk<ChangeIODeviceFulfilledActionType> {
   return async dispatch => {
-    // Only `setPreferredCamera` returns a Promise.
+    // Only `setSelectedCamera` returns a Promise.
     if (payload.type === CallingDeviceType.CAMERA) {
-      await calling.setPreferredCamera(payload.selectedDevice);
+      await calling.setSelectedCamera(payload.selectedDevice);
     } else if (payload.type === CallingDeviceType.MICROPHONE) {
       calling.setPreferredMicrophone(payload.selectedDevice);
     } else if (payload.type === CallingDeviceType.SPEAKER) {
-      calling.setPreferredSpeaker(payload.selectedDevice);
+      calling.setSelectedSpeaker(payload.selectedDevice);
     }
     dispatch({
       type: CHANGE_IO_DEVICE_FULFILLED,
@@ -1486,9 +1493,7 @@ function getPresentingSources(): AsyncStateThunk<
     });
 
     if (needsPermission) {
-      dispatch({
-        type: TOGGLE_NEEDS_SCREEN_RECORDING_PERMISSIONS,
-      });
+      dispatch(toggleScreenRecordingPermissionsDialog(true));
     }
   };
 }
@@ -2786,15 +2791,19 @@ function toggleSelfViewExpanded(): ToggleSelfViewExpandedActionType {
   };
 }
 
-function toggleScreenRecordingPermissionsDialog(): ToggleNeedsScreenRecordingPermissionsActionType {
+function toggleScreenRecordingPermissionsDialog(
+  open: boolean
+): ToggleNeedsScreenRecordingPermissionsActionType {
   return {
     type: TOGGLE_NEEDS_SCREEN_RECORDING_PERMISSIONS,
+    payload: open,
   };
 }
 
-function toggleSettings(): ToggleSettingsActionType {
+function toggleSettings(open: boolean): ToggleSettingsActionType {
   return {
     type: TOGGLE_SETTINGS,
+    payload: open,
   };
 }
 
@@ -2882,38 +2891,34 @@ function submitCallQualitySurvey(
       const callTelemetry: Uint8Array<ArrayBuffer> | null =
         callSummary.rawStats ?? null;
 
-      const surveyRequest: SignalService.SubmitCallQualitySurveyRequest.Params =
-        {
-          userSatisfied,
-          callQualityIssues: userSatisfied ? [] : Array.from(callQualityIssues),
-          additionalIssuesDescription:
-            !userSatisfied &&
-            callQualityIssues.includes(CallQualitySurvey.Issue.OTHER)
-              ? additionalIssuesDescription
-              : null,
-          debugLogUrl: debugLogUrl ?? null,
-          startTimestamp: BigInt(callSummary.startTime),
-          endTimestamp: BigInt(callSummary.endTime),
-          callType,
-          success: !isCallFailure(callSummary.callEndReasonText),
-          callEndReason: callSummary.callEndReasonText,
-          connectionRttMedian: qualityStats.rttMedianConnectionMillis ?? null,
-          audioRttMedian: audioStats.rttMedianMillis ?? null,
-          videoRttMedian: videoStats.rttMedianMillis ?? null,
-          audioRecvJitterMedian: audioStats.jitterMedianRecvMillis ?? null,
-          videoRecvJitterMedian: videoStats.jitterMedianRecvMillis ?? null,
-          audioSendJitterMedian: audioStats.jitterMedianSendMillis ?? null,
-          videoSendJitterMedian: videoStats.jitterMedianSendMillis ?? null,
-          audioRecvPacketLossFraction:
-            audioStats.packetLossFractionRecv ?? null,
-          videoRecvPacketLossFraction:
-            videoStats.packetLossFractionRecv ?? null,
-          audioSendPacketLossFraction:
-            audioStats.packetLossFractionSend ?? null,
-          videoSendPacketLossFraction:
-            videoStats.packetLossFractionSend ?? null,
-          callTelemetry,
-        };
+      const surveyRequest: CallQualitySurveyType = {
+        userSatisfied,
+        callQualityIssues: userSatisfied ? [] : Array.from(callQualityIssues),
+        additionalIssuesDescription:
+          !userSatisfied &&
+          callQualityIssues.includes(CallQualitySurvey.Issue.OTHER)
+            ? additionalIssuesDescription
+            : null,
+        debugLogUrl: debugLogUrl ?? null,
+        startTimestamp: callSummary.startTime,
+        endTimestamp: callSummary.endTime,
+        callType,
+        success: !isCallFailure(callSummary.callEndReasonText),
+        callEndReason: callSummary.callEndReasonText,
+        connectionRttMedian: qualityStats.rttMedianConnectionMillis ?? null,
+        audioRttMedian: audioStats.rttMedianMillis ?? null,
+        videoRttMedian: videoStats.rttMedianMillis ?? null,
+        audioRecvJitterMedian: audioStats.jitterMedianRecvMillis ?? null,
+        videoRecvJitterMedian: videoStats.jitterMedianRecvMillis ?? null,
+        audioSendJitterMedian: audioStats.jitterMedianSendMillis ?? null,
+        videoSendJitterMedian: videoStats.jitterMedianSendMillis ?? null,
+        audioRecvPacketLossFraction: audioStats.packetLossFractionRecv ?? null,
+        videoRecvPacketLossFraction: videoStats.packetLossFractionRecv ?? null,
+        audioSendPacketLossFraction: audioStats.packetLossFractionSend ?? null,
+        videoSendPacketLossFraction: videoStats.packetLossFractionSend ?? null,
+        callTelemetry,
+        callIdHash: callSummary.callIdHash ?? null,
+      };
 
       await submitCallQualitySurveyToServer(surveyRequest);
 
@@ -3051,11 +3056,11 @@ export type ActionsType = ReadonlyDeep<typeof actions>;
 export function getEmptyState(): CallingStateType {
   return {
     availableCameras: [],
-    availableMicrophones: [],
-    availableSpeakers: [],
-    selectedCamera: undefined,
-    selectedMicrophone: undefined,
-    selectedSpeaker: undefined,
+    availableMicrophones: getEmptyAudioDeviceList(OS.isWindows()),
+    availableSpeakers: getEmptyAudioDeviceList(OS.isWindows()),
+    selectedCamera: null,
+    selectedMicrophone: getDefaultAudioPreference(OS.isWindows()),
+    selectedSpeaker: getDefaultAudioPreference(OS.isWindows()),
 
     callsByConversation: {},
     adhocCalls: {},
@@ -4348,7 +4353,7 @@ export function reducer(
       ...state,
       activeCallState: {
         ...activeCallState,
-        settingsDialogOpen: !activeCallState.settingsDialogOpen,
+        settingsDialogOpen: action.payload,
       },
     };
   }
@@ -4496,8 +4501,7 @@ export function reducer(
       ...state,
       activeCallState: {
         ...activeCallState,
-        showNeedsScreenRecordingPermissionsWarning:
-          !activeCallState.showNeedsScreenRecordingPermissionsWarning,
+        showNeedsScreenRecordingPermissionsWarning: action.payload,
       },
     };
   }

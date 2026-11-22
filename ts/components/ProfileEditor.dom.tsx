@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import type { JSX, ReactNode } from 'react';
-import { AvatarColors } from '../types/Colors.std.ts';
+import { AvatarColors } from '../types/Avatar.std.ts';
 import { AvatarEditor } from './AvatarEditor.dom.tsx';
 import { AvatarPreview } from './AvatarPreview.dom.tsx';
 import { UsernameEditState } from '../state/ducks/usernameEnums.std.ts';
@@ -20,8 +20,8 @@ import { FunStaticEmoji } from './fun/FunEmoji.dom.tsx';
 import { FunEmojiPicker } from './fun/FunEmojiPicker.dom.tsx';
 import { ProfileEditorPage } from '../types/Nav.std.ts';
 
-import type { AvatarColorType } from '../types/Colors.std.ts';
 import type {
+  AvatarColorType,
   AvatarDataType,
   AvatarUpdateOptionsType,
   DeleteAvatarFromDiskActionType,
@@ -32,7 +32,6 @@ import type { LocalizerType } from '../types/Util.std.ts';
 import type {
   ConversationType,
   ProfileDataType,
-  SaveAttachmentActionCreatorType,
 } from '../state/ducks/conversations.preload.ts';
 import type { UsernameLinkState } from '../state/ducks/usernameEnums.std.ts';
 import type { ShowToastAction } from '../state/ducks/toast.preload.ts';
@@ -48,7 +47,7 @@ import { AxoList } from '../axo/items/AxoList.dom.tsx';
 import { AxoItem } from '../axo/items/AxoItem.dom.tsx';
 import { AxoClickableItem } from '../axo/items/AxoClickableItem.dom.tsx';
 import { AriaClickable } from '../axo/AriaClickable.dom.tsx';
-import { AxoDropdownMenu } from '../axo/AxoDropdownMenu.dom.tsx';
+import { AxoDropdownMenu } from '../axo/menus/AxoDropdownMenu.dom.tsx';
 import { drop } from '../util/drop.std.ts';
 import { AxoSymbol } from '../axo/AxoSymbol.dom.tsx';
 import { AxoFieldList } from '../axo/items/AxoFieldList.dom.tsx';
@@ -93,7 +92,10 @@ type PropsActionType = {
   deleteAvatarFromDisk: DeleteAvatarFromDiskActionType;
   markCompletedUsernameLinkOnboarding: () => void;
   replaceAvatar: ReplaceAvatarActionType;
-  saveAttachment: SaveAttachmentActionCreatorType;
+  saveAttachmentToDisk: (options: {
+    data: { type: 'bytes'; bytes: Iterable<Uint8Array<ArrayBuffer>> };
+    name: string;
+  }) => void;
   saveAvatarToDisk: SaveAvatarToDiskActionType;
   setUsernameEditState: (editState: UsernameEditState) => void;
   setUsernameLinkColor: (color: number) => void;
@@ -166,7 +168,7 @@ export function ProfileEditor({
   renderUsernameEditor,
   replaceAvatar,
   resetUsernameLink,
-  saveAttachment,
+  saveAttachmentToDisk,
   saveAvatarToDisk,
   setEditState,
   setUsernameEditState,
@@ -596,7 +598,7 @@ export function ProfileEditor({
         usernameLinkState={usernameLinkState}
         setUsernameLinkColor={setUsernameLinkColor}
         resetUsernameLink={resetUsernameLink}
-        saveAttachment={saveAttachment}
+        saveAttachmentToDisk={saveAttachmentToDisk}
         showToast={showToast}
         onBack={() => setEditState(ProfileEditorPage.None)}
       />
@@ -832,7 +834,7 @@ export function ProfileEditor({
     <>
       <AxoConfirmDialog.Root
         open={usernameEditState === UsernameEditState.ConfirmingDelete}
-        onOpenChange={() => setUsernameEditState(UsernameEditState.Editing)}
+        onCancel={() => setUsernameEditState(UsernameEditState.Editing)}
         // @ts-expect-error ConfirmationDialog migration: Needs title
         title={null}
         description={i18n(
@@ -862,7 +864,7 @@ export function ProfileEditor({
       >
         <AxoConfirmDialog.Cancel />
         <AxoConfirmDialog.Action
-          variant="strong-secondary"
+          variant="subtle-secondary"
           onClick={() => {
             setIsResettingUsernameLink(false);
             setEditState(ProfileEditorPage.UsernameLink);

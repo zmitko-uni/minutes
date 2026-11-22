@@ -40,9 +40,10 @@ import { MessageContextMenu } from './MessageContextMenu.dom.tsx';
 import { ForwardMessagesModalType } from '../ForwardMessagesModal.dom.tsx';
 import { useGroupedAndOrderedReactions } from '../../util/groupAndOrderReactions.std.ts';
 import { isNotNil } from '../../util/isNotNil.std.ts';
-import type { AxoMenuBuilder } from '../../axo/AxoMenuBuilder.dom.tsx';
-import { AxoContextMenu } from '../../axo/AxoContextMenu.dom.tsx';
+import type { AxoMenuBuilder } from '../../axo/menus/AxoMenuBuilder.dom.tsx';
+import { AxoContextMenu } from '../../axo/menus/AxoContextMenu.dom.tsx';
 import type { Emoji } from '../../axo/emoji.std.ts';
+import type { StickerReferenceType } from '../../types/Stickers.preload.ts';
 import { summarizeFromMessage } from '../../minutes/chatSummaryService.preload.ts';
 import { askAiOpinionFromMessage } from '../../minutes/askAiOpinionService.preload.ts';
 import { addMessageBookmark } from '../../minutes/bookmarksService.preload.ts';
@@ -67,6 +68,8 @@ export type PropsData = {
   canReply: boolean;
   canPinMessage: boolean;
   selectedReaction?: Emoji.Variant;
+  stickerRef: StickerReferenceType | undefined;
+  isFavoriteSticker: boolean;
   isTargeted: boolean;
   isSignalConversation: boolean;
 } & Omit<MessagePropsData, 'renderingContext' | 'menu'>;
@@ -102,6 +105,10 @@ export type PropsActions = {
   ) => void;
   handleClickCtaButton: (callToActionId: string) => void;
   handleDebugMessage: () => void;
+  markStickerAsFavorite: (
+    stickerRef: StickerReferenceType,
+    markAsFavorite: boolean
+  ) => void;
 } & Omit<MessagePropsActions, 'onToggleSelect' | 'onReplyToMessage'>;
 
 export type Props = PropsData &
@@ -135,6 +142,7 @@ export function TimelineMessage(props: Props): JSX.Element {
     i18n,
     id,
     interactivity,
+    isFavoriteSticker,
     isPinned,
     isSignalConversation,
     isTargeted,
@@ -143,6 +151,7 @@ export function TimelineMessage(props: Props): JSX.Element {
     endPoll,
     expirationLength,
     handleDebugMessage,
+    markStickerAsFavorite,
     onPinnedMessageRemove,
     pushPanelForConversation,
     reactToMessage,
@@ -156,6 +165,7 @@ export function TimelineMessage(props: Props): JSX.Element {
     selectedReaction,
     setQuoteByMessageId,
     setMessageToEdit,
+    stickerRef,
     text,
     timestamp,
     toggleDeleteMessagesModal,
@@ -288,6 +298,14 @@ export function TimelineMessage(props: Props): JSX.Element {
 
   const handleDownload = canDownload ? openGenericAttachment : null;
 
+  const handleFavoriteSticker = useCallback(() => {
+    if (!stickerRef) {
+      return;
+    }
+
+    markStickerAsFavorite(stickerRef, !isFavoriteSticker);
+  }, [isFavoriteSticker, stickerRef, markStickerAsFavorite]);
+
   const handleReplyToMessage = useCallback(() => {
     if (!canReply) {
       return;
@@ -393,6 +411,12 @@ export function TimelineMessage(props: Props): JSX.Element {
               messageIds: [id],
             });
           }}
+          onFavoriteSticker={
+            stickerRef && !isFavoriteSticker ? handleFavoriteSticker : null
+          }
+          onUnfavoriteSticker={
+            stickerRef && isFavoriteSticker ? handleFavoriteSticker : null
+          }
           onPinMessage={
             canPinMessage && !isPinned ? handleOpenPinMessageDialog : null
           }
@@ -442,6 +466,7 @@ export function TimelineMessage(props: Props): JSX.Element {
       copyMessageText,
       handleDebugMessage,
       handleDownload,
+      handleFavoriteSticker,
       handleReact,
       handleOpenPinMessageDialog,
       handleUnpinMessage,
@@ -449,12 +474,14 @@ export function TimelineMessage(props: Props): JSX.Element {
       handleReplyToMessage,
       i18n,
       id,
+      isFavoriteSticker,
       isPinned,
       pushPanelForConversation,
       retryDeleteForEveryone,
       retryMessageSend,
       setMessageToEdit,
       shouldShowAdditional,
+      stickerRef,
       text,
       timestamp,
       toggleDeleteMessagesModal,
@@ -468,9 +495,11 @@ export function TimelineMessage(props: Props): JSX.Element {
       <Manager>
         <MessageMenu
           i18n={i18n}
+          isFavoriteSticker={isFavoriteSticker}
           isWindowWidthNotNarrow={isWindowWidthNotNarrow}
           direction={direction}
           onDownload={handleDownload}
+          onFavoriteSticker={stickerRef ? handleFavoriteSticker : null}
           onReplyToMessage={canReply ? handleReplyToMessage : null}
           onReact={canReact ? handleReact : null}
           renderMessageContextMenu={renderMessageContextMenu}
@@ -507,17 +536,20 @@ export function TimelineMessage(props: Props): JSX.Element {
     );
   }, [
     i18n,
+    isFavoriteSticker,
     isWindowWidthNotNarrow,
     direction,
     canReply,
     canReact,
     handleDownload,
+    handleFavoriteSticker,
     handleReplyToMessage,
     handleReact,
     reactionPickerRoot,
     popperPreventOverflowModifier,
     renderReactionPicker,
     selectedReaction,
+    stickerRef,
     reactToMessage,
     toggleReactionPicker,
     id,
@@ -544,8 +576,10 @@ export function TimelineMessage(props: Props): JSX.Element {
 
 type MessageMenuProps = {
   i18n: LocalizerType;
+  isFavoriteSticker: boolean;
   isWindowWidthNotNarrow: boolean;
   onDownload: (() => void) | null;
+  onFavoriteSticker: (() => void) | null;
   onReplyToMessage: (() => void) | null;
   onReact: (() => void) | null;
   renderMessageContextMenu: (
@@ -557,8 +591,10 @@ type MessageMenuProps = {
 function MessageMenu({
   i18n,
   direction,
+  isFavoriteSticker,
   isWindowWidthNotNarrow,
   onDownload,
+  onFavoriteSticker,
   onReplyToMessage,
   onReact,
   renderMessageContextMenu,
@@ -567,7 +603,8 @@ function MessageMenu({
     <div
       className={classNames(
         'module-message__buttons',
-        `module-message__buttons--${direction}`
+        direction === 'incoming' && 'module-message__buttons--incoming',
+        direction === 'outgoing' && 'module-message__buttons--outgoing'
       )}
     >
       {isWindowWidthNotNarrow && (
@@ -603,15 +640,33 @@ function MessageMenu({
             </Reference>
           )}
 
+          {onFavoriteSticker && (
+            <button
+              type="button"
+              onClick={onFavoriteSticker}
+              aria-label={
+                isFavoriteSticker
+                  ? i18n('icu:messageContextMenu__sticker--removeFavorite')
+                  : i18n('icu:messageContextMenu__sticker--addFavorite')
+              }
+              className={
+                isFavoriteSticker
+                  ? 'module-message__buttons__unfavorite'
+                  : 'module-message__buttons__favorite'
+              }
+              onDoubleClick={ev => {
+                // Prevent double click from triggering the replyToMessage action
+                ev.stopPropagation();
+              }}
+            />
+          )}
+
           {onDownload && (
             <button
               type="button"
               onClick={onDownload}
               aria-label={i18n('icu:downloadAttachment')}
-              className={classNames(
-                'module-message__buttons__download',
-                `module-message__buttons__download--${direction}`
-              )}
+              className="module-message__buttons__download"
               onDoubleClick={ev => {
                 // Prevent double click from triggering the replyToMessage action
                 ev.stopPropagation();
@@ -629,10 +684,7 @@ function MessageMenu({
                 onReplyToMessage();
               }}
               aria-label={i18n('icu:replyToMessage')}
-              className={classNames(
-                'module-message__buttons__reply',
-                `module-message__buttons__download--${direction}`
-              )}
+              className="module-message__buttons__reply"
               onDoubleClick={ev => {
                 // Prevent double click from triggering the replyToMessage action
                 ev.stopPropagation();
@@ -656,10 +708,7 @@ function MessageMenu({
               ref={maybePopperRef}
               type="button"
               aria-label={i18n('icu:messageContextMenuButton')}
-              className={classNames(
-                'module-message__buttons__menu',
-                `module-message__buttons__download--${direction}`
-              )}
+              className="module-message__buttons__menu"
               onDoubleClick={ev => {
                 // Prevent double click from triggering the replyToMessage action
                 ev.stopPropagation();

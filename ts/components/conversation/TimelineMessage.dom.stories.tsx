@@ -9,7 +9,10 @@ import type { Meta, StoryFn } from '@storybook/react';
 import { tw } from '../../axo/tw.dom.tsx';
 
 import { SignalService } from '../../protobuf/index.std.ts';
-import { ConversationColors } from '../../types/Colors.std.ts';
+import {
+  ConversationColors,
+  DEFAULT_BUBBLE_COLOR,
+} from '../../types/ChatStyle.std.ts';
 import type { Props } from './TimelineMessage.dom.tsx';
 import { TimelineMessage } from './TimelineMessage.dom.tsx';
 import { MessageInteractivity, TextDirection } from './Message.dom.tsx';
@@ -48,6 +51,8 @@ import type { RenderAudioAttachmentProps } from '../../state/smart/renderAudioAt
 import type { PollVoteWithUserType } from '../../state/selectors/message.preload.ts';
 import { generateAci } from '../../test-helpers/serviceIdUtils.std.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
+import { AxoColor } from '../../axo/AxoColor.std.ts';
+import { Uint32 } from '@signalapp/types';
 
 const { isBoolean, noop } = lodash;
 
@@ -56,7 +61,8 @@ const { i18n } = window.SignalContext;
 const quoteOptions = {
   none: undefined,
   basic: {
-    conversationColor: ConversationColors[2],
+    bubbleColor: { bubbleColorPreset: 'crimson' },
+    conversationTitle: 'Someone',
     text: 'The quoted message',
     isFromMe: false,
     sentAt: Date.now(),
@@ -66,7 +72,7 @@ const quoteOptions = {
     isViewOnce: false,
     isGiftBadge: false,
   },
-};
+} as const satisfies Record<string, Props['quote']>;
 
 export default {
   title: 'Components/Conversation/TimelineMessage',
@@ -260,7 +266,7 @@ const createProps = (overrideProps: Partial<Props> = {}): Props => ({
   clearTargetedMessage: action('clearSelectedMessage'),
   containerElementRef: createRef<HTMLElement | null>(),
   containerWidthBreakpoint: WidthBreakpoint.Wide,
-  conversationColor: overrideProps.conversationColor ?? ConversationColors[0],
+  bubbleColor: overrideProps.bubbleColor ?? DEFAULT_BUBBLE_COLOR,
   conversationTitle: overrideProps.conversationTitle ?? 'Conversation Title',
   conversationId: overrideProps.conversationId ?? '',
   conversationType: overrideProps.conversationType || 'direct',
@@ -288,6 +294,9 @@ const createProps = (overrideProps: Partial<Props> = {}): Props => ({
   isSticker: isBoolean(overrideProps.isSticker)
     ? overrideProps.isSticker
     : false,
+  isFavoriteSticker: isBoolean(overrideProps.isFavoriteSticker)
+    ? overrideProps.isFavoriteSticker
+    : false,
   isBlocked: isBoolean(overrideProps.isBlocked)
     ? overrideProps.isBlocked
     : false,
@@ -314,6 +323,7 @@ const createProps = (overrideProps: Partial<Props> = {}): Props => ({
   cancelAttachmentDownload: action('cancelAttachmentDownload'),
   kickOffAttachmentDownload: action('kickOffAttachmentDownload'),
   markAttachmentAsCorrupted: action('markAttachmentAsCorrupted'),
+  markStickerAsFavorite: action('markStickerAsFavorite'),
   messageExpanded: action('messageExpanded'),
   showConversation: action('showConversation'),
   openGiftBadge: action('openGiftBadge'),
@@ -374,6 +384,7 @@ const createProps = (overrideProps: Partial<Props> = {}): Props => ({
     'startConversationWithSharedContact'
   ),
   status: overrideProps.status || 'sent',
+  stickerRef: overrideProps.stickerRef,
   text: overrideProps.text ?? '',
   textDirection: overrideProps.textDirection || TextDirection.Default,
   textAttachment: overrideProps.textAttachment || {
@@ -847,6 +858,7 @@ Sticker.args = {
   ],
   isSticker: true,
   status: 'sent',
+  stickerRef: { packId: 'abc', stickerId: 1 },
 };
 
 export const StickerThatFailsToLoad = Template.bind({});
@@ -865,6 +877,23 @@ StickerThatFailsToLoad.args = {
   status: 'sent',
 };
 
+export const StickerFavorite = Template.bind({});
+StickerFavorite.args = {
+  attachments: [
+    fakeAttachment({
+      url: '/fixtures/512x515-thumbs-up-lincoln.webp',
+      fileName: '512x515-thumbs-up-lincoln.webp',
+      contentType: IMAGE_WEBP,
+      width: 128,
+      height: 128,
+    }),
+  ],
+  isFavoriteSticker: true,
+  isSticker: true,
+  status: 'sent',
+  stickerRef: { packId: 'abc', stickerId: 1 },
+};
+
 export const StickerInGroup = Template.bind({});
 StickerInGroup.args = {
   attachments: [
@@ -880,6 +909,7 @@ StickerInGroup.args = {
   contactNameColor: '180',
   isSticker: true,
   status: 'sent',
+  stickerRef: { packId: 'abc', stickerId: 1 },
 };
 
 export const StickerWithLabelInGroup = Template.bind({});
@@ -896,6 +926,7 @@ StickerWithLabelInGroup.args = {
   conversationType: 'group',
   isSticker: true,
   status: 'sent',
+  stickerRef: { packId: 'abc', stickerId: 1 },
   contactNameColor: '260',
   contactLabel: {
     labelEmoji: Emoji.POULTRY_LEG,
@@ -917,6 +948,7 @@ StickerWithLongNameAndLabelInGroup.args = {
   conversationType: 'group',
   isSticker: true,
   status: 'sent',
+  stickerRef: { packId: 'abc', stickerId: 1 },
   author: {
     ...getDefaultConversation(),
     title: 'Long long long long long long long long long long long name',
@@ -932,7 +964,7 @@ export const Quote = Template.bind({});
 Quote.args = {
   quote: {
     text: 'hello my good friend',
-    conversationColor: 'ultramarine',
+    bubbleColor: DEFAULT_BUBBLE_COLOR,
     conversationTitle: 'Convo',
     isFromMe: false,
     sentAt: 0,
@@ -1390,7 +1422,7 @@ LinkPreviewWithLongWord.args = {
 export const LinkPreviewWithQuote = Template.bind({});
 LinkPreviewWithQuote.args = {
   quote: {
-    conversationColor: ConversationColors[2],
+    bubbleColor: { bubbleColorPreset: 'vermilion' },
     conversationTitle: getDefaultConversation().title,
     text: 'The quoted message',
     isFromMe: false,
@@ -3397,7 +3429,7 @@ export function Colors(): JSX.Element {
         <div key={color}>
           {renderOneInBothDirections(
             createProps({
-              conversationColor: color,
+              bubbleColor: { bubbleColorPreset: color },
               text: `Here is a preview of the chat color: ${color}. The color is visible to only you.`,
             })
           )}
@@ -3473,18 +3505,24 @@ export function CustomColor(): JSX.Element {
       {renderThree({
         ...createProps({ text: 'Solid.' }),
         direction: 'outgoing',
-        customColor: {
-          start: { hue: 82, saturation: 35 },
+        bubbleColor: {
+          customColor: {
+            solid: AxoColor.parse('hsl(82, 35%, 30%)').argbInt(),
+          },
         },
       })}
       <br style={{ clear: 'both' }} />
       {renderThree({
         ...createProps({ text: 'Gradient.' }),
         direction: 'outgoing',
-        customColor: {
-          deg: 192,
-          start: { hue: 304, saturation: 85 },
-          end: { hue: 231, saturation: 76 },
+        bubbleColor: {
+          customColor: {
+            gradient: {
+              angle: Uint32.fromNumber(192),
+              start: AxoColor.parse('hsl(304, 85%, 40.33%)').argbInt(),
+              end: AxoColor.parse('hsl(231, 76%, 47%)').argbInt(),
+            },
+          },
         },
       })}
     </>
@@ -3565,7 +3603,7 @@ export const StoryReply = (): JSX.Element => {
     ...createProps({ direction: 'outgoing', text: 'Wow!' }),
     storyReplyContext: {
       authorTitle: conversation.firstName || conversation.title,
-      conversationColor: ConversationColors[0],
+      bubbleColor: DEFAULT_BUBBLE_COLOR,
       isFromMe: false,
       rawAttachment: fakeAttachment({
         url: '/fixtures/snow.jpg',
@@ -3583,7 +3621,7 @@ export const StoryReplyYours = (): JSX.Element => {
     ...createProps({ direction: 'incoming', text: 'Wow!' }),
     storyReplyContext: {
       authorTitle: conversation.firstName || conversation.title,
-      conversationColor: ConversationColors[0],
+      bubbleColor: DEFAULT_BUBBLE_COLOR,
       isFromMe: true,
       rawAttachment: fakeAttachment({
         url: '/fixtures/snow.jpg',
@@ -3601,7 +3639,7 @@ export const StoryReplyEmoji = (): JSX.Element => {
     ...createProps({ text: 'Wow!' }),
     storyReplyContext: {
       authorTitle: conversation.firstName || conversation.title,
-      conversationColor: ConversationColors[0],
+      bubbleColor: DEFAULT_BUBBLE_COLOR,
       emoji: Emoji.LIPSTICK,
       isFromMe: false,
       rawAttachment: fakeAttachment({
@@ -3763,10 +3801,22 @@ EmbeddedContactGivenName.args = {
   canForward: false,
 };
 
-export const EmbeddedContactOrganization = Template.bind({});
-EmbeddedContactOrganization.args = {
+export const EmbeddedContactOrganizationOnly = Template.bind({});
+EmbeddedContactOrganizationOnly.args = {
   contact: {
     ...emptyContact,
+    organization: 'Company 5',
+  },
+  canForward: false,
+};
+
+export const EmbeddedContactNameAndOrganization = Template.bind({});
+EmbeddedContactNameAndOrganization.args = {
+  contact: {
+    ...emptyContact,
+    name: {
+      givenName: 'Jerry',
+    },
     organization: 'Company 5',
   },
   canForward: false,
@@ -4128,6 +4178,7 @@ export function PermanentlyUndownloadableAttachments(): JSX.Element {
     ],
     isSticker: true,
     status: 'sent',
+    stickerRef: { packId: 'abc', stickerId: 1 },
   });
   const longMessageProps = createProps({
     text: 'Hello there from a pal! I am sending a long message so that it will wrap a bit, since I like that look.',

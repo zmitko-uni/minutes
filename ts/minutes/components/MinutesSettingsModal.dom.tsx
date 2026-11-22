@@ -6,7 +6,7 @@ import { ipcRenderer } from 'electron';
 
 import { AxoButton } from '../../axo/AxoButton.dom.tsx';
 import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
-import { AxoSelect } from '../../axo/AxoSelect.dom.tsx';
+import { AxoSelect } from '../../axo/menus/AxoSelect.dom.tsx';
 import { AxoSwitch } from '../../axo/AxoSwitch.dom.tsx';
 import { tw } from '../../axo/tw.dom.tsx';
 import { drop } from '../../util/drop.std.ts';

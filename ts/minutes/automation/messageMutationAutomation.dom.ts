@@ -1,6 +1,6 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
-import type { ReadonlyMessageAttributesType } from '../../model-types.d.ts';
+import type { ReadonlyMessageAttributesType } from '../../model-types.std.ts';
 import type { DraftBodyRanges } from '../../types/BodyRange.std.ts';
 import type { LinkPreviewType } from '../../types/message/LinkPreviews.std.ts';
 import type { AciString } from '../../types/ServiceId.std.ts';

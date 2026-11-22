@@ -41,7 +41,7 @@ import {
 } from './InAnotherCallTooltip.dom.tsx';
 import { DeleteMessagesConfirmationDialog } from '../DeleteMessagesConfirmationDialog.dom.tsx';
 import { MuteNotificationsSubMenu } from '../MuteNotificationsMenu.dom.tsx';
-import { AxoDropdownMenu } from '../../axo/AxoDropdownMenu.dom.tsx';
+import { AxoDropdownMenu } from '../../axo/menus/AxoDropdownMenu.dom.tsx';
 import { strictAssert } from '../../util/assert.std.ts';
 import {
   TimelineWarning,
@@ -483,6 +483,7 @@ export const ConversationHeader = memo(function ConversationHeader({
           addedByName={addedByName}
           conversationName={conversationName}
           isBlocked={conversation.isBlocked ?? false}
+          isSignalConversation={isSignalConversation ?? false}
           isReported={conversation.isReported ?? false}
           state={messageRequestState}
           acceptConversation={onConversationAccept}
@@ -1171,7 +1172,7 @@ export function CannotLeaveGroupBecauseYouAreLastAdminAlert(props: {
         'icu:ConversationHeader__CannotLeaveGroupBecauseYouAreLastAdminAlert__description'
       )}
     >
-      <AxoConfirmDialog.Cancel>{i18n('icu:ok')}</AxoConfirmDialog.Cancel>
+      <AxoConfirmDialog.Ok />
     </AxoConfirmDialog.Root>
   );
 }

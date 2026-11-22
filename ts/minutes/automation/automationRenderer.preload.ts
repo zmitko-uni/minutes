@@ -841,6 +841,7 @@ async function prepareOutgoingAttachments(
     const attachment = await processAttachment(file, {
       generateScreenshot: true,
       flags: null,
+      clientUuid: globalThis.crypto.randomUUID(),
     });
     if (attachment == null) {
       return automationError(

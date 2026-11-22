@@ -2,8 +2,20 @@
   "icu:AxoAlertDialog.Cancel": {
     "messageformat": "Abbrechen"
   },
+  "icu:AxoAlertDialog.Ok": {
+    "messageformat": "OK"
+  },
   "icu:AxoButton.Pending": {
     "messageformat": "Ausstehend"
+  },
+  "icu:AxoColorSlider.Hue": {
+    "messageformat": "Farbton"
+  },
+  "icu:AxoColorSlider.Saturation": {
+    "messageformat": "Sättigung"
+  },
+  "icu:AxoColorSlider.Lightness": {
+    "messageformat": "Helligkeit"
   },
   "icu:AxoDialog.Back": {
     "messageformat": "Zurück"
@@ -11,8 +23,44 @@
   "icu:AxoDialog.Close": {
     "messageformat": "Schließen"
   },
+  "icu:AxoLoadingIndicator.Loading": {
+    "messageformat": "Wird geladen …"
+  },
+  "icu:AxoMediaButton.Play": {
+    "messageformat": "Wiedergeben"
+  },
+  "icu:AxoMediaButton.Pause": {
+    "messageformat": "Pause"
+  },
+  "icu:AxoMediaButton.Download": {
+    "messageformat": "Herunterladen"
+  },
+  "icu:AxoMediaButton.CancelDownload": {
+    "messageformat": "Download abbrechen"
+  },
+  "icu:AxoOutgoingStatus.Sending": {
+    "messageformat": "Wird versendet"
+  },
+  "icu:AxoOutgoingStatus.Sent": {
+    "messageformat": "Versendet"
+  },
+  "icu:AxoOutgoingStatus.Delivered": {
+    "messageformat": "Zugestellt"
+  },
+  "icu:AxoOutgoingStatus.Read": {
+    "messageformat": "Gelesen"
+  },
+  "icu:AxoOutgoingStatus.Paused": {
+    "messageformat": "Senden pausiert"
+  },
+  "icu:AxoOutgoingStatus.Error": {
+    "messageformat": "Versand gescheitert"
+  },
   "icu:AxoPasswordField.Reveal": {
     "messageformat": "Passwort anzeigen"
+  },
+  "icu:AxoProgressIndicator.Loading": {
+    "messageformat": "Wird geladen …"
   },
   "icu:AxoTextField.Clear": {
     "messageformat": "Leeren"
@@ -73,9 +121,6 @@
   },
   "icu:LinkedDevicesOnboardingDialog__bullet--2": {
     "messageformat": "Dein Hauptgerät verwaltet alle weiteren gekoppelten Geräte – du kannst bis zu fünf Geräte koppeln."
-  },
-  "icu:LinkedDevicesOnboardingDialog__bullet--3--1": {
-    "messageformat": "Kontoeinstellungen und Backups können nur auf deinem Hauptgerät verwaltet werden."
   },
   "icu:LinkedDevicesOnboardingDialog__bullet--3--2": {
     "messageformat": "Kontoeinstellungen und Signal Secure Backups können nur auf deinem Hauptgerät verwaltet werden."
@@ -257,6 +302,12 @@
   "icu:messageContextMenuButton": {
     "messageformat": "Weitere Aktionen"
   },
+  "icu:messageContextMenu__sticker--addFavorite": {
+    "messageformat": "Zu Favoriten hinzufügen"
+  },
+  "icu:messageContextMenu__sticker--removeFavorite": {
+    "messageformat": "Aus Favoriten entfernen"
+  },
   "icu:contextMenuCopyLink": {
     "messageformat": "Link kopieren"
   },
@@ -277,6 +328,9 @@
   },
   "icu:archivedConversations": {
     "messageformat": "Archivierte Chats"
+  },
+  "icu:LeftPane__MoreActionsLabel": {
+    "messageformat": "Weitere Aktionen"
   },
   "icu:LeftPane__MoreActionsMenu__AddChatFolder": {
     "messageformat": "Chat-Ordner hinzufügen"
@@ -671,6 +725,9 @@
   "icu:KeyTransparencyOnboardingDialog__Description": {
     "messageformat": "Bei Kontakten, mit denen du über eine Telefonnummer verbunden bist, überprüft Signal mithilfe eines Verfahrens namens »Schlüssel-Transparenz« automatisch, ob die Verbindung sicher ist. Für mehr Sicherheit kannst du Verbindungen auch weiterhin manuell mit einem QR-Code oder durch Vergleichen der Sicherheitsnummern verifizieren."
   },
+  "icu:KeyTransparencyOnboardingDialog__Description-v2": {
+    "messageformat": "<paragraph>Bei Kontakten, mit denen du über eine Telefonnummer verbunden bist, überprüft Signal mithilfe eines Verfahrens namens »Schlüssel-Transparenz« automatisch, ob die Verbindung sicher ist.</paragraph><paragraph>Für mehr Sicherheit kannst du Verbindungen auch weiterhin manuell mit einem QR-Code oder durch Vergleichen der Sicherheitsnummern verifizieren.</paragraph>"
+  },
   "icu:KeyTransparencyOnboardingDialog__Continue": {
     "messageformat": "Fortfahren"
   },
@@ -766,6 +823,9 @@
   },
   "icu:videoFileTooLargeWarning": {
     "messageformat": "Diese Videodatei kann nicht versendet werden, weil sie zu groß ist. Du kannst Videodateien mit einer Größe von bis zu {limit,number}{units} senden."
+  },
+  "icu:videoFileTooLongWarning": {
+    "messageformat": "Das Video kann nicht gesendet werden, weil es länger als {maxDuration} ist"
   },
   "icu:unableToLoadAttachment": {
     "messageformat": "Ausgewählter Anhang kann nicht geladen werden."
@@ -1742,6 +1802,9 @@
   "icu:Preferences__EditChatFolderPage__SelectChatsDialog__Search__Placeholder": {
     "messageformat": "Suchen"
   },
+  "icu:Preferences__EditChatFolderPage__SelectChatsDialog__NoChats": {
+    "messageformat": "Keine Chats"
+  },
   "icu:Preferences__EditChatFolderPage__SelectChatsDialog__ChatTypesSection__Title": {
     "messageformat": "Chat-Arten"
   },
@@ -1804,6 +1867,15 @@
   },
   "icu:Preferences__EditChatFolderPage__CancelButton": {
     "messageformat": "Abbrechen"
+  },
+  "icu:Preferences__PrivacyPage__SealedSender": {
+    "messageformat": "Vertraulicher Absender"
+  },
+  "icu:Preferences__PrivacyPage__AllowFromAnyone__Label": {
+    "messageformat": "Von jedem erlauben"
+  },
+  "icu:Preferences__PrivacyPage__AllowFromAnyone__Description": {
+    "messageformat": "»Vertraulicher Absender« aktivieren für eingehende Nachrichten von Nichtkontakten sowie Menschen, mit denen du dein Profil nicht geteilt hast <learnMoreLink>Mehr erfahren</learnMoreLink>."
   },
   "icu:Preferences__PrivacyPage__ShowStatusIcon__Label": {
     "messageformat": "Symbol anzeigen"
@@ -2234,6 +2306,24 @@
   "icu:deleteAccountDialogBody": {
     "messageformat": "Dies löscht deine Kontoinformationen, dein Profil und alle deine Nachrichten. Du wirst außerdem aus all deinen Signal-Gruppen entfernt. Die App wird beendet, wenn dieser Vorgang abgeschlossen ist."
   },
+  "icu:DeleteAccountConfirmDialog--Title": {
+    "messageformat": "Konto löschen"
+  },
+  "icu:DeleteAccountConfirmDialog--Description": {
+    "messageformat": "Dies löscht deine Kontoinformationen, dein Profil und alle deine Nachrichten. Du wirst außerdem aus all deinen Signal-Gruppen entfernt."
+  },
+  "icu:DeleteAccountConfirmDialog--ConfirmNumber": {
+    "messageformat": "Bestätige deine Telefonnummer"
+  },
+  "icu:DeleteAccountConfirmDialog--CountryCodePlaceholder": {
+    "messageformat": "Landesvorwahl"
+  },
+  "icu:DeleteAccountConfirmDialog--NumberPlaceholder": {
+    "messageformat": "Telefonnummer"
+  },
+  "icu:DeleteAccountConfirmDialog--DeleteButton": {
+    "messageformat": "Löschen"
+  },
   "icu:deleteOldIndexedDBData": {
     "messageformat": "Du hast veraltete Daten aus einer früheren Installation von Signal Desktop. Falls du fortfährst, werden sämtliche Daten gelöscht und du beginnst komplett neu."
   },
@@ -2386,9 +2476,6 @@
   },
   "icu:callRingtoneNotificationDescription": {
     "messageformat": "Klingeltöne wiedergeben bei Anrufen"
-  },
-  "icu:callSystemNotificationDescription": {
-    "messageformat": "Benachrichtigungen anzeigen für Anrufe"
   },
   "icu:incomingCallNotificationDescription": {
     "messageformat": "Eingehende Anrufe aktivieren"
@@ -2876,8 +2963,29 @@
   "icu:stickers--StickerPreview--StickerNoEmojiAriaLabel": {
     "messageformat": "Sticker ohne Emoji"
   },
+  "icu:stickers--StickerPreview--SeeStickerDetails": {
+    "messageformat": "Sticker-Details anzeigen"
+  },
+  "icu:stickers--StickerPreview--StickerDetailsTitle": {
+    "messageformat": "Sticker-Details"
+  },
+  "icu:stickers--StickerPreview--AddFavorite": {
+    "messageformat": "Zu Favoriten hinzufügen"
+  },
+  "icu:stickers--StickerPreview--RemoveFavorite": {
+    "messageformat": "Aus Favoriten entfernen"
+  },
   "icu:stickers--StickerPackLinkPreviewDescription": {
     "messageformat": "Sticker-Set von {author}"
+  },
+  "icu:stickers--Toast--StickerFavoriteAdded": {
+    "messageformat": "Sticker zu Favoriten hinzugefügt"
+  },
+  "icu:stickers--Toast--StickerFavoriteRemoved": {
+    "messageformat": "Sticker aus Favoriten entfernt"
+  },
+  "icu:stickers--Toast--StickerFavoritesTooMany": {
+    "messageformat": "{count, plural, one {Du kannst nur {count,number} Sticker zu Favoriten hinzufügen} other {Du kannst nur {count,number} Sticker zu Favoriten hinzufügen}}"
   },
   "icu:stickers--ViewPack": {
     "messageformat": "Set anzeigen"
@@ -2987,6 +3095,9 @@
   "icu:FunPanelSticker__SubNavLabel": {
     "messageformat": "Sticker-Sets"
   },
+  "icu:FunPanelStickers__SubNavCategoryLabel--Favorites": {
+    "messageformat": "Favoriten"
+  },
   "icu:FunPanelStickers__SubNavCategoryLabel--Recents": {
     "messageformat": "Zuletzt verwendet"
   },
@@ -2999,11 +3110,20 @@
   "icu:FunPanelStickers__SectionTitle--Recents": {
     "messageformat": "Zuletzt verwendet"
   },
+  "icu:FunPanelStickers__SectionTitle--Favorites": {
+    "messageformat": "Favoriten"
+  },
   "icu:FunPanelStickers__SectionTitle--Featured": {
     "messageformat": "Ausgewählt"
   },
   "icu:FunPanelStickers__SearchResults__EmptyHeading": {
     "messageformat": "Keine Sticker gefunden"
+  },
+  "icu:FunPanelStickers__StickerContextMenu--AddFavorite": {
+    "messageformat": "Zu Favoriten hinzufügen"
+  },
+  "icu:FunPanelStickers__StickerContextMenu--RemoveFavorite": {
+    "messageformat": "Aus Favoriten entfernen"
   },
   "icu:FunPanelStickers__LightboxDialog__Label": {
     "messageformat": "Sticker-Vorschau"
@@ -3061,9 +3181,6 @@
   },
   "icu:FunPanelGifs__GiphyAttribution__AccessibilityLabel": {
     "messageformat": "Unterstützt von GIPHY"
-  },
-  "icu:FunSearch__ClearButtonLabel": {
-    "messageformat": "Suche zurücksetzen"
   },
   "icu:FunSkinTones__List": {
     "messageformat": "Hautton"
@@ -3512,6 +3629,9 @@
   "icu:MessageRequests--unblock-group-confirm-body": {
     "messageformat": "Gruppenmitglieder werden dich wieder zu dieser Gruppe hinzufügen können."
   },
+  "icu:MessageRequests--unblock-signal-confirm-body": {
+    "messageformat": "Du erhältst Updates und Neuigkeiten zu Signal."
+  },
   "icu:MessageRequests--block-and-report-spam-success-toast": {
     "messageformat": "Als Spam gemeldet und blockiert."
   },
@@ -3526,6 +3646,9 @@
   },
   "icu:MessageRequests--block-group-confirm-body": {
     "messageformat": "Du wirst von dieser Gruppe keine Nachrichten oder Aktualisierungen mehr erhalten, und Mitglieder können dich nicht wieder zu dieser Gruppe hinzufügen."
+  },
+  "icu:MessageRequests--block-signal-confirm-body": {
+    "messageformat": "Du erhältst keine weiteren Updates und Neuigkeiten zu Signal."
   },
   "icu:MessageRequests--reportAndMaybeBlock": {
     "messageformat": "Melden …"
@@ -3854,6 +3977,9 @@
   "icu:callingDeviceSelection__settings": {
     "messageformat": "Einstellungen"
   },
+  "icu:callingDeviceSelection__settings-v2": {
+    "messageformat": "Anrufeinstellungen"
+  },
   "icu:calling__participants--pluralized": {
     "messageformat": "{people, plural, one {{people,number} im Anruf} other {{people,number} im Anruf}}"
   },
@@ -3958,6 +4084,15 @@
   },
   "icu:callingDeviceSelection__select--default": {
     "messageformat": "Standard"
+  },
+  "icu:callingDeviceSelection__select--default-nonwin": {
+    "messageformat": "Standard: {deviceName}"
+  },
+  "icu:callingDeviceSelection__select--default_console": {
+    "messageformat": "Standard: {deviceName}"
+  },
+  "icu:callingDeviceSelection__select--default_communications": {
+    "messageformat": "Standard-Sprachkommunikation: {deviceName}"
   },
   "icu:muteNotificationsTitle": {
     "messageformat": "Stummschalten"
@@ -4811,6 +4946,69 @@
   "icu:CompositionArea__AttachMenu__Poll": {
     "messageformat": "Umfrage"
   },
+  "icu:CompositionArea__AttachMenu__Contact": {
+    "messageformat": "Kontakt"
+  },
+  "icu:ShareContactDialog__SelectContact__Title": {
+    "messageformat": "Kontakt auswählen"
+  },
+  "icu:ShareContactDialog__SelectContact__SearchPlaceholder": {
+    "messageformat": "Suchen"
+  },
+  "icu:ShareContactDialog__SelectContact__EmptyState": {
+    "messageformat": "Keine Kontakte"
+  },
+  "icu:ShareContactDialog__SelectContact__NoResults": {
+    "messageformat": "Keine Ergebnisse für »{searchQuery}«"
+  },
+  "icu:ShareContactDialog__ShareContact__Title": {
+    "messageformat": "Kontakt teilen"
+  },
+  "icu:ShareContactDialog__ShareContact__Description": {
+    "messageformat": "Alle, mit denen du dieses Profil teilst, können {name} eine Nachricht schicken."
+  },
+  "icu:ShareContactDialog__ShareContact__Send": {
+    "messageformat": "Kontakt senden"
+  },
+  "icu:ShareContactDialog__ShareContact__EditName": {
+    "messageformat": "Name bearbeiten"
+  },
+  "icu:ShareContactDialog__EditName__Title": {
+    "messageformat": "Name bearbeiten"
+  },
+  "icu:ShareContactDialog__EditName__Prefix": {
+    "messageformat": "Präfix"
+  },
+  "icu:ShareContactDialog__EditName__GivenName": {
+    "messageformat": "Vorname"
+  },
+  "icu:ShareContactDialog__EditName__MiddleName": {
+    "messageformat": "Mittelname"
+  },
+  "icu:ShareContactDialog__EditName__FamilyName": {
+    "messageformat": "Nachname"
+  },
+  "icu:ShareContactDialog__EditName__Suffix": {
+    "messageformat": "Suffix"
+  },
+  "icu:ShareContactDialog__EditName__Organization": {
+    "messageformat": "Organisation"
+  },
+  "icu:ShareContactDialog__ShareContact__EditPhoto": {
+    "messageformat": "Foto bearbeiten"
+  },
+  "icu:ShareContactDialog__SelectPhoto__Title": {
+    "messageformat": "Wähle ein Bild aus"
+  },
+  "icu:ShareContactDialog__SelectPhoto__ContactPhoto": {
+    "messageformat": "Kontaktbild"
+  },
+  "icu:ShareContactDialog__SelectPhoto__ProfilePhoto": {
+    "messageformat": "Profilbild"
+  },
+  "icu:ShareContactDialog__SelectPhoto__DefaultAvatar": {
+    "messageformat": "Standard-Profilbild"
+  },
   "icu:CompositionArea--attach-plus": {
     "messageformat": "Anhang oder Umfrage hinzufügen"
   },
@@ -4849,9 +5047,6 @@
   },
   "icu:CompositionInput__editing-message": {
     "messageformat": "Nachricht bearbeiten"
-  },
-  "icu:countMutedConversationsDescription": {
-    "messageformat": "Stummgeschaltete Chats mitzählen"
   },
   "icu:ContactModal--nickname": {
     "messageformat": "Spitzname"
@@ -6268,9 +6463,6 @@
   "icu:Preferences--pin-reminders--header": {
     "messageformat": "PIN-Erinnerungen"
   },
-  "icu:Preferences--pin-reminders--description": {
-    "messageformat": "PIN-Erinnerungen werden mit der Zeit seltener angezeigt"
-  },
   "icu:Preferences--registration-lock__label": {
     "messageformat": "Registrierungssperre"
   },
@@ -6288,9 +6480,6 @@
   },
   "icu:Preferences__Notifications__SoundsSection__Title": {
     "messageformat": "Töne"
-  },
-  "icu:Preferences__Notifications__AppBadgeSection__Title": {
-    "messageformat": "App-Abzeichen"
   },
   "icu:Preferences__Notifications__AppBadgeSection__Title-v2": {
     "messageformat": "Ungelesene Abzeichen"
@@ -6668,16 +6857,25 @@
     "messageformat": "{num, plural, =0 { Keine Gruppen } one {{num,number} Gruppe} other {{num,number} Gruppen}}"
   },
   "icu:Preferences--blocked-users--description": {
-    "messageformat": "Blockierte Kontakte werden dich nicht anrufen oder dir Nachrichten senden können"
+    "messageformat": "Blockierte Personen werden dich nicht anrufen oder dir Nachrichten senden können"
+  },
+  "icu:Preferences--add-blocked": {
+    "messageformat": "Person oder Gruppe blockieren"
   },
   "icu:Preferences--blocked-users": {
-    "messageformat": "Blockierte Kontakte"
+    "messageformat": "Blockierte Personen"
   },
   "icu:Preferences--blocked-groups": {
     "messageformat": "Blockierte Gruppen"
   },
   "icu:Preferences--blocked--blocked-on": {
     "messageformat": "Blockiert um {blockedAt}"
+  },
+  "icu:Preferences--BlockChooser--Done": {
+    "messageformat": "Fertig"
+  },
+  "icu:Preferences--BlockChooser--Search--Placeholder": {
+    "messageformat": "Suchen"
   },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Secure Backups"
@@ -7075,6 +7273,36 @@
   "icu:InstallScreenUpdateDialog--cannot-update__body": {
     "messageformat": "Signal Desktop konnte nicht aktualisiert werden, aber es ist eine neue Version verfügbar. Gehe zu {downloadUrl} und installiere die neue Version manuell. Kontaktiere anschließend den Support oder reiche einen Fehlerbericht zu diesem Problem ein."
   },
+  "icu:EntryPoint--signal-logo": {
+    "messageformat": "Signal Logo"
+  },
+  "icu:EntryPoint--Title--Line1": {
+    "messageformat": "Privatsphäre immer dabei."
+  },
+  "icu:EntryPoint--Title--Line2": {
+    "messageformat": "Sei du selbst in jeder Nachricht."
+  },
+  "icu:EntryPoint--link-button": {
+    "messageformat": "Verbinde dein Konto"
+  },
+  "icu:EntryPoint--more-options-button": {
+    "messageformat": "Weitere Optionen"
+  },
+  "icu:EntryPoint--nonprofit": {
+    "messageformat": "Signal ist eine Non-Profit-Organisation"
+  },
+  "icu:EntryPoint--terms": {
+    "messageformat": "Bedingungen & Datenschutzerklärung"
+  },
+  "icu:EntryPoint--MoreOptions--Title": {
+    "messageformat": "Weitere Optionen"
+  },
+  "icu:EntryPoint--MoreOptions--RegistrationButton--Title": {
+    "messageformat": "Erstelle ein neues Konto"
+  },
+  "icu:EntryPoint--MoreOptions--RegistrationButton--Description": {
+    "messageformat": "Erstelle ein neues Signal-Konto mit deiner Telefonnummer."
+  },
   "icu:StandaloneRegistration--signal-logo": {
     "messageformat": "Signal Logo"
   },
@@ -7269,6 +7497,21 @@
   },
   "icu:StandaloneRegistration--VerificationCode--CannotSendCodeTemporary--ok-button": {
     "messageformat": "OK"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Title": {
+    "messageformat": "Probleme bei der Registrierung?"
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet1": {
+    "messageformat": "Stelle sicher, dass dein Telefon Mobilfunkempfang hat, um die SMS oder den Anruf zu erhalten."
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet2": {
+    "messageformat": "Stelle sicher, dass du unter dieser Telefonnummer einen Anruf erhalten kannst."
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Bullet3": {
+    "messageformat": "Vergewissere dich, dass du deine Telefonnummer korrekt eingegeben hast."
+  },
+  "icu:StandaloneRegistration--VerificationCode--HavingTrouble--Footer": {
+    "messageformat": "Falls du dich immer noch nicht registrieren kannst, folge bitte diesen <troubleshootingLink>Schritten zur Fehlerbehebung</troubleshootingLink> oder <contactSupportLink>kontaktiere den Support</contactSupportLink>."
   },
   "icu:StandaloneRegistration--ProfileEntry--header": {
     "messageformat": "Richte dein Profil ein"
@@ -9005,6 +9248,9 @@
   "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__AccessibilityLabel": {
     "messageformat": "Problembeschreibung"
   },
+  "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__Placeholder": {
+    "messageformat": "Schildere uns dein Problem"
+  },
   "icu:CallQualitySurvey__WhatIssuesDidYouHave__SomethingElse__TextArea__HelpText": {
     "messageformat": "Bitte gib alle Details an, die für das Problem relevant sind. Alles, was du hier teilst, bleibt vertraulich und wird nur dazu verwendet, die Anrufe in Signal zu verbessern."
   },
@@ -9114,12 +9360,6 @@
     "messageformat": "Kleine Optimierungen, Fehlerbehebungen und Leistungsverbesserungen. Danke, dass du Signal nutzt!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.30--0": {
-    "messageformat": "Dank einiger Funktionsverbesserungen wird deine CPU bei Videoanrufen jetzt glücklicher sein (selbst wenn du nicht lächelst)."
-  },
-  "icu:WhatsNew__8.30--1": {
-    "messageformat": "Wir haben außerdem eine praktische Tastenkombination hinzugefügt, mit der du unter Windows deine Systemeinstellungen öffnen kannst, wenn du einem Videoanruf beitreten möchtest und Signal keinen Zugriff auf deine Kamera hat. So findest du jetzt leichter heraus, was zu tun ist, damit die anderen dich sehen können."
-  },
   "icu:WhatsNew__8.32--0": {
     "messageformat": "Der Filter für ungelesene Nachrichten wird nun auch in Nachrichtenordnern und in der Suchoberfläche unterstützt, sodass du ganz einfach sehen kannst, was du bisher verpasst hast."
   },
@@ -9128,5 +9368,17 @@
   },
   "icu:WhatsNew__8.32--2": {
     "messageformat": "Der Shortcut »(N)« verweist jetzt korrekt auf das Daumen-runter-Emoji. Daumen hoch an <lnicola></lnicola> für den Bugfix."
+  },
+  "icu:WhatsNew__8.34--0": {
+    "messageformat": "Signal Desktop unterstützt jetzt auch das Teilen von Kontakten."
+  },
+  "icu:WhatsNew__8.34--1": {
+    "messageformat": "Einfacher Umgang und bessere Leistung bei angeschlossenen Audiogeräten."
+  },
+  "icu:WhatsNew__8.36--0": {
+    "messageformat": "Your top stickers now have a place to remain stuck. Add any sticker pack to your list of favorites so it's easy to stick with the ones you love."
+  },
+  "icu:WhatsNew__8.36--0--fix": {
+    "messageformat": "Deine Lieblingssticker haben jetzt einen Platz, an dem sie haften bleiben. Füge einen beliebigen Sticker zu deiner Favoritenliste hinzu, damit du deine Liebsten immer in der Nähe hast."
   }
 }

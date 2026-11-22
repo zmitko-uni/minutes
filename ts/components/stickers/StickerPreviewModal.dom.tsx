@@ -1,9 +1,24 @@
 // Copyright 2019 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { memo, useState, useEffect, useCallback } from 'react';
+import {
+  memo,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  type JSX,
+  useRef,
+  useId,
+} from 'react';
+import { Dialog as RadixDialog } from 'radix-ui';
+import { Popover } from 'react-aria-components';
+
 import type { LocalizerType } from '../../types/Util.std.ts';
-import type { StickerPackType } from '../../state/ducks/stickers.preload.ts';
+import type {
+  StickerPackType,
+  StickerType,
+} from '../../state/ducks/stickers.preload.ts';
 import type { ShowToastAction } from '../../state/ducks/toast.preload.ts';
 import { UserText } from '../UserText.dom.tsx';
 import { AxoConfirmDialog } from '../../axo/AxoConfirmDialog.dom.tsx';
@@ -17,6 +32,9 @@ import { drop } from '../../util/drop.std.ts';
 import { ToastType } from '../../types/Toast.dom.tsx';
 import { fromBase64PackKeyToHex } from '../../util/Stickers.std.ts';
 import { useRestoreFocus } from '../../hooks/useRestoreFocus.dom.ts';
+import type { StickerReferenceType } from '../../types/Stickers.preload.ts';
+import { AxoItem } from '../../axo/items/AxoItem.dom.tsx';
+import { AriaClickable } from '../../axo/AriaClickable.dom.tsx';
 
 export type Props = Readonly<{
   onClose?: () => void;
@@ -31,6 +49,10 @@ export type Props = Readonly<{
     packKey: string,
     options: { actionSource: 'ui' }
   ) => void;
+  markStickerAsFavorite: (
+    stickerRef: StickerReferenceType,
+    markAsFavorite: boolean
+  ) => void;
   uninstallStickerPack: (
     packId: string,
     packKey: string,
@@ -38,15 +60,24 @@ export type Props = Readonly<{
   ) => void;
   showToast: ShowToastAction;
   pack?: StickerPackType;
+  favoriteStickers: ReadonlyArray<StickerType>;
   i18n: LocalizerType;
+  isFavoriteStickersEnabled: boolean;
 }>;
 
 function renderBody({
   pack,
+  favoriteStickerIdsSet,
   i18n,
+  isFavoriteStickersEnabled,
   handleCopyLink,
   handleStartUninstall,
-}: Pick<Props, 'i18n' | 'pack'> & {
+  markStickerAsFavorite,
+}: Pick<
+  Props,
+  'i18n' | 'isFavoriteStickersEnabled' | 'markStickerAsFavorite' | 'pack'
+> & {
+  favoriteStickerIdsSet: Set<number>;
   handleCopyLink: () => void;
   handleStartUninstall: () => void;
 }) {
@@ -56,7 +87,7 @@ function renderBody({
 
   if (pack.status === 'error') {
     return (
-      <div className={tw('px-12 py-6 text-center text-destructive')}>
+      <div className={tw('py-6 text-center text-destructive')}>
         {i18n('icu:stickers--StickerPreview--Error')}
       </div>
     );
@@ -78,34 +109,34 @@ function renderBody({
   const placeholders = pack.stickerCount - pack.stickers.length;
 
   return (
-    <div className={tw('justify-items-center')}>
+    <>
       {pack.cover && (
-        <img
-          className={tw(
-            'mb-4 aspect-square max-h-20 w-full max-w-20 object-contain'
-          )}
-          src={pack.cover.url}
-          alt={pack.title}
-        />
+        <div className={tw('flex justify-center')}>
+          <img
+            className={tw(
+              'mb-4 aspect-square max-h-20 w-full max-w-20 object-contain'
+            )}
+            src={pack.cover.url}
+            alt={pack.title}
+          />
+        </div>
       )}
-      <h2 className={tw('mb-2 type-title-medium')}>
-        <UserText text={pack.title} />
-        {pack.isBlessed && (
-          <span className={tw('ms-1.5')}>
-            <OfficialChatInlineBadge />
-          </span>
-        )}
-      </h2>
-      <div
-        className={tw(
-          'mb-3 justify-items-center type-body-medium text-secondary'
-        )}
-      >
-        <div>{pack.author}</div>
-        <div>
-          {i18n('icu:stickers--StickerPreview--StickerCount', {
-            count: pack.stickerCount,
-          })}
+      <div className={tw('text-center')}>
+        <h2 className={tw('mb-2 type-title-medium text-primary')}>
+          <UserText text={pack.title} />
+          {pack.isBlessed && (
+            <span className={tw('ms-1.5')}>
+              <OfficialChatInlineBadge />
+            </span>
+          )}
+        </h2>
+        <div className={tw('mb-3 text-secondary')}>
+          <div>{pack.author}</div>
+          <div>
+            {i18n('icu:stickers--StickerPreview--StickerCount', {
+              count: pack.stickerCount,
+            })}
+          </div>
         </div>
       </div>
       <AxoStackedButton.Row spacing="md">
@@ -124,20 +155,18 @@ function renderBody({
       </AxoStackedButton.Row>
       <div
         className={tw(
-          'mt-4 grid w-max grid-cols-5 items-center justify-center gap-2.5'
+          'mt-4 mb-1 grid w-max max-w-full grid-cols-5 items-center justify-center gap-2.5'
         )}
       >
-        {pack.stickers.map(({ emoji, id, url }) => (
-          <img
-            key={id}
-            className={tw(
-              'aspect-square max-h-18 w-full max-w-18 object-contain'
-            )}
-            src={url}
-            alt={
-              emoji ??
-              i18n('icu:stickers--StickerPreview--StickerNoEmojiAriaLabel')
-            }
+        {pack.stickers.map(sticker => (
+          <StickerButton
+            key={sticker.id}
+            sticker={sticker}
+            pack={pack}
+            i18n={i18n}
+            favoriteStickerIdsSet={favoriteStickerIdsSet}
+            isFavoriteStickersEnabled={isFavoriteStickersEnabled}
+            markStickerAsFavorite={markStickerAsFavorite}
           />
         ))}
         {Array.from({ length: placeholders }, (_, index) => {
@@ -151,9 +180,176 @@ function renderBody({
           );
         })}
       </div>
-    </div>
+    </>
   );
 }
+
+type StickerButtonProps = Pick<
+  Props,
+  'i18n' | 'isFavoriteStickersEnabled' | 'markStickerAsFavorite'
+> & {
+  favoriteStickerIdsSet: Set<number>;
+  pack: StickerPackType;
+  sticker: StickerType;
+};
+
+const StickerButton = memo(function StickerButton(
+  props: StickerButtonProps
+): JSX.Element {
+  const {
+    favoriteStickerIdsSet,
+    i18n,
+    isFavoriteStickersEnabled,
+    markStickerAsFavorite,
+    pack,
+    sticker,
+  } = props;
+
+  const { id: packId } = pack;
+  const { id: stickerId, url, emoji } = sticker;
+
+  const isFavorite = favoriteStickerIdsSet.has(stickerId);
+  const canAddFavorite = pack.status === 'installed';
+
+  const favoriteButtonLabelId = useId();
+  const popoverTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const handleFavoriteSticker = useCallback(() => {
+    markStickerAsFavorite({ packId, stickerId }, !isFavorite);
+    setIsPopoverOpen(false);
+  }, [isFavorite, packId, stickerId, markStickerAsFavorite]);
+
+  const handlePopoverOpenChange = useCallback((open: boolean) => {
+    setIsPopoverOpen(open);
+  }, []);
+
+  if (!isFavoriteStickersEnabled) {
+    return (
+      <img
+        className={tw('aspect-square max-h-18 w-full max-w-18 object-contain')}
+        src={url}
+        alt={
+          emoji ?? i18n('icu:stickers--StickerPreview--StickerNoEmojiAriaLabel')
+        }
+      />
+    );
+  }
+
+  return (
+    <div key={stickerId} className={tw('relative')}>
+      <AriaClickable.Root
+        className={tw('legacy-z-index-base data-focused:axo-focus-ring')}
+      >
+        <img
+          className={tw(
+            'aspect-square max-h-18 w-full max-w-18 object-contain'
+          )}
+          src={url}
+          alt={
+            emoji ??
+            i18n('icu:stickers--StickerPreview--StickerNoEmojiAriaLabel')
+          }
+        />
+        <AriaClickable.HiddenTrigger
+          onClick={() => setIsPopoverOpen(true)}
+          label={i18n('icu:stickers--StickerPreview--SeeStickerDetails')}
+          ref={popoverTriggerRef}
+        />
+      </AriaClickable.Root>
+
+      {isPopoverOpen && (
+        <div className={tw('absolute -inset-1.25 rounded-2xl bg-secondary')} />
+      )}
+
+      {/* We wrap React Aria's Popover with a "dummy" RadixDialog to help them play nicely together.
+      See DatePicker for more info. */}
+      <RadixDialog.Root open={isPopoverOpen} modal>
+        <RadixDialog.Overlay asChild>{null}</RadixDialog.Overlay>
+        <RadixDialog.Content
+          asChild
+          aria-labelledby={undefined}
+          data-state={undefined}
+        >
+          <Popover
+            className={tw(
+              'w-74 rounded-3xl p-2',
+              'bg-surface-tertiary shadow-elevation-2',
+              'overflow-x-hidden overflow-y-auto',
+              'focus-visible:outline-none data-focus-visible:axo-focus-ring'
+            )}
+            isOpen={isPopoverOpen}
+            onOpenChange={handlePopoverOpenChange}
+            triggerRef={popoverTriggerRef}
+            placement="top"
+            offset={11}
+          >
+            <RadixDialog.Title className={tw('sr-only')}>
+              {i18n('icu:stickers--StickerPreview--StickerDetailsTitle')}
+            </RadixDialog.Title>
+            <div className={tw('flex max-w-full flex-col items-center')}>
+              <img
+                key={stickerId}
+                className={tw(
+                  'aspect-square max-h-64 w-full max-w-64 object-contain'
+                )}
+                src={url}
+                alt={
+                  emoji ??
+                  i18n('icu:stickers--StickerPreview--StickerNoEmojiAriaLabel')
+                }
+              />
+              <div className={tw('mt-1 mb-3.5 type-body-small text-secondary')}>
+                <UserText text={pack.title} />
+                <span>&nbsp;·&nbsp;</span>
+                <UserText text={pack.author} />
+              </div>
+              <AxoItem.Group>
+                {isFavorite && (
+                  <AxoItem.Root>
+                    <AxoItem.Leading>
+                      <span className={tw('ps-2')}>
+                        <AxoItem.Icon symbol="star-slash" />
+                      </span>
+                    </AxoItem.Leading>
+                    <AxoItem.Content>
+                      <AxoItem.Label id={favoriteButtonLabelId}>
+                        {i18n('icu:stickers--StickerPreview--RemoveFavorite')}
+                      </AxoItem.Label>
+                      <AxoItem.HiddenTrigger
+                        labelledby={favoriteButtonLabelId}
+                        onClick={handleFavoriteSticker}
+                      />
+                    </AxoItem.Content>
+                  </AxoItem.Root>
+                )}
+                {!isFavorite && canAddFavorite && (
+                  <AxoItem.Root>
+                    <AxoItem.Leading>
+                      <span className={tw('ps-2')}>
+                        <AxoItem.Icon symbol="star" />
+                      </span>
+                    </AxoItem.Leading>
+                    <AxoItem.Content>
+                      <AxoItem.Label id={favoriteButtonLabelId}>
+                        {i18n('icu:stickers--StickerPreview--AddFavorite')}
+                      </AxoItem.Label>
+                      <AxoItem.HiddenTrigger
+                        labelledby={favoriteButtonLabelId}
+                        onClick={handleFavoriteSticker}
+                      />
+                    </AxoItem.Content>
+                  </AxoItem.Root>
+                )}
+              </AxoItem.Group>
+            </div>
+          </Popover>
+        </RadixDialog.Content>
+      </RadixDialog.Root>
+    </div>
+  );
+});
 
 function isInstallFooterVisible(
   pack: StickerPackType | undefined
@@ -169,8 +365,11 @@ function isInstallFooterVisible(
 export const StickerPreviewModal = memo(function StickerPreviewModalInner({
   closeStickerPackPreview,
   downloadStickerPack,
+  favoriteStickers,
   i18n,
   installStickerPack,
+  isFavoriteStickersEnabled,
+  markStickerAsFavorite,
   onClose,
   pack,
   showToast,
@@ -261,10 +460,28 @@ export const StickerPreviewModal = memo(function StickerPreviewModalInner({
     showToast({ toastType: ToastType.CopiedStickerPackLink });
   }, [pack, showToast]);
 
+  const favoriteStickerIdsSet = useMemo(() => {
+    const result = new Set<number>();
+    if (!pack) {
+      return result;
+    }
+
+    for (const sticker of favoriteStickers) {
+      if (sticker.packId === pack.id) {
+        result.add(sticker.id);
+      }
+    }
+    return result;
+  }, [favoriteStickers, pack]);
+
   return (
     <>
       <AxoDialog.Root open onOpenChange={handleOpenChange}>
-        <AxoDialog.Content size="md" escape="cancel-is-noop">
+        <AxoDialog.Content
+          size="md"
+          escape="cancel-is-noop"
+          disableMissingAriaDescriptionWarning
+        >
           <AxoDialog.Header floating>
             <AxoDialog.Title>
               {i18n('icu:stickers--StickerPreview--Title')}
@@ -273,18 +490,28 @@ export const StickerPreviewModal = memo(function StickerPreviewModalInner({
           </AxoDialog.Header>
           <AxoDialog.Body>
             <div ref={focusRef} />
-            {renderBody({ pack, i18n, handleCopyLink, handleStartUninstall })}
+            {renderBody({
+              pack,
+              favoriteStickerIdsSet,
+              i18n,
+              isFavoriteStickersEnabled,
+              handleCopyLink,
+              handleStartUninstall,
+              markStickerAsFavorite,
+            })}
           </AxoDialog.Body>
           <AxoDialog.Footer>
-            {isInstallFooterVisible(pack) && (
-              <AxoDialog.Action
-                variant="strong-primary"
-                onClick={handleInstall}
-                pending={pack.status === 'pending'}
-              >
-                {i18n('icu:stickers--StickerPreview--Install')}
-              </AxoDialog.Action>
-            )}
+            <AxoDialog.Actions>
+              {isInstallFooterVisible(pack) && (
+                <AxoDialog.Action
+                  variant="strong-primary"
+                  onClick={handleInstall}
+                  pending={pack.status === 'pending'}
+                >
+                  {i18n('icu:stickers--StickerPreview--Install')}
+                </AxoDialog.Action>
+              )}
+            </AxoDialog.Actions>
           </AxoDialog.Footer>
         </AxoDialog.Content>
       </AxoDialog.Root>
