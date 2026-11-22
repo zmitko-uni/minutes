@@ -93,6 +93,7 @@
 | `ts/minutes/**` | business logika, UI komponenty |
 | `ts/minutes/groupCallRing.std.ts` | override limitu zvonění skupinového hovoru |
 | `app/minutes_channel.main.ts` | main-process IPC |
+| `app/config.main.ts` | `applyMinutesConfigEnv()` po upstream hardeningu `NODE_CONFIG_ENV` (Signal 8.36 ho maže) | import + 1 volání |
 | `app/minutes_runtime.main.ts` | výchozí `NODE_CONFIG_ENV=minutes` pro balíček |
 | `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build), per-user instalátor (`perMachine: false`) kvůli auto-update; `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`, `hardenedRuntime: false`), `afterPack` → ad-hoc podpis |
 | `scripts/minutes-after-pack.mjs` | wrapper nad Signal `after-pack.mjs` — po přehození fuses ad-hoc podepíše `.app` (`codesign --force --deep --sign -`), jinak macOS zabije nepodepsaný build při startu (Code Signature Invalid) |

@@ -115,6 +115,10 @@ Po merge konflikty řeš takto:
 2. Na konec souboru / vedle hooku znovu přidej minutes řádky
 3. Nikdy nemaž upstream změny kvůli minutes
 
+## Past při merge upstreamu: konfigurace a updater
+
+Minutes za běhu spoléhá na `NODE_CONFIG_ENV=minutes` (`config/minutes.json`: `updatesEnabled: false`, `storageProfile`). Upstream v `app/config.main.ts` pro balíčkovanou aplikaci `NODE_CONFIG_ENV` maže; proto tam po hardeningu voláme `applyMinutesConfigEnv()`. Když se tohle volání při merge ztratí, balíček použije `production.json`: zapne Signal updater (stáhne a nainstaluje oficiální Signal) a otevře nový datový adresář `Minutes Beta` místo `Minutes-Beta`. Hlídá to test `ts/test-node/minutes/configEnv_test.std.ts`; po každém merge Signalu ho spusťte a po buildu zkontrolujte v logu `updater/start: Updates disabled`.
+
 ## Minutes RingRTC (fork minutes-ringrtc)
 
 Minutes **nepoužívá** stock `@signalapp/ringrtc`, ale fork [`zmitko-uni/minutes-ringrtc`](https://github.com/zmitko-uni/minutes-ringrtc) — jsou v něm nahrávací tapy (audio post-APM a odchozí video). Aktuálně **`2.74.0-minutes.1`** (Signal RingRTC 2.74.0, WebRTC `8037b`, sedí k Signal Desktop 8.36). Tento repo RingRTC nesestavuje — jen stahuje ověřený tarball z GitHub Release forku.

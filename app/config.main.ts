@@ -1,7 +1,7 @@
 // Copyright 2017 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import './minutes_runtime.main.ts';
+import { applyMinutesConfigEnv } from './minutes_runtime.main.ts';
 
 import { join, basename } from 'node:path';
 import { app } from 'electron';
@@ -52,6 +52,9 @@ if (getEnvironment() === Environment.PackagedApp) {
   process.env.GENERATE_PRELOAD_CACHE = '';
   process.env.IS_BUNDLED = '1';
 }
+
+// minutes fork: Signal hardening above clears NODE_CONFIG_ENV; restore the Minutes profile.
+applyMinutesConfigEnv();
 
 // Call `getAppRootDir()` after hardening since it relies on env variables
 process.env.NODE_CONFIG_DIR = join(getAppRootDir(), 'config');

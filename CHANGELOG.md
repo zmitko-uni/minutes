@@ -22,6 +22,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - **Jádro aplikace**: aktualizace na Signal Desktop **8.36.0** (předtím 8.32.0) - nové funkce a opravy Signalu. Volání a nahrávání hovorů nově běží na **RingRTC 2.74** (Windows i macOS).
 
 ### Fixed
+- **Aplikace po přechodu na Signal 8.36**: Minutes beta už nehlásí aktualizaci Signalu (Kliknutím restartujete aplikaci Signal) a nestahuje ani neinstaluje oficiální Signal. Aplikace zase používá svá původní data (`%APPDATA%\Minutes-Beta` / `Minutes`, na macOS `~/Library/Application Support/Minutes-Beta` / `Minutes`) místo nového prázdného profilu, takže nechce připojovat nové zařízení. Beta `8.36.0-m1.6.4-beta.3` tímto problémem trpěla.
 - **Nahrávky hovoru (Windows)**: stažení podpory MP4 (FFmpeg) už nespadne, když je v systému nainstalovaný PowerShell 7 - rozbalení archivu používá správné moduly Windows PowerShellu a při potížích záložní `tar`.
 - **Lokální AI (macOS i Windows)**: instalace lokálního modelu hlásila chybějící `node-llama-cpp`, protože instalátor vynechával JavaScript v podsložkách `build/` některých závislostí (např. `sleep-promise`, který `node-llama-cpp` potřebuje při startu). Oprava zúžila vyloučení jen na nativní mezivýstupy kompilace (#77).
 
