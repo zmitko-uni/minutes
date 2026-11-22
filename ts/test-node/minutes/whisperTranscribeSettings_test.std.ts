@@ -44,6 +44,23 @@ describe('minutes/whisperTranscribeSettings', () => {
       useGpu: false,
       gpuDeviceIndex: 1,
       decodeMode: 'fast',
+      autoTranscribe: true,
     });
+  });
+
+  it('defaults autoTranscribe to true and keeps an explicit false', () => {
+    assert.isTrue(normalizeWhisperTranscribeSettings(null).autoTranscribe);
+    assert.isFalse(
+      normalizeWhisperTranscribeSettings({ autoTranscribe: false })
+        .autoTranscribe
+    );
+  });
+
+  it('ignores non-boolean autoTranscribe values', () => {
+    assert.isTrue(
+      normalizeWhisperTranscribeSettings({
+        autoTranscribe: 'no' as unknown as boolean,
+      }).autoTranscribe
+    );
   });
 });

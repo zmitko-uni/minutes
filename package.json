@@ -144,6 +144,7 @@
     "build:minutes:appimage": "node scripts/build-minutes-appimage.mjs",
     "check:minutes:preload": "node scripts/check-minutes-preload.mjs",
     "check:minutes:config": "node --test scripts/utils/minutesServerParams_test.mjs",
+    "check:minutes:packaging": "node --test scripts/utils/minutesPackagingFiles_test.mjs",
     "install:minutes-ringrtc": "node scripts/install-minutes-ringrtc.mjs"
   },
   "optionalDependencies": {
@@ -161,7 +162,7 @@
     "@signalapp/windows-ucv": "workspace:*",
     "google-libphonenumber": "3.2.44",
     "@modelcontextprotocol/sdk": "1.29.0",
-    "node-llama-cpp": "3.20.0",
+    "node-llama-cpp": "3.22.2",
     "whisper-cpp-node": "0.2.12"
   },
   "devDependencies": {
@@ -665,7 +666,10 @@
       "!**/node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts,*.d.ts.map,*.js.map,*.gypi,.snyk-*.flag,benchmark}",
       "!node_modules/**/*.{cpp,mm,cc,c,h,hpp}",
       "!**/node_modules/.bin",
-      "!**/node_modules/**/build/**",
+      "!**/node_modules/**/build/Release/obj.target/**",
+      "!**/node_modules/**/build/Release/.deps/**",
+      "!**/node_modules/**/build/**/*.{mk,Makefile,gyp,gypi,o,a,d,exp,lib,pdb,ilk,iobj,ipdb,tlog}",
+      "!**/node_modules/**/build/**/{Makefile,binding.Makefile,config.gypi,gyp-mac-tool}",
       "!**/node_modules/**/prebuilds/**",
       "node_modules/@signalapp/sqlcipher/prebuilds/${platform}-${arch}/*.node",
       "node_modules/@signalapp/libsignal-client/prebuilds/${platform}-${arch}/*.node",
@@ -696,12 +700,6 @@
           "icons/win/icon.ico",
           "icons/minutes/win/icon.ico",
           "icons/minutes/png/**"
-        ]
-      },
-      {
-        "from": ".",
-        "filter": [
-          "**/node_modules/sleep-promise/build/**"
         ]
       },
       "!node_modules/node-llama-cpp/bins/**/*",

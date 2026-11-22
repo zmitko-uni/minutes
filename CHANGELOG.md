@@ -14,7 +14,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- **Přepis hovorů**: nový přepínač **Spouštět přepis automaticky po skončení hovoru** (Nastavení Přepisů → Výkon přepisu). Vypnutím se přepis po hovoru nespustí sám; nahrávka zůstane uložená a přepis spustíte ručně tlačítkem **Spustit přepis** v detailu nahrávky (#78).
+- **Přepis hovorů**: zrušení běžícího přepisu se provede okamžitě. Přepis teď běží v samostatném procesu, který se při zrušení ukončí (dříve se zastavil až po dokončení aktuálního kroku) (#78).
 - (doplňte před příštím release)
+
+### Fixed
+- **Lokální AI (macOS i Windows)**: instalace lokálního modelu hlásila chybějící `node-llama-cpp`, protože instalátor vynechával JavaScript v podsložkách `build/` některých závislostí (např. `sleep-promise`, který `node-llama-cpp` potřebuje při startu). Oprava zúžila vyloučení jen na nativní mezivýstupy kompilace (#77).
 
 ## [8.32.0-m1.6.4-beta.2] - 2026-11-19
 

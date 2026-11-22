@@ -9,7 +9,10 @@ import type {
   CallRecordingMetadata,
   CallRecordingOutput,
 } from './types.std.ts';
-import { isCallSummaryExtensionActive } from './callSummaryExtensionService.preload.ts';
+import {
+  isAutoTranscribeEnabled,
+  isCallSummaryExtensionActive,
+} from './callSummaryExtensionService.preload.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 import { isTranscriptionCancelledError } from './transcriptionCancel.std.ts';
 import type {
@@ -422,8 +425,16 @@ class TranscriptionQueueService {
 
 export const transcriptionQueue = new TranscriptionQueueService();
 
+/**
+ * Automatické zařazení po skončení nahrávky hovoru. Ruční spuštění z UI jde
+ * přes `transcriptionQueue.enqueueFromCatalog` a tuto kontrolu neprochází.
+ */
 export function enqueueRecordingTranscription(
   metadata: CallRecordingMetadata
 ): void {
+  if (!isAutoTranscribeEnabled()) {
+    log.info('auto transcription disabled, recording kept for manual start');
+    return;
+  }
   transcriptionQueue.enqueue(metadata);
 }

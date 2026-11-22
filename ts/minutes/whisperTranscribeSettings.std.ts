@@ -19,6 +19,11 @@ export type WhisperTranscribeSettingsPublic = Readonly<{
    */
   gpuDeviceIndex: number;
   decodeMode: WhisperDecodeMode;
+  /**
+   * true = přepis se spustí automaticky po skončení nahrávky hovoru.
+   * false = přepis se nespustí sám; spustí se ručně v seznamu nahrávek.
+   */
+  autoTranscribe: boolean;
 }>;
 
 export const DEFAULT_WHISPER_TRANSCRIBE_SETTINGS: WhisperTranscribeSettingsPublic =
@@ -27,6 +32,7 @@ export const DEFAULT_WHISPER_TRANSCRIBE_SETTINGS: WhisperTranscribeSettingsPubli
     useGpu: true,
     gpuDeviceIndex: 0,
     decodeMode: 'smart',
+    autoTranscribe: true,
   };
 
 /** Profily pro ruční režim „Kvalitní“. */
@@ -100,6 +106,10 @@ export function normalizeWhisperTranscribeSettings(
         ? Math.max(0, Math.round(input.gpuDeviceIndex))
         : DEFAULT_WHISPER_TRANSCRIBE_SETTINGS.gpuDeviceIndex,
     decodeMode,
+    autoTranscribe:
+      typeof input?.autoTranscribe === 'boolean'
+        ? input.autoTranscribe
+        : DEFAULT_WHISPER_TRANSCRIBE_SETTINGS.autoTranscribe,
   };
 }
 

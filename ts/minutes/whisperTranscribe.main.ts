@@ -25,6 +25,7 @@ import {
   type WhisperDecodeParams,
 } from './whisperTranscribeSettings.std.ts';
 import { throwIfTranscriptionCancelled } from './transcriptionCancel.main.ts';
+import { runWhisperTranscribeInProcess } from './whisperWorkerProcess.main.ts';
 
 const log = createLogger('minutes/whisper');
 
@@ -295,61 +296,42 @@ async function transcribeOnce(
     runtime: WhisperTranscribeRuntimeOptions;
   }
 ): Promise<TranscribePcmResult> {
-  const { createWhisperContext, transcribeAsync } = loadWhisperCppNode();
-
-  const ctx = createWhisperContext({
-    model: options.modelPath,
-    use_gpu: options.runtime.useGpu,
-    flash_attn: options.runtime.useGpu,
-    gpu_device: options.runtime.useGpu
-      ? options.runtime.gpuDeviceIndex
-      : undefined,
-    no_prints: true,
+  // The native whisper call runs in a utility process so that a cancelled job
+  // can be stopped immediately (see whisperWorkerProcess.main.ts).
+  const result = await runWhisperTranscribeInProcess({
+    jobId: options.jobId,
+    request: {
+      modelPath: options.modelPath,
+      useGpu: options.runtime.useGpu,
+      gpuDeviceIndex: options.runtime.gpuDeviceIndex,
+      threadCount: options.runtime.threadCount,
+      language: options.language ?? DEFAULT_WHISPER_LANGUAGE,
+      prompt: options.prompt ?? DEFAULT_WHISPER_PROMPT,
+      profile: options.profile,
+      useVad: options.useVad,
+      vadModelPath: getVadModelPath(),
+    },
+    pcmf32: options.pcmf32,
+    onProgress: options.onProgress,
   });
 
-  try {
-    const vadModelPath = getVadModelPath();
-    const result = await transcribeAsync(ctx, {
-      pcmf32: options.pcmf32,
-      language: options.language ?? DEFAULT_WHISPER_LANGUAGE,
-      translate: false,
-      detect_language: false,
-      temperature: options.profile.temperature,
-      prompt: options.prompt ?? DEFAULT_WHISPER_PROMPT,
-      split_on_word: true,
-      max_len: 0,
-      beam_size: options.profile.beam_size,
-      best_of: options.profile.best_of,
-      n_threads: options.runtime.threadCount,
-      progress_callback: options.onProgress,
-      vad: options.useVad,
-      vad_model: options.useVad ? vadModelPath : undefined,
-      vad_threshold: 0.45,
-      vad_min_speech_duration_ms: 120,
-      vad_min_silence_duration_ms: 80,
-      vad_speech_pad_ms: 180,
-    });
+  const segments = result.segments.map(segment => ({
+    start: segment.start,
+    end: segment.end,
+    text: segment.text.trim(),
+  }));
 
-    const segments = result.segments.map(segment => ({
-      start: segment.start,
-      end: segment.end,
-      text: segment.text.trim(),
-    }));
+  const text = segments
+    .map(segment => segment.text)
+    .filter(Boolean)
+    .join('\n')
+    .trim();
 
-    const text = segments
-      .map(segment => segment.text)
-      .filter(Boolean)
-      .join('\n')
-      .trim();
-
-    return {
-      text,
-      segments,
-      language: result.language,
-    };
-  } finally {
-    ctx.free();
-  }
+  return {
+    text,
+    segments,
+    language: result.language,
+  };
 }
 
 export async function transcribePcm(
