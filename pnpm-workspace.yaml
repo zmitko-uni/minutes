@@ -116,7 +116,7 @@ allowBuilds:
   'utf-8-validate': false
   'electron@23.3.13': false # duplicate package
   '@signalapp/ringrtc': true
-  'node-llama-cpp@3.20.0': true
+  'node-llama-cpp@3.22.2': true
   'whisper-cpp-node@0.2.12': true
   '@minutes/ringrtc': false
 

@@ -152,7 +152,7 @@
     "@signalapp/windows-ucv": "workspace:*",
     "google-libphonenumber": "3.2.44",
     "@modelcontextprotocol/sdk": "1.29.0",
-    "node-llama-cpp": "3.20.0",
+    "node-llama-cpp": "3.22.2",
     "whisper-cpp-node": "0.2.12"
   },
   "devDependencies": {
