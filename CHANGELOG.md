@@ -18,6 +18,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - **Přepis hovorů**: zrušení běžícího přepisu se provede okamžitě. Přepis teď běží v samostatném procesu, který se při zrušení ukončí (dříve se zastavil až po dokončení aktuálního kroku) (#78).
 - (doplňte před příštím release)
 
+### Changed
+- **Jádro aplikace**: aktualizace na Signal Desktop **8.36.0** (předtím 8.32.0) - nové funkce a opravy Signalu. Volání a nahrávání hovorů nově běží na **RingRTC 2.74** (Windows i macOS).
+
 ### Fixed
 - **Lokální AI (macOS i Windows)**: instalace lokálního modelu hlásila chybějící `node-llama-cpp`, protože instalátor vynechával JavaScript v podsložkách `build/` některých závislostí (např. `sleep-promise`, který `node-llama-cpp` potřebuje při startu). Oprava zúžila vyloučení jen na nativní mezivýstupy kompilace (#77).
 
