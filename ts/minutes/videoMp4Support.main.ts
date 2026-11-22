@@ -127,6 +127,20 @@ async function findFile(
   return nested.find(path => path != null) ?? null;
 }
 
+// Windows PowerShell 5.1 must not load PowerShell 7 modules inherited through
+// PSModulePath: the newer Microsoft.PowerShell.Archive needs .NET APIs that
+// 5.1 lacks, which breaks Expand-Archive ("ExtractToDirectory" overload).
+export function getWindowsPowerShellModulePath(
+  environment: NodeJS.ProcessEnv = process.env
+): string {
+  const systemRoot = environment.SystemRoot ?? 'C:\\Windows';
+  const programFiles = environment.ProgramFiles ?? 'C:\\Program Files';
+  return [
+    join(programFiles, 'WindowsPowerShell', 'Modules'),
+    join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'Modules'),
+  ].join(';');
+}
+
 export function buildWindowsExpandArchiveArgs(): ReadonlyArray<string> {
   return [
     '-NoProfile',
@@ -148,10 +162,16 @@ export async function extractFfmpegArchive(
     return;
   }
   if (process.platform === 'win32') {
-    await run('powershell.exe', buildWindowsExpandArchiveArgs(), {
-      MINUTES_MP4_ARCHIVE_PATH: archivePath,
-      MINUTES_MP4_DESTINATION_PATH: destination,
-    });
+    try {
+      await run('powershell.exe', buildWindowsExpandArchiveArgs(), {
+        MINUTES_MP4_ARCHIVE_PATH: archivePath,
+        MINUTES_MP4_DESTINATION_PATH: destination,
+        PSModulePath: getWindowsPowerShellModulePath(),
+      });
+    } catch {
+      // Windows 10 1803+ ships bsdtar, which also extracts ZIP archives.
+      await run('tar.exe', ['-xf', archivePath, '-C', destination]);
+    }
     return;
   }
   await run('ditto', ['-x', '-k', archivePath, destination]);
