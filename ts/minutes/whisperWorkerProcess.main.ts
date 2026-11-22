@@ -31,7 +31,7 @@ const WORKER_SCRIPT_PATH = ['bundles', 'workers', 'minutesWhisper.js'] as const;
 export function runWhisperTranscribeInProcess(options: {
   jobId: string | undefined;
   request: Omit<WhisperWorkerRequest, 'type' | 'pcmf32'>;
-  pcmf32: Float32Array<ArrayBuffer>;
+  pcmf32: Float32Array;
   onProgress?: (percent: number) => void;
 }): Promise<WhisperWorkerResult> {
   return new Promise<WhisperWorkerResult>((resolve, reject) => {
@@ -85,7 +85,8 @@ export function runWhisperTranscribeInProcess(options: {
       type: 'transcribe',
       pcmf32: options.pcmf32,
     };
-    // Transfer the buffer (no copy). The caller must pass a dedicated copy.
-    child.postMessage(request, [options.pcmf32.buffer]);
+    // Electron's utilityProcess.postMessage can only transfer MessagePorts, so
+    // the PCM is structured-cloned to the worker.
+    child.postMessage(request);
   });
 }

@@ -19,7 +19,7 @@ export type WhisperWorkerRequest = Readonly<{
   profile: WhisperDecodeParams;
   useVad: boolean;
   vadModelPath: string;
-  pcmf32: Float32Array<ArrayBuffer>;
+  pcmf32: Float32Array;
 }>;
 
 export type WhisperWorkerSegment = Readonly<{

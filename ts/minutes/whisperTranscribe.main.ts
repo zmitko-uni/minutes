@@ -297,8 +297,7 @@ async function transcribeOnce(
   }
 ): Promise<TranscribePcmResult> {
   // The native whisper call runs in a utility process so that a cancelled job
-  // can be stopped immediately (see whisperWorkerProcess.main.ts). The PCM is
-  // copied because its buffer is transferred to the worker.
+  // can be stopped immediately (see whisperWorkerProcess.main.ts).
   const result = await runWhisperTranscribeInProcess({
     jobId: options.jobId,
     request: {
@@ -312,7 +311,7 @@ async function transcribeOnce(
       useVad: options.useVad,
       vadModelPath: getVadModelPath(),
     },
-    pcmf32: new Float32Array(options.pcmf32),
+    pcmf32: options.pcmf32,
     onProgress: options.onProgress,
   });
 
