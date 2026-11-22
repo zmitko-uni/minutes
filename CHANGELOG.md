@@ -14,6 +14,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- **Přepis hovorů**: nový přepínač **Spouštět přepis automaticky po skončení hovoru** (Nastavení Přepisů → Výkon přepisu). Vypnutím se přepis po hovoru nespustí sám; nahrávka zůstane uložená a přepis spustíte ručně tlačítkem **Spustit přepis** v detailu nahrávky (#78).
 - (doplňte před příštím release)
 
 ### Fixed

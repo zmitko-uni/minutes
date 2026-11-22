@@ -365,6 +365,22 @@ export function MinutesCallSummaryExtensionModal({
             </legend>
 
             <label className={tw('flex items-center justify-between gap-3')}>
+              <span>Spouštět přepis automaticky po skončení hovoru</span>
+              <AxoSwitch.Root
+                checked={transcribeSettings.autoTranscribe}
+                disabled={isBusy}
+                onCheckedChange={autoTranscribe => {
+                  setTranscribeSettings(prev => ({ ...prev, autoTranscribe }));
+                  persistTranscribeSettings({ autoTranscribe });
+                }}
+              />
+            </label>
+            <p className={tw('text-label-small -mt-2 opacity-70')}>
+              Vypnuto: přepis se po nahrávce nespustí sám. Ručně ho spustíte
+              v detailu nahrávky na záložce Přepis tlačítkem „Spustit přepis“.
+            </p>
+
+            <label className={tw('flex items-center justify-between gap-3')}>
               <span>Použít GPU (pokud je k dispozici)</span>
               <AxoSwitch.Root
                 checked={transcribeSettings.useGpu}

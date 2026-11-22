@@ -27,6 +27,11 @@ export function isCallSummaryExtensionActive(): boolean {
   return cached.activated && cached.modelReady && cached.whisperRuntimeReady;
 }
 
+/** Přepis po skončení hovoru se spouští sám jen pokud je zapnuté automatické spouštění. */
+export function isAutoTranscribeEnabled(): boolean {
+  return cached.transcribeSettings.autoTranscribe !== false;
+}
+
 export async function refreshCallSummaryExtension(): Promise<CallSummaryExtensionPublic> {
   try {
     const next = await ipcRenderer.invoke('minutes:get-call-summary-extension');
