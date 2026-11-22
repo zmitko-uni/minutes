@@ -192,6 +192,8 @@ export default defineConfig([
       // Workers
       'workers/sql': 'ts/sql/mainWorker.node.ts',
       'workers/heic': 'ts/workers/heicConverterWorker.node.ts',
+      // Minutes: whisper in a killable utility process (see whisperWorkerProcess.main.ts)
+      'workers/minutesWhisper': 'ts/minutes/whisperWorker.node.ts',
     },
   },
 

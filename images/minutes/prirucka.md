@@ -164,7 +164,7 @@ Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u 
 3. Zkontrolujte řádek **Akcelerace přepisu** — měl by ukázat `GPU — …` (ne CPU), pokud máte zapnuté GPU v nastavení
 4. Máte-li **více grafických karet**, v sekci **Výkon přepisu** zvolte **Grafická karta pro akceleraci** z rozbalovací nabídky (typicky diskrétní NVIDIA/AMD místo integrované)
 5. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**), pokud je v sekci **Výkon přepisu** zapnutý přepínač **Spouštět přepis automaticky po skončení hovoru**
-6. Je-li přepínač vypnutý, přepis se po hovoru nespustí. Nahrávka zůstane uložená a přepis spustíte ručně: **Přepisy (Minutes)** → vyberte nahrávku → záložka **Přepis** → **Spustit přepis**. Přepis běžící ve frontě můžete zrušit tlačítkem zrušení u položky ve frontě
+6. Je-li přepínač vypnutý, přepis se po hovoru nespustí. Nahrávka zůstane uložená a přepis spustíte ručně: **Přepisy (Minutes)** → vyberte nahrávku → záložka **Přepis** → **Spustit přepis**. Běžící přepis ve frontě můžete zrušit u jeho položky; zastaví se okamžitě
 
 **Tip:** Model **Medium** je menší alternativa pro slabší PC bez grafiky. **Small** je rychlejší, ale u češtiny často dělá chyby. **Large v3** je nejpřesnější, ale nejpomalejší.
 
