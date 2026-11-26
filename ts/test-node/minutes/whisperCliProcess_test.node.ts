@@ -184,6 +184,32 @@ setInterval(() => undefined, 1000);
     assert.throws(() => process.kill(pid, 0));
   });
 
+  it('cancel during setup rejects without spawning and removes the temp dir', async () => {
+    const before = await listWhisperTempDirs();
+    const marker = join(fakeDir, 'setup-cancel-spawned');
+    const executable = await writeFake(
+      `fs.writeFileSync(${JSON.stringify(marker)}, 'spawned');`
+    );
+    const promise = run(executable, { jobId: 'job-cancel-setup' });
+    cancelTranscriptionJob('job-cancel-setup');
+    let error: unknown;
+    try {
+      await promise;
+    } catch (e) {
+      error = e;
+    }
+    assert.instanceOf(error, TranscriptionCancelledError);
+    assert.deepEqual(await listWhisperTempDirs(), before);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    let spawned = true;
+    try {
+      await readFile(marker, 'utf8');
+    } catch {
+      spawned = false;
+    }
+    assert.isFalse(spawned);
+  });
+
   describe('checkWhisperCliRuntime', () => {
     it('reports not found for a missing executable', async () => {
       assert.deepEqual(

@@ -8,6 +8,7 @@ import { join } from 'node:path';
 
 import {
   onTranscriptionJobCancelled,
+  throwIfTranscriptionCancelled,
   TranscriptionCancelledError,
 } from './transcriptionCancel.main.ts';
 import {
@@ -97,6 +98,7 @@ export async function runWhisperCliTranscribe(options: {
     const wavPath = join(dir, 'input.wav');
     const outputBase = join(dir, 'output');
     await writeFile(wavPath, encodePcmF32ToWav16k(options.pcmf32));
+    throwIfTranscriptionCancelled(options.jobId);
 
     const args = buildWhisperCliArgs(options.request, wavPath, outputBase);
     const stderrTail = await new Promise<string>((resolve, reject) => {
