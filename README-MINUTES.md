@@ -56,6 +56,7 @@ Změny verzí: **[CHANGELOG.md](CHANGELOG.md)**
 2. **pnpm** — po instalaci Node spusťte `corepack enable`.
 3. **Build tools** — C/C++ toolchain, Python 3 a `make` (na Archu: `sudo pacman -S --needed base-devel python`).
 4. **FUSE 2** — potřebné pro přímé spuštění AppImage (na Archu: `sudo pacman -S --needed fuse2`); alternativou je `--appimage-extract-and-run`.
+5. **whisper-cli** — pro přepis hovorů (viz [Whisper backend](#whisper-backend)). `whisper-cpp-node` nemá prebuild pro linux-x64, vestavěný backend proto na Linuxu nefunguje. Na Archu / Manjaru: `sudo pacman -S whisper-cpp` a pro NVIDIA GPU navíc `ggml-cuda` (AMD: `ggml-hip`, ostatní GPU: `ggml-vulkan`).
 
 ## First-time build
 
@@ -226,6 +227,29 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 1. **Menu → Minutes → Nastavení AI…** — API klíče (OpenAI, Gemini, Claude, Perplexity), model, jazyk; klíč šifrovaně přes OS safeStorage
 2. **Menu → Minutes → Sumarizace hovoru…** — Whisper přepis, rozšíření přepisu, volitelná AI korekce
 3. Data chatu/hovoru zůstávají lokálně; do cloudu jdou jen volání zvoleného AI poskytovatele (pokud je zapnuto)
+
+### Whisper backend
+
+Přepis běží vždy lokálně přes whisper.cpp. V **Nastavení Přepisů (Minutes) → Whisper backend** se volí, jak se whisper.cpp spouští:
+
+| Backend                      | Popis                                                                                                          | Platformy                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Vestavěný (whisper.node)** | `whisper-cpp-node` přibalený v aplikaci, běží v utility procesu                                                | Windows x64/ia32, macOS arm64              |
+| **Externí whisper-cli**      | program `whisper-cli` z whisper.cpp nainstalovaný v systému; Minutes mu předá dočasný WAV a načte JSON výstup | všechny, kde je `whisper-cli` k dispozici |
+
+- Dostupnost obou backendů se zjišťuje při otevření nastavení. Nedostupný vestavěný backend je neaktivní a předvolí se `whisper-cli`.
+- **Cesta k whisper-cli** — prázdná = hledá se `whisper-cli` v `PATH`; jinak absolutní cesta ke spustitelnému souboru.
+- Oba backendy používají stejné modely GGML a VAD model ze složky modelů Minutes — po přepnutí se nic znovu nestahuje.
+- S `whisper-cli` se v nastavení nezobrazuje seznam grafických karet; GPU se zapíná přepínačem a volí indexem zařízení. Zda whisper-cli GPU skutečně použije, závisí na ggml backendu, se kterým byl sestaven / nainstalován (CUDA, HIP, Vulkan, Metal).
+- **Linux:** vestavěný backend není k dispozici (chybí prebuild `whisper-cpp-node` pro linux-x64), přepis vyžaduje `whisper-cli` — viz [Prerequisites → Linux](#linux-appimage-x64).
+
+Instalace `whisper-cli`:
+
+| Systém           | Příkaz                                                                                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Arch / Manjaro   | `sudo pacman -S whisper-cpp` + GPU backend `ggml-cuda` (NVIDIA), `ggml-hip` (AMD) nebo `ggml-vulkan`                                          |
+| macOS (Homebrew) | `brew install whisper-cpp`                                                                                                                    |
+| ostatní          | sestavení ze zdrojů [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp) (`cmake -B build && cmake --build build -j`), binárka `build/bin/whisper-cli` |
 
 ## MCP attachments
 
