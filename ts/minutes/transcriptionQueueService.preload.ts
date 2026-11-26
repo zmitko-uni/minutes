@@ -11,8 +11,11 @@ import type {
 } from './types.std.ts';
 import {
   isAutoTranscribeEnabled,
+  getCallSummaryExtensionState,
   isCallSummaryExtensionActive,
+  showCallSummaryExtensionRequiredToast,
 } from './callSummaryExtensionService.preload.ts';
+import { describeTranscriptionBlockedReason } from './whisperBackend.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 import { isTranscriptionCancelledError } from './transcriptionCancel.std.ts';
 import type {
@@ -72,6 +75,11 @@ class TranscriptionQueueService {
     options?: TranscriptionJobOptions
   ): void {
     if (kind === 'transcription' && !isCallSummaryExtensionActive()) {
+      log.warn(
+        'enqueue: transcription blocked',
+        describeTranscriptionBlockedReason(getCallSummaryExtensionState(), true)
+      );
+      showCallSummaryExtensionRequiredToast();
       return;
     }
 
