@@ -45,6 +45,8 @@ describe('minutes/whisperTranscribeSettings', () => {
       gpuDeviceIndex: 1,
       decodeMode: 'fast',
       autoTranscribe: true,
+      whisperBackend: 'node',
+      whisperCliPath: '',
     });
   });
 
@@ -61,6 +63,29 @@ describe('minutes/whisperTranscribeSettings', () => {
       normalizeWhisperTranscribeSettings({
         autoTranscribe: 'no' as unknown as boolean,
       }).autoTranscribe
+    );
+  });
+
+  it('defaults whisperBackend to node and whisperCliPath to empty', () => {
+    const s = normalizeWhisperTranscribeSettings(null);
+    assert.equal(s.whisperBackend, 'node');
+    assert.equal(s.whisperCliPath, '');
+  });
+
+  it('keeps cli backend and trims cli path', () => {
+    const s = normalizeWhisperTranscribeSettings({
+      whisperBackend: 'cli',
+      whisperCliPath: '  /usr/bin/whisper-cli ',
+    });
+    assert.equal(s.whisperBackend, 'cli');
+    assert.equal(s.whisperCliPath, '/usr/bin/whisper-cli');
+  });
+
+  it('rejects unknown backend values', () => {
+    assert.equal(
+      normalizeWhisperTranscribeSettings({ whisperBackend: 'python' as never })
+        .whisperBackend,
+      'node'
     );
   });
 });
