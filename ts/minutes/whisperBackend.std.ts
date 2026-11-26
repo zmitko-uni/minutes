@@ -14,9 +14,9 @@ export type WhisperBackendPublic = Readonly<{
   reason: string | null;
 }>;
 
-const DEFAULT_CLI_EXECUTABLE = 'whisper-cli';
+export const DEFAULT_CLI_EXECUTABLE = 'whisper-cli';
 
-function describeCliMissing(executable: string): string {
+export function describeCliMissing(executable: string): string {
   const display = executable === DEFAULT_CLI_EXECUTABLE ? 'PATH' : executable;
   return `whisper-cli nenalezen (${display})`;
 }
