@@ -1,7 +1,10 @@
 // Copyright 2026 Minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { CallSummaryExtensionPublic } from './callSummaryExtension.std.ts';
+import type {
+  CallSummaryExtensionPublic,
+  WhisperGpuAccelerationPublic,
+} from './callSummaryExtension.std.ts';
 import type { WhisperBackend } from './whisperTranscribeSettings.std.ts';
 
 export type WhisperBackendStatus = Readonly<{ ready: boolean; error?: string }>;
@@ -73,4 +76,22 @@ export function describeTranscriptionBlockedReason(
     return 'Přepis není aktivovaný — Nastavení Přepisů (Minutes)';
   }
   return null;
+}
+
+export function buildCliGpuAcceleration(
+  useGpuRequested: boolean,
+  gpuDeviceIndex: number
+): WhisperGpuAccelerationPublic {
+  const selectedGpuDeviceIndex = Math.max(0, Math.round(gpuDeviceIndex));
+  return {
+    useGpuRequested,
+    gpuDeviceCount: 0,
+    primaryGpuDescription: null,
+    selectedGpuDeviceIndex,
+    selectedGpuDescription: null,
+    devices: [],
+    statusLabel: useGpuRequested
+      ? `whisper-cli — GPU zapnuto (zařízení ${selectedGpuDeviceIndex})`
+      : 'whisper-cli — CPU',
+  };
 }

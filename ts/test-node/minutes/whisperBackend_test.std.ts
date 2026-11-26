@@ -6,6 +6,7 @@ import { assert } from 'chai';
 import { DEFAULT_CALL_SUMMARY_EXTENSION } from '../../minutes/callSummaryExtension.std.ts';
 import type { CallSummaryExtensionPublic } from '../../minutes/callSummaryExtension.std.ts';
 import {
+  buildCliGpuAcceleration,
   describeTranscriptionBlockedReason,
   resolveWhisperBackend,
 } from '../../minutes/whisperBackend.std.ts';
@@ -154,6 +155,25 @@ describe('minutes/whisperBackend', () => {
 
     it('all ok -> null', () => {
       assert.isNull(describeTranscriptionBlockedReason(okState, true));
+    });
+  });
+
+  describe('buildCliGpuAcceleration', () => {
+    it('GPU on -> label with device index, no devices', () => {
+      const g = buildCliGpuAcceleration(true, 1);
+      assert.strictEqual(
+        g.statusLabel,
+        'whisper-cli — GPU zapnuto (zařízení 1)'
+      );
+      assert.deepEqual(g.devices, []);
+      assert.strictEqual(g.gpuDeviceCount, 0);
+    });
+
+    it('GPU off -> CPU label', () => {
+      assert.strictEqual(
+        buildCliGpuAcceleration(false, 0).statusLabel,
+        'whisper-cli — CPU'
+      );
     });
   });
 });
