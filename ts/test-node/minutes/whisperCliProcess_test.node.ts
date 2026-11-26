@@ -232,6 +232,25 @@ setInterval(() => undefined, 1000);
       });
     });
 
+    it('re-checks a missing executable instead of caching the failure', async () => {
+      counter += 1;
+      const executable = join(fakeDir, `late-whisper-cli-${counter}`);
+      assert.isFalse((await checkWhisperCliRuntime(executable)).ready);
+
+      await writeFile(
+        executable,
+        `#!/usr/bin/env node
+process.stderr.write('usage: whisper-cli [options]\\n');
+`
+      );
+      await chmod(executable, 0o755);
+
+      assert.deepEqual(await checkWhisperCliRuntime(executable), {
+        ready: true,
+        executable,
+      });
+    });
+
     it('uses the default executable for an empty path', async () => {
       const status = await checkWhisperCliRuntime('');
       assert.equal(status.executable, 'whisper-cli');

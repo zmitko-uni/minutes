@@ -85,6 +85,18 @@ function StatusRow({
   );
 }
 
+function getWhisperBackendLabel(
+  whisperBackend: CallSummaryExtensionPublic['whisperBackend']
+): string {
+  if (whisperBackend.effective === 'node') {
+    return 'Vestavěný (whisper.node)';
+  }
+  if (whisperBackend.effective === 'cli') {
+    return `Externí whisper-cli — ${whisperBackend.cli.executable}`;
+  }
+  return whisperBackend.reason ?? 'Nedostupný';
+}
+
 function getModelLabel(
   state: CallSummaryExtensionPublic,
   fileName: string
@@ -203,6 +215,11 @@ export function MinutesCallSummaryExtensionModal({
     []
   );
 
+  const { whisperBackend } = state;
+  const whisperBackendLabel = getWhisperBackendLabel(whisperBackend);
+  const selectedWhisperBackend =
+    whisperBackend.effective ?? whisperBackend.preferred;
+
   const isActive =
     state.activated && state.modelReady && state.whisperRuntimeReady;
   const activeModelFileName = state.modelFileName;
@@ -262,8 +279,8 @@ export function MinutesCallSummaryExtensionModal({
               }
             />
             <StatusRow
-              label="Whisper runtime"
-              value={state.whisperRuntimeReady ? 'Nainstalován' : 'Chybí'}
+              label="Whisper backend"
+              value={whisperBackendLabel}
               valueClassName={
                 state.whisperRuntimeReady
                   ? 'MinutesCallSummaryExtensionModal__rowValue--ok'
@@ -395,6 +412,114 @@ export function MinutesCallSummaryExtensionModal({
               Po změně se aktualizuje indikátor akcelerace výše. Při zapnutém
               GPU se použije Flash Attention pro rychlejší přepis.
             </p>
+
+            <div className={tw('flex flex-col gap-2')}>
+              <span>Whisper backend</span>
+              <label className={tw('flex cursor-pointer items-start gap-2')}>
+                <input
+                  type="radio"
+                  name="minutes-whisper-backend"
+                  className={tw('mt-1')}
+                  checked={selectedWhisperBackend === 'node'}
+                  disabled={isBusy || !whisperBackend.node.ready}
+                  onChange={() => {
+                    setTranscribeSettings(prev => ({
+                      ...prev,
+                      whisperBackend: 'node',
+                    }));
+                    persistTranscribeSettings({ whisperBackend: 'node' });
+                  }}
+                />
+                <span>
+                  <span className={tw('font-medium')}>
+                    Vestavěný (whisper.node)
+                  </span>
+                  {!whisperBackend.node.ready && (
+                    <span className={tw('text-label-small block opacity-70')}>
+                      whisper.node není k dispozici:{' '}
+                      {whisperBackend.node.error ?? 'neznámá chyba'}
+                    </span>
+                  )}
+                </span>
+              </label>
+              <label className={tw('flex cursor-pointer items-start gap-2')}>
+                <input
+                  type="radio"
+                  name="minutes-whisper-backend"
+                  className={tw('mt-1')}
+                  checked={selectedWhisperBackend === 'cli'}
+                  disabled={isBusy}
+                  onChange={() => {
+                    setTranscribeSettings(prev => ({
+                      ...prev,
+                      whisperBackend: 'cli',
+                    }));
+                    persistTranscribeSettings({ whisperBackend: 'cli' });
+                  }}
+                />
+                <span className={tw('font-medium')}>Externí whisper-cli</span>
+              </label>
+            </div>
+
+            {selectedWhisperBackend === 'cli' && (
+              <label className={tw('flex flex-col gap-1')}>
+                <span>Cesta k whisper-cli</span>
+                <input
+                  type="text"
+                  className={tw(MINUTES_FORM_CONTROL_CLASS, 'w-full')}
+                  placeholder="prázdné = whisper-cli z PATH"
+                  value={transcribeSettings.whisperCliPath}
+                  disabled={isBusy}
+                  onChange={event => {
+                    const whisperCliPath = event.target.value;
+                    setTranscribeSettings(prev => ({
+                      ...prev,
+                      whisperCliPath,
+                    }));
+                  }}
+                  onBlur={() => {
+                    persistTranscribeSettings({
+                      whisperCliPath: transcribeSettings.whisperCliPath,
+                    });
+                  }}
+                />
+                <span className={tw('text-label-small opacity-70')}>
+                  {whisperBackend.cli.ready
+                    ? whisperBackend.cli.executable
+                    : (whisperBackend.cli.error ?? 'whisper-cli nenalezen')}
+                </span>
+              </label>
+            )}
+
+            {transcribeSettings.useGpu &&
+              whisperBackend.effective === 'cli' && (
+                <label className={tw('flex flex-col gap-1')}>
+                  <span>Index GPU</span>
+                  <input
+                    type="number"
+                    className={tw(MINUTES_FORM_CONTROL_CLASS, 'w-24')}
+                    min={0}
+                    step={1}
+                    value={transcribeSettings.gpuDeviceIndex}
+                    disabled={isBusy}
+                    onChange={event => {
+                      const parsed = Number.parseInt(event.target.value, 10);
+                      const gpuDeviceIndex = Number.isFinite(parsed)
+                        ? Math.max(0, parsed)
+                        : 0;
+                      setTranscribeSettings(prev => ({
+                        ...prev,
+                        gpuDeviceIndex,
+                      }));
+                    }}
+                    onBlur={() => {
+                      persistTranscribeSettings({
+                        gpuDeviceIndex: transcribeSettings.gpuDeviceIndex,
+                      });
+                    }}
+                  />
+                </label>
+              )}
 
             {transcribeSettings.useGpu &&
               state.gpuAcceleration.devices.length > 0 && (

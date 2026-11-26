@@ -73,6 +73,11 @@ export function checkWhisperCliRuntime(
   }
   const pending = checkOnce(executable);
   runtimeCheckCache.set(executable, pending);
+  void pending.then(status => {
+    if (!status.ready && runtimeCheckCache.get(executable) === pending) {
+      runtimeCheckCache.delete(executable);
+    }
+  });
   return pending;
 }
 
