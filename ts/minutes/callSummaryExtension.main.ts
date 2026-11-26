@@ -35,6 +35,16 @@ import {
   type TranscribePcmResult,
   type WhisperTranscribeRuntimeOptions,
 } from './whisperTranscribe.main.ts';
+import {
+  buildCliGpuAcceleration,
+  describeTranscriptionBlockedReason,
+  resolveWhisperBackend,
+  type WhisperBackendPublic,
+} from './whisperBackend.std.ts';
+import {
+  checkWhisperCliRuntime,
+  resetWhisperCliRuntimeCheck,
+} from './whisperCliProcess.main.ts';
 import { readPcmF32FileForWhisper } from './recordingPcmReader.node.ts';
 import {
   formatPcmCaptureGapWarning,
@@ -169,11 +179,26 @@ async function readStoredExtension(): Promise<StoredExtension | null> {
   }
 }
 
+async function getWhisperBackendPublic(
+  settings: WhisperTranscribeSettingsPublic
+): Promise<WhisperBackendPublic> {
+  return resolveWhisperBackend({
+    preferred: settings.whisperBackend,
+    node: await checkWhisperRuntime(),
+    cli: await checkWhisperCliRuntime(settings.whisperCliPath),
+  });
+}
+
 function buildWhisperRuntimeOptions(
   settings: WhisperTranscribeSettingsPublic,
-  pcmDurationMs: number
+  pcmDurationMs: number,
+  whisperBackend: WhisperBackendPublic
 ): WhisperTranscribeRuntimeOptions {
   return {
+    backend:
+      whisperBackend.effective === 'cli'
+        ? { kind: 'cli', executable: whisperBackend.cli.executable }
+        : { kind: 'node' },
     threadCount: settings.threadCount,
     useGpu: settings.useGpu,
     gpuDeviceIndex: settings.gpuDeviceIndex,
@@ -240,36 +265,44 @@ async function getAvailableModelsPublic(): Promise<
 }
 
 export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtensionPublic> {
-  const runtime = await checkWhisperRuntime();
   const availableModels = await getAvailableModelsPublic();
   const stored = await readStoredExtension();
   const transcribeSettings = normalizeWhisperTranscribeSettings(
     stored?.transcribeSettings
   );
+  const whisperBackend = await getWhisperBackendPublic(transcribeSettings);
+  const whisperRuntimeReady = whisperBackend.effective !== null;
   const cpuCount = cpus().length;
-  const gpuAcceleration = getWhisperGpuAccelerationPublic(
-    transcribeSettings.useGpu,
-    transcribeSettings.gpuDeviceIndex
-  );
+  const gpuAcceleration =
+    whisperBackend.effective === 'cli'
+      ? buildCliGpuAcceleration(
+          transcribeSettings.useGpu,
+          transcribeSettings.gpuDeviceIndex
+        )
+      : getWhisperGpuAccelerationPublic(
+          transcribeSettings.useGpu,
+          transcribeSettings.gpuDeviceIndex
+        );
 
   if (!stored) {
     return {
       ...DEFAULT_CALL_SUMMARY_EXTENSION,
-      whisperRuntimeReady: runtime.ready,
+      whisperRuntimeReady,
       recommendedModelFileName: DEFAULT_WHISPER_MODEL.fileName,
       availableModels,
       transcribeSettings,
       gpuAcceleration,
       cpuCount,
+      whisperBackend,
     };
   }
 
   const modelStatus = await isModelReady(stored.modelFileName);
 
   return {
-    activated: stored.activated && modelStatus.ready && runtime.ready,
+    activated: stored.activated && modelStatus.ready && whisperRuntimeReady,
     modelReady: modelStatus.ready,
-    whisperRuntimeReady: runtime.ready,
+    whisperRuntimeReady,
     modelFileName: stored.modelFileName,
     modelSizeBytes: modelStatus.sizeBytes,
     installedAt: stored.installedAt ?? null,
@@ -278,6 +311,7 @@ export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtens
     transcribeSettings,
     gpuAcceleration,
     cpuCount,
+    whisperBackend,
   };
 }
 
@@ -285,10 +319,16 @@ export async function saveCallSummaryTranscribeSettings(
   input: Partial<WhisperTranscribeSettingsPublic>
 ): Promise<CallSummaryExtensionPublic> {
   const stored = await readStoredExtension();
+  const previousSettings = normalizeWhisperTranscribeSettings(
+    stored?.transcribeSettings
+  );
   const transcribeSettings = normalizeWhisperTranscribeSettings({
-    ...normalizeWhisperTranscribeSettings(stored?.transcribeSettings),
+    ...previousSettings,
     ...input,
   });
+  if (transcribeSettings.whisperCliPath !== previousSettings.whisperCliPath) {
+    resetWhisperCliRuntimeCheck();
+  }
 
   await writeStoredExtension({
     activated: stored?.activated ?? false,
@@ -420,10 +460,14 @@ export async function installCallSummaryExtension(
   });
 
   resetWhisperRuntimeCheck();
-  const runtime = await checkWhisperRuntime();
-  if (!runtime.ready) {
+  resetWhisperCliRuntimeCheck();
+  const installSettings = normalizeWhisperTranscribeSettings(
+    (await readStoredExtension())?.transcribeSettings
+  );
+  const whisperBackend = await getWhisperBackendPublic(installSettings);
+  if (whisperBackend.effective === null) {
     const message =
-      runtime.error ??
+      whisperBackend.reason ??
       'Nelze načíst whisper-cpp-node. Zkuste znovu spustit instalaci závislostí.';
     sendProgress({ phase: 'error', message });
     throw new Error(message);
@@ -594,7 +638,10 @@ export async function transcribeCallRecording(options: {
   try {
     const extension = await getCallSummaryExtensionPublic();
     if (!extension.activated || !extension.modelFileName) {
-      throw new Error('Rozšíření Sumarizace hovoru není aktivní.');
+      throw new Error(
+        describeTranscriptionBlockedReason(extension, true) ??
+          'Rozšíření Sumarizace hovoru není aktivní.'
+      );
     }
 
     throwIfTranscriptionCancelled(options.jobId);
@@ -657,7 +704,8 @@ export async function transcribeCallRecording(options: {
     const transcribeSettings = extension.transcribeSettings;
     const whisperRuntime = buildWhisperRuntimeOptions(
       transcribeSettings,
-      pcmDurationMs
+      pcmDurationMs,
+      extension.whisperBackend
     );
     const speakerActivityCoversRecording =
       activityLog != null &&

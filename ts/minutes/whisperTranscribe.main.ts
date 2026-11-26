@@ -26,6 +26,7 @@ import {
 } from './whisperTranscribeSettings.std.ts';
 import { throwIfTranscriptionCancelled } from './transcriptionCancel.main.ts';
 import { runWhisperTranscribeInProcess } from './whisperWorkerProcess.main.ts';
+import { runWhisperCliTranscribe } from './whisperCliProcess.main.ts';
 
 const log = createLogger('minutes/whisper');
 
@@ -36,7 +37,12 @@ export type WhisperRuntimeStatus = Readonly<{
   error?: string;
 }>;
 
+export type WhisperTranscribeBackendOptions =
+  | Readonly<{ kind: 'node' }>
+  | Readonly<{ kind: 'cli'; executable: string }>;
+
 export type WhisperTranscribeRuntimeOptions = Readonly<{
+  backend?: WhisperTranscribeBackendOptions;
   threadCount: number;
   useGpu: boolean;
   gpuDeviceIndex: number;
@@ -45,6 +51,7 @@ export type WhisperTranscribeRuntimeOptions = Readonly<{
 }>;
 
 type ResolvedWhisperTranscribeRuntimeOptions = Readonly<{
+  backend: WhisperTranscribeBackendOptions;
   threadCount: number;
   useGpu: boolean;
   gpuDeviceIndex: number;
@@ -278,6 +285,7 @@ function resolveRuntimeOptions(
     cpuCount
   );
   return {
+    backend: runtime?.backend ?? { kind: 'node' },
     threadCount,
     useGpu: runtime?.useGpu ?? true,
     gpuDeviceIndex: Math.max(0, Math.round(runtime?.gpuDeviceIndex ?? 0)),
@@ -296,24 +304,35 @@ async function transcribeOnce(
     runtime: WhisperTranscribeRuntimeOptions;
   }
 ): Promise<TranscribePcmResult> {
+  const request = {
+    modelPath: options.modelPath,
+    useGpu: options.runtime.useGpu,
+    gpuDeviceIndex: options.runtime.gpuDeviceIndex,
+    threadCount: options.runtime.threadCount,
+    language: options.language ?? DEFAULT_WHISPER_LANGUAGE,
+    prompt: options.prompt ?? DEFAULT_WHISPER_PROMPT,
+    profile: options.profile,
+    useVad: options.useVad,
+    vadModelPath: getVadModelPath(),
+  };
+  const backend = options.runtime.backend;
   // The native whisper call runs in a utility process so that a cancelled job
   // can be stopped immediately (see whisperWorkerProcess.main.ts).
-  const result = await runWhisperTranscribeInProcess({
-    jobId: options.jobId,
-    request: {
-      modelPath: options.modelPath,
-      useGpu: options.runtime.useGpu,
-      gpuDeviceIndex: options.runtime.gpuDeviceIndex,
-      threadCount: options.runtime.threadCount,
-      language: options.language ?? DEFAULT_WHISPER_LANGUAGE,
-      prompt: options.prompt ?? DEFAULT_WHISPER_PROMPT,
-      profile: options.profile,
-      useVad: options.useVad,
-      vadModelPath: getVadModelPath(),
-    },
-    pcmf32: options.pcmf32,
-    onProgress: options.onProgress,
-  });
+  const result =
+    backend?.kind === 'cli'
+      ? await runWhisperCliTranscribe({
+          executable: backend.executable,
+          jobId: options.jobId,
+          request,
+          pcmf32: options.pcmf32,
+          onProgress: options.onProgress,
+        })
+      : await runWhisperTranscribeInProcess({
+          jobId: options.jobId,
+          request,
+          pcmf32: options.pcmf32,
+          onProgress: options.onProgress,
+        });
 
   const segments = result.segments.map(segment => ({
     start: segment.start,
@@ -337,12 +356,14 @@ async function transcribeOnce(
 export async function transcribePcm(
   options: TranscribePcmOptions
 ): Promise<TranscribePcmResult> {
-  const runtime = await checkWhisperRuntime();
-  if (!runtime.ready) {
-    throw new Error(
-      runtime.error ??
-        'Lokální Whisper není k dispozici. Zkuste znovu nainstalovat rozšíření.'
-    );
+  if (options.runtime?.backend?.kind !== 'cli') {
+    const runtime = await checkWhisperRuntime();
+    if (!runtime.ready) {
+      throw new Error(
+        runtime.error ??
+          'Lokální Whisper není k dispozici. Zkuste znovu nainstalovat rozšíření.'
+      );
+    }
   }
 
   const prepared = normalizePcmForWhisper(options.pcmf32);

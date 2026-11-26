@@ -422,6 +422,8 @@ export async function initializeMinutesChannel(automationOptions?: {
         useGpu: boolean;
         gpuDeviceIndex: number;
         decodeMode: 'smart' | 'quality' | 'balanced' | 'fast';
+        whisperBackend: 'node' | 'cli';
+        whisperCliPath: string;
       }>
     ) => {
       return saveCallSummaryTranscribeSettings(settings);

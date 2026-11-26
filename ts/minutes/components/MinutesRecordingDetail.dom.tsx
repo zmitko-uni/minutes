@@ -24,6 +24,8 @@ import {
 } from '../aiSettings.std.ts';
 import { buildConfiguredAiModelChoices } from '../aiModelChoices.std.ts';
 import { getAiSettings } from '../aiSettingsService.preload.ts';
+import type { CallSummaryExtensionPublic } from '../callSummaryExtension.std.ts';
+import { describeTranscriptionBlockedReason } from '../whisperBackend.std.ts';
 import { getCallSummaryExtensionState } from '../callSummaryExtensionService.preload.ts';
 import { callSummaryExtensionEvents } from '../callSummaryExtensionEvents.std.ts';
 import {
@@ -325,6 +327,7 @@ function useRecordingTexts(item: RecordingListItem): RecordingTexts | null {
 function useInstalledWhisperModels(): Readonly<{
   models: ReadonlyArray<Readonly<{ fileName: string; label: string }>>;
   activeFileName: string | null;
+  extensionState: CallSummaryExtensionPublic;
 }> {
   const [state, setState] = useState(() => getCallSummaryExtensionState());
 
@@ -339,6 +342,7 @@ function useInstalledWhisperModels(): Readonly<{
         .filter(model => model.installed && model.ready)
         .map(model => ({ fileName: model.fileName, label: model.label })),
       activeFileName: state.modelFileName,
+      extensionState: state,
     }),
     [state]
   );
@@ -642,7 +646,12 @@ export function MinutesRecordingDetail({
   const isBusy =
     job != null && (job.status === 'queued' || job.status === 'processing');
   const isSending = sendingKey != null;
-  const canTranscribe = entry?.hasPcmSidecar ?? false;
+  const hasPcmSidecar = entry?.hasPcmSidecar ?? false;
+  const blockedReason = describeTranscriptionBlockedReason(
+    whisper.extensionState,
+    hasPcmSidecar
+  );
+  const canTranscribe = blockedReason === null;
   const isVideo = item.mediaKind === 'screen-share-video';
   const hasWhisperModels = whisper.models.length > 0;
   const usedModelLabel =
@@ -1054,18 +1063,20 @@ export function MinutesRecordingDetail({
         {activeTab === 'transcript' && (
           <>
             <div className="MinutesTranscriptsTab__paneToolbar">
-              <AxoButton.Root
-                variant={
-                  item.hasTranscript ? 'subtle-primary' : 'strong-primary'
-                }
-                size="sm"
-                disabled={isBusy || !canTranscribe}
-                onClick={startTranscription}
-              >
-                {item.hasTranscript
-                  ? `Přepsat znovu (${transcribeModelLabel})`
-                  : 'Spustit přepis'}
-              </AxoButton.Root>
+              <span title={blockedReason ?? undefined}>
+                <AxoButton.Root
+                  variant={
+                    item.hasTranscript ? 'subtle-primary' : 'strong-primary'
+                  }
+                  size="sm"
+                  disabled={isBusy || !canTranscribe}
+                  onClick={startTranscription}
+                >
+                  {item.hasTranscript
+                    ? `Přepsat znovu (${transcribeModelLabel})`
+                    : 'Spustit přepis'}
+                </AxoButton.Root>
+              </span>
 
               <span
                 className="MinutesTranscriptsTab__hintWrap"
@@ -1098,14 +1109,14 @@ export function MinutesRecordingDetail({
 
             <TranscriptPane
               texts={texts}
-              canTranscribe={canTranscribe}
+              hasPcmSidecar={hasPcmSidecar}
+              blockedReason={blockedReason}
               highlight={highlightFor('transcript')}
             />
           </>
         )}
 
         {activeTab === 'media' && <MinutesRecordingPlayer item={item} />}
-
       </div>
     </div>
   );
@@ -1137,11 +1148,13 @@ function SummaryPane({
 
 function TranscriptPane({
   texts,
-  canTranscribe,
+  hasPcmSidecar,
+  blockedReason,
   highlight,
 }: Readonly<{
   texts: RecordingTexts | null;
-  canTranscribe: boolean;
+  hasPcmSidecar: boolean;
+  blockedReason: string | null;
   highlight: MinutesTextHighlight | null;
 }>): JSX.Element {
   if (texts == null) {
@@ -1157,9 +1170,11 @@ function TranscriptPane({
   }
   return (
     <p className="MinutesTranscriptsTab__note">
-      {canTranscribe
-        ? 'Přepis zatím není. Spusťte ho tlačítkem nahoře.'
-        : 'K nahrávce chybí PCM sidecar, takže ji tato verze Minutes neumí přepsat.'}
+      {!hasPcmSidecar
+        ? 'K nahrávce chybí PCM sidecar, takže ji tato verze Minutes neumí přepsat.'
+        : blockedReason == null
+          ? 'Přepis zatím není. Spusťte ho tlačítkem nahoře.'
+          : `Přepis zatím není a nelze ho spustit: ${blockedReason}`}
     </p>
   );
 }

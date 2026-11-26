@@ -3,6 +3,8 @@
 
 export type WhisperDecodeMode = 'smart' | 'quality' | 'balanced' | 'fast';
 
+export type WhisperBackend = 'node' | 'cli';
+
 export type WhisperDecodeParams = Readonly<{
   temperature: number;
   beam_size: number;
@@ -24,6 +26,10 @@ export type WhisperTranscribeSettingsPublic = Readonly<{
    * false = přepis se nespustí sám; spustí se ručně v seznamu nahrávek.
    */
   autoTranscribe: boolean;
+  /** node = přibalený whisper.node, cli = externí whisper-cli. */
+  whisperBackend: WhisperBackend;
+  /** Cesta k whisper-cli; prázdné = hledat v PATH. */
+  whisperCliPath: string;
 }>;
 
 export const DEFAULT_WHISPER_TRANSCRIBE_SETTINGS: WhisperTranscribeSettingsPublic =
@@ -33,6 +39,8 @@ export const DEFAULT_WHISPER_TRANSCRIBE_SETTINGS: WhisperTranscribeSettingsPubli
     gpuDeviceIndex: 0,
     decodeMode: 'smart',
     autoTranscribe: true,
+    whisperBackend: 'node',
+    whisperCliPath: '',
   };
 
 /** Profily pro ruční režim „Kvalitní“. */
@@ -110,6 +118,14 @@ export function normalizeWhisperTranscribeSettings(
       typeof input?.autoTranscribe === 'boolean'
         ? input.autoTranscribe
         : DEFAULT_WHISPER_TRANSCRIBE_SETTINGS.autoTranscribe,
+    whisperBackend:
+      input?.whisperBackend === 'node' || input?.whisperBackend === 'cli'
+        ? input.whisperBackend
+        : DEFAULT_WHISPER_TRANSCRIBE_SETTINGS.whisperBackend,
+    whisperCliPath:
+      typeof input?.whisperCliPath === 'string'
+        ? input.whisperCliPath.trim()
+        : DEFAULT_WHISPER_TRANSCRIBE_SETTINGS.whisperCliPath,
   };
 }
 

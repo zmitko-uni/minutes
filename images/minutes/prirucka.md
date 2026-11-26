@@ -166,6 +166,8 @@ Minutes zaznamenává, **kdo mluvil** (podle aktivity mikrofonu ve skupině i u 
 5. Po nahrání hovoru se přepis spustí sám (fronta v **Přepisy (Minutes)**), pokud je v sekci **Výkon přepisu** zapnutý přepínač **Spouštět přepis automaticky po skončení hovoru**
 6. Je-li přepínač vypnutý, přepis se po hovoru nespustí. Nahrávka zůstane uložená a přepis spustíte ručně: **Přepisy (Minutes)** → vyberte nahrávku → záložka **Přepis** → **Spustit přepis**. Běžící přepis ve frontě můžete zrušit u jeho položky; zastaví se okamžitě
 
+**Whisper backend:** v **Nastavení Přepisů (Minutes)** v sekci **Whisper backend** vyberete, čím se přepis spouští — **Vestavěný (whisper.node)** (součást aplikace, Windows a macOS) nebo **Externí whisper-cli** (program whisper.cpp nainstalovaný v systému). Na **Linuxu** vestavěný backend není k dispozici a přepis vyžaduje `whisper-cli` (Arch / Manjaro: `sudo pacman -S whisper-cpp`, pro NVIDIA GPU navíc `ggml-cuda`). Pole **Cesta k whisper-cli** nechte prázdné, pokud je program v `PATH`. Řádek **Whisper backend** ukazuje, který backend se použije, nebo proč žádný není k dispozici.
+
 **Tip:** Model **Medium** je menší alternativa pro slabší PC bez grafiky. **Small** je rychlejší, ale u češtiny často dělá chyby. **Large v3** je nejpřesnější, ale nejpomalejší.
 
 Přepis probíhá **lokálně** — audio se do cloudu neposílá. Do cloudu jde až text, pokud zapnete **AI shrnutí** nebo **AI korekci přepisu**.
@@ -445,6 +447,8 @@ Hláška **Runtime: Chybí node-llama-cpp** a text `Cannot find package …/slee
 ### Přepis hovoru nejde
 
 - Dokončete instalaci Whisperu v **Nastavení Přepisů (Minutes)**
+- Je-li tlačítko **Spustit přepis** neaktivní, najeďte na něj myší — popisek uvede důvod (chybí model, nedostupný Whisper backend, chybí PCM záznam nahrávky)
+- Zkontrolujte řádek **Whisper backend** v **Nastavení Přepisů (Minutes)**; na Linuxu nainstalujte `whisper-cli` (viz Přepis (Whisper) výše)
 - Sledujte frontu v **Přepisy (Minutes)**
 
 ### AI „Opravit přepis“ nic nezměnila / text vypadá stejně
