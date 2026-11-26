@@ -59,6 +59,17 @@ export function resolveWhisperBackend(input: {
   };
 }
 
+export function selectWhisperBackendForUi(
+  backend: WhisperBackendPublic
+): WhisperBackend {
+  if (backend.effective != null) {
+    return backend.effective;
+  }
+  return backend.preferred === 'node' && !backend.node.ready
+    ? 'cli'
+    : backend.preferred;
+}
+
 export function describeTranscriptionBlockedReason(
   state: CallSummaryExtensionPublic,
   hasPcmSidecar: boolean

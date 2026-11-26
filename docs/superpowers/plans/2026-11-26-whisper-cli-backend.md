@@ -222,7 +222,7 @@ export function runWhisperCliTranscribe(options: {
 ### Task 7: End-to-end verification (Linux)
 
 - [ ] **Step 1:** `whisper-cli --help` works; build AppImage per README „Linux AppImage (x64)“ and start it.
-- [ ] **Step 2:** Nastavení Přepisů: „Vestavěný (whisper.node)“ disabled with `Unsupported platform: linux-x64…`; „Externí whisper-cli“ selected; row „Whisper backend“ shows `/usr/bin/whisper-cli`. Download Large v3 Turbo + activate.
+- [ ] **Step 2:** Nastavení Přepisů: „Vestavěný (whisper.node)“ disabled with `Unsupported platform: linux-x64…`; „Externí whisper-cli“ selected; row „Whisper backend“ shows `Externí whisper-cli — whisper-cli`. Download Large v3 Turbo + activate.
 - [ ] **Step 3:** Recording `2026-11-25T08-26-26-098Z_Jakub_Eliáš_01a03de0_78d2742b` → „Spustit přepis“: progress moves, log contains `ggml_cuda_init` (GPU) or runs on CPU; transcript has speakers aligned (compare with `~/Dokumenty/Minutes-prepisy/…mluvci.txt`).
 - [ ] **Step 4:** Cancel a running job → stops immediately, no leftover `/tmp/minutes-whisper-*`.
 - [ ] **Step 5:** Set cli path to `/nonexistent` → button disabled with tooltip `whisper-cli nenalezen (/nonexistent)`; log line `enqueue: transcription blocked` when triggered via auto-transcribe.

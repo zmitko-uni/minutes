@@ -9,11 +9,51 @@ import {
   buildCliGpuAcceleration,
   describeTranscriptionBlockedReason,
   resolveWhisperBackend,
+  selectWhisperBackendForUi,
 } from '../../minutes/whisperBackend.std.ts';
 
 const CLI_DEFAULT = { executable: 'whisper-cli' };
 
 describe('minutes/whisperBackend', () => {
+  describe('selectWhisperBackendForUi', () => {
+    it('fresh Linux (node preferred, unavailable, cli missing) -> cli', () => {
+      const backend = resolveWhisperBackend({
+        preferred: 'node',
+        node: { ready: false, error: 'Unsupported platform' },
+        cli: { ready: false, ...CLI_DEFAULT },
+      });
+      assert.isNull(backend.effective);
+      assert.equal(selectWhisperBackendForUi(backend), 'cli');
+    });
+
+    it('effective wins over preferred', () => {
+      const backend = resolveWhisperBackend({
+        preferred: 'node',
+        node: { ready: false, error: 'x' },
+        cli: { ready: true, ...CLI_DEFAULT },
+      });
+      assert.equal(selectWhisperBackendForUi(backend), 'cli');
+    });
+
+    it('preferred cli with missing cli -> cli', () => {
+      const backend = resolveWhisperBackend({
+        preferred: 'cli',
+        node: { ready: true },
+        cli: { ready: false, ...CLI_DEFAULT },
+      });
+      assert.equal(selectWhisperBackendForUi(backend), 'cli');
+    });
+
+    it('preferred node and ready -> node', () => {
+      const backend = resolveWhisperBackend({
+        preferred: 'node',
+        node: { ready: true },
+        cli: { ready: false, ...CLI_DEFAULT },
+      });
+      assert.equal(selectWhisperBackendForUi(backend), 'node');
+    });
+  });
+
   describe('resolveWhisperBackend', () => {
     it('node preferred and ready -> node', () => {
       const r = resolveWhisperBackend({

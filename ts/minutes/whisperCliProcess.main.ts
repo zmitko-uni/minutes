@@ -6,6 +6,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { createLogger } from '../logging/log.std.ts';
 import {
   onTranscriptionJobCancelled,
   throwIfTranscriptionCancelled,
@@ -25,10 +26,15 @@ import {
 import type { WhisperWorkerRequest } from './whisperWorker.node.ts';
 import type { WhisperWorkerResult } from './whisperWorkerProcess.main.ts';
 
+const log = createLogger('minutes/whisper-cli');
+
 type CliRuntimeStatus = WhisperBackendStatus & { executable: string };
 
 const RUNTIME_CHECK_TIMEOUT_MS = 5000;
 const STDERR_TAIL_BYTES = 4096;
+const CANCEL_CLOSE_WAIT_MS = 2000;
+const CLEANUP_RETRIES = 5;
+const CLEANUP_RETRY_DELAY_MS = 200;
 
 const runtimeCheckCache = new Map<string, Promise<CliRuntimeStatus>>();
 
@@ -40,6 +46,7 @@ function runHelp(executable: string): Promise<boolean> {
       child = spawn(executable, ['--help'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         timeout: RUNTIME_CHECK_TIMEOUT_MS,
+        windowsHide: true,
       });
     } catch {
       resolve(false);
@@ -109,6 +116,7 @@ export async function runWhisperCliTranscribe(options: {
     const stderrTail = await new Promise<string>((resolve, reject) => {
       const child = spawn(options.executable, args, {
         stdio: ['ignore', 'ignore', 'pipe'],
+        windowsHide: true,
       });
       let settled = false;
       let tail = '';
@@ -124,8 +132,18 @@ export async function runWhisperCliTranscribe(options: {
 
       unsubscribeCancel = onTranscriptionJobCancelled(options.jobId, () => {
         settle(() => {
+          const rejectCancelled = (): void =>
+            reject(new TranscriptionCancelledError());
+          if (child.exitCode != null || child.signalCode != null) {
+            rejectCancelled();
+            return;
+          }
+          const timer = setTimeout(rejectCancelled, CANCEL_CLOSE_WAIT_MS);
+          child.once('close', () => {
+            clearTimeout(timer);
+            rejectCancelled();
+          });
           child.kill('SIGKILL');
-          reject(new TranscriptionCancelledError());
         });
       });
 
@@ -176,6 +194,18 @@ export async function runWhisperCliTranscribe(options: {
     return parseWhisperCliJson(json);
   } finally {
     unsubscribeCancel();
-    await rm(dir, { recursive: true, force: true });
+    try {
+      await rm(dir, {
+        recursive: true,
+        force: true,
+        maxRetries: CLEANUP_RETRIES,
+        retryDelay: CLEANUP_RETRY_DELAY_MS,
+      });
+    } catch (error) {
+      log.warn(
+        'Failed to remove temporary whisper-cli directory',
+        (error as Error).message
+      );
+    }
   }
 }

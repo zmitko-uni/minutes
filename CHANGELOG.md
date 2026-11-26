@@ -18,7 +18,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - **Linux:** přepis hovorů vyžaduje `whisper-cli` — `whisper-cpp-node` nemá prebuild pro linux-x64, vestavěný backend proto na Linuxu nefunguje. Arch / Manjaro: `sudo pacman -S whisper-cpp` (+ `ggml-cuda` pro NVIDIA GPU). Podrobnosti v README → Whisper backend.
 
 ### Fixed
-- **Spustit přepis** už úlohu tiše nezahodí, když Whisper není připravený: tlačítko je neaktivní s popiskem důvodu (chybí model, nedostupný backend, chybí PCM záznam) a důvod se zapíše do logu.
+- **Spustit přepis** už úlohu tiše nezahodí, když Whisper není připravený: tlačítko je neaktivní s popiskem důvodu (chybí model, nedostupný backend, chybí PCM záznam) a když se úloha zablokuje, důvod se zapíše do logu.
 
 ## [8.36.0-m1.6.4-beta.4] - 2026-11-22
 

@@ -1,7 +1,7 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { useCallback, useEffect, useState, type JSX } from 'react';
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { ipcRenderer } from 'electron';
 
 import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
@@ -23,6 +23,7 @@ import {
   type CallSummaryExtensionProgress,
   type CallSummaryExtensionPublic,
 } from '../callSummaryExtension.std.ts';
+import { selectWhisperBackendForUi } from '../whisperBackend.std.ts';
 import {
   WHISPER_DECODE_MODE_OPTIONS,
   type WhisperDecodeMode,
@@ -121,6 +122,7 @@ export function MinutesCallSummaryExtensionModal({
     null
   );
   const [isBusy, setIsBusy] = useState(false);
+  const isCliPathFocusedRef = useRef(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transcribeSettings, setTranscribeSettings] =
     useState<WhisperTranscribeSettingsPublic>(state.transcribeSettings);
@@ -149,6 +151,13 @@ export function MinutesCallSummaryExtensionModal({
   useEffect(() => {
     return callSummaryExtensionEvents.on(next => {
       setState(next);
+      if (isCliPathFocusedRef.current) {
+        setTranscribeSettings(prev => ({
+          ...next.transcribeSettings,
+          whisperCliPath: prev.whisperCliPath,
+        }));
+        return;
+      }
       setTranscribeSettings(next.transcribeSettings);
     });
   }, []);
@@ -215,10 +224,21 @@ export function MinutesCallSummaryExtensionModal({
     []
   );
 
+  const saveWhisperCliPath = (): void => {
+    if (
+      transcribeSettings.whisperCliPath ===
+      state.transcribeSettings.whisperCliPath
+    ) {
+      return;
+    }
+    persistTranscribeSettings({
+      whisperCliPath: transcribeSettings.whisperCliPath,
+    });
+  };
+
   const { whisperBackend } = state;
   const whisperBackendLabel = getWhisperBackendLabel(whisperBackend);
-  const selectedWhisperBackend =
-    whisperBackend.effective ?? whisperBackend.preferred;
+  const selectedWhisperBackend = selectWhisperBackendForUi(whisperBackend);
 
   const isActive =
     state.activated && state.modelReady && state.whisperRuntimeReady;
@@ -477,10 +497,17 @@ export function MinutesCallSummaryExtensionModal({
                       whisperCliPath,
                     }));
                   }}
+                  onFocus={() => {
+                    isCliPathFocusedRef.current = true;
+                  }}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter') {
+                      saveWhisperCliPath();
+                    }
+                  }}
                   onBlur={() => {
-                    persistTranscribeSettings({
-                      whisperCliPath: transcribeSettings.whisperCliPath,
-                    });
+                    isCliPathFocusedRef.current = false;
+                    saveWhisperCliPath();
                   }}
                 />
                 <span className={tw('text-label-small opacity-70')}>
@@ -553,7 +580,9 @@ export function MinutesCallSummaryExtensionModal({
                           value={String(device.index)}
                           textValue={device.label}
                         >
-                          <AxoSelect.ItemText>{device.label}</AxoSelect.ItemText>
+                          <AxoSelect.ItemText>
+                            {device.label}
+                          </AxoSelect.ItemText>
                         </AxoSelect.Item>
                       ))}
                     </AxoSelect.Content>

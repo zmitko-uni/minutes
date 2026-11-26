@@ -37,6 +37,7 @@ import {
 } from './whisperTranscribe.main.ts';
 import {
   buildCliGpuAcceleration,
+  describeTranscriptionBlockedReason,
   resolveWhisperBackend,
   type WhisperBackendPublic,
 } from './whisperBackend.std.ts';
@@ -637,7 +638,10 @@ export async function transcribeCallRecording(options: {
   try {
     const extension = await getCallSummaryExtensionPublic();
     if (!extension.activated || !extension.modelFileName) {
-      throw new Error('Rozšíření Sumarizace hovoru není aktivní.');
+      throw new Error(
+        describeTranscriptionBlockedReason(extension, true) ??
+          'Rozšíření Sumarizace hovoru není aktivní.'
+      );
     }
 
     throwIfTranscriptionCancelled(options.jobId);

@@ -210,6 +210,38 @@ setInterval(() => undefined, 1000);
     assert.isFalse(spawned);
   });
 
+  it('a failing cleanup does not replace the original rejection', async function test() {
+    if (process.platform === 'win32' || process.getuid?.() === 0) {
+      this.skip();
+    }
+    const before = await listWhisperTempDirs();
+    const executable = await writeFake(`
+const dir = require('node:path').dirname(of);
+fs.writeFileSync(of + '.partial', 'x');
+fs.chmodSync(dir, 0o555);
+process.stderr.write('selhalo\\n');
+process.exit(4);
+`);
+    let error: Error | undefined;
+    try {
+      await run(executable);
+    } catch (e) {
+      error = e as Error;
+    }
+    const leftover = (await listWhisperTempDirs()).filter(
+      name => !before.includes(name)
+    );
+    await Promise.all(
+      leftover.map(async name => {
+        const path = join(tmpdir(), name);
+        await chmod(path, 0o755);
+        await rm(path, { recursive: true, force: true });
+      })
+    );
+    assert.include(error?.message, 'whisper-cli skončil s kódem 4');
+    assert.lengthOf(leftover, 1);
+  });
+
   describe('checkWhisperCliRuntime', () => {
     it('reports not found for a missing executable', async () => {
       assert.deepEqual(
