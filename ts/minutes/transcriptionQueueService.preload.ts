@@ -72,14 +72,17 @@ class TranscriptionQueueService {
   enqueue(
     metadata: CallRecordingMetadata,
     kind: TranscriptionJobKind = 'transcription',
-    options?: TranscriptionJobOptions
+    options?: TranscriptionJobOptions,
+    notifyUser = false
   ): void {
     if (kind === 'transcription' && !isCallSummaryExtensionActive()) {
       log.warn(
         'enqueue: transcription blocked',
         describeTranscriptionBlockedReason(getCallSummaryExtensionState(), true)
       );
-      showCallSummaryExtensionRequiredToast();
+      if (notifyUser) {
+        showCallSummaryExtensionRequiredToast();
+      }
       return;
     }
 
@@ -130,7 +133,7 @@ class TranscriptionQueueService {
       return false;
     }
 
-    this.enqueue(metadata, kind, options);
+    this.enqueue(metadata, kind, options, true);
     return true;
   }
 
