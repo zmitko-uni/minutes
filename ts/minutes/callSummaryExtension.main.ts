@@ -261,6 +261,7 @@ export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtens
       transcribeSettings,
       gpuAcceleration,
       cpuCount,
+      whisperBackend: DEFAULT_CALL_SUMMARY_EXTENSION.whisperBackend,
     };
   }
 
@@ -278,6 +279,7 @@ export async function getCallSummaryExtensionPublic(): Promise<CallSummaryExtens
     transcribeSettings,
     gpuAcceleration,
     cpuCount,
+    whisperBackend: DEFAULT_CALL_SUMMARY_EXTENSION.whisperBackend,
   };
 }
 

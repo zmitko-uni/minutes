@@ -13,6 +13,7 @@ import {
   DEFAULT_WHISPER_TRANSCRIBE_SETTINGS,
   type WhisperTranscribeSettingsPublic,
 } from './whisperTranscribeSettings.std.ts';
+import type { WhisperBackendPublic } from './whisperBackend.std.ts';
 
 /** @deprecated use DEFAULT_WHISPER_MODEL.fileName */
 export const DEFAULT_WHISPER_MODEL_FILE = DEFAULT_WHISPER_MODEL.fileName;
@@ -59,6 +60,7 @@ export type CallSummaryExtensionPublic = Readonly<{
   transcribeSettings: WhisperTranscribeSettingsPublic;
   gpuAcceleration: WhisperGpuAccelerationPublic;
   cpuCount: number;
+  whisperBackend: WhisperBackendPublic;
 }>;
 
 export type CallSummaryExtensionProgress = Readonly<{
@@ -91,6 +93,13 @@ export const DEFAULT_CALL_SUMMARY_EXTENSION: CallSummaryExtensionPublic = {
     statusLabel: '—',
   },
   cpuCount: 1,
+  whisperBackend: {
+    preferred: 'node',
+    effective: null,
+    node: { ready: false },
+    cli: { ready: false, executable: 'whisper-cli' },
+    reason: null,
+  },
 };
 
 export const EXTENSION_REQUIRED_TOAST_CS = `Aktivujte funkcionalitu a stáhněte potřebné rozšíření v menu ${APP_DISPLAY_NAME} → Nastavení přepisů…`;
