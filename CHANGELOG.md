@@ -14,6 +14,11 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.36.0-m1.6.5] - 2026-11-27
+
+### Added
 - **Přepis hovorů**: v Nastavení Přepisů jde zvolit **Whisper backend** — **Vestavěný (whisper.node)** nebo **Externí whisper-cli**, včetně volitelné cesty k programu. Na Linuxu vestavěný backend není (chybí prebuild) a přepis běží přes `whisper-cli`.
 - **Přepis hovorů**: přepínač **Spouštět přepis automaticky po skončení hovoru**. Vypnutím se přepis nespustí sám; nahrávka zůstane uložená a přepis jde spustit ručně tlačítkem **Spustit přepis** (#78).
 - **Přepis hovorů**: běžící přepis lze zrušit hned. Běží v samostatném procesu, který se při zrušení ukončí (#78).
