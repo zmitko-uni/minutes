@@ -14,7 +14,20 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+- **Přepis hovorů**: v Nastavení Přepisů jde zvolit **Whisper backend** — **Vestavěný (whisper.node)** nebo **Externí whisper-cli**, včetně volitelné cesty k programu. Na Linuxu vestavěný backend není (chybí prebuild) a přepis běží přes `whisper-cli`.
+- **Přepis hovorů**: přepínač **Spouštět přepis automaticky po skončení hovoru**. Vypnutím se přepis nespustí sám; nahrávka zůstane uložená a přepis jde spustit ručně tlačítkem **Spustit přepis** (#78).
+- **Přepis hovorů**: běžící přepis lze zrušit hned. Běží v samostatném procesu, který se při zrušení ukončí (#78).
+- **Nahrávky hovoru**: bez sdílení se do videa ukládají dlaždice účastníků s označením mluvčího, se zapnutou kamerou nebo iniciály.
+
+### Changed
+- **Jádro aplikace**: produkce přechází na Signal Desktop **8.36.0** (předtím 8.32.0). Volání a nahrávání hovorů běží na **RingRTC 2.74** (Windows i macOS).
+
+### Fixed
+- **Spustit přepis** už úlohu tiše nezahodí, když Whisper není připravený. Tlačítko je neaktivní a v popisku ukáže důvod (chybí model, nedostupný backend, chybí PCM záznam).
+- **Aplikace po přechodu na Signal 8.36**: Minutes nehlásí aktualizaci oficiálního Signalu a neinstaluje ho. Data zůstávají ve složce Minutes (`%APPDATA%\Minutes` / `Minutes-Beta`, na macOS `~/Library/Application Support/Minutes` / `Minutes-Beta`), takže aplikace nechce připojit nové zařízení.
+- **Lokální AI**: v nainstalované aplikaci jde znovu stáhnout a zapnout lokální model. Instalátor už nevynechává JavaScript, který `node-llama-cpp` potřebuje při startu (#77).
+- **Nahrávky hovoru (Windows)**: stažení podpory MP4 už nespadne, když je v systému PowerShell 7.
+- **Nahrávky hovoru**: příchozí sdílení se nahrává i při skrytém okně hovoru. Nové WebM mají uloženou délku a index, takže v přehrávači jde přeskakovat.
 
 ## [8.36.0-m1.6.4-beta.5] - 2026-11-26
 
